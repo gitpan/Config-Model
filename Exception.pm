@@ -1,7 +1,7 @@
 # $Author: ddumont $
-# $Date: 2006/03/10 13:03:18 $
+# $Date: 2006/03/10 15:58:51 $
 # $Name:  $
-# $Revision: 1.1 $
+# $Revision: 1.3 $
 
 #    Copyright (c) 2005,2006 Dominique Dumont.
 #
@@ -25,6 +25,9 @@ package Config::Model::Exception ;
 use Error ;
 use warnings ;
 use strict;
+
+use vars qw($VERSION) ;
+$VERSION = sprintf "%d.%03d", q$Revision: 1.3 $ =~ /(\d+)\.(\d+)/;
 
 push @Exception::Class::Base::ISA, 'Error';
 
@@ -320,7 +323,7 @@ __END__
 
 =head1 NAME
 
-Config::Model::Exception - Exception mechanism for OpenCall Configuration
+Config::Model::Exception - Exception mechanism for configuration model
 
 =head1 SYNOPSIS
 
@@ -347,8 +350,7 @@ Config::Model::Exception - Exception mechanism for OpenCall Configuration
 
 You must read L<Exception::Class> and L<Error> before reading on.
 
-This module creates all the exception class used by OpenCall configuration 
-framework.
+This module creates all the exception class used by L<Config::Model>.
 
 All expection class name begins with C<Config::Model::Exception::>
 
