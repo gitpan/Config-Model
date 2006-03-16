@@ -1,16 +1,14 @@
 # http://module-build.sourceforge.net/META-spec.html
 #XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
 name:         config-model
-version:      0.502
+version:      0.503
 version_from: Model.pm
 installdirs:  site
 requires:
     Error:                         0
     Exception::Class:              0
-    Log::Log4perl:                 0
-    Pod::Usage:                    0
+    Parse::RecDescent:             1.90
     Scalar::Util:                  0
-    Struct::Compare:               0
     Test::More:                    0
 
 distribution_type: module
