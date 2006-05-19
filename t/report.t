@@ -1,8 +1,8 @@
 # -*- cperl -*-
 # $Author: ddumont $
-# $Date: 2006/05/17 12:04:24 $
+# $Date: 2006/05/19 13:28:00 $
 # $Name:  $
-# $Revision: 1.4 $
+# $Revision: 1.2 $
 
 use ExtUtils::testlib;
 use Test::More tests => 6;
@@ -46,55 +46,79 @@ my $step = 'std_id:ab X=Bv - std_id:bc X=Av - a_string="toto tata" '
 ok( $root->load( step => $step, permission => 'intermediate' ),
   "set up data in tree with '$step'");
 
-my $dts = $root->dump_tree;
+my $report = $root->report;
 
-print "dts string:\n$dts" if $trace ;
+print "report string:\n$report" if $trace ;
 
 my $expect = <<'EOF' ;
-std_id:ab
-  X=Bv -
-std_id:bc
-  X=Av -
-lista=a,b,c,d
-listb=b,c,d
-olist:0
-  X=Av -
-olist:1
-  X=Bv -
-warp
-  sub_slave
-    sub_slave - - -
-a_string="toto tata" -
+std_id:ab X = Bv
+
+std_id:ab DX = Dv
+
+std_id:bc X = Av
+
+std_id:bc DX = Dv
+
+  lista:0 = a
+
+  lista:1 = b
+
+  lista:2 = c
+
+  lista:3 = d
+
+  listb:0 = b
+
+  listb:1 = c
+
+  listb:2 = d
+
+olist:0 X = Av
+
+olist:0 DX = Dv
+
+olist:1 X = Bv
+
+olist:1 DX = Dv
+
+ string_with_def = "yada yada"
+
+ a_string = "toto tata"
+
+ int_v = 10
 EOF
 
-is($dts,$expect,"check dump of only customized values ") ;
+is($report,$expect,"check dump of only customized values ") ;
 
-$dts = $root->dump_tree( full_dump => 1 );
-print "dts string:\n$dts" if $trace  ;
+$report = $root->audit();
+print "audit string:\n$report" if $trace  ;
 
 $expect = <<'EOF' ;
-std_id:ab
-  X=Bv
-  DX=Dv -
-std_id:bc
-  X=Av
-  DX=Dv -
-lista=a,b,c,d
-listb=b,c,d
-olist:0
-  X=Av
-  DX=Dv -
-olist:1
-  X=Bv
-  DX=Dv -
-warp
-  sub_slave
-    sub_slave - - -
-string_with_def="yada yada"
-a_string="toto tata"
-int_v=10 -
+std_id:ab X = Bv
+
+std_id:bc X = Av
+
+  lista:0 = a
+
+  lista:1 = b
+
+  lista:2 = c
+
+  lista:3 = d
+
+  listb:0 = b
+
+  listb:1 = c
+
+  listb:2 = d
+
+olist:0 X = Av
+
+olist:1 X = Bv
+
+ a_string = "toto tata"
 EOF
 
-is($dts,$expect,"check dump of all values ") ;
+is($report,$expect,"check dump of all values ") ;
 
 
