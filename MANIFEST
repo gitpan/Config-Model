@@ -1,5 +1,6 @@
 AnyId.pm
 AnyThing.pm
+AutoRead.pm
 ChangeLog
 Dumper.pm
 examples/fstab/FstabModel.pl
@@ -20,7 +21,9 @@ ObjTreeScanner.pm
 Report.pm
 README
 Searcher.pm
+TermUI.pm
 t/array_id.t
+t/auto_read.t
 t/big_model.pm
 t/dump_tree.t
 t/grab.t
@@ -35,6 +38,7 @@ t/obj_tree_scanner.t
 t/recursive_warp_value.t
 t/report.t
 t/search_element.t
+t/term_ui.t
 t/value.t
 t/value_compute.t
 t/value_refer_to.t
