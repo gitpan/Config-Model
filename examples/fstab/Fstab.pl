@@ -1,7 +1,7 @@
 # $Author: ddumont $
-# $Date: 2006/05/19 12:35:21 $
+# $Date: 2006/07/20 11:53:25 $
 # $Name:  $
-# $Revision: 1.1 $
+# $Revision: 1.2 $
 
 #    Copyright (c) 2005,2006 Dominique Dumont.
 #
@@ -33,22 +33,30 @@
 # - by line
 
 # Sorting by device is not possible since we can mount one device
-# under several mount points. Sorting by mount point is difficeult
+# under several mount points. Sorting by mount point is difficult
 # since all swap devices have a 'none' mount point.
-# So I've decided not to sort at all and store the fstab information
-# one by one in a collection. Hence the 'list' type of 'line' element.
-$model ->create_config_class 
-  (
+# So I've decided to use a label for fstab entries. This label
+# will be constructed by the parser, but it cannot be stored
+# in the fstab file. Hopefully, this will be easier to use 
+# than a simple list.
+
+[
+  [
    name => "Fstab",
-   element => [ line => { type => 'list' ,
+   element => [ fs   => { type => 'hash' ,
+			  index_type => 'string',
 			  collected_type => 'node',
 			  config_class_name => 'FsLine'
 			}
-	      ]
-  ) ;
+	      ],
+   class_description => 'static information about the filesystems',
+   'description' 
+   => [ fs => 'Each "fs" element contain the information about one filesystem. Each filesystem is referred in this model by a label constructed by the fstab parser. This label cannot be stored in the fstab file, so if you create a new file system, the label you will choose may not be stored and will be re-created by the fstab parser' ],
+   # of course this could change if the information is stored outside
+   # of /etc/fstab
+  ],
 
-$model ->create_config_class 
-  (
+  [
    name => "FsLine",
 
    'class_description' => 'data of one /etc/fstab line',
@@ -138,11 +146,10 @@ $model ->create_config_class
 			 default => 0,
 		       },
       ]
-  ) ;
+  ],
 
 # These options are available for all file systems (according to mount(8))
-$model->create_config_class
-  (
+  [
    name => "CommonOptions",
    class_description => "options valid for all types of file systems",
    description => [
@@ -174,10 +181,9 @@ $model->create_config_class
 		       }
 	       },
       ]
-  ) ;
+  ],
 
-$model->create_config_class
-  (
+  [
    name => "SwapOptions",
    class_description => "Swap options",
    'element' 
@@ -186,11 +192,10 @@ $model->create_config_class
 	       value_type => 'boolean',
 	     },
       ]
-  ) ;
+  ],
 
 # not all options are listed to keep example, err..., simple.
-$model ->create_config_class 
-  (
+  [
    name => "Ext2FsOpt",
 
    # all common option are part of ext2 options
@@ -210,10 +215,9 @@ $model ->create_config_class
 		    choice => [qw/continue remount-ro panic/],
 		  },
       ],
-  );
+  ],
 
-$model ->create_config_class 
-  (
+  [
    name => "Ext3FsOpt",
 
    # ext3 feature all ext2 options
@@ -251,10 +255,9 @@ $model ->create_config_class
         . 'system, pass the mode to the kernel as boot parameter, e.g. '
         . 'rootflags=data=journal.'
       ]
-  );
+  ],
 
-$model ->create_config_class 
-  (
+  [
    name => "Iso9660_Opt",
    inherit => 'CommonOptions' ,
    'element' 
@@ -262,7 +265,9 @@ $model ->create_config_class
 				   value_type => 'boolean',
 			     },
       ]
-  ) ;
+  ],
+] ;
 
-1;
+# do not put 1; at the end of the file
+
 
