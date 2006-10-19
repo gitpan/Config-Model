@@ -1,7 +1,7 @@
 # $Author: ddumont $
-# $Date: 2006/07/18 12:13:39 $
+# $Date: 2006/10/11 11:34:25 $
 # $Name:  $
-# $Revision: 1.6 $
+# $Revision: 1.8 $
 
 #    Copyright (c) 2005,2006 Dominique Dumont.
 #
@@ -27,7 +27,7 @@ use Carp;
 use strict;
 
 use vars qw($VERSION);
-$VERSION = sprintf "%d.%03d", q$Revision: 1.6 $ =~ /(\d+)\.(\d+)/;
+$VERSION = sprintf "%d.%03d", q$Revision: 1.8 $ =~ /(\d+)\.(\d+)/;
 
 =head1 NAME
 
@@ -63,12 +63,20 @@ is called on the root of the tree.
 
 =cut 
 
-foreach my $datum (qw/element_name index_value parent instance/) {
+foreach my $datum (qw/element_name parent instance/) {
     no strict "refs";       # to register new methods in package
     *$datum = sub {
-	my $self= shift;
+	my $self = shift;
 	return $self->{$datum};
     } ;
+}
+
+# index_value can be written to when move method is called. But let's
+# not advertise this feature.
+sub index_value {
+    my $self = shift;
+    $self->{index_value} = shift if @_;
+    return $self->{index_value} ;
 }
 
 =head2 get_type()
@@ -115,6 +123,7 @@ sub location {
     $element = '' unless defined $element;
 
     my $idx = $self->index_value;
+    $idx = '"'.$idx.'"' if defined $idx && $idx =~ /\s/ ;
 
     my $str = '';
     $str .= $self->parent->location
@@ -168,13 +177,13 @@ required item. (mandatory)
 When set to 1, C<grab> will throw an exception if no object is found
 using the passed string. When set to 0, the object found at last will
 be returned. For instance, for the step C<good_step wrong_step>, only
-the object held by C<good_step> will be returned.
+the object held by C<good_step> will be returned. (default is 1)
 
 =item type 
 
-Either C<node>, C<leaf>. Return only an object of requested
-type. Depending on C<strict> value, C<grab> will either throw an
-exception or return the last found object of requested type.
+Either C<node>, C<leaf>, C<hash> or C<list>. Returns only an object of
+requested type. Depending on C<strict> value, C<grab> will either
+throw an exception or return the last found object of requested type.
 (optional, default to C<undef>, which means any type of object)
 
 =item autoadd

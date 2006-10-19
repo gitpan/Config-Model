@@ -1,7 +1,7 @@
 # $Author: ddumont $
-# $Date: 2006/09/07 11:40:40 $
+# $Date: 2006/09/26 11:49:12 $
 # $Name:  $
-# $Revision: 1.6 $
+# $Revision: 1.8 $
 
 #    Copyright (c) 2005,2006 Dominique Dumont.
 #
@@ -36,7 +36,7 @@ use warnings::register ;
 
 use vars qw/$VERSION/ ;
 
-$VERSION = sprintf "%d.%03d", q$Revision: 1.6 $ =~ /(\d+)\.(\d+)/;
+$VERSION = sprintf "%d.%03d", q$Revision: 1.8 $ =~ /(\d+)\.(\d+)/;
 
 use Carp qw/croak confess cluck/;
 
@@ -64,6 +64,29 @@ an existing model:
 
  my $inst = $model->instance (root_class_name => 'SomeRootClass', 
                               instance_name => 'test1');
+
+Usually, directory (or directories) holding configuration files is
+specified within the configuration model. For test purpose you can
+specify this directory with any of these parameters :
+
+=over
+
+=item read_directory
+
+Where to read the configuration files
+
+=item write_directory
+
+Where to write back the configuration files
+
+=item directory
+
+Where to read I<and> write configuration files
+
+=back
+
+Note that C<all> directory specified within the configuration model
+will be overridden.
 
 =cut
 
@@ -370,8 +393,6 @@ sub write_back {
     my $self = shift ;
     map { &$_ } @{$self->{write_back}} ;
 }
-
-=cut
 
 1;
 

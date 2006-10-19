@@ -1,7 +1,7 @@
 # $Author: ddumont $
-# $Date: 2006/09/07 11:42:06 $
+# $Date: 2006/10/11 11:38:01 $
 # $Name:  $
-# $Revision: 1.3 $
+# $Revision: 1.5 $
 
 #    Copyright (c) 2005,2006 Dominique Dumont.
 #
@@ -31,7 +31,7 @@ use strict;
 use base qw/Config::Model::AnyId/ ;
 
 use vars qw($VERSION) ;
-$VERSION = sprintf "%d.%03d", q$Revision: 1.3 $ =~ /(\d+)\.(\d+)/;
+$VERSION = sprintf "%d.%03d", q$Revision: 1.5 $ =~ /(\d+)\.(\d+)/;
 
 =head1 NAME
 
@@ -48,8 +48,8 @@ Config::Model::ListId - Handle list element for configuration model
        => { type => 'list',
             max => 123, 
             max_nb => 2 ,
-            collected_type => 'leaf',
-            element_args => {value_type => 'string'},
+            cargo_type => 'leaf',
+            cargo_args => {value_type => 'string'},
           },
       ]
   ) ;

@@ -1,8 +1,8 @@
 # -*- cperl -*-
 # $Author: ddumont $
-# $Date: 2006/04/21 12:12:10 $
+# $Date: 2006/10/11 11:45:16 $
 # $Name:  $
-# $Revision: 1.4 $
+# $Revision: 1.6 $
 
 use warnings FATAL => qw(all);
 
@@ -31,15 +31,15 @@ $model ->create_config_class
        => {
 	   type => 'hash',
 	   index_type => 'string',
-	   collected_type => 'node',
+	   cargo_type => 'node',
 	   config_class_name => 'RSlave' ,
 	  },
        big_compute
        => {
 	   type => 'hash',
 	   index_type => 'string',
-	   collected_type => 'leaf',
-	   element_args 
+	   cargo_type => 'leaf',
+	   cargo_args 
 	   => {
 	       value_type => 'string',
 	       compute    => ['macro is $m, my idx: &index, '
@@ -68,8 +68,8 @@ $model ->create_config_class
        => {
 	   type => 'hash',
 	   index_type => 'string',
-	   collected_type => 'leaf',
-	   element_args 
+	   cargo_type => 'leaf',
+	   cargo_args 
 	   => {
 	       value_type => 'string',
 	       compute    => [
@@ -107,7 +107,7 @@ $model -> create_config_class
 	=> {
 	    type => 'hash',
             index_type => 'string',
-	    collected_type => 'node',
+	    cargo_type => 'node',
 	    config_class_name => 'RSlave',
 	   },
 	W => {

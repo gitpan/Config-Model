@@ -1,7 +1,7 @@
 # $Author: ddumont $
-# $Date: 2006/07/18 16:11:12 $
+# $Date: 2006/10/11 11:36:06 $
 # $Name:  $
-# $Revision: 1.7 $
+# $Revision: 1.9 $
 
 #    Copyright (c) 2006 Dominique Dumont.
 #
@@ -30,7 +30,7 @@ use Config::Model::Exception ;
 use Config::Model::ObjTreeScanner ;
 
 use vars qw($VERSION);
-$VERSION = sprintf "%d.%03d", q$Revision: 1.7 $ =~ /(\d+)\.(\d+)/;
+$VERSION = sprintf "%d.%03d", q$Revision: 1.9 $ =~ /(\d+)\.(\d+)/;
 
 =head1 NAME
 
@@ -130,8 +130,13 @@ sub dump_tree {
     my $ret = '';
 
     my $compute_pad = sub {
-        my @level = split / +/, shift->location;
-        return '  ' x scalar @level;
+	my $depth = 0 ;
+	my $obj = shift ;
+	while (defined $obj->parent) { 
+	    $depth ++ ;
+	    $obj = $obj->parent ;
+	}
+        return '  ' x $depth;
     };
 
     my $std_cb = sub {
@@ -155,7 +160,7 @@ sub dump_tree {
 
         my $pad      = $compute_pad->($obj);
 	my $list_obj = $obj->fetch_element($element) ;
-        my $elt_type = $list_obj->collected_type ;
+        my $elt_type = $list_obj->cargo_type ;
 
         if ( $elt_type eq 'node' ) {
             foreach my $k ( @keys ) {
@@ -181,7 +186,9 @@ sub dump_tree {
 
         my $pad = $compute_pad->($obj);
         $ret .= "\n$pad$element";
-        $ret .= ":$key" if $type eq 'list' or $type eq 'hash';
+	if ($type eq 'list' or $type eq 'hash') {
+	    $ret .= ":$key" ;
+	}
 
         $view_scanner->scan_node($next);
     };

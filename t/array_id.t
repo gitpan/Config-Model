@@ -1,8 +1,8 @@
 # -*- cperl -*-
 # $Author: ddumont $
-# $Date: 2006/09/07 11:50:06 $
+# $Date: 2006/10/11 11:42:18 $
 # $Name:  $
-# $Revision: 1.4 $
+# $Revision: 1.6 $
 
 use warnings FATAL => qw(all);
 
@@ -20,8 +20,8 @@ ok(1,"Compilation done");
 
 my @element = ( 
 	       # Value constructor args are passed in their specific array ref
-	       collected_type => 'leaf',
-	       element_args => {value_type => 'string'},
+	       cargo_type => 'leaf',
+	       cargo_args => {value_type => 'string'},
 	      ) ;
 
 # minimal set up to get things working

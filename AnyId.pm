@@ -1,7 +1,7 @@
 # $Author: ddumont $
-# $Date: 2006/09/07 11:38:10 $
+# $Date: 2006/10/19 11:22:58 $
 # $Name:  $
-# $Revision: 1.6 $
+# $Revision: 1.11 $
 
 #    Copyright (c) 2005,2006 Dominique Dumont.
 #
@@ -29,7 +29,7 @@ use Carp;
 use strict;
 
 use vars qw($VERSION) ;
-$VERSION = sprintf "%d.%03d", q$Revision: 1.6 $ =~ /(\d+)\.(\d+)/;
+$VERSION = sprintf "%d.%03d", q$Revision: 1.11 $ =~ /(\d+)\.(\d+)/;
 
 use base qw/Config::Model::WarpedThing/;
 
@@ -58,20 +58,20 @@ Config::Model::AnyId - Base class for hash or list element
 
             # hash boundaries
             min => 1, max => 123, max_nb => 2 ,
-            collected_type => 'leaf',
-            element_args => {value_type => 'string'},
+            cargo_type => 'leaf',
+            cargo_args => {value_type => 'string'},
           },
       bounded_list 
        => { type => 'list',                 # list id
 
             max => 123, 
-            collected_type => 'leaf',
-            element_args => {value_type => 'string'},
+            cargo_type => 'leaf',
+            cargo_args => {value_type => 'string'},
           },
       hash_of_nodes 
       => { type => 'hash',                 # hash id
            index_type  => 'integer',
-           collected_type => 'node',
+           cargo_type => 'node',
            config_class_name => 'Foo' ,
          },
       ]
@@ -102,14 +102,14 @@ sub new {
 
     bless $self,$type;
 
-    foreach my $p (qw/element_name collected_type instance config_model/) {
+    foreach my $p (qw/element_name cargo_type instance config_model/) {
 	$self->{$p} = delete $args_ref->{$p} or
 	  croak "$type->new: Missing $p parameter" ;
     }
 
     $self->_set_parent(delete $args_ref->{parent}) ;
 
-    $self->{element_class} = delete $args_ref->{element_class} ;
+    $self->{cargo_class} = delete $args_ref->{cargo_class} ;
 
     return $self ;
 }
@@ -124,16 +124,27 @@ A hash or list element must be declared with the following parameters:
 
 Mandatory element type. Must be C<hash> or C<list> to have a
 collection element.  The actual element type must be specified by
-C<collected_type> (See </"CAVEATS">).
+C<cargo_type> (See </"CAVEATS">).
 
 =item index_type
 
 Either C<integer> or C<string>. Mandatory for hash.
 
-=item collected_type
+=item cargo_type
 
-Specifies the type of cargo held by the hash of list. Can be C<node> or
-C<value> (default).
+Specifies the type of cargo held by the hash of list. Can be C<node>
+or C<value> (default).
+
+=item cargo_args
+
+Constructor arguments passed to the cargo object. See
+L<Config::Model::Node> when C<cargo_type> is C<node>. See 
+L<Config::Model::Value> when C<cargo_type> is C<value>.
+
+=item config_class_name
+
+Specifies the type of configuration object held in the hash. Only
+valid when C<cargo_type> is C<node>.
 
 =item min
 
@@ -161,6 +172,14 @@ To perform special set-up on children nodes you can also use
    default =>  { 'foo' => 'X=Av Y=Bv'  ,
 		 'bar' => 'Y=Av Z=Cv' }
 
+
+=item follow
+
+Specifies that the keys of the hash follow the keys of another hash in
+the configuration tree. In other words, the hash you're creating will
+always have the same keys as the other hash.
+
+   follow => '- another_hash'
 
 =item auto_create
 
@@ -216,7 +235,7 @@ For instance, with this model:
                                                   B => { max_nb => 2 }
                                                 }
                                       },
-                        collected_type => 'node',
+                        cargo_type => 'node',
                         config_class_name => 'Dummy'
                       },
      ]
@@ -260,8 +279,8 @@ leads to a nb of items greater than the max_nb constraint.
 
 =cut
 
-my @common_params =  qw/min max max_nb default auto_create 
-                             element_args/ ;
+my @common_params =  qw/min max max_nb default follow auto_create 
+                             cargo_args/ ;
 
 my @allowed_warp_params = (@common_params,qw/config_class_name permission/) ;
 
@@ -329,7 +348,7 @@ sub set {
     }
 
     # handle config_class_name warp
-    $self->set_element_class(\%args)  ;
+    $self->set_cargo_class(\%args)  ;
 
     Config::Model::Exception::Model
 	->throw (
@@ -340,8 +359,8 @@ sub set {
 
 =head1 Introspection methods
 
-The following methods returns the current value of the Id object (as
-declared in the model unless they were warped):
+The following methods returns the current value stored in the Id
+object (as declared in the model unless they were warped):
 
 =over
 
@@ -357,11 +376,13 @@ declared in the model unless they were warped):
 
 =item auto_create 
 
-=item collected_type 
+=item cargo_type 
 
-=item element_class 
+=item cargo_class 
 
-=item element_args morph
+=item cargo_args 
+
+=item morph
 
 =item config_model
 
@@ -369,8 +390,8 @@ declared in the model unless they were warped):
 
 =cut
 
-for my $datum (qw/min max max_nb index_type default auto_create 
-                  collected_type element_class element_args morph
+for my $datum (qw/min max max_nb index_type default follow auto_create 
+                  cargo_type cargo_class cargo_args morph
                   config_model/) {
     no strict "refs";       # to register new methods in package
     *$datum = sub {
@@ -382,7 +403,7 @@ for my $datum (qw/min max max_nb index_type default auto_create
 =head2 get_cargo_type()
 
 Returns the object type contained by the hash or list (i.e. returns
-C<collected_type>).
+C<cargo_type>).
 
 =cut
 
@@ -392,8 +413,33 @@ sub get_cargo_type {
     # the returned cargo type might be different from collected type
     # when collected type is 'warped_node'. 
     #return @ids ? $self->fetch_with_id($ids[0])->get_cargo_type
-    #  : $self->{collected_type} ;
-    return $self->{collected_type} ;
+    #  : $self->{cargo_type} ;
+    return $self->{cargo_type} ;
+}
+
+=head2 get_default_keys
+
+Returns a list ref of the current default keys. These keys can be set
+by the C<default> parameters or by the other hash pointed by C<follow>
+parameter.
+
+=cut
+
+sub get_default_keys {
+    my $self = shift ;
+
+    if ($self->{follow}) {
+	my $followed = $self->grab(step => $self->{follow},
+				   type => $self->get_type,
+				  ) ;
+	return [ $followed -> get_all_indexes ];
+    }
+    elsif (defined $self->{default}) {
+	return $self->{default} ;
+    }
+    else {
+	return [] ;
+    }
 }
 
 =head2 name()
@@ -413,7 +459,7 @@ sub name
 Returns the config_class_name of collected elements. Valid only
 for collection of nodes.
 
-This method will return undef if C<collected_type> is not C<node>.
+This method will return undef if C<cargo_type> is not C<node>.
 
 =cut
 
@@ -426,11 +472,11 @@ sub config_class_name
 # internal. This method will deal with warp when collected elements
 # are node type. This will handle morphing (i.e loose copy of
 # configuration data from old node object to new node object).
-sub set_element_class {
+sub set_cargo_class {
     my $self=shift;
     my $arg_ref = shift ;
 
-    return unless $self->{collected_type} eq 'node' ;
+    return unless $self->{cargo_type} eq 'node' ;
 
     $self->set_parent_element_property($arg_ref) ;
 
@@ -457,7 +503,7 @@ sub set_element_class {
 	$self->delete($idx) ;
 
 	my $morph = $self->{warp}{morph} ;
-	my $args = $self->{element_args} || [] ;
+	my $args = $self->{cargo_args} || [] ;
 
 	# create a new object from scratch
 	$self->auto_vivify($idx) ;
@@ -503,6 +549,17 @@ sub check {
     my ($self,$idx) = @_ ; 
 
     my @error  ;
+
+    if ($self->{follow}) {
+	my $followed = $self->grab(step => $self->{follow},
+				   type => $self->get_type,
+				  ) ;
+	if ($followed->exists($idx)) {
+	    return 1;
+	}
+	$self->{error} = ["key $idx does not exists in ".$followed->name] ;
+	return 0 ;
+    }
 
     my $nb =  $self->fetch_size ;
     my $new_nb = $nb ;
@@ -587,6 +644,7 @@ sub move {
     my $ok = $self->check($to) ;
     if ($ok) {
 	$self->_store($to, $moved) ;
+	$moved->index_value($to) ;
     }
     else {
 	# restore moved item where it came from
@@ -633,17 +691,18 @@ Returns an array containing all indexes of the hash or list.
 
 sub get_all_indexes {
     my $self = shift;
-    $self->create_default if defined $self->{default};
+    $self->create_default if (   defined $self->{default} 
+			      or defined $self->{follow});
     return $self->_get_all_indexes ;
 }
 
 
-# auto vivify must create according to collected_type
+# auto vivify must create according to cargo_type
 # node -> Node or user class
 # leaf -> Value or user class
 
 # warped node cannot be used. Same effect can be achieved by warping 
-# element_args 
+# cargo_args 
 
 my %element_default_class 
   = (
@@ -660,31 +719,31 @@ my %can_override_class
 #internal
 sub auto_vivify {
     my ($self,$idx) = @_ ;
-    my $class = $self->{element_class} ;
-    my $element_args = $self->{element_args} || {} ;
+    my $class = $self->{cargo_class} ;
+    my $cargo_args = $self->{cargo_args} || {} ;
 
-    my $collected_type = $self->{collected_type} ;
+    my $cargo_type = $self->{cargo_type} ;
 
     Config::Model::Exception::Model 
 	-> throw (
 		  object => $self,
-		  message => "unknown '$collected_type' collected_type:  "
-		  ."in element_args. Expected "
+		  message => "unknown '$cargo_type' cargo_type:  "
+		  ."in cargo_args. Expected "
 		  .join (' or ',keys %element_default_class)
 		 ) 
-	      unless defined $element_default_class{$collected_type} ;
+	      unless defined $element_default_class{$cargo_type} ;
 
     my $el_class = 'Config::Model::'
-      . $element_default_class{$collected_type} ;
+      . $element_default_class{$cargo_type} ;
 
     if (defined $class) {
 	Config::Model::Exception::Model 
 	    -> throw (
 		      object => $self,
-		      message => "$collected_type class "
+		      message => "$cargo_type class "
 		      ."cannot be overidden by '$class'"
 		     ) 
-	      unless $can_override_class{$collected_type} ;
+	      unless $can_override_class{$cargo_type} ;
 	$el_class = $class;
     }
 
@@ -702,13 +761,13 @@ sub auto_vivify {
     my $item ;
 
     # check parameters passed by the user
-    if ($collected_type eq 'node') {
+    if ($cargo_type eq 'node') {
 	Config::Model::Exception::Model 
 	    -> throw (
 		      object => $self,
-		      message => "Missing 'element_args' parameter (hash ref)"
+		      message => "Missing 'cargo_args' parameter (hash ref)"
 		     ) 
-	      unless ref $element_args eq 'HASH' ;
+	      unless ref $cargo_args eq 'HASH' ;
 
 	Config::Model::Exception::Model 
 	    -> throw (
@@ -721,13 +780,13 @@ sub auto_vivify {
 	$item = $self->{parent} 
 	  -> new( @common_args ,
 		  config_class_name => $self->{config_class_name},
-		  %$element_args) ;
+		  %$cargo_args) ;
     }
     else {
 	$item = $el_class->new( @common_args,
 				parent => $self->{parent} ,
 				instance => $self->{instance} ,
-				%$element_args) ;
+				%$cargo_args) ;
     }
 
     $self->_store($idx,$item) ;
@@ -798,12 +857,6 @@ sub clear {
 1;
 
 __END__
-
-=head1 CAVEATS
-
-The argument that specifies the type of the element stored in the hash
-or list is named C<collected_type>. This name sounds lame. If a native
-english speaker can suggest a better name, I'll be glad to change it.
 
 =head1 AUTHOR
 
