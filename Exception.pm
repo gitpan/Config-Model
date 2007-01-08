@@ -1,9 +1,9 @@
 # $Author: ddumont $
-# $Date: 2006/07/18 16:20:38 $
+# $Date: 2007/01/08 12:48:22 $
 # $Name:  $
-# $Revision: 1.5 $
+# $Revision: 1.8 $
 
-#    Copyright (c) 2005,2006 Dominique Dumont.
+#    Copyright (c) 2005-2007 Dominique Dumont.
 #
 #    This file is part of Config-Model.
 #
@@ -27,7 +27,7 @@ use warnings ;
 use strict;
 
 use vars qw($VERSION) ;
-$VERSION = sprintf "%d.%03d", q$Revision: 1.5 $ =~ /(\d+)\.(\d+)/;
+$VERSION = sprintf "%d.%03d", q$Revision: 1.8 $ =~ /(\d+)\.(\d+)/;
 
 push @Exception::Class::Base::ISA, 'Error';
 
@@ -205,9 +205,10 @@ sub full_message {
     my $location = $self->object->name ;
     my $msg = $self->description;
     my $element = $self->element ;
-    my $req = $self->req_level ;
+    my $req = $self->object
+      ->get_element_property(element => $element, property => 'permission') ;
     $msg .= " '$element' in node '$location':" ;
-    $msg .= "\n\tExpected privilege '$req' instead of '".
+    $msg .= "\n\tNeed privilege '$req' instead of '".
       $self->level."'\n";
     $msg .= "\t".$self->info."\n" if defined $self->info ;
     return $msg;
@@ -414,7 +415,7 @@ script:
 
 =head1 AUTHOR
 
-Dominique Dumont, domi@komarr.grenoble.hp.com
+Dominique Dumont, (ddumont at cpan dot org)
 
 =head1 SEE ALSO
 

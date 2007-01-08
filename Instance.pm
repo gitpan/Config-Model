@@ -1,9 +1,9 @@
 # $Author: ddumont $
-# $Date: 2006/09/26 11:49:12 $
+# $Date: 2007/01/08 12:48:22 $
 # $Name:  $
-# $Revision: 1.8 $
+# $Revision: 1.10 $
 
-#    Copyright (c) 2005,2006 Dominique Dumont.
+#    Copyright (c) 2005-2007 Dominique Dumont.
 #
 #    This file is part of Config-Model.
 #
@@ -36,7 +36,7 @@ use warnings::register ;
 
 use vars qw/$VERSION/ ;
 
-$VERSION = sprintf "%d.%03d", q$Revision: 1.8 $ =~ /(\d+)\.(\d+)/;
+$VERSION = sprintf "%d.%03d", q$Revision: 1.10 $ =~ /(\d+)\.(\d+)/;
 
 use Carp qw/croak confess cluck/;
 
@@ -398,7 +398,7 @@ sub write_back {
 
 =head1 AUTHOR
 
-Dominique Dumont, domi@komarr.grenoble.hp.com
+Dominique Dumont, (ddumont at cpan dot org)
 
 =head1 SEE ALSO
 

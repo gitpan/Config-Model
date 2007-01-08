@@ -1,9 +1,9 @@
 # $Author: ddumont $
-# $Date: 2006/12/05 17:14:48 $
+# $Date: 2007/01/08 12:48:22 $
 # $Name:  $
-# $Revision: 1.12 $
+# $Revision: 1.14 $
 
-#    Copyright (c) 2005,2006 Dominique Dumont.
+#    Copyright (c) 2005-2007 Dominique Dumont.
 #
 #    This file is part of Config-Model.
 #
@@ -29,7 +29,7 @@ use Carp;
 use strict;
 
 use vars qw($VERSION) ;
-$VERSION = sprintf "%d.%03d", q$Revision: 1.12 $ =~ /(\d+)\.(\d+)/;
+$VERSION = sprintf "%d.%03d", q$Revision: 1.14 $ =~ /(\d+)\.(\d+)/;
 
 use base qw/Config::Model::WarpedThing/;
 
@@ -947,7 +947,7 @@ __END__
 
 =head1 AUTHOR
 
-Dominique Dumont, domi@komarr.grenoble.hp.com
+Dominique Dumont, ddumont [AT] cpan [DOT] org
 
 =head1 SEE ALSO
 

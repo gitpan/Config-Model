@@ -1,9 +1,9 @@
 # $Author: ddumont $
-# $Date: 2006/10/02 11:35:48 $
+# $Date: 2007/01/08 12:48:23 $
 # $Name:  $
-# $Revision: 1.3 $
+# $Revision: 1.5 $
 
-#    Copyright (c) 2006 Dominique Dumont.
+#    Copyright (c) 2006-2007 Dominique Dumont.
 #
 #    This file is part of Config-Model.
 #
@@ -29,7 +29,7 @@ use warnings ;
 use Config::Model::Exception ;
 
 use vars qw($VERSION);
-$VERSION = sprintf "%d.%03d", q$Revision: 1.3 $ =~ /(\d+)\.(\d+)/;
+$VERSION = sprintf "%d.%03d", q$Revision: 1.5 $ =~ /(\d+)\.(\d+)/;
 
 =head1 NAME
 
@@ -416,7 +416,7 @@ sub _auto_choose_elt {
 
 =head1 AUTHOR
 
-Dominique Dumont, domi@komarr.grenoble.hp.com
+Dominique Dumont, (ddumont at cpan dot org)
 
 =head1 SEE ALSO
 

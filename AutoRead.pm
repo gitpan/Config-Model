@@ -1,9 +1,9 @@
 # $Author: ddumont $
-# $Date: 2006/12/05 17:16:57 $
+# $Date: 2007/01/08 12:48:22 $
 # $Name:  $
-# $Revision: 1.5 $
+# $Revision: 1.8 $
 
-#    Copyright (c) 2005,2006 Dominique Dumont.
+#    Copyright (c) 2005-2007 Dominique Dumont.
 #
 #    This file is part of Config-Model.
 #
@@ -31,7 +31,7 @@ use UNIVERSAL ;
 
 use base qw/Config::Model::AnyThing/ ;
 
-our $VERSION = sprintf "%d.%03d", q$Revision: 1.5 $ =~ /(\d+)\.(\d+)/;
+our $VERSION = sprintf "%d.%03d", q$Revision: 1.8 $ =~ /(\d+)\.(\d+)/;
 
 =head1 NAME
 
@@ -130,7 +130,7 @@ To read and write only cds files :
   read_config  => 'cds', 
   write_config => 'cds' ;
 
-=for comment
+=begin comment
 
 To migrate from custom format to xml:
 
@@ -282,7 +282,7 @@ __END__
 
 =head1 AUTHOR
 
-Dominique Dumont, domi@komarr.grenoble.hp.com
+Dominique Dumont, (ddumont at cpan dot org)
 
 =head1 SEE ALSO
 
