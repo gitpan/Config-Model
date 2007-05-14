@@ -47,7 +47,20 @@ my $log4perl_conf = -e $log4perl_conf_file ? $log4perl_conf_file
 
 Log::Log4perl::init($log4perl_conf);
 
-my $ui_type = 'shell';
+
+my $ui_type ;
+
+eval {require Config::Model::CursesUI ;} ;
+
+if ($@) {
+    warn "You should install Config::Model::CursesUI for a more friendly user interface\n";
+    $ui_type = 'shell' ;
+}
+else {
+    $ui_type = 'curses';
+}
+
+
 my $model_dir ;
 my $root_model ;
 my $trace = 0 ;
@@ -56,18 +69,18 @@ my $wr_conf_dir ;
 
 =head1 NAME
 
-Config::Model::Node - Class for configuration tree node
+config-edit - Edit data of configuration managed by Config::Model
 
 =head1 SYNOPSIS
 
-  config-model [options] -root_model Fstab
+  config-edit [options] -model Fstab
 
 =head1 DESCRIPTION
 
 Config-model is a general purpose configuration framework. Models
 stored in /C</etc/config-model.d> are configuration description.
 
-The config-model program will use these configuration descriptions to 
+The config-edit program will use these configuration descriptions to 
 provide a user interface so user can easily and securely modify the
 configuration of their system.
 
@@ -75,21 +88,35 @@ configuration of their system.
 
 =over
 
-=item -root_model
+=item -model
 
-Mandatory option that specifies the main item to be configured. The
-root_model must be available in C</etc/config-model.d/> directory in a
-C<.pl> file. E.g. this command:
+Mandatory option that specifies the configuration data to be
+edited. The model must be available in C</etc/config-model.d/>
+directory in a C<.pl> file. E.g. this command:
 
-  config-model -root_model Fstab
+  config-edit -model Fstab
 
-will look for C</etc/config-model.d/Fstab.pl> model file. See L<Config::Model> for more details.
+will look for C</etc/config-model.d/Fstab.pl> model file. See
+L<Config::Model> for more details.
 
 =item -if
 
-Specify the user interface type. Currently only C<shell> is possible
-which provides a shell like interface.  See L<Config::Model::TermUI>
+Specify the user interface type. 
+
+=over
+
+=item *
+
+C<shell>: provides a shell like interface.  See L<Config::Model::TermUI>
 for details.
+
+=item *
+
+C<curses>: provides a curses user interface (If
+Config::Model::CursesUI is installed).
+
+=back
+
 
 =item -model_dir
 
@@ -99,13 +126,13 @@ tests.
 =item -write_conf_dir
 
 Specify where to write the configuration files. (Actual default
-directory and file names depends on the model (See C<-root_model>
+directory and file names depends on the model (See C<-model>
 option).
 
 =item -read_conf_dir
 
 Specify where to read the configuration files. (Actual default
-directory and file names depends on the model (See C<-root_model>
+directory and file names depends on the model (See C<-model>
 option).
 
 =item -verbose
@@ -130,7 +157,7 @@ my $help = 0;
 
 my $result = GetOptions ("if=s"             => \$ui_type,
 			 "model_dir=s"      => \$model_dir,
-			 "root_model=s"     => \$root_model,
+			 "model=s"          => \$root_model,
 			 "verbose!"         => \$verbose,
 			 "debug!"           => \$debug,
 			 "trace!"           => \$trace,
@@ -155,8 +182,8 @@ if (defined $wr_conf_dir && ! -e $wr_conf_dir) {
 
 my $model = Config::Model -> new(model_dir => $model_dir) ;
 
-my $inst = $model->instance (root_class_name => $root_model,
-			     instance_name   => $root_model.'_instance',
+my $inst = $model->instance (root_class_name => $root_model ,
+			     instance_name   => $root_model ,
 			     read_directory  => $read_conf_dir,
                              write_directory => $wr_conf_dir,
 			    );
@@ -173,6 +200,24 @@ if ($ui_type eq 'shell') {
 
     # engage in user interaction
     $shell_ui -> run_loop ;
+}
+elsif ($ui_type eq 'curses') {
+    my $err_file = '/tmp/config-edit-error.log' ;
+
+    print "In case of error, check $err_file\n";
+
+    open (FH,"> $err_file") || die "Can't open $err_file: $!" ;
+    open STDERR, ">&FH";
+
+    my $dialog = Config::Model::CursesUI-> new
+      (
+       permission => 'advanced',
+      ) ;
+
+    # engage in user interaction
+    $dialog->start( $model )  ;
+
+    close FH ;
 }
 else {
     die "Unsupported user interface: $ui_type";

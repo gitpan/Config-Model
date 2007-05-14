@@ -1,7 +1,7 @@
 # $Author: ddumont $
-# $Date: 2007/02/23 12:55:16 $
+# $Date: 2007/05/09 11:46:17 $
 # $Name:  $
-# $Revision: 1.10 $
+# $Revision: 1.12 $
 
 #    Copyright (c) 2005-2006 Dominique Dumont.
 #
@@ -49,8 +49,8 @@ WriteMakefile
    dist         => {COMPRESS=>'gzip -9f', SUFFIX => 'gz'},
    PM           => \%PM ,
    MAN3PODS     => \%M3,
-   'EXE_FILES'  => [ 'config-model' ],
-   ABSTRACT     => 'Configuration model for semantic validation of data',
+   'EXE_FILES'  => [ 'config-edit' ],
+   ABSTRACT     => 'Describe and edit configuration data',
    AUTHOR       => 'Dominique Dumont (ddumont at cpan dot org)',
    PREREQ_PM    => {
 		    'Test::More'        => 0, # for test
@@ -61,6 +61,7 @@ WriteMakefile
 		    'Parse::RecDescent' => '1.90',
 		    'Scalar::Util'      => 0, # provided by perl 5.8.0
 		    'Exception::Class'  => 0,
+		    'Carp::Assert::More' => 0,
 		    'Error'             => 0
 		   },
    # cleanup required by t/auto_read.t

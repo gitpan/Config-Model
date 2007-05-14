@@ -1,7 +1,7 @@
 # $Author: ddumont $
-# $Date: 2007/01/08 12:48:23 $
+# $Date: 2007/05/04 11:31:09 $
 # $Name:  $
-# $Revision: 1.9 $
+# $Revision: 1.12 $
 
 #    Copyright (c) 2005-2007 Dominique Dumont.
 #
@@ -29,6 +29,7 @@ use Data::Dumper ;
 use Parse::RecDescent ;
 use Config::Model::Exception ;
 use Config::Model::ValueComputer ;
+use Config::Model::IdElementReference ;
 use Error qw(:try); 
 use Carp ;
 
@@ -36,7 +37,7 @@ use base qw/Config::Model::WarpedThing/ ;
 
 use vars qw($VERSION) ;
 
-$VERSION = sprintf "%d.%03d", q$Revision: 1.9 $ =~ /(\d+)\.(\d+)/;
+$VERSION = sprintf "%d.%03d", q$Revision: 1.12 $ =~ /(\d+)\.(\d+)/;
 
 =head1 NAME
 
@@ -293,9 +294,9 @@ Array ref of the possible value of an enum. Example :
 =cut
 
 sub setup_enum_choice {
-    my ($self,$choice) = @_ ;
+    my $self = shift ;
 
-    my @choice = ref $choice ? @$choice : ($choice) ;
+    my @choice = ref $_[0] ? @{$_[0]} : @_ ;
 
     # store all enum values in a hash. This way, checking
     # whether a value is present in the enum set is easier
@@ -312,7 +313,8 @@ sub setup_enum_choice {
 
 =item refer_to
 
-See L</"Value reference">.
+Returns the data structure used to specify the id element used as a
+reference. See L<Value Reference> for details.
 
 =cut
 
@@ -325,12 +327,12 @@ sub set_refer_to {
 
 =item warp
 
-See section below: </"Warp: dynamic value configuration">.
+See section below: L</"Warp: dynamic value configuration">.
 
 =item help
 
-You may provide detailed description on possible values of this tied
-scalar with a hash ref. Example:
+You may provide detailed description on possible values with a hash
+ref. Example:
 
  help => { oui => "French for 'yes'", non => "French for 'no'"}
 
@@ -351,9 +353,6 @@ sub new {
     bless $self,$type;
 
     $self->{mandatory} = $self->{allow_compute_override} = 0 ;
-
-    # this parameter is internal and is used only by CheckList
-    $self->{unique_value} = delete $args{unique_value} || 0 ;
 
     $self->{element_name} = delete $args{element_name} 
       || croak "Value new: no 'element_name' defined" ;
@@ -735,142 +734,54 @@ during start up and will fail at run time.
 =head1 Value Reference
 
 To set up an enumerated value where the possible choice depends on the
-key of a L<Config::Model::AnyId> object, you must set C<value_type>
-to C<reference>.
+key of a L<Config::Model::AnyId> object, you must:
+
+=over
+
+=item * 
+
+Set C<value_type> to C<reference>.
+
+=item *
+
+Specify the C<refer_to> parameter. 
+See L<refer_to parameter|Config::Model::IdElementReference/"refer_to parameter">.
+
+=back
+
+
+In this case, a C<IdElementReference> object is created to handle the
+relation between this value object and the refered Id. See
+L<Config::Model::IdElementReference> for details.
 
 =cut
 
 sub submit_to_refer_to {
     my $self = shift ;
 
+    $self->{ref_object} = Config::Model::IdElementReference 
+      -> new ( refer_to   => $self->{refer_to},
+	       config_elt => $self,
+	     ) ;
+
     my $refto = $self->{refer_to} ;
     my ($refer_path,%var) = ref $refto ? @$refto : ($refto) ;
 
-    $self->{refer_compute} = Config::Model::ValueComputer
-      -> new (
-	      user_formula => $refer_path ,
-	      user_var => \%var ,
-	      value_object => $self ,
-	      value_type => $self->{value_type}
-	     );
-
+    # warp registration is done for all element that are used as variable
+    # for complex reference (ie '- $foo' , {foo => '- bar'} )
     $self->register_in_other_value(\%var) ;
-  }
 
-
-
-=pod
-
-When C<value_type> is a reference, you must also set the C<refer_to>
-parameter. 
-
-=over
-
-=item * 
-
-The first argument of C<refer_to> points to an array or hash element
-in the configuration tree using the path syntax (See
-L<Config::Model::Node/grab> for details). This path is treated like a
-computaion formula. Hence it can contain variable and substitution
-like a computation formula.
-
-=item *
-
-The following arguments of C<refer_to> define the variable used in the
-path formula.
-
-=item *
-
-The available choice of this reference value is made from the
-available keys of the refered_to hash element or the range of the
-refered_to array element.
-
-=back
-
-The example means the the value must correspond to an existing host:
-
- value_type => 'reference',
- refer_to => '! host' 
-
-This example means the the value must correspond to an existing lan
-within the host whose Id is specified by hostname:
-
- value_type => 'reference',
- refer_to => ['! host:$a lan', a => '- hostname' ]
-
-If you need to combine possibilities from several hash, use the "C<+>"
-token to separate 2 paths:
-
- value_type => 'reference',
- refer_to => ['! host:$a lan + ! host:foobar lan', 
-              a => '- hostname' ]
-
-You can specify C<refer_to> with a C<choice> argument so the possible
-enum value will be the combination of the specified choice and the
-refered_to values.
-
-=cut
-
-# internal
-sub get_choice_from_refered_to {
-    my $self = shift ;
-
-    $self->submit_to_refer_to if ($self->{refer_to} and 
-				  not defined $self->{refer_compute}) ;
-
-    my $user_spec = $self->{refer_compute}->compute ;
-    my %enum_choice = map { ($_ => 1 ) } $self->get_choice ;
-
-    my @references =  split /\s+\+\s+/, $user_spec ;
-    $self->{refered_to_path} = \@references ;
-
-    for my $reference ( @references ) {
-	my @path = split (/\s+/,$reference) ;
-
-	my $element = pop @path ;
-
-	print "get_choice_from_refered_to:\n\tpath: @path, element $element\n"
-	  if $::debug ;
-
-	my $obj = $self->grab("@path");
-
-	Config::Model::Exception::UnknownElement
-	    -> throw (
-		      object => $obj,
-		      element => $element,
-		      info => "Error related to 'refer_to' element of '".
-		      $self->parent->config_class_name() . "'"
-		     ) 
-	      unless  $obj->is_element_available(name => $element) ;
-
-	my $type = $obj->element_type($element) ;
-
-	Config::Model::Exception::Model 
-	    -> throw (
-		      object => $obj,
-		      message => "element '$element' type is $type. "
-		      ."Expected hash or list or check_list"
-		     )
-	      unless $type eq 'hash' or $type eq 'list' 
-		or $type eq 'check_list';
-
-	# use a hash so choices are unique
-	map { $enum_choice{$_} = 1 }
-	  $obj->fetch_element($element)->get_all_indexes();
-    }
-
-    print "get_choice_from_refered_to:\n\tSetting choice to '", 
-      join("','",sort keys %enum_choice),"'\n"
-	if $::debug ;
-
-    $self->setup_enum_choice([sort keys %enum_choice]) ;
 }
 
+sub setup_reference_choice {
+    my $self = shift ;
+    $self->setup_enum_choice(@_) ;
+}
 
-
-=head2 Value reference example
-
-## FIXME: get an example...
+sub reference_object {
+    my $self = shift ;
+    return $self->{ref_object} ;
+}
 
 =head1 Introspection methods
 
@@ -961,11 +872,15 @@ empty).
 
 =cut
 
+sub get_default_choice {
+    goto &get_choice ;
+}
+
 sub get_choice
   {
     my $self = shift ;
-    return @{$self->{choice}} if defined $self->{choice};
-    return () ;
+
+    return @{$self->{choice} || [] } ;
   }
 
 =head2 get_help ( [ on_value ] )
@@ -1014,7 +929,8 @@ sub enum_error {
     push @error, "$self->{value_type} type does not know '$value'. Expected ".
       join(" or ",@choice) ; 
     push @error, "Expected list is given by '".
-      join("', '", @{$self->{refered_to_path}})."'" if $var eq 'reference';
+      join("', '", @{$self->{refered_to_path}})."'" 
+	if $var eq 'reference' && defined $self->{refered_to_path};
     push @error, $self->warp_error if $self->{warp};
 
     return @error ;
@@ -1101,12 +1017,6 @@ sub store {
 
     if ($ok) {
         $self->{data} = $value ; # may be undef
-
-	if ($self -> {unique_value}) {
-	    my $parent = $self->parent ;
-	    my $reference = $parent->fetch_element($self->{element_name}) ;
-	    $reference -> store_value ($self->index_value , $value) ;
-	}
     }
     elsif ($self->instance->get_value_check('store')) {
         Config::Model::Exception::WrongValue 
@@ -1138,7 +1048,7 @@ sub pre_store {
     }
 
     if (defined $self->{refer_to}) {
-	$self->get_choice_from_refered_to ;
+	$self->{ref_object}->get_choice_from_refered_to ;
     }
 
     # check if the object was initialized
@@ -1156,8 +1066,6 @@ sub pre_store {
 
     $value = $self->{convert_sub}($value) 
       if (defined $self->{convert_sub} and defined $value) ;
-
-    $self->check_unique($value) if $self->{unique_value} ;
 
     my $ok = $self->store_check($value) ;
 
@@ -1201,25 +1109,6 @@ sub _value_type_error {
 		 ) ;
 }
 
-# there's no allow override for this type.
-sub check_unique {
-    my ($self,$value) = @_ ;
-
-    my $parent = $self->parent ;
-    my $reference = $parent->fetch_element($self->{element_name}) ;
-
-    my ($known, $other_idx) 
-      = $reference -> is_value_known ($self->index_value, $value) ;
-    if ( $known ) {
-	Config::Model::Exception::User
-	    -> throw (
-		      object => $self,
-		      message => "Value '$value' is already stored in element '"
-		      . $parent->name . " $self->{element_name}:$other_idx'"
-		     ) ;
-    }
-}
-
 =head2 fetch_custom
 
 Returns the stored value if this value is different from a standard
@@ -1257,7 +1146,8 @@ sub _init {
       if ($self->{warp} and @{$self->{warp_info}{computed_master}});
 
     if (defined $self->{refer_to}) {
-	$self->get_choice_from_refered_to ;
+	$self->submit_to_refer_to ;
+	$self->{ref_object}->get_choice_from_refered_to ;
     }
 }
 
@@ -1291,9 +1181,25 @@ sub _pre_fetch {
     return $std_value ;
 }
 
-=head1 fetch()
+=head2 fetch_no_check
 
-Fetch value from leaf element
+Fetch value from leaf element without checking the value.
+
+=cut
+
+sub fetch_no_check {
+    my $self = shift ;
+
+    # always call to perform submit_to_warp
+    my $std_value = $self->_pre_fetch ;
+
+    return defined $self->{data} ? $self->{data} : $std_value ;
+
+}
+
+=head2 fetch()
+
+Check and fetch value from leaf element 
 
 =cut
 
@@ -1301,10 +1207,7 @@ sub fetch {
     my $self = shift ;
     my $inst = $self->instance ;
 
-    # allways call to perform submit_to_warp
-    my $std_value = $self->_pre_fetch ;
-
-    my $value = defined $self->{data} ? $self->{data} : $std_value ;
+    my $value = $self->fetch_no_check ;
 
     if (defined $value) {
         return $value if $self->check($value) ;
@@ -1373,33 +1276,6 @@ sub get_depend_slave {
 
     return @result ;
   }
-
-sub register_in_other_value {
-    my $self = shift;
-    my $var = shift ;
-
-    # register compute or refer_to dependency. This info may be used
-    # by other tools
-    foreach my $path (values %$var) {
-        if (ref $path eq 'HASH') {
-            # check replace rule
-            map {
-                Config::Model::Exception::Formula
-		    -> throw (
-			      error => "replace arg '$_' is not alphanumeric"
-			     ) if /\W/ ;
-	    }  (%$path) ;
-	}
-        elsif (not ref $path) {
-	    # is ref during test case
-	    #print "path is '$path'\n";
-            next if $path =~ /\$/ ; # next if path also contain a variable
-            my $master = $self->get_master_object($path);
-            next unless $master->can('register_dependency');
-            $master->register_dependency($self) ;
-	}
-    }
-}
 
 1;
 
