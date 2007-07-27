@@ -1,8 +1,8 @@
 # -*- cperl -*-
 # $Author: ddumont $
-# $Date: 2007/05/04 11:44:58 $
+# $Date: 2007/07/26 12:22:54 $
 # $Name:  $
-# $Revision: 1.5 $
+# $Revision: 1.7 $
 
 use ExtUtils::testlib;
 use Test::More tests => 6;
@@ -53,6 +53,7 @@ listb        b,c,d        list
 hash_a:titi  titi_value   string
 hash_a:toto  toto_value   string
 hash_b       [empty hash] value hash
+ordered_hash [empty hash] value hash
 olist        <SlaveZ>     node list    indexes: 0 1
 tree_macro   [undef]      enum         choice: XY XZ mXY
 warp         <SlaveY>     node
@@ -72,8 +73,8 @@ print "description string:\n$description" if $trace  ;
 
 $expect = <<'EOF' ;
 name         value        type         comment
-X            Bv           enum         choice: Av Bv Cv
 Z            [undef]      enum         choice: Av Bv Cv
+X            Bv           enum         choice: Av Bv Cv
 DX           Dv           enum         choice: Av Bv Cv Dv
 EOF
 

@@ -1,7 +1,7 @@
 # $Author: ddumont $
-# $Date: 2007/04/27 15:15:45 $
+# $Date: 2007/07/26 12:18:00 $
 # $Name:  $
-# $Revision: 1.9 $
+# $Revision: 1.11 $
 
 #    Copyright (c) 2005-2007 Dominique Dumont.
 #
@@ -25,9 +25,10 @@ package Config::Model::Exception ;
 use Error ;
 use warnings ;
 use strict;
+use Data::Dumper ;
 
 use vars qw($VERSION) ;
-$VERSION = sprintf "%d.%03d", q$Revision: 1.9 $ =~ /(\d+)\.(\d+)/;
+$VERSION = sprintf "%d.%03d", q$Revision: 1.11 $ =~ /(\d+)\.(\d+)/;
 
 push @Exception::Class::Base::ISA, 'Error';
 
@@ -43,10 +44,16 @@ use Exception::Class
 	description => 'user error' ,
       },
 
+   'Config::Model::Exception::LoadData' 
+   => { isa         => 'Config::Model::Exception::User',
+	description => 'Load data structure (perl) error' ,
+	fields      => [qw/wrong_data/] ,
+      },
+
    'Config::Model::Exception::UnavailableElement'
    => { isa         => 'Config::Model::Exception::User',
 	description => 'unavailable element',
-	fields      => [qw/object element info/],
+	fields      => [qw/object element info function/],
       },
 
    'Config::Model::Exception::ObsoleteElement'
@@ -161,6 +168,22 @@ sub xpath_message {
     return $msg;
 }
 
+package Config::Model::Exception::LoadData ;
+
+sub full_message {
+    my $self = shift;
+
+    my $obj = $self->object ;
+    my $location = defined $obj ? $obj->name :'';
+    my $msg = "Configuration item ";
+    $msg .= "'$location' " if $location ;
+    $msg .= "has a ".$self->description ;
+    $msg .= ":\n\t". $self->message."\n";
+    $msg .= Data::Dumper->Dump([$self->wrong_data],['wrong data']) ;
+
+    return $msg;
+}
+
 package Config::Model::Exception::Model ;
 
 sub full_message {
@@ -223,11 +246,10 @@ sub full_message {
     my $location = $obj->name ;
     my $msg = $self->description;
     my $element = $self->element ;
+    my $function = $self->function ;
     $msg .= " '$element' in node '$location'.\n" ;
-    my $tied = 'tied_'.$element ;
-
-    $msg .= "\t".$obj->$tied->warp_error
-      if $obj->can($tied) and $obj->$tied->can('warp_error');
+    $msg .= "\tError occured when calling $function.\n" if defined $function ;
+    $msg .= "\t".$obj->warp_error if $obj->can('warp_error');
 
     $msg .= "\t".$self->info."\n" if defined $self->info ;
     return $msg;

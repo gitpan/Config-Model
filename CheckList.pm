@@ -1,7 +1,7 @@
 # $Author: ddumont $
-# $Date: 2007/05/04 11:20:12 $
+# $Date: 2007/07/26 12:15:09 $
 # $Name:  $
-# $Revision: 1.5 $
+# $Revision: 1.8 $
 
 #    Copyright (c) 2005-2007 Dominique Dumont.
 #
@@ -33,7 +33,7 @@ use strict;
 use base qw/Config::Model::WarpedThing/ ;
 
 use vars qw($VERSION) ;
-$VERSION = sprintf "%d.%03d", q$Revision: 1.5 $ =~ /(\d+)\.(\d+)/;
+$VERSION = sprintf "%d.%03d", q$Revision: 1.8 $ =~ /(\d+)\.(\d+)/;
 
 =head1 NAME
 
@@ -523,7 +523,8 @@ sub get_checked_list {
     my $self = shift ;
 
     my %h = $self->get_checked_list_as_hash(@_) ;
-    return  grep { $h{$_} } sort keys %h ;
+    my @res = grep { $h{$_} } sort keys %h ;
+    return wantarray ? @res : \@res ;
 }
 
 =head2 fetch ()
@@ -615,6 +616,30 @@ sub set_checked_list_as_hash {
 
     while (my ($key, $value) = each %check) {
 	$self->store($key,$value) ;
+    }
+}
+
+=head2 load_data ( list_ref )
+
+Load check_list as an array ref. Data is simply forwarded to
+L<set_checked_list>.
+
+=cut
+
+sub load_data {
+    my $self = shift ;
+    my $data  = shift ;
+
+    if (ref ($data)  eq 'ARRAY') {
+	$self->set_checked_list(@$data) ;
+    }
+    else {
+	Config::Model::Exception::LoadData
+	    -> throw (
+		      object => $self,
+		      message => "load_data called with non array ref arg",
+		      wrong_data => $data ,
+		     ) ;
     }
 }
 

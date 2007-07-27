@@ -1,8 +1,8 @@
 # -*- cperl -*-
 # $Author: ddumont $
-# $Date: 2007/07/03 15:28:19 $
+# $Date: 2007/07/26 12:22:25 $
 # $Name:  $
-# $Revision: 1.14 $
+# $Revision: 1.16 $
 
 # this file is used by test script
 
@@ -58,6 +58,7 @@
 			   },
 	      ],
    inherit => 'X_base_class',
+   inherit_after => 'Z',
   ],
 
   [
@@ -111,6 +112,12 @@
 			  cargo_type => 'leaf',
 			  cargo_args => {value_type => 'string'},
 			},
+	       ordered_hash => { type => 'hash',
+				 index_type => 'string',
+				 ordered => 1 ,
+				 cargo_type => 'leaf',
+				 cargo_args => {value_type => 'string'},
+			       },
 	       olist => { type => 'list',
 			  cargo_type => 'node',
 			  config_class_name => 'SlaveZ' ,

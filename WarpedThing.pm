@@ -1,7 +1,7 @@
 # $Author: ddumont $
-# $Date: 2007/07/03 11:49:41 $
+# $Date: 2007/07/26 12:09:48 $
 # $Name:  $
-# $Revision: 1.9 $
+# $Revision: 1.12 $
 
 #    Copyright (c) 2005-2007 Dominique Dumont.
 #
@@ -27,12 +27,13 @@ use Scalar::Util qw(weaken) ;
 use Data::Dumper ;
 #use Storable qw(dclone) ;
 use Config::Model::ValueComputer ;
+use Config::Model::Exception ;
 use Carp;
 
 use warnings FATAL => qw(all);
 
 use vars qw($VERSION) ;
-$VERSION = sprintf "%d.%03d", q$Revision: 1.9 $ =~ /(\d+)\.(\d+)/;
+$VERSION = sprintf "%d.%03d", q$Revision: 1.12 $ =~ /(\d+)\.(\d+)/;
 
 use base qw/Config::Model::AnyThing/ ;
 
@@ -250,14 +251,15 @@ sub submit_to_warp {
 	  . " is warped by $warper_name => '$warper_path'\n"
 	    if $::debug;
 
+	my $warper = $self->get_warper_object($warper_path,1);
+        print "\t$warper_name ($warper_path) location in tree is: '",
+	  $warper->name,"'\n"
+	    if $::debug;
+
         # warp will register this value object in another value object
         # (the warper).  When the warper gets a new value, it will
         # modify the warped object according to the data passed by the
         # user.
-
-        my $warper = $self->get_warper_object($warper_path);
-        print "\t'$warper_path' location in tree is: '",$warper->name,"'\n"
-          if $::debug;
 
         my $type = $warper -> register ($self,$warper_name) ;
 
@@ -268,9 +270,26 @@ sub submit_to_warp {
             push @comp_master, \@store ;
 	}
 
-        # read all the warp master values, so I can warp myself 
-        # just after.
-        $value{$warper_name} = $warper->fetch;
+	# check if the warp master is available
+	my $available 
+	  = $warper->parent->is_element_available(name => $warper->element_name,
+						  permission => 'master') ;
+
+	if ($available) {
+	    # read the warp master values, so I can warp myself just
+	    # after.
+	    my $warper_value = $warper->fetch;
+	    print "\t'$warper_name' value is: '", 
+                  defined $warper_value ? $warper_value : '<undef>' ,"'\n"
+	      if $::debug;
+	     $value{$warper_name} = $warper_value ;
+	}
+	else {
+	    # consider that the warp master value is undef
+	    $value{$warper_name} = undef ;
+	    print "\t'$warper_name' is not available\n"
+	      if $::debug;
+	}
     }
 
     # now warp myself ...
@@ -328,8 +347,9 @@ sub warp {
 
     if (@_) {
         my ($value,$warp_name) = @_ ;
-        print "Warp called with value $value, name $warp_name\n"
-          if $::debug;
+        print "Warp called with value '", defined $value ? $value : '<undef>',
+	  "name $warp_name\n"
+	    if $::debug;
         $warp_value_set->{$warp_name} = $value ;
     }
 
@@ -360,6 +380,8 @@ sub warp {
     $self->_do_warp ;
 }
 
+# undef values are changed to '' so compute_bool no longer returns
+# undef. It returns either 1 or 0
 sub compute_bool {
     my $self = shift ;
     my $expr = shift ;
@@ -373,7 +395,7 @@ sub compute_bool {
     my @init_code ;
     foreach my $warper_name (keys %$warp_value_set) {
 	my $v = $warp_value_set->{$warper_name} ;
-	return undef unless defined $v ;
+	$v = '' unless defined $v ;
 	push @init_code, "my \$$warper_name = '$v' ;\n" ;
     }
 
@@ -427,7 +449,9 @@ sub _do_warp {
 }
 
 sub get_master_object {
-    my ($self, $master_path) = @_ ;
+    my ($self, $master_path, $grab_non_available ) = @_ ;
+
+    $grab_non_available = 0 unless defined $grab_non_available ;
 
     print "Retrieving master object from '", $self->name, 
       "' with path '$master_path'\n" if $::debug;
@@ -440,7 +464,8 @@ sub get_master_object {
 		 )
 	  unless ref $master_path eq 'ARRAY' || not ref $master_path ;
 
-    my $master = $self->grab($master_path);
+    my $master = $self->grab(step => $master_path, 
+			     grab_non_available => $grab_non_available);
 
     Config::Model::Exception::Internal
 	-> throw (
@@ -457,16 +482,12 @@ sub get_master_object {
 }
 
 sub get_warper_object {
-    my ($self, $warper_path) = @_ ;
+    my ($self, $warper_path, $get_non_available) = @_ ;
 
     my $ref = $self->{warper_object} ;
 
-    # better to cache the warper_object to gain speed and to avoid a
-    # strange behavior where the tied object attached to type cannot be
-    # found while I'm deep in the STORE call of type
-    return $ref->{$warper_path} if defined $ref->{$warper_path};
-
-    weaken( $ref->{$warper_path} = $self->get_master_object($warper_path) ) ;
+    $ref->{$warper_path} = $self->get_master_object($warper_path, $get_non_available) ;
+    weaken( $ref->{$warper_path} );
     return $ref->{$warper_path} ;
 }
 
@@ -544,21 +565,39 @@ sub warp_error {
     my $follow = $self->{warp}{follow} ;
     my @rules  = @{$self->{warp}{rules}} ;
 
-    # follow is either ['warp1','warp2',...] or 'warp'
-    my @warper_paths = ref($follow) eq 'ARRAY' ? 
-      @$follow : ($follow) ;
+    # follow is either ['warp1','warp2',...] 
+    # or { warp1 => {....} , ...} or 'warp'
+    my @warper_paths = ref($follow) eq 'ARRAY' ? @$follow 
+                     : ref($follow) eq 'HASH'  ? values %$follow
+                     :                           ($follow) ;
 
     my $str = "You may solve the problem by modifying ".
       (@warper_paths>1 ? "one or more of ": '').
         "the following configuration parameters:\n" ;
 
-    for (my $idx = 0; $idx < @warper_paths; $idx++) {
-        my $warper =$self->get_warper_object($warper_paths[$idx],$idx);
-        my $warper_value = $warper->fetch ;
+    my $expected_error = 'Config::Model::Exception::UnavailableElement';
+
+    foreach my $warper_path ( @warper_paths ) {
+	my $warper_value ;
+	my $warper ;
+
+	# try 
+	eval {
+	    $warper = $self->get_warper_object($warper_path);
+	    $warper_value = $warper->fetch ;
+	};
+
+	# catch
+	if ( my $e = Exception::Class->caught($expected_error) )
+        {
+	    $str .= "\t'$warper_path' which is unavailable\n" ;
+	    next ;
+        }
+
         $warper_value = 'undef' unless defined $warper_value ;
 
         my @choice = defined $warper->choice ? @{$warper->choice} :
-            $warper->{value_type} eq 'boolean' ? (0,1) : () ;
+	  $warper->{value_type} eq 'boolean' ? (0,1) : () ;
 
         my @try = sort grep { $_ ne $warper_value } @choice ;
 
