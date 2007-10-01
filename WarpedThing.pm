@@ -1,7 +1,7 @@
 # $Author: ddumont $
-# $Date: 2007/07/26 12:09:48 $
+# $Date: 2007/09/17 12:03:21 $
 # $Name:  $
-# $Revision: 1.12 $
+# $Revision: 1.14 $
 
 #    Copyright (c) 2005-2007 Dominique Dumont.
 #
@@ -33,7 +33,7 @@ use Carp;
 use warnings FATAL => qw(all);
 
 use vars qw($VERSION) ;
-$VERSION = sprintf "%d.%03d", q$Revision: 1.12 $ =~ /(\d+)\.(\d+)/;
+$VERSION = sprintf "%d.%03d", q$Revision: 1.14 $ =~ /(\d+)\.(\d+)/;
 
 use base qw/Config::Model::AnyThing/ ;
 
@@ -172,7 +172,7 @@ sub check_warp_args {
 
     # check that rules element are array ref and store them for
     # error checking
-    my $rules_ref = delete $arg_ref->{rules} ;
+    my $rules_ref =  $arg_ref->{rules} ;
     my @rules 
       = ref $rules_ref eq 'HASH'  ? %$rules_ref :
 	ref $rules_ref eq 'ARRAY' ? @$rules_ref :
@@ -298,41 +298,38 @@ sub submit_to_warp {
     return $self ;
 }
 
-# Internal. This method will change element proerties (like level and
+# Internal. This method will change element properties (like level and
 # permission) according to the warp effect.  For instance, if a warp
 # rule make a node no longer available in a model, its level must
 # change to 'hidden'
 sub set_parent_element_property {
+    my ($self, $arg_ref) = @_ ;
+
+    foreach my $property_name (qw/level permission/) {
+	my $v = delete $arg_ref->{$property_name} ;
+	if (defined $v) {
+	    $self->{parent}
+	      -> set_element_property (
+				       property=> $property_name,
+				       element => $self->{element_name},
+				       value   => $v,
+				     );
+	}
+	else {
+	    # reset ensures that property is reset to known state by default
+	    $self->{parent}
+	      ->reset_element_property(property => $property_name,
+				       element  => $self->{element_name});
+	}
+    }
+}
+
+sub set_owner_element_property {
     my $self = shift ;
-    my $arg_ref = shift ;
+    my $ref = shift ;
 
-    my $config_class_name = $arg_ref->{config_class_name};
-    my $new_permission    = $arg_ref->{permission} ;
-
-    if (not defined $config_class_name) {
-        # warp out object
-        $self->parent
-	  ->set_element_property( property => 'level',
-				  element  => $self->{element_name},
-				  value    => 'hidden') ;
-        delete $self->{data} ;
-    } else {
-        $self->parent
-	  ->reset_element_property(property => 'level',
-				   element  => $self->{element_name});
-    }
-
-    if (defined $new_permission) {
-        $self->parent
-	  -> set_element_property(property => 'permission',
-				  element  => $self->{element_name},
-				  value    => $new_permission) ;
-    }
-    else {
-        $self->parent
-	  ->reset_element_property(property => 'permission',
-				   element  => $self->{element_name});
-    }
+    my $next = $self->{id_owner} || $self ;
+    $next -> set_parent_element_property($ref) ;
 }
 
 # try to actually warp (change properties) of a warped object.

@@ -1,7 +1,7 @@
 # $Author: ddumont $
-# $Date: 2007/07/03 11:37:45 $
+# $Date: 2007/09/25 12:23:00 $
 # $Name:  $
-# $Revision: 1.6 $
+# $Revision: 1.9 $
 
 #    Copyright (c) 2005-2007 Dominique Dumont.
 #
@@ -33,7 +33,7 @@ use Data::Dumper () ;
 
 use vars qw($VERSION $compute_grammar $compute_parser) ;
 
-$VERSION = sprintf "%d.%03d", q$Revision: 1.6 $ =~ /(\d+)\.(\d+)/;
+$VERSION = sprintf "%d.%03d", q$Revision: 1.9 $ =~ /(\d+)\.(\d+)/;
 
 =head1 NAME
 
@@ -54,18 +54,34 @@ Config::Model::ValueComputer - Provides configuration value computation
        compute_int 
        => { type => 'leaf',
             value_type => 'integer',
-            compute    => [ '$a + $b', a => '- av', b => '- bv' ],
+            compute    => { formula   => '$a + $b', 
+                            variables => { a => '- av', b => '- bv'}
+                          },
             min        => -4,
             max        => 4,
           },
        [qw/sav sbv/] => {type => 'leaf',
                          value_type => 'string',
                       },
-       compute_string =>
+       compute_string
        => { type => 'leaf',
             value_type => 'string',
-            compute => [ 'meet $a and $b', a => '- sav', b => '- sbv' ],
+            compute => { formula => 'meet $a and $b', 
+                         variables => { '- sav', b => '- sbv' }
+                       },
           },
+       compute_with_replace 
+       => {
+            formula   => '$replace{$who} is the $replace{$what} of $replace{$country}',
+            variables => {
+                           who   => '! who' ,
+                           what  => '! what' ,
+                           country => '- country',
+                         },
+	    replace   => { chief => 'president', 
+                            America => 'USA'
+                         },
+    ]
       ]
  ) ;
 
@@ -81,7 +97,7 @@ value can be used as a defult value.
 =head1 Computed value declaration
 
 A computed value must be declared in a 'leaf' element. The leaf element
-must have a C<compute> argument pointing to an array ref. 
+must have a C<compute> argument pointing to a hash ref. 
 
 This array ref contains:
 
@@ -89,7 +105,7 @@ This array ref contains:
 
 =item *
 
-A string or a formula that use variables and subsitution function.
+A string formula that use variables and replace function.
 
 =item *
 
@@ -99,7 +115,7 @@ L<grab() method|Config::Model::AnyThing/"grab(...)">
 
 =item *
 
-An optional set of substitution rules.
+An optional set of replace rules.
 
 =back
 
@@ -166,7 +182,9 @@ In this numeric example, C<result> default value is C<av + bv>:
   result => { 
     type => 'leaf',
     value_type => 'integer', 
-    compute => [ '$a + $b' , a => '- av', b => '- bv' ]
+    compute => { formula => '$a + $b' , 
+                 variables => { a => '- av', b => '- bv' },
+               }
   }
 
 In this string example, the default value of the C<Comp> element is
@@ -176,28 +194,35 @@ actually a string made of "C<macro is >" and the value of the
    comp => { 
     type => 'leaf',
     value_type => 'string', 
-    compute => [ '"macro is $m"' , m => '- - macro']]
+    compute => { formula => '"macro is $m"' ,
+                 variables => { m => '- - macro' }
+               }
    }
 
-=head2 Compute substitution
+=head2 Compute replace
 
 Sometime, using the value of a tree leaf is not enough and you need to
 substitute a replacement for any value you can get. This replacement
-can be done using a hash like notation within the formula.
+can be done using a hash like notation within the formula using the
+C<%replace> hash.
 
 For instance, if you want to display a summary of a config, you can do :
 
- compute => [
-   '$munge{$who} is the $munge{$what} of $munge{$country}'
-    who   => '! who' ,
-    what  => '! what' ,
-    country => '- country',
-    munge => {  chief => 'president', America => 'USA'}
-    ]
+       compute_with_replace 
+       => {
+            formula => '$replace{$who} is the $replace{$what} of $replace{$country}',
+            variables => {
+                           who   => '! who' ,
+                           what  => '! what' ,
+                           country => '- country',
+                         },
+            replace => {  chief => 'president', 
+                          America => 'USA'
+                       },
 
 =head2 Complex formula
 
-C<&index>, C<&element>, and substitution can be combined. But the
+C<&index>, C<&element>, and replace can be combined. But the
 argument of C<&element> or C<&index> can only be a value object
 specification (I.e. something like 'C<- - foo>'), it cannot be a value
 replacement of another C<&element> or C<&index>.
@@ -208,13 +233,16 @@ I.e. C<&element($foo)> is ok, but C<&element(&index($foo))> is not allowed.
 
 Compute variables can themselves be computed :
 
-   compute => [
-     'get_element is $element_table{$s}, indirect value is \'$v\'',
-     's' => '! $where',
-      where => '! where_is_element',
-      v => '! $element_table{$s}',
-      element_table => { qw/m_value_element m_value compute_element compute/ }
-    ]
+   compute => {
+     formula => 'get_element is $replace{$s}, indirect value is \'$v\'',
+     variables => { 's' => '! $where',
+                     where => '! where_is_element',
+                     v => '! $replace{$s}',
+                  }
+     replace   => { m_value_element => 'm_value',
+                    compute_element => 'compute' 
+                  }
+    }
 
 Be sure not to specify a loop when doing recursive computation.
 
@@ -229,7 +257,9 @@ compute parameter:
     type => 'leaf',
     value_type => 'string', 
     allow_compute_override => 1,
-    compute => [ '"macro is $m"' , m => '- - macro']
+    compute => { formula => '"macro is $m"' , 
+                 variables => { m => '- - macro' }
+               }
    }
 
 =cut
@@ -239,14 +269,23 @@ sub new {
     my %args = @_ ;
     my $self= {} ;
 
+    if ($::debug) {
+	my %show = %args ;
+	delete $show{value_object} ;
+	print Data::Dumper->Dump([\%show],['Computedvalue_new_args']) ;
+    }
+
     # value_object is mostly used for error messages
-    foreach my $k (qw/user_formula user_var value_type value_object/) {
-	$self->{$k}=delete $args{$k} || 
+    foreach my $k (qw/formula variables value_type value_object/) {
+	$self->{$k} = delete $args{$k} || 
 	  croak "Config::Model::ValueComputer:new undefined parameter $k";
     }
 
+    $self->{replace} = delete $args{replace} || {} ;
+
     die "Config::Model::ValueComputer:new unexpected parameter: ",
       join(' ',keys %args) if %args ;
+
 
     weaken($self->{value_object}) ;
 
@@ -258,10 +297,11 @@ sub new {
     my $result_r = $compute_parser
       -> pre_compute
 	(
-	 $self->{user_formula},
+	 $self->{formula},
 	 1,
 	 $self->{value_object},
-	 $self->{user_var}
+	 $self->{variables},
+	 $self->{replace}
 	) ;
 
     $self->{pre_formula} = $$result_r ;
@@ -269,20 +309,20 @@ sub new {
     bless $self,$type ;
 }
 
-sub user_formula { return shift->{user_formula} ;}
-sub user_var     { return shift->{user_var} ;}
+sub formula { return shift->{formula} ;}
+sub variables     { return shift->{variables} ;}
 
 sub compute {
     my $self = shift ;
 
     my $pre_formula = $self->{pre_formula};
 
-    my $user_var = $self->compute_user_var ;
+    my $variables = $self->compute_variables ;
 
-    return unless defined $user_var ;
+    return unless defined $variables ;
 
     my $formula_r = $compute_parser
-      -> compute ($pre_formula, 1,$self->{value_object}, $user_var) ;
+      -> compute ($pre_formula, 1,$self->{value_object}, $variables, $self->{replace}) ;
 
     my $formula = $$formula_r ;
 
@@ -291,7 +331,7 @@ sub compute {
     print "compute: pre_formula $pre_formula\n",
       "compute: rule to eval $formula\n" if $::debug;
 
-    my $result = $self->{formula} = $formula ;
+    my $result = $self->{computed_formula} = $formula ;
 
     if ($self->{value_type} =~ /(integer|number)/) {
         $result = eval $formula ;
@@ -310,63 +350,63 @@ sub compute {
 sub compute_info {
     my $self = shift;
 
-    my $orig_user_var = $self->{user_var} ;
-    my $user_var = $self->compute_user_var ;
-    my $str = "value is computed from '$self->{user_formula}'";
+    my $orig_variables = $self->{variables} ;
+    my $variables = $self->compute_variables ;
+    my $str = "value is computed from '$self->{formula}'";
 
-    return $str unless defined $user_var ;
+    return $str unless defined $variables ;
 
-    #print Dumper $user_var ;
+    #print Dumper $variables ;
 
-    if (%$user_var) {
+    if (%$variables) {
         $str .= ", where " ;
-        foreach my $k (sort keys %$user_var) {
-	    my $u_val = $user_var->{$k} ;
+        foreach my $k (sort keys %$variables) {
+	    my $u_val = $variables->{$k} ;
 	    if (ref($u_val)) {
 		map {
-		    $str.= "\n\t\t'\$$k" . "{$_} is converted to '$orig_user_var->{$k}{$_}'";
+		    $str.= "\n\t\t'\$$k" . "{$_} is converted to '$orig_variables->{$k}{$_}'";
 		    } sort keys %$u_val ;
  	    }
 	    else {
 		my $val = defined $u_val ? $self->{value_object} ->grab($u_val) ->fetch 
 		        :                  undef ;
-		$str.= "\n\t\t'$k' from path '$orig_user_var->{$k}' is ";
+		$str.= "\n\t\t'$k' from path '$orig_variables->{$k}' is ";
 		$str.= defined $val ? "'$val'" : 'undef' ;
 	    }
 	}
     }
 
-    #$str .= " (evaluated as '$self->{formula}')"
-    #  if $self->{user_formula} ne $self->{formula} ;
+    #$str .= " (evaluated as '$self->{computed_formula}')"
+    #  if $self->{formula} ne $self->{computed_formula} ;
 
     return $str ;
 }
 
 #internal
-sub compute_user_var {
+sub compute_variables {
     my $self = shift ;
 
     # a shallow copy should be enough as we don't allow
-    # substitution in replacement rules
-    my %user_var = %{$self->{user_var}} ;
+    # replace in replacement rules
+    my %variables = %{$self->{variables}} ;
 
-    # apply a compute on all user_var until no $var is left
-    my $var_left = scalar (keys %user_var) + 1 ;
+    # apply a compute on all variables until no $var is left
+    my $var_left = scalar (keys %variables) + 1 ;
 
     while ($var_left) {
         my $old_var_left= $var_left ;
         my $did_something = 0 ;
-        foreach my $key (keys %user_var) {
-            my $value = $user_var{$key} ; # value may be undef
+        foreach my $key (keys %variables) {
+            my $value = $variables{$key} ; # value may be undef
             next unless (defined $value and $value =~ /\$/) ;
-            next if ref($value); # skip replacement rules
+            #next if ref($value); # skip replacement rules
             print "key '$key', value '$value', left $var_left\n" 
 	      if $::debug;
             my $res_r = $compute_parser
-	      -> compute ($value, 1,$self->{value_object}, \%user_var);
+	      -> compute ($value, 1,$self->{value_object}, \%variables, $self->{replace});
 	    my $res = $$res_r ;
             #return undef unless defined $res ;
-            $user_var{$key} = $res ;
+            $variables{$key} = $res ;
 	    {
 		no warnings "uninitialized" ;
 		print "\tresult '$res' left $var_left, did $did_something\n" 
@@ -374,8 +414,8 @@ sub compute_user_var {
 	    }
 	}
 
-        my @var_left =  grep {defined $user_var{$_} && $user_var{$_} =~ /\$/} 
-	  sort keys %user_var;
+        my @var_left =  grep {defined $variables{$_} && $variables{$_} =~ /\$/} 
+	  sort keys %variables;
 
         $var_left = @var_left ;
 
@@ -388,13 +428,13 @@ sub compute_user_var {
 	      unless ($var_left < $old_var_left);
     }
 
-    return \%user_var ;
+    return \%variables ;
 }
 
 $compute_grammar = << 'END_OF_GRAMMAR' ;
 
 {
-# $Revision: 1.6 $
+# $Revision: 1.9 $
 
 # This grammar is compatible with Parse::RecDescent < 1.90 or >= 1.90
 use strict;
@@ -413,14 +453,13 @@ pre_compute: <skip:''> pre_value[@arg](s) {
 }
 
 pre_value: 
-  <skip:''> object '{' /\s*/ pre_value[@arg] /\s*/ '}' {
+  <skip:''> '$replace' '{' /\s*/ pre_value[@arg] /\s*/ '}' {
      # print "pre_value handling \$foo{ ... }\n";
      my $pre_value = ${ $item{pre_value} } ;
-     my $object = $item{object};
-     my $result = exists $arg[1]->{$object}{$pre_value} ?
-       $arg[1]->{$object}{$pre_value} : 
-       "\$".$object.'{'.$pre_value.'}';
+     my $result = exists $arg[2]->{$pre_value} ? $arg[2]->{$pre_value} 
+                :                               '$replace{'.$pre_value.'}';
      $return = \$result ;
+     # print "\$foo{...} result = ",$$return," \n";
   }
   | <skip:''> function '(' /\s*/ object /\s*/ ')' {
      # print "pre_value handling &foo(...)\n";
@@ -464,6 +503,8 @@ pre_value:
 		       "expected &element(...) or &index(...)"
 		      );
      }
+     # print "\&foo(...) result = ",$$return," \n";
+     $return ;
   }
   | <skip:''> '&' /\w+/ (/\(\s*\)/)(?) {
      # print "pre_value handling &foo()\n";
@@ -525,34 +566,26 @@ compute:  <skip:''> value[@arg](s) {
   }
 
 value: 
-  <skip:''> object '{' <commit> /\s*/ value[@arg] /\s*/ '}' {
-     my $object = $item{object};
+  <skip:''> '$replace' '{' <commit> /\s*/ value[@arg] /\s*/ '}' {
      my $value = ${ $item{value} } ;
 
-     # print "value: replacement object '$object', value '$value'\n";
-     Config::Model::Exception::Formula
-         -> throw (
-		   object => $arg[0],
-		   error => "Unknown replacement rule: $object\n"
-		  )  
-	 unless defined $arg[1]->{$object} ;
-
+     # print "value: replacement, value '$value'\n";
      my $result ;
      if (defined $value and $value =~ /\$/) {
          # must keep original variable
-         $result = '$'.$object.'{'.$value.'}';
+         $result = '$replace{'.$value.'}';
        }
      elsif (defined $value)
        {
          Config::Model::Exception::Formula
              -> throw (
                        object => $arg[0],
-                        error => "Unknown replacement value for rule '$object': "
+                        error => "Unknown replacement value for replace: "
                                . "'$value'\n"
                       )
-             unless  defined $arg[1]->{$object}{$value} ;
+             unless  defined $arg[2]->{$value} ;
 
-	 $result = $arg[1]->{$object}{$value} ;
+	 $result = $arg[2]->{$value} ;
        }
      $return = \$result ;
     }

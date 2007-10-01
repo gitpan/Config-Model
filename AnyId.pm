@@ -1,7 +1,7 @@
 # $Author: ddumont $
-# $Date: 2007/07/26 11:28:39 $
+# $Date: 2007/09/17 11:50:26 $
 # $Name:  $
-# $Revision: 1.17 $
+# $Revision: 1.19 $
 
 #    Copyright (c) 2005-2007 Dominique Dumont.
 #
@@ -29,7 +29,7 @@ use Carp;
 use strict;
 
 use vars qw($VERSION) ;
-$VERSION = sprintf "%d.%03d", q$Revision: 1.17 $ =~ /(\d+)\.(\d+)/;
+$VERSION = sprintf "%d.%03d", q$Revision: 1.19 $ =~ /(\d+)\.(\d+)/;
 
 use base qw/Config::Model::WarpedThing/;
 
@@ -110,7 +110,10 @@ sub new {
 
     $self->_set_parent(delete $args_ref->{parent}) ;
 
-    $self->{cargo_class} = delete $args_ref->{cargo_class} ;
+    foreach my $p (qw/cargo_class cargo_args/) {
+	next unless defined $args_ref->{$p} ;
+	$self->{$p} = delete $args_ref->{$p} ;
+    }
 
     return $self ;
 }
@@ -306,10 +309,10 @@ leads to a nb of items greater than the max_nb constraint.
 =cut
 
 my @common_params =  qw/min max max_nb default follow auto_create 
-                             cargo_args allow allow_from/ ;
+                             allow allow_from/ ;
 
 my @allowed_warp_params 
-  = (@common_params,qw/config_class_name permission/) ;
+  = (@common_params,qw/config_class_name permission level/) ;
 
 
 # this method can be called by the warp mechanism to alter (warp) the
@@ -371,6 +374,18 @@ sub set {
 	$self->auto_create_elements ;
     }
 
+    if (    $self->{cargo_type} eq 'node' 
+	and not defined $args{config_class_name}) {
+	$args{level} = 'hidden' ;
+	# cannot delete bluntly {data} for ListId or HashId
+        $self->clear ;
+    }
+
+    $self->{current} = { level      => $args{level} ,
+			 permission => $args{permission}
+		       } ;
+    $self->SUPER::set_parent_element_property(\%args) ;
+
     # handle config_class_name warp
     $self->set_cargo_class(\%args)  ;
 
@@ -379,6 +394,30 @@ sub set {
 		 object => $self,
 		 error => "Unexpected parameters :". join(' ', keys %args)
 		) if scalar keys %args ;
+}
+
+# this method will overide setting comings from a value (or maybe a
+# warped node) with warped settings coming from this warped id. Only
+# level hidden is forwarded no matter what
+sub set_parent_element_property {
+    my $self = shift;
+    my $arg_ref = shift ;
+
+    my $cur = $self->{current} ;
+
+    # override if necessary
+    $arg_ref->{permission} = $cur->{permission} 
+      if defined $cur->{permission} ;
+
+    if (    defined $cur->{level} 
+	and ( not defined $arg_ref->{level} 
+	      or $arg_ref->{level} ne 'hidden'
+	    )
+       ) {
+	$arg_ref->{level} = $cur->{level} ;
+    }
+
+    $self->SUPER::set_parent_element_property($arg_ref) ;
 }
 
 =head1 Introspection methods
@@ -493,20 +532,17 @@ sub config_class_name
     return $self->{config_class_name} ;
   }
 
-# internal. This method will deal with warp when collected elements
-# are node type. This will handle morphing (i.e loose copy of
-# configuration data from old node object to new node object).
+# internal for cargo_type eq 'node' only. This method will deal with
+# warp when collected elements are node type. This will handle
+# morphing (i.e loose copy of configuration data from old node object
+# to new node object).
 sub set_cargo_class {
     my $self=shift;
     my $arg_ref = shift ;
 
     return unless $self->{cargo_type} eq 'node' ;
 
-    $self->set_parent_element_property($arg_ref) ;
-
     my $config_class_name = delete $arg_ref->{config_class_name};
-    # cleanup of argument
-    delete $arg_ref->{permission} ;
 
     my @current_idx = $self->_get_all_indexes ;
 
@@ -880,11 +916,12 @@ sub auto_vivify {
 	require $file ;
     }
 
-    my @common_args = (
+    my %common_args = (
 		       element_name => $self->{element_name},
 		       index_value  => $idx,
 		       instance     => $self->{instance} ,
 		      );
+
     my $item ;
 
     # check parameters passed by the user
@@ -905,12 +942,13 @@ sub auto_vivify {
 	      unless defined $self->{config_class_name} ;
 
 	$item = $self->{parent} 
-	  -> new( @common_args ,
+	  -> new( %common_args ,
 		  config_class_name => $self->{config_class_name},
 		  %$cargo_args) ;
     }
     else {
-	$item = $el_class->new( @common_args,
+	weaken($common_args{id_owner} =  $self) ;
+	$item = $el_class->new( %common_args,
 				parent => $self->{parent} ,
 				instance => $self->{instance} ,
 				%$cargo_args) ;

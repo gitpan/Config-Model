@@ -1,7 +1,7 @@
 # $Author: ddumont $
-# $Date: 2007/07/26 12:12:38 $
+# $Date: 2007/09/25 12:23:00 $
 # $Name:  $
-# $Revision: 1.16 $
+# $Revision: 1.21 $
 
 #    Copyright (c) 2005-2007 Dominique Dumont.
 #
@@ -37,7 +37,7 @@ use base qw/Config::Model::WarpedThing/ ;
 
 use vars qw($VERSION) ;
 
-$VERSION = sprintf "%d.%03d", q$Revision: 1.16 $ =~ /(\d+)\.(\d+)/;
+$VERSION = sprintf "%d.%03d", q$Revision: 1.21 $ =~ /(\d+)\.(\d+)/;
 
 =head1 NAME
 
@@ -180,14 +180,28 @@ computed value declaration.
 sub set_compute {
     my ($self, $arg_ref) = @_ ;
 
-    Config::Model::Exception::Model
-	-> throw (
-		  object => $self,
-		  error => "Compute value must be an array ref"
-		 ) 
-	  unless ref($arg_ref->{compute}) eq 'ARRAY' ;
+    my $c_ref = delete $arg_ref->{compute};
 
-    $self->{compute} = delete $arg_ref->{compute};
+    if (ref($c_ref) eq 'HASH') {
+	$self->{compute} = $c_ref ;
+    }
+    else {
+	Config::Model::Exception::Model
+	    -> throw (
+		      object => $self,
+		      error => "Compute value must be a hash ref not $c_ref"
+		     ) ;
+    }
+
+    foreach my $item (qw/formula variables/) {
+	next if defined $self->{compute}{$item} ;
+	Config::Model::Exception::Model
+	    -> throw (
+		      object => $self,
+		      error => "Missing compute $item"
+		     ) ;
+    }
+
     delete $self->{_compute} ;
 }
 
@@ -195,17 +209,18 @@ sub set_compute {
 # parameters
 sub submit_to_compute {
     my $self = shift ;
-    my ($user_formula,%var) = @{$self->{compute}} ;
 
+    my $c_info = $self->{compute} ;
     $self->{_compute} = Config::Model::ValueComputer
       -> new (
-	      user_formula => $user_formula ,
-	      user_var => \%var ,
+	      formula      => $c_info->{formula} ,
+	      variables    => $c_info->{variables} ,
+	      replace      => $c_info->{replace},
 	      value_object => $self ,
-	      value_type => $self->{value_type}
+	      value_type   => $self->{value_type}
 	     );
 
-    $self->register_in_other_value(\%var) ;
+    $self->register_in_other_value( $c_info->{variables} ) ;
 }
 
 
@@ -317,8 +332,13 @@ sub setup_enum_choice {
 
 =item refer_to
 
-Returns the data structure used to specify the id element used as a
-reference. See L<Value Reference> for details.
+Specify a path to an id element used as a reference. See L<Value
+Reference> for details.
+
+=item computed_refer_to
+
+Specify a pathto an id element used as a computed reference. See
+L<Value Reference> for details.
 
 =item warp
 
@@ -352,6 +372,7 @@ sub new {
     $self->{element_name} = delete $args{element_name} 
       || croak "Value new: no 'element_name' defined" ;
     $self->{index_value} = delete $args{index_value} ; 
+    $self->{id_owner}    = delete $args{id_owner} ; 
 
     $self->_set_parent(delete $args{parent}) ;
 
@@ -360,6 +381,7 @@ sub new {
 
     # refer_to cannot be warped because of registration
     $self->{refer_to} = delete $args{refer_to};
+    $self->{computed_refer_to} = delete $args{computed_refer_to};
 
     Config::Model::Exception::Model
 	-> throw (
@@ -373,10 +395,10 @@ sub new {
     Config::Model::Exception::Model
 	-> throw (
 		  error=> "$type creation error: "
-		  ."compute value must be an array ref",
+		  ."compute value must be a hash ref",
 		  object => $self
 		 ) 
-	  if (defined $args{compute} and ref($args{compute}) ne 'ARRAY') ;
+	  if (defined $args{compute} and ref($args{compute}) ne 'HASH') ;
 
     my $warp_info = delete $args{warp} ;
 
@@ -397,14 +419,12 @@ sub new {
 
 # warning : call to 'set' are not cumulative. Default value are always
 # restored. Lest keeping track of what was modified with 'set' is
-# too hard for the user.
+# too confusing.
 sub set {
     my $self = shift ;
 
     # cleanup all parameters that are handled by warp
     map(delete $self->{$_}, @allowed_warp_params ) ;
-       # qw/min max mandatory default built_in value_type choice
-       #    allow_compute_override refer_to/) ;
 
     # merge data passed to the constructor with data passed to set
     my %args = (%{$self->{backup}},@_ );
@@ -419,27 +439,28 @@ sub set {
 	      and not defined $args{choice}
 	    )
        ) {
-        $self->{parent}
-	      -> set_element_property(property => 'level',
-				      element  => $self->{element_name},
-				      value    =>'hidden') ;
-        delete $self->{data} ;
-        return ;
+	$args{level} = 'hidden';
+	$self->set_owner_element_property ( \%args );
+	return ;
     }
 
-    if ($args{value_type} eq 'reference' and not defined $self->{refer_to}) {
+    $self->set_owner_element_property ( \%args );
+
+    if ($args{value_type} eq 'reference' and not defined $self->{refer_to}
+	and not defined $self->{computed_refer_to}
+       ) {
 	Config::Model::Exception::Model
 	    -> throw (
 		      object => $self,
-		      error => "Missing 'refer_to' parameter with "
-		             . "'reference' value_type "
+		      error => "Missing 'refer_to' or 'computed_refer_to' "
+		             . "parameter with 'reference' value_type "
 		     ) 
 	};
+
 
     map { $self->{$_} =  delete $args{$_} if defined $args{$_} }
       qw/min max mandatory help allow_compute_override/;
 
-    $self->set_properties     ( \%args );
     $self->set_value_type     ( \%args );
     $self->set_default        ( \%args ) if (    exists $args{default} 
 					      or exists $args{built_in} );
@@ -548,27 +569,6 @@ sub set_value_type {
         Config::Model::Exception::Model
 	    -> throw (object => $self, error => $msg) 
 	      unless defined $self->{warp};
-    }
-}
-
-sub set_properties {
-    my ($self, $arg_ref) = @_ ;
-
-    foreach my $property_name (qw/level permission/) {
-	if (defined $arg_ref->{$property_name}) {
-	    my $v = delete $arg_ref->{$property_name} ;
-	    $self->{parent}
-	      -> set_element_property (
-				       property=> $property_name,
-				       element => $self->{element_name},
-				       value   => $v,
-				     );
-	}
-	else {
-	    $self->{parent}
-	      ->reset_element_property(property => $property_name,
-				       element  => $self->{element_name});
-	}
     }
 }
 
@@ -740,11 +740,10 @@ Set C<value_type> to C<reference>.
 
 =item *
 
-Specify the C<refer_to> parameter. 
+Specify the C<refer_to> or C<computed_refer_to> parameter. 
 See L<refer_to parameter|Config::Model::IdElementReference/"refer_to parameter">.
 
 =back
-
 
 In this case, a C<IdElementReference> object is created to handle the
 relation between this value object and the refered Id. See
@@ -755,20 +754,24 @@ L<Config::Model::IdElementReference> for details.
 sub submit_to_refer_to {
     my $self = shift ;
 
-    my $refto =  $self->{refer_to} ||
-      croak "value's submit_to_refer_to: undefined refer_to" ;
-
-    $self->{ref_object} = Config::Model::IdElementReference 
-      -> new ( refer_to   => $refto ,
-	       config_elt => $self,
-	     ) ;
-
-    my ($refer_path,%var) = ref $refto ? @$refto : ($refto) ;
-
-    # refer_to registration is done for all element that are used as
-    # variable for complex reference (ie '- $foo' , {foo => '- bar'} )
-    $self->register_in_other_value(\%var) ;
-
+    if (defined $self->{refer_to}) {
+	$self->{ref_object} = Config::Model::IdElementReference 
+	  -> new ( refer_to   => $self->{refer_to} ,
+		   config_elt => $self,
+		 ) ;
+    }
+    elsif (defined $self->{computed_refer_to}) {
+	$self->{ref_object} = Config::Model::IdElementReference 
+	  -> new ( computed_refer_to => $self->{computed_refer_to} ,
+		   config_elt => $self,
+		 ) ;
+	# refer_to registration is done for all element that are used as
+	# variable for complex reference (ie '- $foo' , {foo => '- bar'} )
+	$self->register_in_other_value($self->{computed_refer_to}{variables}) ;
+    }
+    else {
+	croak "value's submit_to_refer_to: undefined refer_to or computed_refer_to" ;
+    }
 }
 
 sub setup_reference_choice {
@@ -1044,7 +1047,7 @@ sub pre_store {
         return 1 ; # ok, but don't store a value
     }
 
-    if (defined $self->{refer_to}) {
+    if (defined $self->{refer_to} or defined $self->{computed_refer_to}) {
 	$self->{ref_object}->get_choice_from_refered_to ;
     }
 
@@ -1164,9 +1167,10 @@ sub _init {
     my $self = shift ;
 
     $self->warp 
-      if ($self->{warp} and defined $self->{warp_info} and @{$self->{warp_info}{computed_master}});
+      if ($self->{warp} and defined $self->{warp_info} 
+          and @{$self->{warp_info}{computed_master}});
 
-    if (defined $self->{refer_to}) {
+    if (defined $self->{refer_to} or defined $self->{computed_refer_to}) {
 	$self->submit_to_refer_to ;
 	$self->{ref_object}->get_choice_from_refered_to ;
     }
