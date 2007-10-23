@@ -1,7 +1,7 @@
 # $Author: ddumont $
-# $Date: 2007/09/17 11:50:26 $
+# $Date: 2007/10/11 11:36:02 $
 # $Name:  $
-# $Revision: 1.19 $
+# $Revision: 1.22 $
 
 #    Copyright (c) 2005-2007 Dominique Dumont.
 #
@@ -29,7 +29,7 @@ use Carp;
 use strict;
 
 use vars qw($VERSION) ;
-$VERSION = sprintf "%d.%03d", q$Revision: 1.19 $ =~ /(\d+)\.(\d+)/;
+$VERSION = sprintf "%d.%03d", q$Revision: 1.22 $ =~ /(\d+)\.(\d+)/;
 
 use base qw/Config::Model::WarpedThing/;
 
@@ -171,40 +171,43 @@ Specify the maximum value (optional, only for integer index)
 Specify the maximum number of indexes. (hash only, optional, may also
 be used with string index type)
 
-=item default
+=item default_keys
 
 When set, the default parameter (or set of parameters) are used as
 default keys hashes and created automatically when the keys or exists
 functions are used on an I<empty> hash.
 
-You can use C<< default => 'foo' >>, or C<< default => ['foo', 'bar'] >>.
+You can use C<< default_keys => 'foo' >>, 
+or C<< default_keys => ['foo', 'bar'] >>.
+
+=item default_with_init
 
 To perform special set-up on children nodes you can also use 
 
-   default =>  { 'foo' => 'X=Av Y=Bv'  ,
-		 'bar' => 'Y=Av Z=Cv' }
+   default_with_init =>  { 'foo' => 'X=Av Y=Bv'  ,
+		           'bar' => 'Y=Av Z=Cv' }
 
 
-=item follow
+=item follow_keys_from
 
 Specifies that the keys of the hash follow the keys of another hash in
 the configuration tree. In other words, the hash you're creating will
 always have the same keys as the other hash.
 
-   follow => '- another_hash'
+   follow_keys_from => '- another_hash'
 
-=item allow
+=item allow_keys
 
-Specified authorized keys:
+Specifies authorized keys:
 
-  allow => ['foo','bar','baz']
+  allow_keys => ['foo','bar','baz']
 
-=item allow_from
+=item allow_keys_from
 
-A bit like the C<follow> parameters. Except that the hash pointed to
-by C<allow_from> specified the authorized keys for this hash.
+A bit like the C<follow_keys_from> parameters. Except that the hash pointed to
+by C<allow_keys_from> specified the authorized keys for this hash.
 
-  allow_from => '- another_hash'
+  allow_keys_from => '- another_hash'
 
 =item auto_create
 
@@ -308,8 +311,8 @@ leads to a nb of items greater than the max_nb constraint.
 
 =cut
 
-my @common_params =  qw/min max max_nb default follow auto_create 
-                             allow allow_from/ ;
+my @common_params =  qw/min max max_nb default_with_init default_keys
+                        follow_keys_from auto_create allow_keys allow_keys_from/ ;
 
 my @allowed_warp_params 
   = (@common_params,qw/config_class_name permission level/) ;
@@ -435,7 +438,9 @@ object (as declared in the model unless they were warped):
 
 =item index_type 
 
-=item default 
+=item default_keys 
+
+=item default_with_init 
 
 =item auto_create 
 
@@ -453,7 +458,8 @@ object (as declared in the model unless they were warped):
 
 =cut
 
-for my $datum (qw/min max max_nb index_type default follow auto_create 
+for my $datum (qw/min max max_nb index_type default_keys default_with_init
+                  follow_keys_from auto_create 
                   cargo_type cargo_class cargo_args morph ordered
                   config_model/) {
     no strict "refs";       # to register new methods in package
@@ -483,26 +489,30 @@ sub get_cargo_type {
 =head2 get_default_keys
 
 Returns a list ref of the current default keys. These keys can be set
-by the C<default> parameters or by the other hash pointed by C<follow>
-parameter.
+by the C<default_keys> or C<default_with_init> parameters or by the
+other hash pointed by C<follow_keys_from> parameter.
 
 =cut
 
 sub get_default_keys {
     my $self = shift ;
 
-    if ($self->{follow}) {
-	my $followed = $self->grab(step => $self->{follow},
+    if ($self->{follow_keys_from}) {
+	my $followed = $self->grab(step => $self->{follow_keys_from},
 				   type => $self->get_type,
 				  ) ;
 	return [ $followed -> get_all_indexes ];
     }
-    elsif (defined $self->{default}) {
-	return $self->{default} ;
-    }
-    else {
-	return [] ;
-    }
+
+    my @res ;
+
+    push @res , @{ $self->{default_keys} }
+      if defined $self->{default_keys} ;
+
+    push @res , keys %{$self->{default_with_init}}
+      if defined $self->{default_with_init} ;
+
+    return \@res ;
 }
 
 =head2 name()
@@ -610,16 +620,16 @@ sub check {
 
     my @error  ;
 
-    if ($self->{follow}) {
-	$self->check_follow($idx) or return 0 ;
+    if ($self->{follow_keys_from}) {
+	$self->check_follow_keys_from($idx) or return 0 ;
     }
 
-    if ($self->{allow}) {
-	$self->check_allow($idx) or return 0 ;
+    if ($self->{allow_keys}) {
+	$self->check_allow_keys($idx) or return 0 ;
     }
 
-    if ($self->{allow_from}) {
-	$self->check_allow_from($idx) or return 0 ;
+    if ($self->{allow_keys_from}) {
+	$self->check_allow_keys_from($idx) or return 0 ;
     }
 
     my $nb =  $self->fetch_size ;
@@ -660,10 +670,10 @@ sub check {
 }
 
 #internal
-sub check_follow {
+sub check_follow_keys_from {
     my ($self,$idx) = @_ ; 
 
-    my $followed = $self->grab(step => $self->{follow},
+    my $followed = $self->grab(step => $self->{follow_keys_from},
 			       type => $self->get_type,
 			      ) ;
     if ($followed->exists($idx)) {
@@ -679,23 +689,23 @@ sub check_follow {
 }
 
 #internal
-sub check_allow {
+sub check_allow_keys {
     my ($self,$idx) = @_ ; 
 
-    my $ok = grep { $_ eq $idx } @{$self->{allow}} ;
+    my $ok = grep { $_ eq $idx } @{$self->{allow_keys}} ;
 
     return 1 if $ok ;
 
     $self->{error} = ["Unexpected key '$idx'. Expected '".
-		      join("', '",@{$self->{allow}} ). "'"]   ;
+		      join("', '",@{$self->{allow_keys}} ). "'"]   ;
     return 0 ;
 }
 
 #internal
-sub check_allow_from {
+sub check_allow_keys_from {
     my ($self,$idx) = @_ ; 
 
-    my $from = $self->grab(step => $self->{allow_from},
+    my $from = $self->grab(step => $self->{allow_keys_from},
 			   type => $self->get_type,
 			  ) ;
     my $ok = grep { $_ eq $idx } $from->get_all_indexes ;
@@ -854,8 +864,9 @@ are sorted alphabetically, except for ordered hashed.
 
 sub get_all_indexes {
     my $self = shift;
-    $self->create_default if (   defined $self->{default} 
-			      or defined $self->{follow});
+    $self->create_default if (   defined $self->{default_keys}
+			      or defined $self->{default_with_init}
+			      or defined $self->{follow_keys_from});
     return $self->_get_all_indexes ;
 }
 

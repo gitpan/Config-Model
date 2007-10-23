@@ -1,7 +1,7 @@
 # $Author: ddumont $
-# $Date: 2007/10/01 15:49:29 $
+# $Date: 2007/10/23 16:08:19 $
 # $Name:  $
-# $Revision: 1.41 $
+# $Revision: 1.45 $
 
 #    Copyright (c) 2005-2007 Dominique Dumont.
 #
@@ -35,7 +35,7 @@ use Config::Model::Instance ;
 # this class holds the version number of the package
 use vars qw($VERSION @status @level @permission_list %permission_index) ;
 
-$VERSION = '0.613';
+$VERSION = '0.614';
 
 =head1 NAME
 
@@ -642,7 +642,49 @@ sub translate_legacy_info {
 				      $info->{cargo_args},refer_to => 'computed_refer_to');
     }
 
+    # translate id default param
+    # default cannot be stored in cargo_args since is applies to the id itself
+    if ( defined $info->{type} 
+         and ($info->{type} eq 'list' or $info->{type} eq 'hash')
+       ) {
+	if (defined $info->{default}) {
+	    $self->translate_id_default_info($elt_name, $info);
+	} 
+	$self->translate_id_names($elt_name,$info) ;
+	if (defined $info->{warp} ) {
+	    my $rules_a = $info->{warp}{rules} ;
+	    my %h = @$rules_a ;
+	    foreach my $rule_effect (values %h) {
+		$self->translate_id_names($elt_name, $rule_effect) ;
+		next unless defined $rule_effect->{default} ;
+		$self->translate_id_default_info($elt_name, $rule_effect);
+	    }
+	}
+    }
+
     print Data::Dumper->Dump([$info ] , ['translated_'.$elt_name ] ) ,"\n" if $::debug;
+}
+
+sub translate_id_names {
+    my $self = shift;
+    my $elt_name = shift ;
+    my $info = shift;
+    $self->translate_name($elt_name, $info, 'allow',     'allow_keys') ;
+    $self->translate_name($elt_name, $info, 'allow_from','allow_keys_from') ;
+    $self->translate_name($elt_name, $info, 'follow',    'follow_keys_from') ;
+}
+
+sub translate_name {
+    my $self     = shift;
+    my $elt_name = shift ;
+    my $info     = shift;
+    my $from     = shift ;
+    my $to       = shift ;
+
+    if (defined $info->{$from}) {
+	warn "$elt_name: parameter $from is deprecated in favor of $to\n";
+	$info->{$to} = delete $info->{$from}  ;
+    }
 }
 
 sub translate_compute_info {
@@ -683,6 +725,37 @@ sub translate_compute_info {
     }
 }
 
+
+# internal: translate default information for id element
+sub translate_id_default_info {
+    my $self = shift ;
+    my $elt_name = shift ;
+    my $info = shift ;
+
+    print "translate_id_default_info $elt_name input:\n", 
+      Data::Dumper->Dump( [$info ] , [qw/info/ ]) ,"\n"
+	  if $::debug ;
+
+    my $warn = "$elt_name: 'default' parameter for list or " 
+             . "hash element is deprecated. ";
+
+    my $def_info = delete $info->{default} ;
+    if (ref($def_info) eq 'HASH') {
+	$info->{default_with_init} = $def_info ;
+	warn $warn,"Use default_with_init\n" ;
+    }
+    elsif (ref($def_info) eq 'ARRAY') {
+	$info->{default_keys} = $def_info ;
+	warn $warn,"Use default_keys\n" ;
+    }
+    else {
+	$info->{default_keys} = [ $def_info ] ;
+	warn $warn,"Use default_keys\n" ;
+    }
+    print "translate_id_default_info $elt_name output:\n",
+      Data::Dumper->Dump([$info ] , [qw/new_info/ ] ) ,"\n"
+	  if $::debug ;
+}
 
 # internal: translate warp information into 'boolean expr' => { ... }
 sub translate_warp_info {
@@ -1234,5 +1307,6 @@ L<Config::Model::Report>,
 L<Config::Model::Searcher>,
 L<Config::Model::TermUI>,
 L<Config::Model::WizardHelper>,
+L<Config::Model::AutoRead>,
 
 =cut
