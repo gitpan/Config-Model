@@ -1,7 +1,7 @@
 # $Author: ddumont $
-# $Date: 2007/10/19 11:43:41 $
+# $Date: 2007/11/15 12:02:44 $
 # $Name:  $
-# $Revision: 1.22 $
+# $Revision: 1.24 $
 
 #    Copyright (c) 2005-2007 Dominique Dumont.
 #
@@ -37,7 +37,7 @@ use base qw/Config::Model::WarpedThing/ ;
 
 use vars qw($VERSION) ;
 
-$VERSION = sprintf "%d.%03d", q$Revision: 1.22 $ =~ /(\d+)\.(\d+)/;
+$VERSION = sprintf "%d.%03d", q$Revision: 1.24 $ =~ /(\d+)\.(\d+)/;
 
 =head1 NAME
 
@@ -109,6 +109,47 @@ defined by the existing keys of a has element somewhere in the tree. See
 L</"Value Reference">.
 
 =back
+
+=head1 Default values
+
+There are several kind of default values. They depend on where these
+values are defined (or found).
+
+From the lowest default level to the "highest":
+
+=over
+
+=item *
+
+C<built_in>: The value is knows in the application, but is not written
+in the configuration file.
+
+=item *
+
+C<default>: The value is known by the model, but not by the
+application. This value must be written in the configuration file.
+
+=item *
+
+C<computed>: The value is computed from other configuration
+elements. This value must be written in the configuration file.
+
+
+=item *
+
+C<preset>: The value is not known by the model or by the
+application. But it can be found by an automatic program and stored
+while the configuration L<Config::Model::Instance|instance> is in 
+L<Config::Model::Instance/"preset_start ()"|preset mode>
+
+=back
+
+Then there is the value entered by the user. This will override all
+kind of "default" value.
+
+The L<fetch_standard> function will return the "highest" level of
+default value, but will not return a custom value, i.e. a value
+entered by the user.
 
 =head1 Constructor
 
@@ -326,8 +367,10 @@ sub setup_enum_choice {
 
     # delete the current value if it does not fit in the new
     # choice
-    delete $self->{data}
-      if (defined  $self->{data} and not $self->check($self->{data},1)) ;
+    map {
+	delete $self->{$_}
+	  if (defined  $self->{$_} and not $self->check($self->{$_},1)) ;
+    } qw/data preset/;
 }
 
 =item refer_to
@@ -475,9 +518,7 @@ sub set {
 	  if scalar keys %args ;
 
     if (defined $self->{warp_these_objects}) {
-        my $value = defined $self->{data} ? $self->{data} :
-          defined $self->{compute} ? $self->compute :
-            $self->{default} ;
+        my $value = $self->_fetch_no_check ;
         $self->warp_them($value)  ;
     }
 
@@ -547,6 +588,7 @@ sub set_value_type {
     if ($value_type eq 'boolean') {
         # convert any value to boolean
         $self->{data} = $self->{data} ? 1 : 0 if defined $self->{data};
+        $self->{preset} = $self->{preset} ? 1 : 0 if defined $self->{preset};
     }
     elsif (   $value_type eq 'reference' 
 	   or $value_type eq 'enum' 
@@ -688,8 +730,8 @@ sub warp_them
     my $self = shift ;
 
     # retrieve current value if not provided
-    my $value = @_ ? $_[0] :
-      defined $self->{data} ? $self->{data} : $self->{default}  ;
+    my $value = @_ ? $_[0] 
+              :      $self->fetch_no_check ;
 
     foreach my $ref ( @{$self->{warp_these_objects}})
       {
@@ -1026,7 +1068,12 @@ sub store {
     my ($ok,$value) = $self->pre_store(@_) ;
 
     if ($ok) {
-        $self->{data} = $value ; # may be undef
+	if ($self->instance->preset) {
+	    $self->{preset} = $value ;
+	} 
+	else {
+	    $self->{data} = $value ; # may be undef
+	}
     }
     elsif ($self->instance->get_value_check('store')) {
         Config::Model::Exception::WrongValue 
@@ -1082,11 +1129,13 @@ sub pre_store {
     if (     $ok 
 	 and defined $value 
 	 and defined $self->{warp_these_objects}
-         and (    not defined $self->{data} 
-	       or $value ne $self->{data}
-	     )
        ) {
-        $self->warp_them($value) ;
+	my $current = $self->_fetch_no_check ;
+	if (      not defined $current 
+	       or $value ne $current
+	   ) {
+	    $self->warp_them($value) ;
+	}
     }
 
     return ($ok,$value);
@@ -1146,8 +1195,9 @@ sub load_data {
 =head2 fetch_custom
 
 Returns the stored value if this value is different from a standard
-setting. In other words, returns undef if the stored value is
-identical to the default value or the computed value.
+setting or built in seting. In other words, returns undef if the
+stored value is identical to the default value or the computed value
+or the built in value.
 
 =cut
 
@@ -1156,14 +1206,16 @@ sub fetch_custom {
     my $std_value = $self->fetch_standard ;
 
     no warnings "uninitialized" ;
-    return ($self->{data} ne $std_value) ? $self->{data} : undef ;
+    my $data = $self->_fetch_no_check ;
+
+    return ($data ne $std_value) ? $data : undef ;
 }
 
 =head2 fetch_standard
 
 Returns the standard value as defined by the configuration model. The
-standard value can be either a computed value, a default value or a
-built-in default value.
+standard value can be either a preset value, a computed value, a
+default value or a built-in default value.
 
 =cut
 
@@ -1203,8 +1255,9 @@ sub _pre_fetch {
     my $std_value ;
 
     try {
-	$std_value = defined $self->{compute} ? $self->compute :
-           $self->{default} ;
+	$std_value = defined $self->{preset}  ? $self->{preset}
+                   : defined $self->{compute} ? $self->compute 
+                   :                            $self->{default} ;
     }
     catch Config::Model::Exception::User with { 
 	if ($self->instance->get_value_check('fetch')) {
@@ -1224,27 +1277,99 @@ Fetch value from leaf element without checking the value.
 
 sub fetch_no_check {
     my $self = shift ;
+    my $mode = shift || '';
 
     # always call to perform submit_to_warp
-    my $std_value = $self->_pre_fetch ;
+    my $std = $self->_pre_fetch ;
+    my $data = $self->{data} ;
 
-    return defined $self->{data} ? $self->{data} : $std_value ;
+
+    if ($mode eq 'custom') {
+	no warnings "uninitialized" ;
+	my $cust ;
+	$cust = $data if $data ne $std and $data ne $self->{built_in} ;
+	return $cust;
+    }
+
+    if ($mode eq 'non_built_in') {
+	no warnings "uninitialized" ;
+	my $nbu = defined $data && $data ne $self->{built_in} ? $data 
+	        : defined $std  && $std  ne $self->{built_in} ? $std 
+                :                                                undef ;
+
+	return $nbu;
+    }
+
+    return $mode eq 'preset'                   ? $self->{preset}
+         : $mode eq 'default'                  ? $self->{default}
+         : $mode eq 'standard' && defined $std ? $std 
+         : $mode eq 'standard'                 ? $self->{built_in}
+	 : $mode eq 'built_in'                 ? $self->{built_in}
+	 : defined $data                       ? $data
+         :                                       $std ;
 
 }
 
-=head2 fetch()
+# likewise but without any warp, etc related check
+sub _fetch_no_check {
+    my $self = shift ;
+     return defined $self->{data}    ? $self->{data}
+          : defined $self->{preset}  ? $self->{preset}
+          : defined $self->{compute} ? $self->compute 
+          :                            $self->{default} ;
+}
 
-Check and fetch value from leaf element 
+=head2 fetch( [ custom | preset | standard | default ] )
+
+Check and fetch value from leaf element.
+
+With a parameter, this method will return either:
+
+=over
+
+=item custom
+
+The value entered by the user (if different from built in, preset,
+computed or default value)
+
+=item preset
+
+The value entered in preset mode
+
+=item standard
+
+The preset or computed or default or built in value.
+
+=item default
+
+The default value (defined by the configuration model)
+
+=item built_in
+
+The built_in value. (defined by the configuration model)
+
+=item non_built_in
+
+The custom or preset or computed or default value. Will return undef
+if either of this value is identical to the built_in value. This
+feature is usefull to reduce data to write in configuration file.
+
+=back
+
 
 =cut
 
 sub fetch {
     my $self = shift ;
+    my $mode = shift || '';
     my $inst = $self->instance ;
 
-    my $value = $self->fetch_no_check ;
+    my $value = $self->fetch_no_check($mode) ;
 
-    if (defined $value) {
+    if ($mode) {
+	return $value ;
+    }
+    elsif (defined $value) {
         return $value if $self->check($value) ;
 
         Config::Model::Exception::WrongValue
@@ -1281,6 +1406,18 @@ computed value. Returns undef unless a value was actually stored.
 
 sub user_value {
     return shift->{data} ;
+}
+
+=head2 fetch_preset
+
+Returns the value entered in preset mode. Does not use the default or
+computed value. Returns undef unless a value was actually stored in
+preset mode.
+
+=cut
+
+sub fetch_preset {
+    return shift->{preset} ;
 }
 
 
