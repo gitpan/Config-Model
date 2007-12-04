@@ -1,11 +1,12 @@
 # http://module-build.sourceforge.net/META-spec.html
 #XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
 name:         Config-Model
-version:      0.615
+version:      0.616
 version_from: Model.pm
 installdirs:  site
 requires:
     Carp::Assert::More:            0
+    Config::Tiny:                  0
     Error:                         0
     Exception::Class:              0
     Log::Log4perl:                 0
