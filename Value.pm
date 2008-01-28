@@ -1,7 +1,7 @@
 # $Author: ddumont $
-# $Date: 2007/11/15 12:02:44 $
+# $Date: 2008/01/28 11:47:11 $
 # $Name:  $
-# $Revision: 1.24 $
+# $Revision: 1.26 $
 
 #    Copyright (c) 2005-2007 Dominique Dumont.
 #
@@ -37,7 +37,7 @@ use base qw/Config::Model::WarpedThing/ ;
 
 use vars qw($VERSION) ;
 
-$VERSION = sprintf "%d.%03d", q$Revision: 1.24 $ =~ /(\d+)\.(\d+)/;
+$VERSION = sprintf "%d.%03d", q$Revision: 1.26 $ =~ /(\d+)\.(\d+)/;
 
 =head1 NAME
 
@@ -373,6 +373,15 @@ sub setup_enum_choice {
     } qw/data preset/;
 }
 
+=item replace
+
+Hash ref. Used for enum to substitute one value with another. This
+parameter must be used to enable user to upgrade a configuration with
+obsolete values. For instance, if the value C<foo> is obsolete and
+replaced by C<foo_better>, you will need to declare:
+
+  replace => { foo => 'foo_better' }
+
 =item refer_to
 
 Specify a path to an id element used as a reference. See L<Value
@@ -399,7 +408,7 @@ ref. Example:
 =cut
 
 my @accessible_params =  qw/min max mandatory default value_type
-                             choice convert built_in/ ;
+                             choice convert built_in replace/ ;
 
 my @allowed_warp_params = (@accessible_params, qw/level permission help/);
 
@@ -502,7 +511,7 @@ sub set {
 
 
     map { $self->{$_} =  delete $args{$_} if defined $args{$_} }
-      qw/min max mandatory help allow_compute_override/;
+      qw/min max mandatory help allow_compute_override replace/;
 
     $self->set_value_type     ( \%args );
     $self->set_default        ( \%args ) if (    exists $args{default} 
@@ -865,7 +874,8 @@ declared in the model unless they were warped):
 =cut
 
 # accessor to get some fields through methods (See man perltootc)
-foreach my $datum (@accessible_params, qw/index_value element_name/) {
+foreach my $datum (@accessible_params, qw/index_value element_name 
+					 refer_to computed_refer_to/) {
     no strict "refs";       # to register new methods in package
     *$datum = sub {
 	my $self= shift;
@@ -984,25 +994,36 @@ sub enum_error {
     return @error ;
 }
 
-# internal. Check if passed value is acceptable or not.
+=head2 check( value , [ 0 | 1 ] )
+
+Check if the value is acceptable or not.
+
+When the 2nd parameter is non null, check will not try to get extra
+informations from the tree. This is required in some cases to avoid
+loops in check, get_info, get_warp_info, re-check ...
+
+In scalar context, return 0 or 1.
+
+In array context, return an empty array when no error was found. In
+case of errors, returns an array of error strings that should be shown
+to the user.
+
+=cut
+
 sub check {
     my ($self,$value,$quiet) = @_ ;
-
-    # when $quiet is non null, the routine will not try to get extra
-    # informations from the tree. This is required in some cases to
-    # avoid loops in check, get_info, get_warp_info, re-check ...
 
     $quiet = 0 unless defined $quiet ;
 
     my @error  ;
 
-    if (not defined $value) {
-        return 1 unless $self->{mandatory} ;
-        $self->{error} = ["Mandatory value is not defined"] ;
-        return 0 ;
+    if (not defined $value and $self->{mandatory}) {
+        push @error, "Mandatory value is not defined" ;
     }
-
-    if (not defined $self->{value_type} ) {
+    elsif (not defined $value) {
+	# accept with no other check
+    }
+    elsif (not defined $self->{value_type} ) {
 	push @error,"Undefined value_type" ;
     }
     elsif ( ($self->{value_type} =~ /integer/ and $value =~ /^-?\d+$/) 
@@ -1027,7 +1048,7 @@ sub check {
             defined $self->{choice_hash}{$value} ;
     }
     elsif ($self->{value_type} eq 'boolean') {
-        push @error, ($quiet ? "boolean error" :"'$value' is not '1' or '0'" )
+        push @error, "boolean error: $value' is not '1' or '0'" 
           unless $value =~ /^[01]$/ ;
     }
     elsif (   $self->{value_type} =~ /integer/ 
@@ -1051,7 +1072,7 @@ sub check {
     }
 
     $self->{error} = \@error ;
-    return not scalar @error ;
+    return wantarray ? @error : not scalar @error ;
 }
 
 =head1 Information management
@@ -1123,6 +1144,9 @@ sub pre_store {
 
     $value = $self->{convert_sub}($value) 
       if (defined $self->{convert_sub} and defined $value) ;
+
+    $value = $self->{replace}{$value} 
+      if defined $self->{replace} and defined $self->{replace}{$value} ;
 
     my $ok = $self->store_check($value) ;
 
