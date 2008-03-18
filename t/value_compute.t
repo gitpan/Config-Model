@@ -1,8 +1,8 @@
 # -*- cperl -*-
 # $Author: ddumont $
-# $Date: 2007/09/20 16:21:34 $
-# $Name:  $
-# $Revision: 1.7 $
+# $Date: 2008-03-11 18:24:00 +0100 (Tue, 11 Mar 2008) $
+# $Revision: 540 $
+
 use warnings FATAL => qw(all);
 
 use ExtUtils::testlib;

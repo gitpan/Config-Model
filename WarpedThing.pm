@@ -1,7 +1,6 @@
 # $Author: ddumont $
-# $Date: 2007/10/19 11:43:41 $
-# $Name:  $
-# $Revision: 1.15 $
+# $Date: 2008-03-11 18:27:36 +0100 (Tue, 11 Mar 2008) $
+# $Revision: 541 $
 
 #    Copyright (c) 2005-2007 Dominique Dumont.
 #
@@ -33,7 +32,7 @@ use Carp;
 use warnings FATAL => qw(all);
 
 use vars qw($VERSION) ;
-$VERSION = sprintf "%d.%03d", q$Revision: 1.15 $ =~ /(\d+)\.(\d+)/;
+$VERSION = sprintf "1.%04d", q$Revision: 541 $ =~ /(\d+)/;
 
 use base qw/Config::Model::AnyThing/ ;
 

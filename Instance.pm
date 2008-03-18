@@ -1,7 +1,6 @@
 # $Author: ddumont $
-# $Date: 2008/02/27 13:40:02 $
-# $Name:  $
-# $Revision: 1.13 $
+# $Date: 2008-03-18 18:28:57 +0100 (Tue, 18 Mar 2008) $
+# $Revision: 545 $
 
 #    Copyright (c) 2005-2007 Dominique Dumont.
 #
@@ -23,6 +22,8 @@
 
 package Config::Model::Instance;
 use Scalar::Util qw(weaken) ;
+use File::Path;
+
 use Config::Model::Exception ;
 use Config::Model::Node ;
 use Config::Model::Loader;
@@ -36,7 +37,7 @@ use warnings::register ;
 
 use vars qw/$VERSION/ ;
 
-$VERSION = sprintf "%d.%03d", q$Revision: 1.13 $ =~ /(\d+)\.(\d+)/;
+$VERSION = sprintf "1.%04d", q$Revision: 545 $ =~ /(\d+)/;
 
 use Carp qw/croak confess cluck/;
 
@@ -463,6 +464,9 @@ by the configuration model.
 sub write_back {
     my $self = shift ;
     my $dir  = shift ;
+    warn "write_back: no subs registered. cannot save" 
+      unless @{$self->{write_back}} ;
+    mkpath($dir,0,0755) if defined $dir and not -d $dir ;
     map { $_->($dir) ; } @{$self->{write_back}} ;
 }
 

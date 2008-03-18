@@ -1,8 +1,7 @@
 # -*- cperl -*-
 # $Author: ddumont $
-# $Date: 2007/07/26 12:23:26 $
-# $Name:  $
-# $Revision: 1.8 $
+# $Date: 2008-03-11 18:24:00 +0100 (Tue, 11 Mar 2008) $
+# $Revision: 540 $
 
 use warnings FATAL => qw(all);
 

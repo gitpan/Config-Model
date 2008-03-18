@@ -1,7 +1,6 @@
 # $Author: ddumont $
-# $Date: 2007/09/25 12:23:00 $
-# $Name:  $
-# $Revision: 1.9 $
+# $Date: 2008-03-11 18:27:36 +0100 (Tue, 11 Mar 2008) $
+# $Revision: 541 $
 
 #    Copyright (c) 2005-2007 Dominique Dumont.
 #
@@ -33,7 +32,7 @@ use Data::Dumper () ;
 
 use vars qw($VERSION $compute_grammar $compute_parser) ;
 
-$VERSION = sprintf "%d.%03d", q$Revision: 1.9 $ =~ /(\d+)\.(\d+)/;
+$VERSION = sprintf "1.%04d", q$Revision: 541 $ =~ /(\d+)/;
 
 =head1 NAME
 
@@ -434,7 +433,7 @@ sub compute_variables {
 $compute_grammar = << 'END_OF_GRAMMAR' ;
 
 {
-# $Revision: 1.9 $
+# $Revision: 541 $
 
 # This grammar is compatible with Parse::RecDescent < 1.90 or >= 1.90
 use strict;

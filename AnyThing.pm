@@ -1,7 +1,6 @@
 # $Author: ddumont $
-# $Date: 2008/02/12 17:22:07 $
-# $Name:  $
-# $Revision: 1.14 $
+# $Date: 2008-03-18 18:33:16 +0100 (Tue, 18 Mar 2008) $
+# $Revision: 546 $
 
 #    Copyright (c) 2005-2007 Dominique Dumont.
 #
@@ -27,7 +26,7 @@ use Carp;
 use strict;
 
 use vars qw($VERSION);
-$VERSION = sprintf "%d.%03d", q$Revision: 1.14 $ =~ /(\d+)\.(\d+)/;
+$VERSION = sprintf "1.%04d", q$Revision: 546 $ =~ /(\d+)/;
 
 =head1 NAME
 
@@ -368,9 +367,9 @@ sub grab {
         my ($name, $action, $arg) 
 	  = ($cmd =~ /(\w+)(?:(:)((?:"[^\"]*")|(?:[\w:\/\.\-]+)))?/);
 
-	if (defined $arg) {
-	    $arg =~ s/^"// ; # remove possible leading quote
-	    $arg =~ s/"$// ; # remove possible trailing quote
+	if (defined $arg and $arg =~ /^"/ and $arg =~ /"$/) {
+	    $arg =~ s/^"// ; # remove leading quote
+	    $arg =~ s/"$// ; # remove trailing quote
 	}
 
 	{
