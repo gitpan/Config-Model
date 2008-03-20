@@ -1,7 +1,7 @@
 # http://module-build.sourceforge.net/META-spec.html
 #XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
 name:         Config-Model
-version:      0.620
+version:      0.6201
 version_from: Model.pm
 installdirs:  site
 requires:
@@ -13,7 +13,6 @@ requires:
     Parse::RecDescent:             1.90
     Scalar::Util:                  0
     Term::ReadLine:                0
-    Term::ReadLine::Gnu:           0
     Test::More:                    0
 
 distribution_type: module
