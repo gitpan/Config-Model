@@ -1,7 +1,7 @@
 # -*- cperl -*-
 # $Author: ddumont $
-# $Date: 2008-03-11 18:24:00 +0100 (Tue, 11 Mar 2008) $
-# $Revision: 540 $
+# $Date: 2008-04-03 19:06:58 +0200 (Thu, 03 Apr 2008) $
+# $Revision: 581 $
 
 use ExtUtils::testlib;
 use Test::More tests => 11;
@@ -57,7 +57,7 @@ ok( $root->load( step => $step, permission => 'advanced' ),
 $root->load_data({ listb => 'bb'}) ;
 ok (1, "loaded single array element as listb => 'bb'") ;
 
-my $data = $root->dump_as_data ;
+my $data = $root->dump_as_data(full_dump => 0) ;
 
 my $expect = {
 	      'olist' => [{'X' => 'Av'}, {'X' => 'Bv'}],
@@ -96,7 +96,7 @@ $expect->{std_id}{ab}{DX} = 'Dv' ;
 $expect->{std_id}{bc}{DX} = 'Dv' ;
 $expect->{a_uniline} = 'yada yada';
 
-my $full_data = $root->dump_as_data(full_dump => 1 ) ;
+my $full_data = $root->dump_as_data() ;
 
 is_deeply($full_data, $expect, "check full data dump") ;
 

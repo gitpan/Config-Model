@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2008-03-11 18:27:36 +0100 (Tue, 11 Mar 2008) $
-# $Revision: 541 $
+# $Date: 2008-04-03 19:06:58 +0200 (Thu, 03 Apr 2008) $
+# $Revision: 581 $
 
 #    Copyright (c) 2006-2007 Dominique Dumont.
 #
@@ -29,7 +29,7 @@ use Config::Model::Exception ;
 use Config::Model::ObjTreeScanner ;
 
 use vars qw($VERSION);
-$VERSION = sprintf "1.%04d", q$Revision: 541 $ =~ /(\d+)/;
+$VERSION = sprintf "1.%04d", q$Revision: 581 $ =~ /(\d+)/;
 
 =head1 NAME
 
@@ -123,6 +123,11 @@ nodes and leaves attached to this node are also dumped.
 Skip node that have a C<cds write> capabality in their model. See
 L<Config::Model::AutoRead>.
 
+=item auto_vivify
+
+Scan and create data for nodes elements even if no actual data was
+stored in them. This may be useful to trap missing mandatory values.
+
 =back
 
 =cut
@@ -133,6 +138,7 @@ sub dump_tree {
     my %args = @_;
     my $full = delete $args{full_dump} || 0;
     my $skip_aw = delete $args{skip_auto_write} || 0 ;
+    my $auto_v  = delete $args{auto_vivify}     || 0 ;
     my $mode = delete $args{mode} || '';
     if ($mode and $mode ne 'full' and $mode ne 'preset') {
 	croak "dump_tree: unexpected 'mode' value";
@@ -233,7 +239,7 @@ sub dump_tree {
     my @scan_args = (
 		     permission      => delete $args{permission} || 'master',
 		     fallback        => 'all',
-		     auto_vivify     => 0,
+		     auto_vivify     => $auto_v,
 		     list_element_cb => $list_element_cb,
 		     leaf_cb         => $std_cb,
 		     node_element_cb => $element_cb,

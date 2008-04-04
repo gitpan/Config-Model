@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2008-03-11 18:27:36 +0100 (Tue, 11 Mar 2008) $
-# $Revision: 541 $
+# $Date: 2008-04-03 19:06:58 +0200 (Thu, 03 Apr 2008) $
+# $Revision: 581 $
 
 #    Copyright (c) 2005-2007 Dominique Dumont.
 #
@@ -36,7 +36,7 @@ use base qw/Config::Model::WarpedThing/ ;
 
 use vars qw($VERSION) ;
 
-$VERSION = sprintf "1.%04d", q$Revision: 541 $ =~ /(\d+)/;
+$VERSION = sprintf "1.%04d", q$Revision: 581 $ =~ /(\d+)/;
 
 =head1 NAME
 
@@ -404,10 +404,15 @@ ref. Example:
 
 =cut
 
-my @accessible_params =  qw/min max mandatory default value_type
+
+my @warp_accessible_params =  qw/min max mandatory default 
                              choice convert built_in replace/ ;
 
-my @allowed_warp_params = (@accessible_params, qw/level permission help/);
+my @accessible_params =  (@warp_accessible_params, 
+			  qw/index_value element_name value_type
+			     refer_to computed_refer_to/ ) ;
+
+my @allowed_warp_params = (@warp_accessible_params, qw/level permission help/);
 
 sub new {
     my $type = shift;
@@ -864,8 +869,7 @@ the value object (as declared in the model unless they were warped):
 =cut
 
 # accessor to get some fields through methods (See man perltootc)
-foreach my $datum (@accessible_params, qw/index_value element_name 
-					 refer_to computed_refer_to/) {
+foreach my $datum (@accessible_params) {
     no strict "refs";       # to register new methods in package
     *$datum = sub {
 	my $self= shift;
@@ -1367,7 +1371,7 @@ The built_in value. (defined by the configuration model)
 
 The custom or preset or computed or default value. Will return undef
 if either of this value is identical to the built_in value. This
-feature is usefull to reduce data to write in configuration file.
+feature is useful to reduce data to write in configuration file.
 
 =back
 
@@ -1381,10 +1385,8 @@ sub fetch {
 
     my $value = $self->fetch_no_check($mode) ;
 
-    if ($mode) {
-	return $value ;
-    }
-    elsif (defined $value) {
+    if (defined $value) {
+	# check validity (all modes)
         return $value if $self->check($value) ;
 
         Config::Model::Exception::WrongValue
@@ -1396,7 +1398,12 @@ sub fetch {
     }
     elsif (     $self->{mandatory}
 	    and $inst->get_value_check('fetch') 
+	    and (not $mode or $mode eq 'custom' )
+	    and (not defined $self->fetch_no_check() )
 	  ) {
+	# check only custom or "empty" mode. But undef custom value is
+	# authorized if standard value is defined (that's what is
+	# important)
         my @error ;
         push @error, "Undefined mandatory value."
           if $self->{mandatory} ;

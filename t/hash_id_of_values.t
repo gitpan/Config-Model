@@ -1,12 +1,12 @@
 # -*- cperl -*-
 # $Author: ddumont $
-# $Date: 2008-03-11 18:24:00 +0100 (Tue, 11 Mar 2008) $
-# $Revision: 540 $
+# $Date: 2008-04-02 21:39:59 +0200 (Wed, 02 Apr 2008) $
+# $Revision: 578 $
 
 use warnings FATAL => qw(all);
 
 use ExtUtils::testlib;
-use Test::More tests => 47 ;
+use Test::More tests => 60 ;
 use Config::Model ;
 
 use strict;
@@ -102,6 +102,20 @@ $model ->create_config_class
 	   index_type  => 'string',
 	   @element ,
 	   allow_from  => '- hash_with_several_auto_created_id',
+	  },
+       hash_with_follow_keys_from
+       => {
+	   type => 'hash',
+	   index_type  => 'string',
+	   @element ,
+	   follow_keys_from  => '- hash_with_several_auto_created_id',
+	  },
+       hash_with_follow_keys_from_unknown
+       => {
+	   type => 'hash',
+	   index_type  => 'string',
+	   @element ,
+	   follow_keys_from  => '- unknown_hash',
 	  },
        ordered_hash
        => {
@@ -215,12 +229,23 @@ ok($ph->copy(2,3),"value copy") ;
 is($ph->fetch_with_id(3)->fetch, 
    $ph->fetch_with_id(2)->fetch, "compare copied value") ;
 
+my $hwfkf =  $root->fetch_element('hash_with_follow_keys_from'); 
+ok($hwfkf,"created hash_with_follow_keys_from ...") ;
+is_deeply($hwfkf->get_default_keys,[qw/foo x y z/],
+	  'check default keys of hash_with_follow_keys_from');
+
+my $hwfkfu = $root->fetch_element('hash_with_follow_keys_from_unknown');
+ok($hwfkfu,"created hash_with_follow_keys_from_unknown ...") ;
+eval { $hwfkfu->get_default_keys ; };
+ok($@,"failed to get keys from hash_with_follow_keys_from_unknown");
+print "normal error: $@" if $trace;
+
 
 my $oh = $root->fetch_element('ordered_hash') ;
 ok($oh,"created ordered_hash ...") ;
-$oh->fetch_with_id('z' ) -> store( 1 );
-$oh->fetch_with_id('x' ) -> store( 2 );
-$oh->fetch_with_id('a' ) -> store( 3 );
+$oh->fetch_with_id('z' ) -> store( '1z' );
+$oh->fetch_with_id('x' ) -> store( '2x' );
+$oh->fetch_with_id('a' ) -> store( '3a' );
 
 is_deeply([$oh->get_all_indexes], [qw/z x a/],
 	 "check index order of ordered_hash") ;
@@ -230,12 +255,41 @@ $oh ->swap(qw/z x/) ;
 is_deeply([$oh->get_all_indexes], [qw/x z a/],
 	 "check index order of ordered_hash after swap(z x)") ;
 
-$oh ->move_up(qw/a/) ;
+$oh ->swap(qw/a z/) ;
 
 is_deeply([$oh->get_all_indexes], [qw/x a z/],
+	 "check index order of ordered_hash after swap(a z)") ;
+
+$oh ->move_up(qw/a/) ;
+
+is_deeply([$oh->get_all_indexes], [qw/a x z/],
 	 "check index order of ordered_hash after move_up(a)") ;
 
 $oh ->move_down(qw/x/) ;
 
-is_deeply([$oh->get_all_indexes], [qw/a x z/],
+is_deeply([$oh->get_all_indexes], [qw/a z x/],
 	 "check index order of ordered_hash after move_down(x)") ;
+
+is($oh->fetch_with_id('x')->fetch, '2x',"Check copied value") ;
+
+$oh->copy(qw/x d/) ;
+is_deeply([$oh->get_all_indexes], [qw/a z x d/],
+	 "check index order of ordered_hash after copy(x d)") ;
+is($oh->fetch_with_id('d')->fetch, '2x',"Check copied value") ;
+
+$oh->copy(qw/a e/) ;
+is_deeply([$oh->get_all_indexes], [qw/a z x d e/],
+	 "check index order of ordered_hash after copy(a e)") ;
+is($oh->fetch_with_id('e')->fetch, '3a',"Check copied value") ;
+
+$oh->move_after('d') ;
+is_deeply([$oh->get_all_indexes], [qw/d a z x e/],
+	 "check index order of ordered_hash after move_after(d)") ;
+
+$oh->move_after('d','z') ;
+is_deeply([$oh->get_all_indexes], [qw/a z d x e/],
+	 "check index order of ordered_hash after move_after(d z)") ;
+
+$oh->move_after('d','e') ;
+is_deeply([$oh->get_all_indexes], [qw/a z x e d/],
+	 "check index order of ordered_hash after move_after(d e)") ;

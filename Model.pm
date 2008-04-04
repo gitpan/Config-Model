@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2008-03-20 08:46:40 +0100 (Thu, 20 Mar 2008) $
-# $Revision: 549 $
+# $Date: 2008-04-04 12:34:18 +0200 (Fri, 04 Apr 2008) $
+# $Revision: 584 $
 
 #    Copyright (c) 2005-2008 Dominique Dumont.
 #
@@ -34,11 +34,11 @@ use Config::Model::Instance ;
 # this class holds the version number of the package
 use vars qw($VERSION @status @level @permission_list %permission_index) ;
 
-$VERSION = '0.6201';
+$VERSION = '0.621';
 
 =head1 NAME
 
-Config::Model - Model to create configuration validation tool
+Config::Model - Framework to create configuration validation tools and editors
 
 =head1 SYNOPSIS
 
@@ -899,7 +899,7 @@ sub translate_rules_arg {
 	my $item = defined $raw_rules ? $raw_rules : '<undef>' ;
 	Config::Model::Exception::ModelDeclaration
 	    -> throw (
-		      error => "Warp rule error in object '$elt_name': "
+		      error => "Warp rule error in element '$elt_name': "
 		             . "rules must be a hash ref. Got '$item'"
 		     ) ;
     }

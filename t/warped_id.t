@@ -1,7 +1,7 @@
 # -*- cperl -*-
 # $Author: ddumont $
-# $Date: 2008-03-11 18:24:00 +0100 (Tue, 11 Mar 2008) $
-# $Revision: 540 $
+# $Date: 2008-04-02 15:31:20 +0200 (Wed, 02 Apr 2008) $
+# $Revision: 577 $
 
 use warnings FATAL => qw(all);
 
@@ -90,13 +90,7 @@ $model ->create_config_class
 			 }
 		    },
 	    cargo_args => {
-			   warp => { follow => '- macro',
-				     'rules'
-				     => { 'A' => {
-						     value_type => 'string'
-						 } ,
-					}
-				   }
+			   value_type => 'string',
 			  }
 	  },
        'multi_auto_create'
@@ -114,7 +108,7 @@ $model ->create_config_class
 	       },
 	    cargo_type => 'node',
 	    config_class_name => 'Slave'
-	  }
+	  },
       ]
   );
 

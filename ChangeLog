@@ -1,6 +1,32 @@
+2008-04-03  Dominique Dumont  0.621
+
+	* Dumper.pm (dump_tree): Added auto_vivify parameter
+
+	* DumpAsData.pm (dump_as_data): By default, now provide full
+	dump (with default values). Added auto_vivify parameter
+
+	* Value.pm (fetch): Check for mandatory values even if fetching
+	only custom values
+
+2008-04-02  Dominique Dumont  
+
+	* Value.pm (): Cannot warp value_type anymore (this feature was
+	hard to use and encouraged too complex model).
+
+2008-03-28  Dominique Dumont  
+
+	* HashId.pm (swap): Fix swap problem which led to duplicated keys
+	in ordered hash
+	(move_after): New method
+
+2008-03-22  Domi  <domi@bilbo.maison> 
+
+	* ListId.pm (swap): new method
+	(remove): New method, equivalent to splice (@list,$idx,1)
+
 2008-03-20  Dominique Dumont  v0.6201
 
-	* Makefile.PL: Removed dependancy on Term::ReadLine::Gnu. This module
+	* Makefile.PL: Removed dependency on Term::ReadLine::Gnu. This module
 	is just suggested (as well as Term::ReadLine::Perl)
 
 2008-03-18  Dominique Dumont  v0.620

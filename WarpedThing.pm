@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2008-03-11 18:27:36 +0100 (Tue, 11 Mar 2008) $
-# $Revision: 541 $
+# $Date: 2008-04-02 21:39:59 +0200 (Wed, 02 Apr 2008) $
+# $Revision: 578 $
 
 #    Copyright (c) 2005-2007 Dominique Dumont.
 #
@@ -32,7 +32,7 @@ use Carp;
 use warnings FATAL => qw(all);
 
 use vars qw($VERSION) ;
-$VERSION = sprintf "1.%04d", q$Revision: 541 $ =~ /(\d+)/;
+$VERSION = sprintf "1.%04d", q$Revision: 578 $ =~ /(\d+)/;
 
 use base qw/Config::Model::AnyThing/ ;
 
@@ -460,8 +460,21 @@ sub get_master_object {
 		 )
 	  unless ref $master_path eq 'ARRAY' || not ref $master_path ;
 
-    my $master = $self->grab(step => $master_path, 
-			     grab_non_available => $grab_non_available);
+    my $master 
+      = eval {$self->grab(step => $master_path, 
+			  grab_non_available => $grab_non_available) ;
+	    };
+
+    if ($@) {
+      my $e = $@ ;
+      my $msg = $e ? $e->full_message : '' ;
+      Config::Model::Exception::Model
+	  -> throw (
+		    object => $self,
+		    error => "path error '$master_path':\n"
+		    . $msg
+		   ) ;
+    }
 
     Config::Model::Exception::Internal
 	-> throw (

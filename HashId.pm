@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2008-03-11 18:27:36 +0100 (Tue, 11 Mar 2008) $
-# $Revision: 541 $
+# $Date: 2008-03-28 17:41:51 +0100 (Fri, 28 Mar 2008) $
+# $Revision: 569 $
 
 #    Copyright (c) 2005-2007 Dominique Dumont.
 #
@@ -30,7 +30,7 @@ use strict;
 use base qw/Config::Model::AnyId/ ;
 
 use vars qw($VERSION) ;
-$VERSION = sprintf "1.%04d", q$Revision: 541 $ =~ /(\d+)/;
+$VERSION = sprintf "1.%04d", q$Revision: 569 $ =~ /(\d+)/;
 
 =head1 NAME
 
@@ -283,6 +283,37 @@ sub swap {
     my $self = shift ;
     my ($key1,$key2) = @_ ;
 
+    foreach my $k (@_) {
+	Config::Model::Exception::User
+	    -> throw (
+		      object => $self,
+		      message => "swap: unknow key $k"
+		     )
+	      unless exists $self->{data}{$k} ;
+    }
+
+    my @copy = @{$self->{list}} ;
+    for (my $idx = 0; $idx <= $#copy; $idx ++ ) {
+	if ($copy[$idx] eq $key1) {
+	    $self->{list}[$idx] = $key2 ;
+	}
+	if ($copy[$idx] eq $key2) {
+	    $self->{list}[$idx] = $key1 ;
+	}
+    }
+}
+
+=head2 move_after ( key_to_move [ , after_this_key ] )
+
+Move the first key after the second one. If the second parameter is
+omitted, the first key is placed in first position. Ignored for non
+ordered hash.
+
+=cut
+
+sub move_after {
+    my $self = shift ;
+    my ($key_to_move,$ref_key) = @_ ;
 
     foreach my $k (@_) {
 	Config::Model::Exception::User
@@ -293,14 +324,21 @@ sub swap {
 	      unless exists $self->{data}{$k} ;
     }
 
+    # remove the key to move in ordered list
+    @{$self->{list}} = grep { $_ ne $key_to_move } @{ $self->{list}} ;
+
     my $list = $self->{list} ;
-    for (my $idx = 0; $idx < $#$list; $idx ++ ) {
-	if ($list->[$idx] eq $key1) {
-	    $list->[$idx] = $key2 ;
+
+    if (defined $ref_key) {
+	for (my $idx = 0; $idx <= $#$list; $idx ++ ) {
+	    if ($list->[$idx] eq $ref_key) {
+		splice @$list ,$idx+1,0, $key_to_move ;
+		last;
+	    }
 	}
-	elsif ($list->[$idx] eq $key2) {
-	     $list->[$idx] = $key1 ;
-	}
+    }
+    else {
+	unshift @$list , $key_to_move ;
     }
 }
 

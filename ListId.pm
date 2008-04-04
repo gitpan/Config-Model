@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2008-03-11 18:27:36 +0100 (Tue, 11 Mar 2008) $
-# $Revision: 541 $
+# $Date: 2008-03-22 18:48:44 +0100 (Sat, 22 Mar 2008) $
+# $Revision: 556 $
 
 #    Copyright (c) 2005-2007 Dominique Dumont.
 #
@@ -30,7 +30,7 @@ use strict;
 use base qw/Config::Model::AnyId/ ;
 
 use vars qw($VERSION) ;
-$VERSION = sprintf "1.%04d", q$Revision: 541 $ =~ /(\d+)/;
+$VERSION = sprintf "1.%04d", q$Revision: 556 $ =~ /(\d+)/;
 
 =head1 NAME
 
@@ -198,6 +198,34 @@ sub push {
     my $idx   = scalar @{$self->{data}};
 
     map { $self->fetch_with_id( $idx++ )->store( $_ ) ; } @_ ;
+}
+
+=head2 swap ( ida, idb )
+
+Swap 2 elements within the array
+
+=cut
+
+sub swap {
+    my $self = shift ;
+    my $ida  = shift ;
+    my $idb  = shift ;
+
+    my $tmp = $self->{data}[$ida] ;
+    $self->{data}[$ida] = $self->{data}[$idb] ;
+    $self->{data}[$idb] = $tmp ;
+}
+
+=head2 remove ( idx )
+
+Remove an element from the list. Equivalent to C<splice @list,$idx,1>
+
+=cut
+
+sub remove {
+    my $self = shift ;
+    my $idx  = shift ;
+    splice @{$self->{data}}, $idx , 1 ;
 }
 
 #internal

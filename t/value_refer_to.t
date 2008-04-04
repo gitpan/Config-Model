@@ -1,12 +1,12 @@
 # -*- cperl -*-
 # $Author: ddumont $
-# $Date: 2008-03-11 18:24:00 +0100 (Tue, 11 Mar 2008) $
-# $Revision: 540 $
+# $Date: 2008-04-02 15:31:20 +0200 (Wed, 02 Apr 2008) $
+# $Revision: 577 $
 
 use warnings FATAL => qw(all);
 
 use ExtUtils::testlib;
-use Test::More tests => 15 ;
+use Test::More tests => 17 ;
 use Config::Model ;
 
 use strict;
@@ -111,7 +111,21 @@ $model ->create_config_class
 		   type => 'leaf',
 		   value_type => 'reference',
 		   refer_to => '- dumb_list',
-		  }
+		  },
+
+	       refer_to_wrong_path
+	       => {
+		   type => 'leaf',
+		   value_type => 'reference',
+		   refer_to => '! unknown_class unknown_elt',
+		  },
+
+	       refer_to_unknown_elt
+	       => {
+		   type => 'leaf',
+		   value_type => 'reference',
+		   refer_to => '! unknown_elt',
+		  },
 	      ]
   );
 
@@ -178,3 +192,11 @@ my $rtle = $root->fetch_element("refer_to_list_enum") ;
 is_deeply( [$rtle -> get_choice ], [qw/a b c d e/],
 	   "check choice of refer_to_list_enum"
 	 ) ;
+
+eval { $root->fetch_element("refer_to_wrong_path") ; } ;
+ok($@,"fetching refer_to_wrong_path") ;
+print "normal error: $@" if $trace;
+
+eval { $root->fetch_element("refer_to_unknown_elt") } ;
+ok($@,"fetching refer_to_unknown_elt") ;
+print "normal error: $@" if $trace;

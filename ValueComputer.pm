@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2008-03-11 18:27:36 +0100 (Tue, 11 Mar 2008) $
-# $Revision: 541 $
+# $Date: 2008-04-03 14:03:38 +0200 (Thu, 03 Apr 2008) $
+# $Revision: 580 $
 
 #    Copyright (c) 2005-2007 Dominique Dumont.
 #
@@ -32,7 +32,7 @@ use Data::Dumper () ;
 
 use vars qw($VERSION $compute_grammar $compute_parser) ;
 
-$VERSION = sprintf "1.%04d", q$Revision: 541 $ =~ /(\d+)/;
+$VERSION = sprintf "1.%04d", q$Revision: 580 $ =~ /(\d+)/;
 
 =head1 NAME
 
@@ -367,8 +367,20 @@ sub compute_info {
 		    } sort keys %$u_val ;
  	    }
 	    else {
-		my $val = defined $u_val ? $self->{value_object} ->grab($u_val) ->fetch 
-		        :                  undef ;
+		my $val ;
+		if (defined $u_val) {
+		  my $obj = eval { $self->{value_object} ->grab($u_val) };
+		  if ($@) {
+		    my $e = $@ ;
+		    my $msg = $e ? $e->full_message : '' ;
+		    Config::Model::Exception::Model
+			-> throw (
+				  object => $self,
+				  error => "Compute variable:\n". $msg
+				 ) ;
+		  }
+		  $val =  $obj->fetch ;
+		}
 		$str.= "\n\t\t'$k' from path '$orig_variables->{$k}' is ";
 		$str.= defined $val ? "'$val'" : 'undef' ;
 	    }
@@ -433,7 +445,7 @@ sub compute_variables {
 $compute_grammar = << 'END_OF_GRAMMAR' ;
 
 {
-# $Revision: 541 $
+# $Revision: 580 $
 
 # This grammar is compatible with Parse::RecDescent < 1.90 or >= 1.90
 use strict;
@@ -472,7 +484,18 @@ pre_value:
 		  ) 
          unless defined $fetch_str;
 
-     my $object = $arg[0]->grab($fetch_str) ;
+     my $object = eval {$arg[0]->grab($fetch_str) };
+
+     if ($@) {
+	    my $e = $@ ;
+	    my $msg = $e ? $e->full_message : '' ;
+	    Config::Model::Exception::Model
+		-> throw (
+			  object => $arg[0],
+			  error => "Compute function argument '$fetch_str':\n"
+                                 . $msg
+			 ) ;
+     }
 
      if ($item{function} eq 'element') {
          my $result = $object->element_name ;
@@ -600,7 +623,18 @@ value:
      }
      elsif (defined $path) {
          # print "fetching var object '$name' with '$path'\n";
-         $my_res = $arg[0]->grab_value($path) ;
+         $my_res = eval {$arg[0]->grab_value($path) ;} ;
+         if ($@) {
+	    my $e = $@ ;
+	    my $msg = $e ? $e->full_message : '' ;
+	    Config::Model::Exception::Model
+		-> throw (
+			  object => $arg[0],
+			  error => "Compute argument '$name', error with '$path':\n"
+                                 . $msg
+			 ) ;
+         }
+
          # print "fetched var object '$name' with '$path', result '", defined $return ? $return : 'undef',"'\n";
 
      }
