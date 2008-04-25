@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2008-03-11 18:27:36 +0100 (Tue, 11 Mar 2008) $
-# $Revision: 541 $
+# $Date: 2008-04-18 13:08:32 +0200 (Fri, 18 Apr 2008) $
+# $Revision: 616 $
 
 #    Copyright (c) 2005-2007 Dominique Dumont.
 #
@@ -40,7 +40,7 @@ use base qw/Config::Model::AutoRead/;
 use vars qw($VERSION $AUTOLOAD @status @level
 @permission_list %permission_index );
 
-$VERSION = sprintf "1.%04d", q$Revision: 541 $ =~ /(\d+)/;
+$VERSION = sprintf "1.%04d", q$Revision: 616 $ =~ /(\d+)/;
 
 *status           = *Config::Model::status ;
 *level            = *Config::Model::level ;
@@ -1017,7 +1017,8 @@ sub store_element_value {
 
 
 Returns 1 if the element C<name> is available for the given
-C<permission> ('intermediate' by default). Returns 0 otherwise.
+C<permission> ('intermediate' by default) and if the element is
+not "hidden". Returns 0 otherwise.
 
 As a syntactic sugar, this method can be called with only one parameter:
 
@@ -1127,16 +1128,19 @@ the structure of the configuration model.
 
 sub load_data {
     my $self = shift ;
-    my $h = dclone shift ;
+    my $p    = shift ;
 
-    if ( ref($h) ne 'HASH' and not $h->isa( 'HASH' ) ) {
+    if ( not defined $p or (ref($p) ne 'HASH' and not $p->isa( 'HASH' )) ) {
 	Config::Model::Exception::LoadData
 	    -> throw (
 		      object => $self,
 		      message => "load_data called with non hash ref arg",
-		      wrong_data => $h,
-		     ) ;
+		      wrong_data => $p,
+		     )  if $self->instance->get_value_check('store');
+	return ;
     }
+
+    my $h = dclone $p ;
 
     print "Node load_data (",$self->location,") will load elt ",
       join (' ',keys %$h),"\n" if $::verbose ;
@@ -1145,11 +1149,22 @@ sub load_data {
     # the model
     foreach my $elt ( @{$self->{model}{element_list}} ) {
 	next unless defined $h->{$elt} ;
-	my $obj = $self->fetch_element($elt) ;
-	$obj -> load_data(delete $h->{$elt}) ;
+	if ($self->is_element_available(name => $elt, permission => 'master')) {
+	    my $obj = $self->fetch_element($elt) ;
+	    $obj -> load_data(delete $h->{$elt}) ;
+	}
+	else {
+	    Config::Model::Exception::LoadData 
+		-> throw (
+			  message => "load_data: tried to load hidden "
+                                   . "element '$elt' with",
+			  wrong_data => $h->{$elt},
+			  object => $self,
+			 ) if $self->instance->get_value_check('store');
+	}
     }
 
-    if (%$h) {
+    if (%$h and $self->instance->get_value_check('store')) {
 	Config::Model::Exception::LoadData 
 	    -> throw (
 		      message => "load_data: unknown elements (expected "
@@ -1247,7 +1262,9 @@ are simply discarded.
 sub copy_from {
     my $self = shift ;
     my $from = shift ;
+    $self->instance->push_no_value_check('fetch') ;
     my $dump = $from->dump_tree() ;
+    $self->instance->pop_no_value_check ;
     print "node copy with '$dump'\n" if $::debug ;
     $self->load( step => $dump, check_store => 0 ) ;
 }

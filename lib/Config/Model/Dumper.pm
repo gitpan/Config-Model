@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2008-04-03 19:06:58 +0200 (Thu, 03 Apr 2008) $
-# $Revision: 581 $
+# $Date: 2008-04-15 13:36:55 +0200 (Tue, 15 Apr 2008) $
+# $Revision: 607 $
 
 #    Copyright (c) 2006-2007 Dominique Dumont.
 #
@@ -29,7 +29,7 @@ use Config::Model::Exception ;
 use Config::Model::ObjTreeScanner ;
 
 use vars qw($VERSION);
-$VERSION = sprintf "1.%04d", q$Revision: 581 $ =~ /(\d+)/;
+$VERSION = sprintf "1.%04d", q$Revision: 607 $ =~ /(\d+)/;
 
 =head1 NAME
 
@@ -74,6 +74,9 @@ default values, are dumped.
 
 The serialized string can be used by L<Config::Model::Walker> to store
 the data back into a configuration tree.
+
+Note that undefined values are skipped for list element. I.e. if a list
+element contains C<('a',undef,'b')>, the dump will contain C<'a','b'>.
 
 =head1 CONSTRUCTOR
 
@@ -213,9 +216,10 @@ sub dump_tree {
             }
         }
         else {
-	    no warnings "uninitialized" ;
+	    # skip undef values
+	    my @val = grep (defined $_,$list_obj->fetch_all_values($fetch_mode)) ;
             $$data_r .= "\n$pad$element=" 
-	      . join( ',', $list_obj->fetch_all_values($fetch_mode) ) if @keys;
+	      . join( ',', @val ) if @keys;
         }
     };
 

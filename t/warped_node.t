@@ -1,7 +1,7 @@
 # -*- cperl -*-
 # $Author: ddumont $
-# $Date: 2008-03-11 18:24:00 +0100 (Tue, 11 Mar 2008) $
-# $Revision: 540 $
+# $Date: 2008-04-18 13:08:32 +0200 (Fri, 18 Apr 2008) $
+# $Revision: 616 $
 
 use warnings FATAL => qw(all);
 
@@ -21,7 +21,7 @@ Config::Model::Exception::Any->Trace(1) if $arg =~ /e/;
 ok(1,"Compilation done");
 
 # minimal set up to get things working
-my $model = Config::Model->new() ;
+my $model = Config::Model->new(legacy => 'ignore',) ;
 $model ->create_config_class 
   (
    name => 'SlaveY',
@@ -37,7 +37,13 @@ $model ->create_config_class
 					    B => { default => 'Bv' }
 					  }
 				}
-		 }
+		 },
+    [qw/a_string a_long_string another_string/] 
+    => { type => 'leaf',
+	 mandatory => 1 ,
+	 value_type => 'string'
+       },
+
    ]
   );
 
@@ -81,17 +87,27 @@ $model ->create_config_class
     => {
 	type => 'hash',
 	index_type  => 'string',
-	cargo_type => 'node',
-	warp  =>  { follow => '! tree_macro',
-		    morph   => 1,
-		    rules => { XY  => { config_class_name => 'SlaveY', },
-			       mXY => {
-				       config_class_name   => 'SlaveY',
-				       permission => 'intermediate'
-				      },
-			       XZ => { config_class_name => 'SlaveZ' }
-			     }
-		  }
+	level => 'hidden',
+	warp => {  follow => '! tree_macro',
+		   rules => { 
+			     XY  => { level => 'normal', },
+			     mXY => {
+				     level => 'normal',
+				     permission => 'intermediate'
+				    },
+			     XZ => { level => 'normal',},
+			    }
+		  },
+	cargo => { type => 'warped_node',
+		   follow => '! tree_macro',
+		   morph   => 1,
+		   rules => { XY  => { config_class_name => 'SlaveY', },
+			      mXY => {
+				      config_class_name   => 'SlaveY',
+				     },
+			      XZ => { config_class_name => 'SlaveZ' }
+			    }
+		  },
        },
     'a_warped_node'
     => {

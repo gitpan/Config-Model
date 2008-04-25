@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2008-03-11 18:27:36 +0100 (Tue, 11 Mar 2008) $
-# $Revision: 541 $
+# $Date: 2008-04-08 18:22:52 +0200 (Tue, 08 Apr 2008) $
+# $Revision: 595 $
 
 #    Copyright (c) 2005-2007 Dominique Dumont.
 #
@@ -32,7 +32,7 @@ use strict;
 use base qw/Config::Model::WarpedThing/ ;
 
 use vars qw($VERSION) ;
-$VERSION = sprintf "1.%04d", q$Revision: 541 $ =~ /(\d+)/;
+$VERSION = sprintf "1.%04d", q$Revision: 595 $ =~ /(\d+)/;
 
 =head1 NAME
 
@@ -139,8 +139,12 @@ sub cl_init {
 
     $self->warp if ($self->{warp});
 
-    if (defined $self->{ref_object}) {
-	$self->{ref_object}->get_choice_from_refered_to ;
+    if (defined $self->{ref_object} ) {
+	my $level = $self->parent
+	  -> get_element_property(element => $self->{element_name},
+				  property => 'level',
+				 ) ;
+	$self->{ref_object}->get_choice_from_refered_to if $level ne 'hidden';
     }
 }
 
@@ -272,6 +276,8 @@ sub set {
 
     # merge data passed to the constructor with data passed to set
     my %args = (%{$self->{backup}},@_ );
+
+    $self->set_owner_element_property ( \%args );
 
     if (defined $args{choice}) {
 	my @choice = @{ delete $args{choice} } ;

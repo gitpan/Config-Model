@@ -1,7 +1,7 @@
 # -*- cperl -*-
 # $Author: ddumont $
-# $Date: 2008-04-03 19:06:58 +0200 (Thu, 03 Apr 2008) $
-# $Revision: 581 $
+# $Date: 2008-04-15 13:57:49 +0200 (Tue, 15 Apr 2008) $
+# $Revision: 608 $
 
 use ExtUtils::testlib;
 use Test::More tests => 10;
@@ -18,7 +18,7 @@ use Data::Dumper;
 
 use vars qw/$model/;
 
-$model = Config::Model -> new ;
+$model = Config::Model -> new (legacy => 'ignore',) ;
 
 sub disp_node_content {
     my ( $scanner, $data_r, $node, @element ) = @_;
@@ -245,7 +245,7 @@ is_deeply( [split /\n/,$result], [split /\n/,$expect], "check result" );
 
 # test dump of mandatory values
 
-my $model2 = Config::Model->new() ;
+my $model2 = Config::Model->new(legacy => 'ignore',) ;
 $model2 ->create_config_class 
   (
    name => "SomeRootClass",

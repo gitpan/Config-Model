@@ -1,10 +1,10 @@
 # -*- cperl -*-
 # $Author: ddumont $
-# $Date: 2008-03-11 18:24:00 +0100 (Tue, 11 Mar 2008) $
-# $Revision: 540 $
+# $Date: 2008-04-15 13:57:49 +0200 (Tue, 15 Apr 2008) $
+# $Revision: 608 $
 
 use ExtUtils::testlib;
-use Test::More tests => 11;
+use Test::More tests => 12;
 use Config::Model;
 
 use warnings;
@@ -14,7 +14,7 @@ use strict;
 
 use vars qw/$model/;
 
-$model = Config::Model -> new ;
+$model = Config::Model -> new (legacy => 'ignore',) ;
 
 my $arg = shift || '' ;
 my $trace = $arg =~ /t/ ? 1 : 0 ;
@@ -33,6 +33,8 @@ my $root = $inst -> config_root ;
 ok($root,"Config root created") ;
 
 $inst->preset_start ;
+
+$root->fetch_element('hidden_string')->store('hidden value');
 
 my $step = 'std_id:ab X=Bv '
   .'! lista=a,b listb=b ' ;
@@ -61,8 +63,8 @@ std_id:"b d "
   X=Av -
 std_id:bc
   X=Av -
-lista=,,c,d
-listb=,c,d
+lista=c,d
+listb=c,d
 hash_a:X2=x
 hash_a:Y2=xy
 hash_b:X3=xy
@@ -239,7 +241,7 @@ std_id:ab
   X=Bv -
 std_id:"b d " -
 std_id:bc -
-lista=a,b,,
+lista=a,b
 olist:0 -
 olist:1 -
 warp
@@ -262,3 +264,7 @@ is_deeply( [split /\n/,$cds], [split /\n/,$expect],
 my $tm = $root -> fetch_element('tree_macro') ;
 map { $tm->store($_);} qw/XY XZ mXY XY mXY XZ/;
 
+$cds = $root->dump_tree( full_dump => 1 );
+print "cds string:\n$cds" if $trace  ;
+
+like($cds,qr/hidden value/,"check that hidden value is shown (macro=XZ)") ;

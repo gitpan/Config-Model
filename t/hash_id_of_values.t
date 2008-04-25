@@ -1,7 +1,7 @@
 # -*- cperl -*-
 # $Author: ddumont $
-# $Date: 2008-04-02 21:39:59 +0200 (Wed, 02 Apr 2008) $
-# $Revision: 578 $
+# $Date: 2008-04-15 13:57:49 +0200 (Tue, 15 Apr 2008) $
+# $Revision: 608 $
 
 use warnings FATAL => qw(all);
 
@@ -21,14 +21,16 @@ Config::Model::Exception::Any->Trace(1) if $arg =~ /e/;
 ok(1,"Compilation done");
 
 
+# new parameter style
 my @element = ( 
 	       # Value constructor args are passed in their specific array ref
-	       cargo_type => 'leaf',
-	       cargo_args => {value_type => 'string'},
+	       cargo => { type => 'leaf',
+			  value_type => 'string'
+			},
 	      ) ;
 
 # minimal set up to get things working
-my $model = Config::Model->new() ;
+my $model = Config::Model->new(legacy => 'ignore',) ;
 $model ->create_config_class 
   (
    name => "Master",
@@ -39,8 +41,8 @@ $model ->create_config_class
 	    # hash_class constructor args are all keys of this hash
 	    # except type and class
 	    index_type  => 'integer',
-
-	    @element
+	    cargo_type => 'leaf',
+	    cargo_args => {value_type => 'string'},
 	  },
        bounded_hash 
        => { type => 'hash',

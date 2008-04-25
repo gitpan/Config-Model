@@ -1,7 +1,7 @@
 # -*- cperl -*-
 # $Author: ddumont $
-# $Date: 2008-04-02 15:31:20 +0200 (Wed, 02 Apr 2008) $
-# $Revision: 577 $
+# $Date: 2008-04-15 13:57:49 +0200 (Tue, 15 Apr 2008) $
+# $Revision: 608 $
 
 use warnings FATAL => qw(all);
 
@@ -21,7 +21,7 @@ Config::Model::Exception::Any->Trace(1) if $arg =~ /e/;
 ok(1,"Compilation done");
 
 # minimal set up to get things working
-my $model = Config::Model->new() ;
+my $model = Config::Model->new(legacy => 'ignore',) ;
 $model ->create_config_class 
   (
    name => 'Slave',
@@ -91,6 +91,13 @@ $model ->create_config_class
 		    },
 	    cargo_args => {
 			   value_type => 'string',
+			   warp => { follow => '- macro',
+				     'rules'
+				     => { 'A' => {
+						  default => 'dumb string'
+						 } ,
+					}
+				   }
 			  }
 	  },
        'multi_auto_create'
@@ -221,9 +228,9 @@ is( $root->grab_value('multi_warp:5 X'), 'Av',
 is($root->is_element_available('hash_with_warped_value'),1,
   "check warped out hash_with_warped_value (macro is A)"); 
 
-is( $root->grab_value('hash_with_warped_value:5'), undef,
+is( $root->grab_value('hash_with_warped_value:5'), 'dumb string',
     "check hash_with_warped_value:5" );
 
-is( $root->grab_value('hash_with_warped_value:6'), undef,
+is( $root->grab_value('hash_with_warped_value:6'), 'dumb string',
     "check hash_with_warped_value:6" );
 

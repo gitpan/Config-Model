@@ -1,7 +1,7 @@
 # -*- cperl -*-
 # $Author: ddumont $
-# $Date: 2008-03-11 18:24:00 +0100 (Tue, 11 Mar 2008) $
-# $Revision: 540 $
+# $Date: 2008-04-15 13:57:49 +0200 (Tue, 15 Apr 2008) $
+# $Revision: 608 $
 
 use warnings FATAL => qw(all);
 
@@ -36,7 +36,7 @@ foreach my $c1 (@m1) {
 #use Data::Dumper; print Dumper \@rules ;
 
 # minimal set up to get things working
-my $model = Config::Model->new() ;
+my $model = Config::Model->new(legacy => 'ignore',) ;
 my $model_data = 
   {
    name => 'Master',

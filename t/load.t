@@ -1,7 +1,7 @@
 # -*- cperl -*-
 # $Author: ddumont $
-# $Date: 2008-03-11 18:24:00 +0100 (Tue, 11 Mar 2008) $
-# $Revision: 540 $
+# $Date: 2008-04-15 13:57:49 +0200 (Tue, 15 Apr 2008) $
+# $Revision: 608 $
 
 use ExtUtils::testlib;
 use Test::More tests => 54;
@@ -12,7 +12,7 @@ no warnings qw(once);
 
 use strict;
 
-my $model = Config::Model -> new ;
+my $model = Config::Model -> new(legacy => 'ignore',)  ;
 
 my $arg = shift || '' ;
 my $trace = $arg =~ /t/ ? 1 : 0 ;

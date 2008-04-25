@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2008-04-02 21:39:59 +0200 (Wed, 02 Apr 2008) $
-# $Revision: 578 $
+# $Date: 2008-04-18 14:26:22 +0200 (Fri, 18 Apr 2008) $
+# $Revision: 617 $
 
 #    Copyright (c) 2005-2007 Dominique Dumont.
 #
@@ -32,7 +32,7 @@ use Carp;
 use warnings FATAL => qw(all);
 
 use vars qw($VERSION) ;
-$VERSION = sprintf "1.%04d", q$Revision: 578 $ =~ /(\d+)/;
+$VERSION = sprintf "1.%04d", q$Revision: 617 $ =~ /(\d+)/;
 
 use base qw/Config::Model::AnyThing/ ;
 
@@ -260,7 +260,7 @@ sub submit_to_warp {
         # modify the warped object according to the data passed by the
         # user.
 
-        my $type = $warper -> register ($self,$warper_name) ;
+	my $type = $warper -> register ($self,$warper_name) ;
 
         # store current warp master value
         if ($type eq 'computed') {
@@ -277,7 +277,7 @@ sub submit_to_warp {
 	if ($available) {
 	    # read the warp master values, so I can warp myself just
 	    # after.
-	    my $warper_value = $warper->fetch;
+	    my $warper_value = $warper->fetch('allow_undef');
 	    print "\t'$warper_name' value is: '", 
                   defined $warper_value ? $warper_value : '<undef>' ,"'\n"
 	      if $::debug;
@@ -405,6 +405,7 @@ sub compute_bool {
 		      . "eval'ed code is: \n$perl_code"
 		     ) 
     }
+
     print "compute_bool: eval result: ", ($ret ? 'true' : 'false'),
       "\n" if $::debug ;
     return $ret ;

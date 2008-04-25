@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2008-03-18 18:28:57 +0100 (Tue, 18 Mar 2008) $
-# $Revision: 545 $
+# $Date: 2008-04-05 19:10:21 +0200 (Sat, 05 Apr 2008) $
+# $Revision: 587 $
 
 #    Copyright (c) 2005-2007 Dominique Dumont.
 #
@@ -37,7 +37,7 @@ use warnings::register ;
 
 use vars qw/$VERSION/ ;
 
-$VERSION = sprintf "1.%04d", q$Revision: 545 $ =~ /(\d+)/;
+$VERSION = sprintf "1.%04d", q$Revision: 587 $ =~ /(\d+)/;
 
 use Carp qw/croak confess cluck/;
 
@@ -315,7 +315,7 @@ sub pop_no_value_check {
     }
 }
 
-=head2 get_value_check ( fetch | store | type | fetch_or_store )
+=head2 get_value_check ( fetch | store | type | fetch_or_store | fetch_and_store )
 
 Read the check status. Returns 1 if a check is to be done. O if not. 
 When used with the C<fetch_or_store> parameter, returns a logical C<or>
@@ -327,9 +327,10 @@ sub get_value_check {
     my $self = shift ;
     my $what = shift ;
 
-    my $result =  $what eq 'fetch_or_store' 
-      ? ($self->{check_stack}[0]{fetch} or $self->{check_stack}[0]{store})
-        : $self->{check_stack}[0]{$what} ;
+    my $ref = $self->{check_stack}[0] ;
+    my $result = $what eq 'fetch_or_store'  ? ($ref->{fetch} or  $ref->{store})
+               : $what eq 'fetch_and_store' ? ($ref->{fetch} and $ref->{store})
+               :                               $ref->{$what} ;
 
     croak "get_value_check: unexpected parameter: $what, ",
       "expected 'fetch', 'type', 'store', 'fetch_or_store'" 

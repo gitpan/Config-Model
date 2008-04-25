@@ -1,7 +1,7 @@
 # -*- cperl -*-
 # $Author: ddumont $
-# $Date: 2008-03-22 18:48:44 +0100 (Sat, 22 Mar 2008) $
-# $Revision: 556 $
+# $Date: 2008-04-15 13:57:49 +0200 (Tue, 15 Apr 2008) $
+# $Revision: 608 $
 
 use warnings FATAL => qw(all);
 
@@ -13,18 +13,24 @@ BEGIN { plan tests => 22; }
 
 use strict;
 
-my $trace = shift || 0;
+my $arg = shift || '';
+
+my $trace = $arg =~ /t/ ? 1 : 0 ;
+$::verbose          = 1 if $arg =~ /v/;
+$::debug            = 1 if $arg =~ /d/;
+Config::Model::Exception::Any->Trace(1) if $arg =~ /e/;
 
 ok(1,"Compilation done");
 
 my @element = ( 
 	       # Value constructor args are passed in their specific array ref
-	       cargo_type => 'leaf',
-	       cargo_args => {value_type => 'string'},
+	       cargo => { type => 'leaf',
+			  value_type => 'string'
+			},
 	      ) ;
 
 # minimal set up to get things working
-my $model = Config::Model->new() ;
+my $model = Config::Model->new(legacy => 'ignore',) ;
 $model ->create_config_class 
   (
    name => "Master",
@@ -37,7 +43,8 @@ $model ->create_config_class
 	    list_class => 'Config::Model::ListId', # default
 
 	    max => 123, 
-	    @element
+	    cargo_type => 'leaf',
+	    cargo_args => {value_type => 'string'},
 	  },
        list_with_auto_created_id
        => {

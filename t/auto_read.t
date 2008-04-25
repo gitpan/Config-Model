@@ -1,7 +1,7 @@
 # -*- cperl -*-
 # $Author: ddumont $
-# $Date: 2008-03-11 18:24:00 +0100 (Tue, 11 Mar 2008) $
-# $Revision: 540 $
+# $Date: 2008-04-16 12:18:26 +0200 (Wed, 16 Apr 2008) $
+# $Revision: 610 $
 
 use ExtUtils::testlib;
 use Test::More tests => 32;
@@ -16,7 +16,7 @@ use strict;
 
 use vars qw/$model/;
 
-$model = Config::Model -> new ;
+$model = Config::Model -> new (legacy => 'ignore',) ;
 
 my $trace = shift || 0;
 $::verbose          = 1 if $trace =~ /v/;
@@ -144,7 +144,7 @@ $i_zero->write_back;
 # check written cds files
 foreach my $suffix (qw/cds ini pl/) {
     map { ok( -e "$wr_dir/$_.$suffix", "check written file $_.$suffix" ); } 
-      ('zero_inst','zero_inst:level1') ;
+      ('zero_inst','zero_inst/level1') ;
 }
 
 # check called write routine
@@ -152,15 +152,16 @@ is($result{wr_stuff},'wr_test','check custom write dir') ;
 is($result{wr_root_name},'Master','check custom conf root to write') ;
 
 # perform write back of dodu tree dump string in an overridden dir
-$i_zero->write_back("$wr_dir/$wr_dir");
+$i_zero->write_back("$wr_dir/wr_2");
 
 # check written cds files
 foreach my $suffix (qw/cds ini pl/) {
-    map { ok( -e "$wr_dir/$wr_dir/$_.$suffix", "check written file $wr_dir/$_.$suffix" ); } 
-      ('zero_inst','zero_inst:level1') ;
+    map { ok( -e "$wr_dir/wr_2/$_.$suffix", 
+	      "check written file $wr_dir/wr_2/$_.$suffix" ); } 
+      ('zero_inst','zero_inst/level1') ;
 }
 
-is($result{wr_stuff},'wr_test/wr_test','check custom overridden write dir') ;
+is($result{wr_stuff},'wr_test/wr_2','check custom overridden write dir') ;
 
 my $dump = $master->dump_tree( skip_auto_write => 1 );
 print "Master dump:\n$dump\n" if $trace;
@@ -177,8 +178,10 @@ mkdir( $zdir, 0755 ) unless -d $zdir;
 
 my %cds = (
     test2 => 'aa="aa was set by file" - ',
-    'test2:level1'   => 'bar X=Av Y=Bv - '
+    'test2/level1'   => 'bar X=Av Y=Bv - '
 );
+
+mkpath("$zdir/test2",0,0755) || die "Can't mkpath $zdir/test2:$!";
 
 # write input config files
 foreach my $f ( keys %cds ) {

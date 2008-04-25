@@ -1,8 +1,8 @@
 # $Author: ddumont $
-# $Date: 2008-03-11 18:27:36 +0100 (Tue, 11 Mar 2008) $
-# $Revision: 541 $
+# $Date: 2008-04-16 12:18:26 +0200 (Wed, 16 Apr 2008) $
+# $Revision: 610 $
 
-#    Copyright (c) 2005-2007 Dominique Dumont.
+#    Copyright (c) 2005-2008 Dominique Dumont.
 #
 #    This file is part of Config-Model.
 #
@@ -31,7 +31,7 @@ use UNIVERSAL ;
 
 use base qw/Config::Model::AnyThing/ ;
 
-our $VERSION = sprintf "1.%04d", q$Revision: 541 $ =~ /(\d+)/;
+our $VERSION = sprintf "1.%04d", q$Revision: 610 $ =~ /(\d+)/;
 
 =head1 NAME
 
@@ -330,14 +330,15 @@ sub get_cfg_file_name
 
     mkpath ($dir,0, 0755) if $r_or_w eq 'w' and not -d $dir ;
 
-    # TBD should we use sub-directories ?? 
-
     # append instance name
     my $name = $dir ."/". $i->name ;
 
     # append ":foo bar" if not root object
     my $loc = $self->location ; # not good
-    $name .= ':' . $loc if $loc ;
+    if ($loc) {
+	mkpath ($name,0, 0755) if $r_or_w eq 'w' and not -d $name ;
+	$name .= '/'.$loc ;
+    }
 
     return $name ;
   }

@@ -1,7 +1,7 @@
 # -*- cperl -*-
 # $Author: ddumont $
-# $Date: 2008-03-11 18:24:00 +0100 (Tue, 11 Mar 2008) $
-# $Revision: 540 $
+# $Date: 2008-04-15 13:57:49 +0200 (Tue, 15 Apr 2008) $
+# $Revision: 608 $
 
 use warnings FATAL => qw(all);
 
@@ -21,7 +21,7 @@ Config::Model::Exception::Any->Trace(1) if $arg =~ /e/;
 ok(1,"Compilation done");
 
 # minimal set up to get things working
-my $model = Config::Model->new() ;
+my $model = Config::Model->new(legacy => 'ignore',) ;
 $model ->create_config_class 
   (
    name => 'SlaveY',
@@ -62,20 +62,31 @@ $model ->create_config_class
        'bar'
        => { type => 'hash',
 	    index_type => 'string',
-	    cargo_type => 'node',
+	    level => 'hidden', # goes normal when both m1 and m2 are defined
 	    'warp'
-	    => { follow => [ '! macro1', '- macro2' ],
-		 morph  => 1,
+	    => { follow => { m1 => '! macro1', m2 => '- macro2' },
 		 'rules'
 		 => [
-		     [qw/A C/] => {'config_class_name' => 'SlaveY'},
-		     [qw/A D/] => {'config_class_name' => 'SlaveY',
-				   permission => 'intermediate'
-				  },
-		     [qw/B C/] => {'config_class_name' => 'SlaveZ'},
-		     [qw/B D/] => {'config_class_name' => 'SlaveZ'},
+		     '$m1 eq "A" and $m2 eq "D"' 
+		     => { level => 'normal',  permission => 'intermediate' },
+		     '$m1 and $m2' => { level => 'normal',  },
+#		     '$m1 eq "A" and $m2 eq "C"' => { level => 'normal',  },
+#		     '$m1 eq "B" and $m2 eq "C"' => { level => 'normal',  },
+#		     '$m1 eq "B" and $m2 eq "D"' => { level => 'normal',  },
 		    ]
-	       }
+	       },
+	    cargo => {
+		      type => 'warped_node',
+		      follow => [ '! macro1', '- macro2' ],
+		      morph  => 1,
+		      'rules'
+		      => [
+			  [qw/A C/] => {'config_class_name' => 'SlaveY'},
+			  [qw/A D/] => {'config_class_name' => 'SlaveY'},
+			  [qw/B C/] => {'config_class_name' => 'SlaveZ'},
+			  [qw/B D/] => {'config_class_name' => 'SlaveZ'},
+			 ]
+		     }
 	  }
       ]
    );

@@ -1,7 +1,7 @@
 # -*- cperl -*-
 # $Author: ddumont $
-# $Date: 2008-04-02 15:31:20 +0200 (Wed, 02 Apr 2008) $
-# $Revision: 577 $
+# $Date: 2008-04-18 14:26:22 +0200 (Fri, 18 Apr 2008) $
+# $Revision: 617 $
 
 use warnings FATAL => qw(all);
 
@@ -23,7 +23,7 @@ Config::Model::Exception::Any->Trace(1) if $arg =~ /e/;
 
 ok(1,"Compilation done");
 
-my $model = Config::Model->new() ;
+my $model = Config::Model->new(legacy => 'ignore',) ;
 $model ->create_config_class 
   (
    name => "RSlave",
@@ -161,6 +161,7 @@ $model -> create_config_class
        macro => {
 		 type => 'leaf',
 		 value_type => 'enum',
+		 mandatory => 1,
 		 choice     => [qw/A B C D/]
 		},
        macro2 => {
@@ -427,7 +428,7 @@ my $rules = {
 };
 
 no warnings 'once' ;
-my $parser = Parse::RecDescent->new($Config::Model::ValueComputer::compute_grammar) ;
+my $parser = new Parse::RecDescent ($Config::Model::ValueComputer::compute_grammar) ;
 use warnings 'once';
 
 # the 2 next tests are used to check what going on before trying the

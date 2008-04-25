@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2008-04-03 14:03:38 +0200 (Thu, 03 Apr 2008) $
-# $Revision: 580 $
+# $Date: 2008-04-11 18:19:23 +0200 (Fri, 11 Apr 2008) $
+# $Revision: 599 $
 
 #    Copyright (c) 2005-2007 Dominique Dumont.
 #
@@ -32,7 +32,7 @@ use Data::Dumper () ;
 
 use vars qw($VERSION $compute_grammar $compute_parser) ;
 
-$VERSION = sprintf "1.%04d", q$Revision: 580 $ =~ /(\d+)/;
+$VERSION = sprintf "1.%04d", q$Revision: 599 $ =~ /(\d+)/;
 
 =head1 NAME
 
@@ -275,12 +275,14 @@ sub new {
     }
 
     # value_object is mostly used for error messages
-    foreach my $k (qw/formula variables value_type value_object/) {
+    foreach my $k (qw/formula value_type value_object/) {
 	$self->{$k} = delete $args{$k} || 
 	  croak "Config::Model::ValueComputer:new undefined parameter $k";
     }
 
-    $self->{replace} = delete $args{replace} || {} ;
+    foreach my $k (qw/variables replace/) {
+	$self->{$k} = delete $args{$k} || {} ;
+    }
 
     die "Config::Model::ValueComputer:new unexpected parameter: ",
       join(' ',keys %args) if %args ;
@@ -327,20 +329,22 @@ sub compute {
 
     return undef unless defined $formula ;
 
-    print "compute: pre_formula $pre_formula\n",
-      "compute: rule to eval $formula\n" if $::debug;
+    print "compute $self->{value_type}: pre_formula $pre_formula\n",
+      "compute $self->{value_type}: rule to eval $formula\n" if $::debug;
 
     my $result = $self->{computed_formula} = $formula ;
 
-    if ($self->{value_type} =~ /(integer|number)/) {
+    if ($self->{value_type} =~ /(integer|number|boolean)/) {
         $result = eval $formula ;
-        Config::Model::Exception::Formula
-	    -> throw (
-		      object => $self->{value_object},
-		      error => "Rule $self->{compute}[0] "
-		      . "(eval'ed as $formula) failed:\n$@"
-		     ) 
-	      if $@ ;
+	if ($@) {
+	    Config::Model::Exception::Formula
+		-> throw (
+			  object => $self->{value_object},
+			  error => "Eval of formula '$formula' failed:\n$@"
+			  . "Make sure that your element is indeed "
+			  . "'$self->{value_type}'"
+			 ) ;
+	}
     }
 
     return $result ;
@@ -379,7 +383,7 @@ sub compute_info {
 				  error => "Compute variable:\n". $msg
 				 ) ;
 		  }
-		  $val =  $obj->fetch ;
+		  $val = $obj->get_type eq 'node' ? '<node>' : $obj->fetch ;
 		}
 		$str.= "\n\t\t'$k' from path '$orig_variables->{$k}' is ";
 		$str.= defined $val ? "'$val'" : 'undef' ;
@@ -445,7 +449,7 @@ sub compute_variables {
 $compute_grammar = << 'END_OF_GRAMMAR' ;
 
 {
-# $Revision: 580 $
+# $Revision: 599 $
 
 # This grammar is compatible with Parse::RecDescent < 1.90 or >= 1.90
 use strict;
@@ -526,6 +530,12 @@ pre_value:
 		      );
      }
      # print "\&foo(...) result = ",$$return," \n";
+
+     my $vt = $arg[0]->value_type;
+     if ($vt =~ /^integer|number|boolean$/) {
+         $$return = '"'.$$return.'"';
+     }
+
      $return ;
   }
   | <skip:''> '&' /\w+/ (/\(\s*\)/)(?) {
@@ -544,6 +554,12 @@ pre_value:
          unless defined $method_name;
 
     my $result =  $arg[0]->$method_name(); 
+
+    my $vt = $arg[0]->value_type;
+    if ($vt =~ /^integer|number|boolean$/) {
+        $result = '"'.$result.'"';
+    }
+
     $return = \$result ;
 
     Config::Model::Exception::Formula

@@ -1,7 +1,7 @@
 # -*- cperl -*-
 # $Author: ddumont $
-# $Date: 2008-03-11 18:24:00 +0100 (Tue, 11 Mar 2008) $
-# $Revision: 540 $
+# $Date: 2008-04-08 18:22:52 +0200 (Tue, 08 Apr 2008) $
+# $Revision: 595 $
 
 # this file is used by test script
 
@@ -156,6 +156,18 @@
 			     mandatory => 1 ,
 			     value_type => 'string'
 			   },
+	       hidden_string 
+	       => { type => 'leaf',
+		    level => 'hidden',
+		    value_type => 'string' ,
+		    warp => {
+			     follow => '! tree_macro',
+			     rules => { XZ => {
+					       level =>'normal',
+					      }
+				      }
+			    },
+		  },
 	       int_v => { type => 'leaf',
 			  value_type => 'integer',
 			  default    => '10',

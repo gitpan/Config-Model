@@ -1,7 +1,7 @@
 # -*- cperl -*-
 # $Author: ddumont $
-# $Date: 2008-03-18 18:38:02 +0100 (Tue, 18 Mar 2008) $
-# $Revision: 547 $
+# $Date: 2008-04-15 13:57:49 +0200 (Tue, 15 Apr 2008) $
+# $Revision: 608 $
 
 use ExtUtils::testlib;
 use Test::More tests => 22 ;
@@ -18,7 +18,7 @@ use Data::Dumper;
 
 use vars qw/$model/;
 
-$model = Config::Model -> new ;
+$model = Config::Model -> new(legacy => 'ignore',)  ;
 
 my $trace = shift || 0;
 $::verbose          = 1 if $trace =~ /v/;

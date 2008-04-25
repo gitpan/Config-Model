@@ -1,7 +1,7 @@
 # -*- cperl -*-
 # $Author: ddumont $
-# $Date: 2008-04-03 19:06:58 +0200 (Thu, 03 Apr 2008) $
-# $Revision: 581 $
+# $Date: 2008-04-15 13:57:49 +0200 (Tue, 15 Apr 2008) $
+# $Revision: 608 $
 
 use ExtUtils::testlib;
 use Test::More tests => 11;
@@ -14,7 +14,7 @@ use strict;
 
 use vars qw/$model/;
 
-$model = Config::Model -> new ;
+$model = Config::Model -> new(legacy => 'ignore',)  ;
 
 my $arg = shift || '' ;
 my $trace = $arg =~ /t/ ? 1 : 0 ;
@@ -54,6 +54,10 @@ $step =~ s/\n/ /g;
 ok( $root->load( step => $step, permission => 'advanced' ),
   "set up data in tree with '$step'");
 
+# load some values with undef
+$root->fetch_element('hash_a')->fetch_with_id('undef_val') ;
+$root->fetch_element('lista' )->fetch_with_id(6)->store('g');
+
 $root->load_data({ listb => 'bb'}) ;
 ok (1, "loaded single array element as listb => 'bb'") ;
 
@@ -69,13 +73,14 @@ my $expect = {
 	      'my_reference' => 'titi',
 	      'hash_a' => {
 			   'toto' => 'toto_value',
-			   'titi' => 'titi_value'
+			   'titi' => 'titi_value',
+			   undef_val => undef ,
 			  },
 	      'std_id' => {
 			   'ab' => {'X' => 'Bv'},
 			   'bc' => {'X' => 'Av'}
 			  },
-	      'lista' => ['a', 'b', 'c', 'd'],
+	      'lista' => [qw/a b c d g/],
 	      'warp' => {
 			 'warp2' => {
 				     'aa2' => 'foo bar'

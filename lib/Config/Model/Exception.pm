@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2008-03-11 18:27:36 +0100 (Tue, 11 Mar 2008) $
-# $Revision: 541 $
+# $Date: 2008-04-14 15:50:37 +0200 (Mon, 14 Apr 2008) $
+# $Revision: 603 $
 
 #    Copyright (c) 2005-2007 Dominique Dumont.
 #
@@ -27,7 +27,7 @@ use strict;
 use Data::Dumper ;
 
 use vars qw($VERSION) ;
-$VERSION = sprintf "1.%04d", q$Revision: 541 $ =~ /(\d+)/;
+$VERSION = sprintf "1.%04d", q$Revision: 603 $ =~ /(\d+)/;
 
 push @Exception::Class::Base::ISA, 'Error';
 
@@ -176,6 +176,7 @@ sub full_message {
     my $location = defined $obj ? $obj->name :'';
     my $msg = "Configuration item ";
     $msg .= "'$location' " if $location ;
+    $msg .= "(class ".$obj->config_class_name.") " if $obj->get_type eq 'node';
     $msg .= "has a ".$self->description ;
     $msg .= ":\n\t". $self->message."\n";
     $msg .= Data::Dumper->Dump([$self->wrong_data],['wrong data']) ;
@@ -195,8 +196,10 @@ sub full_message {
     }
     else {
 	my $element = $obj->element_name ;
+	my $level = $obj->parent->get_element_property(element => $element, 
+						       property => 'level');
 	$msg = "In config class '" . $obj->parent->config_class_name
-	  . "', element '$element' ";
+	  . "', element '$element' (level $level) ";
     }
     $msg .= "has a ".$self->description ;
     $msg .= ":\n\t". $self->message."\n";

@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2008-04-04 12:34:18 +0200 (Fri, 04 Apr 2008) $
-# $Revision: 584 $
+# $Date: 2008-04-08 12:26:28 +0200 (Tue, 08 Apr 2008) $
+# $Revision: 592 $
 
 #    Copyright (c) 2005-2008 Dominique Dumont.
 #
@@ -27,39 +27,21 @@ use ExtUtils::MakeMaker;
 
 require 5.008;
 
-my @files= grep {$_ ne "Model.pm" and $_ ne "PreGrammar.pm"} <*.pm> ;
-
-my %PM = map ( ( "$_" => '$(INST_LIB)'."/Config/Model/$_" ), @files ) ;
-
-$PM{"Model.pm"} = '$(INST_LIB)'."/Config/Model.pm" ;
-
-my %M3 = map {
-    my $save = $_ ;
-    s/\.pm$/.3pm/ ;
-    ( $save => '$(INST_MAN3DIR)/Config::Model::'."$_" )
-} @files  ;
-
-$M3{"Model.pm"}= '$(INST_MAN3DIR)/Config::Model.3pm' ;
-
-#print join("\n", values %M3),"\n"; exit ;
-
 print "If you want to use the TermUI interface, you should install\n",
   "Term::ReadLine::Perl or Term::ReadLine::Gnu\n";
 
 WriteMakefile 
   (
    NAME         => 'Config-Model',
-   VERSION_FROM => 'Model.pm',
+   VERSION_FROM => 'lib/Config/Model.pm',
    dist         => {COMPRESS=>'gzip -9f', SUFFIX => 'gz'},
-   PM           => \%PM ,
-   MAN3PODS     => \%M3,
    'EXE_FILES'  => [ 'config-edit' ],
    ABSTRACT     => 'Describe and edit configuration data',
    AUTHOR       => 'Dominique Dumont (ddumont at cpan dot org)',
    PREREQ_PM    => {
 		    'Test::More'        => 0, # for test
 		    'Term::ReadLine'    => 0,
-		    'Log::Log4perl'     => 0,
+		    'Log::Log4perl'     => '1.11', # for TRACE log level
 		    'Parse::RecDescent' => '1.90',
 		    'Scalar::Util'      => 0, # provided by perl 5.8.0
 		    'Exception::Class'  => 0,

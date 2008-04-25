@@ -1,3 +1,53 @@
+2008-04-18  Dominique Dumont v0.622
+
+	* Value.pm (fetch): added 'allow_undef' mode to allow reading
+	undefined mandatory value (fix morphing warped node containing
+	undefined mandatory values)
+
+	* Node.pm (copy_from): No longer die when copying undefined
+	mandatory value.
+
+2008-04-16  Dominique Dumont 
+
+	* AutoRead.pm (get_cfg_file_name): Do not use ':' in file
+	names. This breaks windows. Now use sub-directories
+
+2008-04-15  Dominique Dumont 
+
+	* Dumper.pm (dump_tree): skip undefined values in list element
+
+	* DumpAsData.pm (dump_as_data): idem
+
+2008-04-14  Dominique Dumont 
+
+	* Model.pm (list_class_element): New method to help debugging of
+	configuration models
+
+2008-04-13  Dominique Dumont 
+
+	* Model.pm (include_class): allow multiple includes
+
+2008-04-11  Dominique Dumont 
+
+	* AnyId.pm: Changed the way the cargo parameter are specified. Now
+	the cargo parameter holds all the information related to the
+	payload of the hash or list. Instead of having :
+	cargo_type => ... , cargo_args => {}, config_class_name => ...
+	you now have:
+	cargo => { type => ..., config_class_name => ..., <other_parm> => ... }
+	Model.pm provides a translation from the old way to the new way so
+	this change is (95%) backward compatible.
+	
+2008-04-08  Dominique Dumont 
+
+	* CheckList.pm (set): Fix bug that prevented to use level or
+	permission or status parameter with check_list elements
+
+2008-04-05  Domi  <domi@bilbo.maison>
+
+	* Value.pm (pre_store): Fix bug that prevented to load models with
+	errors even in tolerant mode.
+
 2008-04-03  Dominique Dumont  0.621
 
 	* Dumper.pm (dump_tree): Added auto_vivify parameter

@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2008-04-04 12:34:18 +0200 (Fri, 04 Apr 2008) $
-# $Revision: 584 $
+# $Date: 2008-04-16 12:18:26 +0200 (Wed, 16 Apr 2008) $
+# $Revision: 610 $
 
 #    Copyright (c) 2005-2008 Dominique Dumont.
 #
@@ -34,7 +34,7 @@ use Config::Model::Instance ;
 # this class holds the version number of the package
 use vars qw($VERSION @status @level @permission_list %permission_index) ;
 
-$VERSION = '0.621';
+$VERSION = '0.622';
 
 =head1 NAME
 
@@ -142,15 +142,30 @@ sub new {
 
     my $skip =  $args{skip_include} || 0 ;
 
+    my $self = { model_dir => $args{model_dir},
+		 legacy    => $args{legacy}  || 'warn' ,
+		 skip_include => $skip ,
+	       } ;
+    bless $self,$type ;
+
     if (defined $args{skip_inheritance}) {
-	carp "skip_inheritance is deprecated, use skip_include" ;
-	$skip = $args{skip_inheritance} ;
+	$self->legacy("skip_inheritance is deprecated, use skip_include") ;
+	$self->{skip_include} = $args{skip_inheritance} ;
     }
 
-    bless {
-	   model_dir => $args{model_dir} ,
-	   skip_include => $skip,
-	  },$type;
+    return $self ;
+}
+
+sub legacy {
+    my $self = shift ;
+    my $behavior = $self->{legacy} ;
+
+    if ($behavior eq 'die') {
+	die @_,"\n";
+    }
+    elsif ($behavior eq 'warn') {
+	warn @_,"\n";
+    }
 }
 
 =head2 declaring the model
@@ -449,12 +464,12 @@ sub create_config_class {
     }
 
     if (defined $raw_model{inherit_after}) {
-	warn "Model $config_class_name: inherit_after is deprecated ",
-	  "in favor of include_after\n";
+	$self->legacy("Model $config_class_name: inherit_after is deprecated ",
+	  "in favor of include_after" );
 	$raw_model{include_after} = delete $raw_model{inherit_after} ;
     }
     if (defined $raw_model{inherit}) {
-	warn "Model $config_class_name: inherit is deprecated in favor of include\n";
+	$self->legacy("Model $config_class_name: inherit is deprecated in favor of include");
 	$raw_model{include} = delete $raw_model{inherit} ;
     }
 
@@ -467,14 +482,14 @@ sub create_config_class {
     my $raw_copy = dclone \%raw_model ;
     my %model = ( element_list => [] );
 
-
     # add included items
     if ($self->{skip_include}) {
-	$model{include}       = delete $raw_copy->{include} ;
+	my $inc = delete $raw_copy->{include} ;
+	$model{include}       =  ref $inc ? $inc : [ $inc ];
 	$model{include_after} = delete $raw_copy->{include_after} ;
     }
     else {
-	$self->include_class($raw_copy) ; 
+	$self->include_class($config_class_name, $raw_copy ) ; 
     }
 
 
@@ -498,7 +513,7 @@ sub create_config_class {
 
 sub check_class_parameters {
     my $self  = shift;
-    my $config_class_name = shift;
+    my $config_class_name = shift || die ;
     my $model = shift || die ;
     my $raw_model = shift || die ;
 
@@ -583,7 +598,8 @@ sub check_class_parameters {
 
 	    # warp can be found only in element item 
 	    if (ref $info eq 'HASH') {
-		$self->translate_legacy_info($element_names[0], $info) ;
+		$self->translate_legacy_info($config_class_name,
+					     $element_names[0], $info) ;
 	    }
 
 	    foreach my $name (@element_names) {
@@ -605,58 +621,67 @@ sub check_class_parameters {
 
 sub translate_legacy_info {
     my $self = shift ;
+    my $config_class_name = shift || die ;
     my $elt_name = shift ;
     my $info = shift ;
 
     #translate legacy warp information
     if (defined $info->{warp}) {
-	$self->translate_warp_info($elt_name, $info->{warp});
+	$self->translate_warp_info($config_class_name,$elt_name, $info->{warp});
     }
-    if (    defined $info->{cargo_args} 
-	and defined $info->{cargo_args}{warp}) {
-	$self->translate_warp_info($elt_name, 
-				   $info->{cargo_args}{warp});
+
+    $self->translate_cargo_info($config_class_name,$elt_name, $info);
+
+    if (    defined $info->{cargo} 
+	and defined $info->{cargo}{warp}) {
+	$self->translate_warp_info($config_class_name,$elt_name, 
+				   $info->{cargo}{warp});
     }
+
+    if (defined $info->{cargo} && $info->{cargo}{type} eq 'warped_node') {
+	$self->translate_warp_info($config_class_name,$elt_name, $info->{cargo});
+    }
+
     if (defined $info->{type} && $info->{type} eq 'warped_node') {
-	$self->translate_warp_info($elt_name, $info);
+	$self->translate_warp_info($config_class_name,$elt_name, $info);
     }
 
     # compute cannot be warped
     if (defined $info->{compute}) {
-	$self->translate_compute_info($elt_name, $info,'compute');
+	$self->translate_compute_info($config_class_name,$elt_name, $info,'compute');
     }
-    if (    defined $info->{cargo_args} 
-	and defined $info->{cargo_args}{compute}) {
-	$self->translate_compute_info($elt_name, 
-				      $info->{cargo_args},'compute');
+    if (    defined $info->{cargo} 
+	and defined $info->{cargo}{compute}) {
+	$self->translate_compute_info($config_class_name,$elt_name, 
+				      $info->{cargo},'compute');
     }
 
     # refer_to cannot be warped
     if (defined $info->{refer_to}) {
-	$self->translate_compute_info($elt_name, $info,refer_to => 'computed_refer_to');
+	$self->translate_compute_info($config_class_name,$elt_name, $info,refer_to => 'computed_refer_to');
     }
-    if (    defined $info->{cargo_args} 
-	and defined $info->{cargo_args}{refer_to}) {
-	$self->translate_compute_info($elt_name, 
-				      $info->{cargo_args},refer_to => 'computed_refer_to');
+    if (    defined $info->{cargo} 
+	and defined $info->{cargo}{refer_to}) {
+	$self->translate_compute_info($config_class_name,$elt_name, 
+				      $info->{cargo},refer_to => 'computed_refer_to');
     }
 
     # translate id default param
-    # default cannot be stored in cargo_args since is applies to the id itself
+    # default cannot be stored in cargo since is applies to the id itself
     if ( defined $info->{type} 
          and ($info->{type} eq 'list' or $info->{type} eq 'hash')
        ) {
 	if (defined $info->{default}) {
-	    $self->translate_id_default_info($elt_name, $info);
+	    $self->translate_id_default_info($config_class_name,$elt_name, $info);
 	} 
-	$self->translate_id_names($elt_name,$info) ;
+	$self->translate_id_names($config_class_name,$elt_name,$info) ;
 	if (defined $info->{warp} ) {
 	    my $rules_a = $info->{warp}{rules} ;
 	    my %h = @$rules_a ;
 	    foreach my $rule_effect (values %h) {
-		$self->translate_id_names($elt_name, $rule_effect) ;
+		$self->translate_id_names($config_class_name,$elt_name, $rule_effect) ;
 		next unless defined $rule_effect->{default} ;
-		$self->translate_id_default_info($elt_name, $rule_effect);
+		$self->translate_id_default_info($config_class_name,$elt_name, $rule_effect);
 	    }
 	}
     }
@@ -664,30 +689,62 @@ sub translate_legacy_info {
     print Data::Dumper->Dump([$info ] , ['translated_'.$elt_name ] ) ,"\n" if $::debug;
 }
 
-sub translate_id_names {
+sub translate_cargo_info {
     my $self = shift;
+    my $config_class_name = shift ;
     my $elt_name = shift ;
     my $info = shift;
-    $self->translate_name($elt_name, $info, 'allow',     'allow_keys') ;
-    $self->translate_name($elt_name, $info, 'allow_from','allow_keys_from') ;
-    $self->translate_name($elt_name, $info, 'follow',    'follow_keys_from') ;
+
+    my $c_type = delete $info->{cargo_type} ;
+    return unless defined $c_type;
+    $self->legacy("$config_class_name->$elt_name: parameter cargo_type is deprecated.");
+    my %cargo ;
+
+    if (defined $info->{cargo_args}) {
+       %cargo = %{ delete $info->{cargo_args}} ;
+       $self->legacy("$config_class_name->$elt_name: parameter cargo_args is deprecated.");
+    }
+
+    $cargo{type} = $c_type;
+
+    if (defined $info->{config_class_name}) {
+	$cargo{config_class_name} = delete $info->{config_class_name} ;
+	$self->legacy("$config_class_name->$elt_name: parameter config_class_name is ",
+	     "deprecated. This one must be specified within cargo. ",
+	     "Ie. cargo=>{config_class_name => 'FooBar'}");
+    }
+
+    $info->{cargo} = \%cargo ;
+    print Data::Dumper->Dump([$info ] , ['translated_'.$elt_name ] ) ,"\n" if $::debug;
+}
+
+sub translate_id_names {
+    my $self = shift;
+    my $config_class_name = shift ;
+    my $elt_name = shift ;
+    my $info = shift;
+    $self->translate_name($config_class_name,$elt_name, $info, 'allow',     'allow_keys') ;
+    $self->translate_name($config_class_name,$elt_name, $info, 'allow_from','allow_keys_from') ;
+    $self->translate_name($config_class_name,$elt_name, $info, 'follow',    'follow_keys_from') ;
 }
 
 sub translate_name {
     my $self     = shift;
+    my $config_class_name = shift ;
     my $elt_name = shift ;
     my $info     = shift;
     my $from     = shift ;
     my $to       = shift ;
 
     if (defined $info->{$from}) {
-	warn "$elt_name: parameter $from is deprecated in favor of $to\n";
+	$self->legacy("$config_class_name->$elt_name: parameter $from is deprecated in favor of $to");
 	$info->{$to} = delete $info->{$from}  ;
     }
 }
 
 sub translate_compute_info {
     my $self = shift ;
+    my $config_class_name = shift ;
     my $elt_name = shift ;
     my $info = shift ;
     my $old_name = shift ;
@@ -699,8 +756,8 @@ sub translate_compute_info {
 	  Data::Dumper->Dump( [$compute_info ] , [qw/compute_info/ ]) ,"\n"
 	      if $::debug ;
 
-	warn "$elt_name: specifying compute info with ",
-	  "an array ref is deprecated\n"; 
+	$self->legacy("$config_class_name->$elt_name: specifying compute info with ",
+	  "an array ref is deprecated"); 
 
 	my ($user_formula,%var) = @$compute_info ;
 	my $replace_h ;
@@ -728,6 +785,7 @@ sub translate_compute_info {
 # internal: translate default information for id element
 sub translate_id_default_info {
     my $self = shift ;
+    my $config_class_name = shift || die;
     my $elt_name = shift ;
     my $info = shift ;
 
@@ -735,21 +793,21 @@ sub translate_id_default_info {
       Data::Dumper->Dump( [$info ] , [qw/info/ ]) ,"\n"
 	  if $::debug ;
 
-    my $warn = "$elt_name: 'default' parameter for list or " 
+    my $warn = "$config_class_name->$elt_name: 'default' parameter for list or " 
              . "hash element is deprecated. ";
 
     my $def_info = delete $info->{default} ;
     if (ref($def_info) eq 'HASH') {
 	$info->{default_with_init} = $def_info ;
-	warn $warn,"Use default_with_init\n" ;
+	$self->legacy($warn,"Use default_with_init") ;
     }
     elsif (ref($def_info) eq 'ARRAY') {
 	$info->{default_keys} = $def_info ;
-	warn $warn,"Use default_keys\n" ;
+	$self->legacy($warn,"Use default_keys") ;
     }
     else {
 	$info->{default_keys} = [ $def_info ] ;
-	warn $warn,"Use default_keys\n" ;
+	$self->legacy($warn,"Use default_keys") ;
     }
     print "translate_id_default_info $elt_name output:\n",
       Data::Dumper->Dump([$info ] , [qw/new_info/ ] ) ,"\n"
@@ -759,6 +817,7 @@ sub translate_id_default_info {
 # internal: translate warp information into 'boolean expr' => { ... }
 sub translate_warp_info {
     my $self = shift ;
+    my $config_class_name = shift ;
     my $elt_name = shift ;
     my $warp_info = shift ;
 
@@ -766,14 +825,14 @@ sub translate_warp_info {
       Data::Dumper->Dump( [$warp_info ] , [qw/warp_info/ ]) ,"\n"
 	  if $::debug ;
 
-    my $follow = $self->translate_follow_arg($elt_name,$warp_info->{follow}) ;
+    my $follow = $self->translate_follow_arg($config_class_name,$elt_name,$warp_info->{follow}) ;
 
     # now, follow is only { w1 => 'warp1', w2 => 'warp2'}
     my @warper_items = values %$follow ;
 
     my $multi_follow =  @warper_items > 1 ? 1 : 0;
 
-    my $rules = $self->translate_rules_arg($elt_name,
+    my $rules = $self->translate_rules_arg($config_class_name,$elt_name,
 					   \@warper_items, $warp_info->{rules});
 
     $warp_info->{follow} = $follow;
@@ -786,7 +845,7 @@ sub translate_warp_info {
 
 # internal
 sub translate_multi_follow_legacy_rules {
-    my ($self,  $elt_name , $warper_items, $raw_rules) = @_ ;
+    my ($self, $config_class_name , $elt_name , $warper_items, $raw_rules) = @_ ;
     my @rules ;
 
     # we have more than one warper_items
@@ -796,10 +855,11 @@ sub translate_multi_follow_legacy_rules {
 	my @keys = ref($key_set) ? @$key_set : ($key_set) ;
 
 	# legacy: check the number of keys in the @rules set 
-	if ( @keys != @$warper_items and $key_set !~ / eq /) {
+	if ( @keys != @$warper_items and $key_set !~ /\$\w+/) {
 	    Config::Model::Exception::ModelDeclaration
 		-> throw (
-			  error => "Warp rule error in object '$elt_name'"
+			  error => "Warp rule error in "
+                                . "'$config_class_name->$elt_name'"
 			        . ": Wrong nb of keys in set '@keys',"
 			        . " Expected " . scalar @$warper_items . " keys"
 			 )  ;
@@ -820,7 +880,7 @@ sub translate_multi_follow_legacy_rules {
 		my @expr = map { "\$f$b_idx eq '$_'" } @$key ;
 		push @bool_expr , "(" . join (" or ", @expr ). ")" ;
 	    }
-	    elsif ($key !~ / eq /) {
+	    elsif ($key !~ /\$\w+/) {
 		push @bool_expr, "\$f$b_idx eq '$key'" ;
 	    }
 	    else {
@@ -835,6 +895,7 @@ sub translate_multi_follow_legacy_rules {
 
 sub translate_follow_arg {
     my $self = shift ;
+    my $config_class_name = shift ;
     my $elt_name = shift ;
     my $raw_follow = shift ;
 
@@ -857,6 +918,7 @@ sub translate_follow_arg {
 
 sub translate_rules_arg {
     my $self = shift ;
+    my $config_class_name = shift ;
     my $elt_name = shift ;
     my $warper_items = shift ;
     my $raw_rules = shift ;
@@ -879,7 +941,7 @@ sub translate_rules_arg {
     elsif (ref($raw_rules) eq 'ARRAY') {
 	if ( $multi_follow ) {
 	    push @rules, 
-	      $self->translate_multi_follow_legacy_rules( $elt_name, 
+	      $self->translate_multi_follow_legacy_rules( $config_class_name,$elt_name, 
 							  $warper_items,
 							  $raw_rules ) ;
 	}
@@ -895,12 +957,12 @@ sub translate_rules_arg {
 	    }
 	}
     }
-    else {
-	my $item = defined $raw_rules ? $raw_rules : '<undef>' ;
+    elsif (defined $raw_rules) {
 	Config::Model::Exception::ModelDeclaration
 	    -> throw (
-		      error => "Warp rule error in element '$elt_name': "
-		             . "rules must be a hash ref. Got '$item'"
+		      error => "Warp rule error in element "
+                             . "'$config_class_name->$elt_name': "
+		             . "rules must be a hash ref. Got '$raw_rules'"
 		     ) ;
     }
 
@@ -913,6 +975,10 @@ sub translate_rules_arg {
 Include element description from another class. 
 
   include => 'AnotherClass' ,
+
+or
+
+  include => [qw/ClassOne ClassTwo/]
 
 In a configuration class, the order of the element is important. For
 instance if C<foo> is warped by C<bar>, you must declare C<bar>
@@ -935,18 +1001,44 @@ Now the element of your class will be:
 =cut
 
 sub include_class {
-    my $self  = shift;
-    my $raw_model = shift || die "include_class: undefined raw_model";
+    my $self       = shift;
+    my $class_name = shift || croak "include_class: undef includer" ;
+    my $raw_model  = shift || die "include_class: undefined raw_model";
 
     my $include_class = delete $raw_model->{include} ;
 
     return () unless defined $include_class ;
 
-    my $included_raw_model = dclone $self->get_raw_model($include_class) ;
     my $include_after       = delete $raw_model->{include_after} ;
 
+    my @includes = ref $include_class ? @$include_class : ($include_class) ;
+
+    # use reverse because included classes are *inserted* in front 
+    # of the list (or inserted after $include_after
+    foreach my $inc (reverse @includes) {
+	$self->include_one_class($class_name, $raw_model, $inc, $include_after) ;
+    }
+}
+
+sub include_one_class {
+    my $self          = shift;
+    my $class_name    = shift || croak "include_class: undef includer" ;
+    my $raw_model     = shift || croak "include_class: undefined raw_model";
+    my $include_class = shift || croak "include_class: undef include_class param" ;;
+    my $include_after = shift ;
+
+    if (defined $include_class and 
+        defined $self->{included_class}{$class_name}{$include_class}) {
+	Config::Model::Exception::ModelDeclaration
+		-> throw (error => "Recursion error ? $include_class has "
+			         . "already been included by $class_name.") ;
+    }
+    $self->{included_class}{$class_name}{$include_class} = 1;
+
+    my $included_raw_model = dclone $self->get_raw_model($include_class) ;
+
     # takes care of recursive include
-    $self->include_class( $included_raw_model ) ;
+    $self->include_class( $class_name, $included_raw_model ) ;
 
     my %include_item = map { $_ => 1 } @legal_params ;
 
@@ -955,7 +1047,7 @@ sub include_class {
     if (defined $include_after and defined $included_raw_model->{element}) {
 	my %elt_idx ;
 	my @raw_elt = @{$raw_model->{element}} ;
-	my $idx = 0 ;
+
 	for (my $idx = 0; $idx < @raw_elt ; $idx += 2) {
 	    my $elt = $raw_elt[$idx] ;
 	    map { $elt_idx{$_} = $idx } ref $elt ? @$elt : ($elt) ;
@@ -1224,6 +1316,60 @@ sub get_element_property {
     return $self->{model}{$class}{$prop}{$elt} ;
 }
 
+=head2 list_class_element
+
+Returns a string listing all the class and elements. Useful for
+debugging your configuration model.
+
+=cut
+
+sub list_class_element {
+    my $self = shift ;
+    my $pad  =  shift || '' ;
+
+    my $res = '';
+    foreach my $class_name (keys %{$self->{raw_model}}) {
+	$res .= $self->list_one_class_element($class_name) ;
+    }
+    return $res ;
+}
+
+sub list_one_class_element {
+    my $self = shift ;
+    my $class_name = shift ;
+    my $pad  =  shift || '' ;
+
+    my $res = $pad."Class: $class_name\n";
+    my $c_model = $self->{raw_model}{$class_name};
+    my $elts = $c_model->{element} ; # array ref
+
+    my $include = $c_model->{include} ;
+    my $inc_ref = ref $include ? $include : [ $include ] ;
+    my $inc_after = $c_model->{include_after} ;
+
+    if (defined $include and not defined $inc_after) {
+	map { $res .=$self->list_one_class_element($_,$pad.'  ') ;} @$inc_ref ;
+    }
+
+    return $res unless defined $elts ;
+
+    for (my $idx = 0; $idx < @$elts; $idx += 2) {
+	my $elt_info = $elts->[$idx] ;
+	my @elt_names = ref $elt_info ? @$elt_info : ($elt_info) ;
+	my $type = $elts->[$idx+1]{type} ;
+
+	foreach my $elt_name (@elt_names) {
+	    $res .= $pad."  - $elt_name ($type)\n";
+	    if (defined $include and defined $inc_after 
+		and $inc_after eq $elt_name
+	       ) {
+		map { $res .=$self->list_one_class_element($_,$pad.'  ') ;} @$inc_ref ;
+	    }
+	}
+    }
+    return $res ;
+}
+
 =head1 Error handling
 
 Errors are handled with an exception mechanism (See
@@ -1307,5 +1453,5 @@ L<Config::Model::Searcher>,
 L<Config::Model::TermUI>,
 L<Config::Model::WizardHelper>,
 L<Config::Model::AutoRead>,
-
+L<Config::Model::ValueComputer>,
 =cut

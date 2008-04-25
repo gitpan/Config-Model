@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2008-04-03 19:06:58 +0200 (Thu, 03 Apr 2008) $
-# $Revision: 581 $
+# $Date: 2008-04-18 14:26:22 +0200 (Fri, 18 Apr 2008) $
+# $Revision: 617 $
 
 #    Copyright (c) 2005-2007 Dominique Dumont.
 #
@@ -36,7 +36,7 @@ use base qw/Config::Model::WarpedThing/ ;
 
 use vars qw($VERSION) ;
 
-$VERSION = sprintf "1.%04d", q$Revision: 581 $ =~ /(\d+)/;
+$VERSION = sprintf "1.%04d", q$Revision: 617 $ =~ /(\d+)/;
 
 =head1 NAME
 
@@ -233,7 +233,7 @@ sub set_compute {
 		     ) ;
     }
 
-    foreach my $item (qw/formula variables/) {
+    foreach my $item (qw/formula/) {
 	next if defined $self->{compute}{$item} ;
 	Config::Model::Exception::Model
 	    -> throw (
@@ -487,6 +487,9 @@ sub set {
       Data::Dumper->Dump([\%args], ['set_arg'])
 	  if $::debug ;
 
+    # this code may be dead as warping value_type is no longer
+    # authorized. But we keep it in case this has to be authorized
+    # again.
     if ( not          defined $args{value_type} 
 	 or (         defined $args{value_type} 
 	      and     $args{value_type} eq 'enum'
@@ -1123,10 +1126,10 @@ sub pre_store {
     }
 
     # check if the object was initialized
-    if (not defined $self->{value_type}
-        and $inst->get_value_check('type')
-       ) {
-        $self->_value_type_error ;
+    if (not defined $self->{value_type}) {
+        $self->_value_type_error if ($self->instance->get_value_check('fetch_and_store') 
+				     and $inst->get_value_check('type')) ;
+	return 0 ;
     }
 
     if ($self->{value_type} eq 'boolean' and defined $value) {
@@ -1373,6 +1376,11 @@ The custom or preset or computed or default value. Will return undef
 if either of this value is identical to the built_in value. This
 feature is useful to reduce data to write in configuration file.
 
+=item allow_undef
+
+This mode will accept to return undef for mandatory values. Normally,
+trying to fetch an undefined manadatory value leads to an exception.
+
 =back
 
 
@@ -1399,6 +1407,7 @@ sub fetch {
     elsif (     $self->{mandatory}
 	    and $inst->get_value_check('fetch') 
 	    and (not $mode or $mode eq 'custom' )
+            and ($mode ne 'allow_undef')
 	    and (not defined $self->fetch_no_check() )
 	  ) {
 	# check only custom or "empty" mode. But undef custom value is
@@ -1497,7 +1506,7 @@ Dominique Dumont, (ddumont at cpan dot org)
 
 L<Config::Model>, L<Config::Model::Node>,
 L<Config::Model::AnyId>, L<Config::Model::WarpedThing>, L<Exception::Class>
-
+L<Config::Model::ValueComputer>,
 
 =cut
 

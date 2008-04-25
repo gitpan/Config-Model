@@ -1,7 +1,7 @@
 # -*- cperl -*-
 # $Author: ddumont $
-# $Date: 2008-03-11 18:24:00 +0100 (Tue, 11 Mar 2008) $
-# $Revision: 540 $
+# $Date: 2008-04-15 13:57:49 +0200 (Tue, 15 Apr 2008) $
+# $Revision: 608 $
 
 use warnings FATAL => qw(all);
 
@@ -10,7 +10,7 @@ use Test::More;
 use Config::Model;
 use Data::Dumper ;
 
-BEGIN { plan tests => 53; }
+BEGIN { plan tests => 54; }
 
 use strict;
 
@@ -24,7 +24,7 @@ Config::Model::Exception::Any->Trace(1) if $arg =~ /e/;
 ok(1,"Compilation done");
 
 # minimal set up to get things working
-my $model = Config::Model->new() ;
+my $model = Config::Model->new(legacy => 'ignore',) ;
 $model ->create_config_class 
   (
    name => "Master",
@@ -52,15 +52,19 @@ $model ->create_config_class
 
        macro => { type => 'leaf',
 		  value_type => 'enum',
-		  choice     => [qw/AD AH/],
+		  choice     => [qw/AD AH AZ/],
 		},
 
        'warped_choice_list'
        => { type => 'check_list',
+	    level  => 'hidden',
 	    warp => { follow => '- macro',
 		      rules  => { AD => { choice => [ 'A' .. 'D' ], 
+					  level => 'normal',
 					  default_list => ['A', 'B' ] },
-				  AH => { choice => [ 'A' .. 'H' ] },
+				  AH => { choice => [ 'A' .. 'H' ],
+					  level => 'normal',
+					},
 				}
 		    }
 	  },
@@ -69,6 +73,18 @@ $model ->create_config_class
        => { type => 'check_list',
             refer_to => '- my_hash'
           },
+
+       warped_refer_to_list 
+       => { type => 'check_list',
+            refer_to => '- warped_choice_list',
+	    level  => 'hidden',
+	    warp => { follow => '- macro',
+		      rules  => { AD => { choice => [ 'A' .. 'D' ], 
+					  level => 'normal',
+					},
+				},
+		    },
+	  },
 
        refer_to_2_list 
        => { type => 'check_list',
@@ -288,3 +304,9 @@ is($p_cl->fetch('custom'),  "A,S",       "choice_list: read custom_value") ;
 $p_cl -> set_checked_list(qw/A S H E/) ;
 is($p_cl->fetch,            "A,E,H,S", "choice_list: read overridden preset LIST") ;
 is($p_cl->fetch('custom'),  "A,E,S",       "choice_list: read custom_value after override") ;
+
+my $wrtl =  $p_root->fetch_element('warped_refer_to_list') ;
+ok($wrtl,"created warped_refer_to_list (hidden)") ;
+
+
+
