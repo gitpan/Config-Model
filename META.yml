@@ -1,19 +1,121 @@
-# http://module-build.sourceforge.net/META-spec.html
-#XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
-name:         Config-Model
-version:      0.622
-version_from: lib/Config/Model.pm
-installdirs:  site
+---
+name: Config-Model
+version: 0.623
+author:
+  - Dominique Dumont (ddumont at cpan dot org)
+abstract: Describe and edit configuration data
+license: lgpl
+resources:
+  license: http://opensource.org/licenses/lgpl-license.php
 requires:
-    Carp::Assert::More:            0
-    Config::Tiny:                  0
-    Error:                         0
-    Exception::Class:              0
-    Log::Log4perl:                 1.11
-    Parse::RecDescent:             1.90
-    Scalar::Util:                  0
-    Term::ReadLine:                0
-    Test::More:                    0
-
-distribution_type: module
-generated_by: ExtUtils::MakeMaker version 6.30_01
+  Carp::Assert::More: 0
+  Error: 0
+  Exception::Class: 0
+  Log::Log4perl: 1.11
+  Parse::RecDescent: 0
+  Scalar::Util: 0
+  Term::ReadLine: 0
+build_requires:
+  Test::More: 0
+recommends:
+  Config::Tiny: 0
+provides:
+  Config::Model:
+    file: lib/Config/Model.pm
+    version: 0.623
+  Config::Model::AnyId:
+    file: lib/Config/Model/AnyId.pm
+    version: 1.0641
+  Config::Model::AnyThing:
+    file: lib/Config/Model/AnyThing.pm
+    version: 1.0660
+  Config::Model::AutoRead:
+    file: lib/Config/Model/AutoRead.pm
+    version: 1.0642
+  Config::Model::CheckList:
+    file: lib/Config/Model/CheckList.pm
+    version: 1.0671
+  Config::Model::Describe:
+    file: lib/Config/Model/Describe.pm
+    version: 1.0669
+  Config::Model::DumpAsData:
+    file: lib/Config/Model/DumpAsData.pm
+    version: 1.0650
+  Config::Model::Dumper:
+    file: lib/Config/Model/Dumper.pm
+    version: 1.0641
+  Config::Model::Exception:
+    file: lib/Config/Model/Exception.pm
+    version: 1.0660
+  Config::Model::Exception::Any:
+    file: lib/Config/Model/Exception.pm
+  Config::Model::Exception::Load:
+    file: lib/Config/Model/Exception.pm
+  Config::Model::Exception::LoadData:
+    file: lib/Config/Model/Exception.pm
+  Config::Model::Exception::Model:
+    file: lib/Config/Model/Exception.pm
+  Config::Model::Exception::RestrictedElement:
+    file: lib/Config/Model/Exception.pm
+  Config::Model::Exception::UnavailableElement:
+    file: lib/Config/Model/Exception.pm
+  Config::Model::Exception::UnknownElement:
+    file: lib/Config/Model/Exception.pm
+  Config::Model::Exception::UnknownId:
+    file: lib/Config/Model/Exception.pm
+  Config::Model::Exception::WrongType:
+    file: lib/Config/Model/Exception.pm
+  Config::Model::Exception::Xml:
+    file: lib/Config/Model/Exception.pm
+  Config::Model::HashId:
+    file: lib/Config/Model/HashId.pm
+    version: 1.0638
+  Config::Model::IdElementReference:
+    file: lib/Config/Model/IdElementReference.pm
+    version: 1.0631
+  Config::Model::Instance:
+    file: lib/Config/Model/Instance.pm
+    version: 1.0631
+  Config::Model::ListId:
+    file: lib/Config/Model/ListId.pm
+    version: 1.0642
+  Config::Model::Loader:
+    file: lib/Config/Model/Loader.pm
+    version: 1.0641
+  Config::Model::Node:
+    file: lib/Config/Model/Node.pm
+    version: 1.0669
+  Config::Model::ObjTreeScanner:
+    file: lib/Config/Model/ObjTreeScanner.pm
+    version: 1.0665
+  Config::Model::Report:
+    file: lib/Config/Model/Report.pm
+    version: 1.0641
+  Config::Model::Searcher:
+    file: lib/Config/Model/Searcher.pm
+    version: 1.0631
+  Config::Model::SimpleUI:
+    file: lib/Config/Model/SimpleUI.pm
+    version: 1.0541
+  Config::Model::TermUI:
+    file: lib/Config/Model/TermUI.pm
+    version: 1.0669
+  Config::Model::Value:
+    file: lib/Config/Model/Value.pm
+    version: 1.0660
+  Config::Model::ValueComputer:
+    file: lib/Config/Model/ValueComputer.pm
+    version: 1.0654
+  Config::Model::WarpedNode:
+    file: lib/Config/Model/WarpedNode.pm
+    version: 1.0641
+  Config::Model::WarpedThing:
+    file: lib/Config/Model/WarpedThing.pm
+    version: 1.0661
+  Config::Model::WizardHelper:
+    file: lib/Config/Model/WizardHelper.pm
+    version: 1.0641
+generated_by: Module::Build version 0.280801
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.2.html
+  version: 1.2

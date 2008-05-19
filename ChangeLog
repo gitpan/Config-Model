@@ -1,3 +1,70 @@
+2008-05-19  Dominique Dumont v0.623
+
+	* Build.PL: Moved from Makefile.PL to Build.PL
+
+2008-05-18  Dominique Dumont 
+
+	* lib/Config/Model/CheckList.pm: added support for built_in
+	default list
+
+2008-05-17  Dominique Dumont 
+
+	* lib/Config/Model/SimpleUI.pm: Some cleanup. Added possibility to
+	add and element name to 'll' command
+
+2008-05-15  Dominique Dumont 
+
+	* config-edit: added "dev" and "experience" options. With "dev"
+	option, config-edit will add "lib" to @INC and look for models in
+	"lib"
+
+2008-05-14  Dominique Dumont 
+
+	* lib/Config/Model/Node.pm (fetch_element): Bails out if element
+	is hidden (this feature was forgotten)
+
+2008-05-09  Dominique Dumont 
+
+	* lib/Config/Model/Value.pm (submit_to_compute): Fix bug where a
+	compute variable in the form 'foo' => '- - &element' did not work
+	(new): allow_compute_override is deprecated in favor of
+	allow_override within the compute parameter (backward compatible
+	change)
+
+2008-05-07  Dominique Dumont 
+
+	* lib/Config/Model/AnyThing.pm (dump_as_data): dump_as_data can
+	now be called on all configuration elements. (before, it could
+	only be called on nodes)
+
+2008-05-02  Domi  <domi@bilbo.maison>
+
+	* lib/Config/Model/AutoRead.pm: Changed the way to specify auto
+	read and write for better clarity. Now they must be specified with
+	   read_config => [ { syntax => 'ini'},
+	                    { syntax => 'custom', 
+	                      class => 'Mine',
+	                      function=>'my_read'
+	                    }
+	                  ]
+	instead of 
+	   read_config => [ 'ini', { class => 'Mine',function=>'my_read'}]
+	likewise for write_config
+
+2008-05-01  Domi  <domi@bilbo.maison>
+
+	* lib/Config/Model.pm: Changed 'permission' to 'experience' and
+	'intermediate' to 'beginner' for better clarify. Changes are
+	backward compatible.
+
+2008-04-29  Dominique Dumont 
+
+	* lib/Config/Model/HashId.pm (move): New method to take into
+	account move within ordered hash
+
+	* lib/Config/Model/WarpedThing.pm (compute_bool): warp rule no
+	longer fail with eval $foo == 1 when $foo is undef
+
 2008-04-18  Dominique Dumont v0.622
 
 	* Value.pm (fetch): added 'allow_undef' mode to allow reading

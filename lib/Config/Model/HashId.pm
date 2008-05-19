@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2008-03-28 17:41:51 +0100 (Fri, 28 Mar 2008) $
-# $Revision: 569 $
+# $Date: 2008-04-29 16:42:56 +0200 (Tue, 29 Apr 2008) $
+# $Revision: 638 $
 
 #    Copyright (c) 2005-2007 Dominique Dumont.
 #
@@ -30,7 +30,7 @@ use strict;
 use base qw/Config::Model::AnyId/ ;
 
 use vars qw($VERSION) ;
-$VERSION = sprintf "1.%04d", q$Revision: 569 $ =~ /(\d+)/;
+$VERSION = sprintf "1.%04d", q$Revision: 638 $ =~ /(\d+)/;
 
 =head1 NAME
 
@@ -302,6 +302,64 @@ sub swap {
 	}
     }
 }
+
+=head2 move ( key1 , key2 )
+
+Rename key1 in key2. 
+
+=cut
+
+sub move {
+    my $self = shift ;
+    my ($from,$to) = @_ ;
+
+    Config::Model::Exception::User
+	-> throw (
+		  object => $self,
+		  message => "move: unknow key $from"
+		 )
+	  unless exists $self->{data}{$from} ;
+
+    my $ok = $self->check($to) ;
+
+    if ($ok) {
+	# this may clobber the old content of $self->{data}{$to}
+	$self->{data}{$to} = delete $self->{data}{$from} ;
+	# update index_value attribute in moved objects
+	$self->{data}{$to}->index_value($to) ;
+
+	my ($to_idx,$from_idx);
+	my $idx = 0 ;
+	my $list = $self->{list} ;
+	map { $to_idx   = $idx if $list->[$idx] eq $to;
+	      $from_idx = $idx if $list->[$idx] eq $from;
+	      $idx ++ ;
+	  } @$list ;
+
+	if (defined $to_idx) {
+	    # Since $to is clobbered, $from takes its place in the list
+	    $list->[$from_idx] = $to ;
+	    # and the $from entry is removed from the list
+	    splice @$list,$to_idx,1;
+	}
+	else {
+	    # $to is moved in the place of from in the list
+	    $list->[$from_idx] = $to ;
+	}
+
+	print "move: @$list\n";
+    }
+    else {
+	Config::Model::Exception::WrongValue 
+	    -> throw (
+		      error => join("\n\t",@{$self->{error}}),
+		      object => $self
+		     ) ;
+    }
+
+}
+
+
 
 =head2 move_after ( key_to_move [ , after_this_key ] )
 

@@ -1,7 +1,7 @@
 # -*- cperl -*-
 # $Author: ddumont $
-# $Date: 2008-04-15 13:57:49 +0200 (Tue, 15 Apr 2008) $
-# $Revision: 608 $
+# $Date: 2008-05-01 16:41:22 +0200 (Thu, 01 May 2008) $
+# $Revision: 641 $
 
 use ExtUtils::testlib;
 use Test::More tests => 14;
@@ -84,7 +84,7 @@ my $hash_element_cb = sub {
 my $wizard = $inst->wizard_helper(leaf_cb          => $leaf_element_cb, 
 				  integer_value_cb => $int_cb,
 				  hash_element_cb  => $hash_element_cb,
-				  permission       => 'advanced') ;
+				  experience       => 'advanced') ;
 ok($wizard,"created wizard helper") ;
 
 $wizard->start ;

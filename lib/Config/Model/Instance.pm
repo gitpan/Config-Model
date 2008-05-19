@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2008-04-05 19:10:21 +0200 (Sat, 05 Apr 2008) $
-# $Revision: 587 $
+# $Date: 2008-04-25 18:22:14 +0200 (Fri, 25 Apr 2008) $
+# $Revision: 631 $
 
 #    Copyright (c) 2005-2007 Dominique Dumont.
 #
@@ -37,7 +37,7 @@ use warnings::register ;
 
 use vars qw/$VERSION/ ;
 
-$VERSION = sprintf "1.%04d", q$Revision: 587 $ =~ /(\d+)/;
+$VERSION = sprintf "1.%04d", q$Revision: 631 $ =~ /(\d+)/;
 
 use Carp qw/croak confess cluck/;
 

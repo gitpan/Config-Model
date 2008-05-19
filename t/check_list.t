@@ -1,7 +1,7 @@
 # -*- cperl -*-
 # $Author: ddumont $
-# $Date: 2008-04-15 13:57:49 +0200 (Tue, 15 Apr 2008) $
-# $Revision: 608 $
+# $Date: 2008-05-18 19:12:33 +0200 (Sun, 18 May 2008) $
+# $Revision: 671 $
 
 use warnings FATAL => qw(all);
 
@@ -10,7 +10,7 @@ use Test::More;
 use Config::Model;
 use Data::Dumper ;
 
-BEGIN { plan tests => 54; }
+BEGIN { plan tests => 57; }
 
 use strict;
 
@@ -48,6 +48,13 @@ $model ->create_config_class
 	    choice       => ['A' .. 'Z'],
 	    default_list => [ 'A', 'D' ],
 	    help         => { A => 'A help', E => 'E help' } ,
+	  },
+
+       choice_list_with_built_in
+       => { type          => 'check_list',
+	    choice        => ['A' .. 'Z'],
+	    built_in_list => [ 'A', 'D' ],
+	    help          => { A => 'A help', E => 'E help' } ,
 	  },
 
        macro => { type => 'leaf',
@@ -244,11 +251,18 @@ is_deeply (\@got, ['C'], "test custom of choice_list_with_default") ;
 @got = $dflist->get_checked_list('standard') ;
 is_deeply (\@got, ['A','D'], "test standard of choice_list_with_default") ;
 
-my $warp_list = $root->fetch_element('warped_choice_list') ;
+my $warp_list ;
+eval {$warp_list= $root->fetch_element('warped_choice_list') ;} ;
+ok( $@ ,"fetch_element without warp set (macro=undef): which is an error" );
+print "normal error:\n", $@, "\n" if $trace;
+
+# force read of hidden element
+$warp_list= $root->fetch_element('warped_choice_list',undef,1) ;
+
 ok($warp_list, "created warped_choice_list") ;
 
 eval {$warp_list->get_choice ;} ;
-ok( $@ ,"get_choice on without warp set (macro=undef): which is an error" );
+ok( $@ ,"get_choice without warp set (macro=undef): which is an error" );
 print "normal error:\n", $@, "\n" if $trace;
 
 $root->load("macro=AD") ;
@@ -275,6 +289,14 @@ my $rtl = $root->fetch_element("refer_to_dumb_list") ;
 is_deeply( [$rtl -> get_choice ], [qw/X Y Z a b c d e/],
 	   "check choice of refer_to_dumb_list"
 	 ) ;
+
+# test check list with built_in default
+my $bicl = $root->fetch_element("choice_list_with_built_in") ;
+@got = $bicl->get_checked_list() ;
+is_deeply (\@got, [], "test default of choice_list_with_built_in") ;
+
+@got = $bicl->get_checked_list('built_in') ;
+is_deeply (\@got, [qw/A D/], "test built_in of choice_list_with_built_in") ;
 
 ### test preset feature
 
@@ -305,7 +327,7 @@ $p_cl -> set_checked_list(qw/A S H E/) ;
 is($p_cl->fetch,            "A,E,H,S", "choice_list: read overridden preset LIST") ;
 is($p_cl->fetch('custom'),  "A,E,S",       "choice_list: read custom_value after override") ;
 
-my $wrtl =  $p_root->fetch_element('warped_refer_to_list') ;
+my $wrtl =  $p_root->fetch_element('warped_refer_to_list',undef,1) ;
 ok($wrtl,"created warped_refer_to_list (hidden)") ;
 
 

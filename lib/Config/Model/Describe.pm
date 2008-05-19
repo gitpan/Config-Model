@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2008-03-11 18:27:36 +0100 (Tue, 11 Mar 2008) $
-# $Revision: 541 $
+# $Date: 2008-05-17 17:58:38 +0200 (Sat, 17 May 2008) $
+# $Revision: 669 $
 
 #    Copyright (c) 2006-2007 Dominique Dumont.
 #
@@ -29,7 +29,7 @@ use Config::Model::Exception ;
 use Config::Model::ObjTreeScanner ;
 
 use vars qw($VERSION);
-$VERSION = sprintf "1.%04d", q$Revision: 541 $ =~ /(\d+)/;
+$VERSION = sprintf "1.%04d", q$Revision: 669 $ =~ /(\d+)/;
 
 =head1 NAME
 
@@ -51,6 +51,10 @@ Config::Model::Describe - Provide a description of a node element
  my $root = $inst -> config_root ;
 
  print $root->describe ;
+
+ # or
+
+ print $root->describe(element => 'foo' ) ;
 
 =head1 DESCRIPTION
 
@@ -96,6 +100,11 @@ Parameters are:
 
 Reference to a L<Config::Model::Node> object. Mandatory
 
+=item element
+
+Describe only this element from the node. Optional. All elements are
+described if omitted.
+
 =back
 
 =cut
@@ -106,6 +115,7 @@ sub describe {
     my %args = @_;
     my $desc_node = delete $args{node} 
       || croak "describe: missing 'node' parameter";
+    my $element = delete $args{element} ; # optional
 
     my $std_cb = sub {
         my ( $scanner, $data_r, $obj, $element, $index, $value_obj ) = @_;
@@ -192,7 +202,7 @@ sub describe {
     };
 
     my @scan_args = (
-		     permission            => delete $args{permission} || 'master',
+		     experience            => delete $args{experience} || 'master',
 		     fallback              => 'all',
 		     auto_vivify           => 0,
 		     list_element_cb       => $list_element_cb,
@@ -212,7 +222,21 @@ sub describe {
 
     my @ret = [ qw/name value type comment/ ];
 
-    $view_scanner->scan_node(\@ret ,$desc_node);
+    if (defined $element and $desc_node->has_element($element)) {
+	$view_scanner->scan_element(\@ret ,$desc_node, $element);
+    }
+    elsif (defined $element) {
+	Config::Model::Exception::UnknownElement
+		->throw(
+			object   => $desc_node,
+			function => 'Describe',
+			where    => $desc_node->location || 'configuration root',
+			element     => $element,
+		       ) ;
+    }
+    else {
+	$view_scanner->scan_node(\@ret ,$desc_node);
+    }
 
     return join '', map { sprintf($format, @$_) } @ret ; 
 }

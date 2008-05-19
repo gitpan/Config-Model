@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2008-03-18 18:38:02 +0100 (Tue, 18 Mar 2008) $
-# $Revision: 547 $
+# $Date: 2008-05-17 17:58:38 +0200 (Sat, 17 May 2008) $
+# $Revision: 669 $
 
 #    Copyright (c) 2006-2008 Dominique Dumont.
 #
@@ -32,7 +32,7 @@ use Term::ReadLine;
 use vars qw($VERSION);
 use base qw/Config::Model::SimpleUI/ ;
 
-$VERSION = sprintf "1.%04d", q$Revision: 547 $ =~ /(\d+)/;
+$VERSION = sprintf "1.%04d", q$Revision: 669 $ =~ /(\d+)/;
 
 =head1 NAME
 
@@ -164,6 +164,7 @@ my %completion_dispatch =
   (
    cd => $cd_completion_sub,
    desc => $completion_sub,
+   ll   => $completion_sub,
    set => $leaf_completion_sub,
   );
 
@@ -270,7 +271,7 @@ sub run_loop {
     my $user_cmd ;
     while ( defined ($user_cmd = $term->readline($self->prompt)) ) {
 	last if $user_cmd eq 'exit' or $user_cmd eq 'quit' ;
-	print $OUT "cmd: $user_cmd\n";
+	#print $OUT "cmd: $user_cmd\n";
 	my $res = $self->run($user_cmd);
 	print $OUT $res, "\n" if defined $res and $res;
 	## $term->addhistory($_) if defined $_ && /\S/;
@@ -297,7 +298,7 @@ completion.
 
 =item *
 
-UI should take into account permission.
+UI should take into account experience.
 
 =back
 

@@ -1,7 +1,7 @@
 # -*- cperl -*-
 # $Author: ddumont $
-# $Date: 2008-04-15 13:57:49 +0200 (Tue, 15 Apr 2008) $
-# $Revision: 608 $
+# $Date: 2008-05-14 18:02:59 +0200 (Wed, 14 May 2008) $
+# $Revision: 660 $
 
 use ExtUtils::testlib;
 use Test::More tests => 12;
@@ -34,7 +34,7 @@ ok($root,"Config root created") ;
 
 $inst->preset_start ;
 
-$root->fetch_element('hidden_string')->store('hidden value');
+$root->fetch_element('hidden_string',undef,1)->store('hidden value');
 
 my $step = 'std_id:ab X=Bv '
   .'! lista=a,b listb=b ' ;

@@ -1,7 +1,7 @@
 # -*- cperl -*-
 # $Author: ddumont $
-# $Date: 2008-04-15 13:57:49 +0200 (Tue, 15 Apr 2008) $
-# $Revision: 608 $
+# $Date: 2008-05-14 18:02:59 +0200 (Wed, 14 May 2008) $
+# $Revision: 660 $
 
 use ExtUtils::testlib;
 use Test::More tests => 45;
@@ -17,7 +17,7 @@ my $model = Config::Model -> new(legacy => 'ignore',)  ;
 $model->create_config_class 
   (
    name => 'Sarge',
-   permission => [ [qw/Y/] => 'intermediate',  # default
+   permission => [ [qw/Y/] => 'beginner',  # default
 		   X => 'master' 
 		 ],
    status    => [ X => 'deprecated' ], #could be obsolete, standard
@@ -36,7 +36,7 @@ $model->create_config_class
 $model->create_config_class 
   (
    name => 'Captain',
-   permission => [ bar => 'intermediate' ],
+   experience => [ bar => 'beginner' ],
    element => [
 	       bar => { type => 'node', 
 			config_class_name => 'Sarge' 
@@ -47,7 +47,7 @@ $model->create_config_class
 $model ->create_config_class 
   (
    name => "Master",
-   permission => [[qw/captain many array_args hash_args/] => 'intermediate' ],
+   experience => [[qw/captain many array_args hash_args/] => 'beginner' ],
    level     => [qw/captain/ => 'important' ] ,
    element => [
 		captain => { 
@@ -66,10 +66,12 @@ $model ->create_config_class
 		  ]
   );
 
-my $trace = shift || 0;
+my $arg = shift || '';
 
-$::verbose = 1 if $trace > 1;
-$::debug = 1 if $trace > 2 ;
+my $trace = $arg =~ /t/ ? 1 : 0 ;
+$::verbose          = 1 if $arg =~ /v/;
+$::debug            = 1 if $arg =~ /d/;
+Config::Model::Exception::Any->Trace(1) if $arg =~ /e/;
 
 ok(1,"Model created") ;
 
@@ -84,7 +86,7 @@ ok($root,"Config root created") ;
 
 is( $root->config_class_name, 'Master', "Created Master" );
 
-is_deeply( [ sort $root->get_element_name(for => 'intermediate') ],
+is_deeply( [ sort $root->get_element_name(for => 'beginner') ],
 	   [qw/array_args captain hash_args/], "check Master elements");
 
 is_deeply( [ sort $root->get_element_name(for => 'advanced') ],
@@ -105,28 +107,29 @@ is($w->location,'captain',"test captain location") ;
 my $b = $w->fetch_element('bar');
 ok( $b, "Created Sarge" );
 
-is($b->get_element_property(property => 'permission', element => 'Y'),
-   'intermediate',"check Y permission") ;
-is($b->get_element_property(property => 'permission',element => 'Z'),
-   'intermediate',"check Z permission") ;
-is($b->get_element_property(property => 'permission',element => 'X'),
-   'master',      "check X permission") ;
+is($b->get_element_property(property => 'experience', element => 'Y'),
+   'beginner',"check Y experience") ;
+is($b->get_element_property(property => 'experience',element => 'Z'),
+   'beginner',"check Z experience") ;
+is($b->get_element_property(property => 'experience',element => 'X'),
+   'master',      "check X experience") ;
 
 is( $b->fetch_element_value('Z'), undef, "test Z value" );
 
 eval { $b->fetch_element('Z','user');} ;
-ok($@,"fetch_element with unexpected permission") ;
-like($@,qr/Unexpected permission/,"check error message") ;
+ok($@,"fetch_element with unexpected experience") ;
+like($@,qr/Unexpected experience/,"check error message") ;
 
-eval { $b->fetch_element('X','intermediate');} ;
-ok($@,"fetch_element with unexpected permission") ;
+# translated into beginner
+eval { $b->fetch_element('X','beginner');} ;
+ok($@,"fetch_element with unexpected experience") ;
 like($@,qr/restricted element/,"check error message") ;
 
 is( $root->fetch_element('array_args')
-    ->get_element_property(property => 'permission',element => 'bar'),
-    'intermediate' );
+    ->get_element_property(property => 'experience',element => 'bar'),
+    'beginner' );
 is( $root->fetch_element('array_args')->fetch_element('bar')
-    ->get_element_property(property => 'permission',element => 'X'), 
+    ->get_element_property(property => 'experience',element => 'X'), 
     'master' );
 
 my $tested = $root->fetch_element('hash_args')->fetch_element('bar');
@@ -136,9 +139,9 @@ is($tested->element_name,'bar'  ,"test bar element_name") ;
 is($tested->name,        'hash_args bar' ,"test bar name") ;
 is($tested->location,    'hash_args bar' ,"test bar location") ;
 
-is( $tested->get_element_property(property => 'permission',element => 'X'),
+is( $tested->get_element_property(property => 'experience',element => 'X'),
     'master',
-    "checking X permission");
+    "checking X experience");
 
 my $inst2 =  $model->instance (root_class_name => 'Master', 
 			      instance_name => 'test2');

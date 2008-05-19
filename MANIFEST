@@ -1,9 +1,10 @@
 ChangeLog
 LICENSE
 MANIFEST			This list of files
-Makefile.PL
+Build.PL
 README
 TODO
+META.yml
 config-edit
 examples/fstab/Fstab.pl
 examples/fstab/README
@@ -66,4 +67,3 @@ t/warped_id.t
 t/warped_node.t
 t/warped_value.t
 t/wizard.t
-META.yml                                 Module meta-data (added by MakeMaker)

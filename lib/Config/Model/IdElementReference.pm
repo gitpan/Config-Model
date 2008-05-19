@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2008-04-03 13:13:53 +0200 (Thu, 03 Apr 2008) $
-# $Revision: 579 $
+# $Date: 2008-04-25 18:22:14 +0200 (Fri, 25 Apr 2008) $
+# $Revision: 631 $
 
 #    Copyright (c) 2007 Dominique Dumont.
 #
@@ -30,7 +30,7 @@ use Carp ;
 
 use vars qw($VERSION) ;
 
-$VERSION = sprintf "1.%04d", q$Revision: 579 $ =~ /(\d+)/;
+$VERSION = sprintf "1.%04d", q$Revision: 631 $ =~ /(\d+)/;
 
 
 =head1 NAME

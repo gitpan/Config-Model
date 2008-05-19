@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2008-03-11 18:27:36 +0100 (Tue, 11 Mar 2008) $
-# $Revision: 541 $
+# $Date: 2008-05-15 19:13:40 +0200 (Thu, 15 May 2008) $
+# $Revision: 665 $
 
 #    Copyright (c) 2006-2007 Dominique Dumont.
 #
@@ -28,7 +28,7 @@ use Carp;
 use warnings ;
 use UNIVERSAL qw( isa can );
 
-our $VERSION = sprintf "1.%04d", q$Revision: 541 $ =~ /(\d+)/;
+our $VERSION = sprintf "1.%04d", q$Revision: 665 $ =~ /(\d+)/;
 
 use Carp qw/croak confess cluck/;
 
@@ -49,7 +49,7 @@ Config::Model::ObjTreeScanner - Scan config tree and perform call-backs
       $$data_ref .= "$element_name = ", $leaf_object->fetch ;
     } ;
 
- # simple scanner, (print all values with 'intermediate' permission
+ # simple scanner, (print all values with 'beginner' experience
  $scan = Config::Model::ObjTreeScanner-> new
   (
    leaf_cb               => \&disp_leaf, # only mandatory parameter
@@ -65,7 +65,7 @@ Config::Model::ObjTreeScanner - Scan config tree and perform call-backs
  $scan = Config::Model::ObjTreeScanner-> new
   (
    fallback => 'none',     # all callback must be defined
-   permission => 'master', # consider all values
+   experience => 'master', # consider all values
 
    # node callback
    node_content_cb               => \&disp_obj_elt ,
@@ -188,9 +188,9 @@ user.
 
 If set to 'all', equivalent to 'node' and 'leaf'.
 
-=item permission
+=item experience
 
-Set the privilege level used for the scan (default 'intermediate').
+Set the privilege level used for the scan (default 'beginner').
 
 =item auto_vivify 
 
@@ -340,23 +340,29 @@ sub new {
     my $type = shift ;
     my %args = @_;
 
-    my $self = { permission => 'intermediate' , auto_vivify => 1 } ;
+    my $self = { experience => 'beginner' , auto_vivify => 1 } ;
     bless $self,$type ;
 
     $self->{leaf_cb} = delete $args{leaf_cb} or
-      croak __PACKAGE__,"->new: missing leaf_cb parameter" ;
+	croak __PACKAGE__,"->new: missing leaf_cb parameter" ;
 
     # we may use leaf_cb
     $self->create_fallback(delete $args{fallback} || 'all') ;
 
+    if (defined $args{permission}) {
+	$args{experience} = delete $args{permission} ;
+	carp "ObjTreeScanner new: permission is deprecated in favor of experience";
+    }
+
     # get all call_backs
     my @value_cb = map {$_.'_value_cb'} 
-      qw/boolean enum string uniline integer number reference/; 
+	qw/boolean enum string uniline integer number reference/; 
 
     foreach my $param (qw/node_element_cb hash_element_cb 
                           list_element_cb check_list_element_cb node_content_cb
-                          permission auto_vivify up_cb/, @value_cb) {
-        $self->{$param} = delete $args{$param} if defined $args{$param};
+                          experience auto_vivify up_cb/, @value_cb) {
+        $self->{$param} = $args{$param} if defined $args{$param};
+	delete $args{$param} ; # may exists but be undefined
         croak __PACKAGE__,"->new: missing $param parameter"
           unless defined $self->{$param} ;
     }
@@ -443,7 +449,7 @@ sub scan_node {
 	return unless defined $node ;
     }
 
-    my @element_list= $node->get_element_name(for => $self->{permission}) ;
+    my @element_list= $node->get_element_name(for => $self->{experience}) ;
 
     # we could add here a "last element" call-back, but it's not
     # very usefull if the last element is a hash.
@@ -593,27 +599,32 @@ sub get_keys {
 
 }
 
-=head2 permission ( [ new_permission ] )
+=head2 experience ( [ new_experience ] )
 
-Set or query the permission level of the scanner
+Set or query the experience level of the scanner
 
 =cut
 
-sub permission {
+sub experience {
     my ($self,$new_perm) = @_ ;
-    $self->{permission} = $new_perm if defined $new_perm ;
-    return $self->{permission} ;
+    $self->{experience} = $new_perm if defined $new_perm ;
+    return $self->{experience} ;
 }
 
-=head2 get_permission_ref ( )
+=head2 get_experience_ref ( )
 
-Get a SCALAR reference on permission. Use with care.
+Get a SCALAR reference on experience. Use with care.
 
 =cut
 
-sub get_permission_ref {
+sub get_experience_ref {
     my $self = shift ;
-    return \$self->{permission} ;
+    return \$self->{experience} ;
+}
+
+sub get_permission_ref {
+    carp "get_permission_ref: deprecated";
+    goto &get_experience_ref ;
 }
 
 1;

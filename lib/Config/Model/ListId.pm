@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2008-03-22 18:48:44 +0100 (Sat, 22 Mar 2008) $
-# $Revision: 556 $
+# $Date: 2008-05-02 10:44:23 +0200 (Fri, 02 May 2008) $
+# $Revision: 642 $
 
 #    Copyright (c) 2005-2007 Dominique Dumont.
 #
@@ -30,7 +30,7 @@ use strict;
 use base qw/Config::Model::AnyId/ ;
 
 use vars qw($VERSION) ;
-$VERSION = sprintf "1.%04d", q$Revision: 556 $ =~ /(\d+)/;
+$VERSION = sprintf "1.%04d", q$Revision: 642 $ =~ /(\d+)/;
 
 =head1 NAME
 
@@ -257,9 +257,11 @@ sub create_default {
     }
 }
 
-=head2 load_data ( list_ref )
+=head2 load_data ( array_ref | data )
 
-Load check_list as an array ref. 
+Clear and load list from data contained in the array ref. If a scalar
+or a hash ref is passed, the list is cleared and the data is stored in
+the first element of the list.
 
 =cut
 
@@ -277,18 +279,11 @@ sub load_data {
 	    $obj -> load_data($item) ;
 	}
     }
-    elsif (not ref ($data)) {
+    else {
 	print "ListId load_data (",$self->location,") will load idx ",
 	  "0\n" if $::verbose ;
+	$self->clear ;
 	$self->fetch_with_id(0) -> load_data($data) ;
-    }
-    else {
-	Config::Model::Exception::LoadData
-	    -> throw (
-		      object => $self,
-		      message => "load_data called with non array ref arg",
-		      wrong_data => $data,
-		     ) ;
     }
 }
 

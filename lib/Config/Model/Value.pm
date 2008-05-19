@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2008-04-18 14:26:22 +0200 (Fri, 18 Apr 2008) $
-# $Revision: 617 $
+# $Date: 2008-05-14 18:02:59 +0200 (Wed, 14 May 2008) $
+# $Revision: 660 $
 
 #    Copyright (c) 2005-2007 Dominique Dumont.
 #
@@ -36,7 +36,7 @@ use base qw/Config::Model::WarpedThing/ ;
 
 use vars qw($VERSION) ;
 
-$VERSION = sprintf "1.%04d", q$Revision: 617 $ =~ /(\d+)/;
+$VERSION = sprintf "1.%04d", q$Revision: 660 $ =~ /(\d+)/;
 
 =head1 NAME
 
@@ -222,6 +222,9 @@ sub set_compute {
 
     my $c_ref = delete $arg_ref->{compute};
 
+    $self->{allow_compute_override} = delete $c_ref->{allow_override}
+      if defined $c_ref->{allow_override} ;
+
     if (ref($c_ref) eq 'HASH') {
 	$self->{compute} = $c_ref ;
     }
@@ -260,7 +263,10 @@ sub submit_to_compute {
 	      value_type   => $self->{value_type}
 	     );
 
-    $self->register_in_other_value( $c_info->{variables} ) ;
+    # resolve any recursive variables before registration
+    my $v = $self->{_compute}->compute_variables ;
+
+    $self->register_in_other_value( $v ) ;
 }
 
 
@@ -412,7 +418,7 @@ my @accessible_params =  (@warp_accessible_params,
 			  qw/index_value element_name value_type
 			     refer_to computed_refer_to/ ) ;
 
-my @allowed_warp_params = (@warp_accessible_params, qw/level permission help/);
+my @allowed_warp_params = (@warp_accessible_params, qw/level experience help/);
 
 sub new {
     my $type = shift;
@@ -516,7 +522,7 @@ sub set {
 
 
     map { $self->{$_} =  delete $args{$_} if defined $args{$_} }
-      qw/min max mandatory help allow_compute_override replace/;
+      qw/min max mandatory help replace/;
 
     $self->set_value_type     ( \%args );
     $self->set_default        ( \%args ) if (    exists $args{default} 
@@ -1013,7 +1019,10 @@ sub check {
 
     my @error  ;
 
-    if (not defined $value and $self->{mandatory}) {
+    if ( $self->{hidden}) {
+        push @error, "value is hidden" ;
+    }
+    elsif (not defined $value and $self->{mandatory}) {
         push @error, "Mandatory value is not defined" ;
     }
     elsif (not defined $value) {
@@ -1114,7 +1123,7 @@ sub pre_store {
     if (defined $self->{compute} 
 	and not $self->{allow_compute_override}) {
 	my $msg = 'assignment to a computed value is forbidden unless '
-	  .'allow_compute_override is set.' ;
+	  .'compute -> allow_override is set.' ;
 	Config::Model::Exception::Model
 	    -> throw (object => $self, message => $msg) 
 	      if $inst->get_value_check('store') ;

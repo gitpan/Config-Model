@@ -1,7 +1,7 @@
 # -*- cperl -*-
 # $Author: ddumont $
-# $Date: 2008-04-18 13:08:32 +0200 (Fri, 18 Apr 2008) $
-# $Revision: 616 $
+# $Date: 2008-05-17 17:58:38 +0200 (Sat, 17 May 2008) $
+# $Revision: 669 $
 
 use warnings FATAL => qw(all);
 
@@ -93,7 +93,7 @@ $model ->create_config_class
 			     XY  => { level => 'normal', },
 			     mXY => {
 				     level => 'normal',
-				     permission => 'intermediate'
+				     permission => 'beginner'
 				    },
 			     XZ => { level => 'normal',},
 			    }
@@ -142,7 +142,7 @@ my $root = $inst -> config_root ;
 my $tm = $root -> fetch_element('tree_macro') ;
 map { $tm->store($_);} qw/XY XZ XY W mXY XZ W AR/;
 
-is($root->fetch_element('a_warped_node')->is_accessible,0,
+is($root->is_element_available('a_warped_node'),0,
    'check that a_warped_node is not accessible'
   ) ;
 
@@ -227,7 +227,7 @@ is($ahown->fetch_with_id(234)->element_name, 'a_hash_of_warped_nodes',
 is($ahown->fetch_with_id(234)->index_value, '234', 
    'Check index value of actual node below warped node') ;
 
-is_deeply([$root->get_element_name(for => 'intermediate')],
+is_deeply([$root->get_element_name(for => 'beginner')],
 	  [qw/v_macro b_macro tree_macro a_hash_of_warped_nodes 
               a_warped_node/],
 	 'reading elements of root') ;
@@ -235,7 +235,7 @@ is_deeply([$root->get_element_name(for => 'intermediate')],
 is($root->fetch_element('tree_macro')->store('W'),'W',
    'set master->tree_macro to W (warp out)...');
 
-is_deeply([$root->get_element_name(for => 'intermediate')],
+is_deeply([$root->get_element_name(for => 'beginner')],
 	  [qw/v_macro b_macro tree_macro/],
 	 'reading elements of root after warp out') ;
 

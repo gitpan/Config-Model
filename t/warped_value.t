@@ -1,7 +1,7 @@
 # -*- cperl -*-
 # $Author: ddumont $
-# $Date: 2008-04-18 14:26:22 +0200 (Fri, 18 Apr 2008) $
-# $Revision: 617 $
+# $Date: 2008-05-14 18:02:59 +0200 (Wed, 14 May 2008) $
+# $Revision: 660 $
 
 use warnings FATAL => qw(all);
 
@@ -10,7 +10,7 @@ use Test::More;
 use Config::Model;
 use Config::Model::ValueComputer ;
 
-BEGIN { plan tests => 57; }
+BEGIN { plan tests => 59; }
 
 use strict;
 
@@ -91,8 +91,8 @@ $model ->create_config_class
 $model -> create_config_class 
   (
    name => "Slave",
-   level => [ [qw/Comp W/] => 'hidden' ] ,
-   element 
+
+   'element'
    =>  [
 	[qw/X Y Z/] => {
 			type => 'leaf',
@@ -123,13 +123,13 @@ $model -> create_config_class
 			   A => {
 				 default    => 'Av',
 				 level      => 'normal',
-				 permission => 'intermediate',
+				 experience => 'beginner',
 				 choice     => [qw/Av Bv Cv/],
 				},
 			   B => {
 				 default    => 'Bv',
 				 level      => 'normal',
-				 permission => 'advanced',
+				 experience => 'advanced',
 				 choice     => [qw/Av Bv Cv/]
 				}
 			  }
@@ -260,14 +260,38 @@ $model -> create_config_class
 				     },
 				]
  		  }
- 	 },
-       
+	  },
+
        [qw/bar foo foo2/ ] => {
 			       type => 'node',
 			       config_class_name => 'Slave'
-			      }
+			      },
+       'ClientAliveCheck',
+       {
+	'value_type' => 'boolean',
+	'built_in' => '0',
+	'type' => 'leaf',
+       },
+       'ClientAliveInterval',
+       {
+	'value_type' => 'integer',
+	'level' => 'hidden',
+	'min' => '1',
+	'warp' => {
+		   'follow' => {
+				'c_a_check' => '- ClientAliveCheck'
+			       },
+		   'rules' => [
+			       '$c_a_check == 1',
+			       {
+				'level' => 'normal'
+			       }
+			      ]
+		  },
+	'type' => 'leaf'
+       },
       ]
-   );
+  );
 
 my $inst = $model->instance (root_class_name => 'Master', 
 			     instance_name => 'test1');
@@ -275,24 +299,25 @@ ok($inst,"created dummy instance") ;
 
 my $root = $inst -> config_root ;
 
-is_deeply( [$root->get_element_name(for => 'intermediate')],
-	   [qw'get_element where_is_element macro compute var_path class bar foo foo2'], 
+is_deeply( [$root->get_element_name(for => 'beginner')],
+	   [qw'get_element where_is_element macro compute var_path class bar foo foo2
+	       ClientAliveCheck'], 
 	   "Elements of Master"
 	 );
 
 # query the model instead of the instance
 is_deeply( [$model->get_element_name(class => 'Slave',
-				     for => 'intermediate')
+				     for => 'beginner')
 	   ],
-	   [qw'X Y Z recursive_slave'], 
+	   [qw'X Y Z recursive_slave Comp'], 
 	   "Elements of Slave from the model"
 	 );
 
 my $slave = $root-> fetch_element('bar') ;
 ok($slave,"Created slave(bar)");
 
-is_deeply( [$slave->get_element_name(for => 'intermediate')],
-	   [qw'X Y Z recursive_slave'], 
+is_deeply( [$slave->get_element_name(for => 'beginner')],
+	   [qw'X Y Z recursive_slave Comp'], 
 	   "Elements of Slave from the object"
 	 );
 my $result ;
@@ -306,18 +331,19 @@ is($slave->fetch_element('X')->fetch , undef,
 is($root->fetch_element('macro')->store('B'), 'B',
    "setting master->macro to B") ;
 
-is_deeply( [$root->get_element_name(for => 'intermediate')],
-	   [qw'get_element where_is_element macro macro2 
-	       m_value m_value_old compute var_path class bar foo foo2'], 
-	   "Elements of Master when macro = B"
-	 );
+is_deeply( [$root->get_element_name(for => 'beginner')],
+	   [qw'get_element where_is_element macro macro2 m_value
+	   m_value_old compute var_path class bar foo foo2
+	   ClientAliveCheck'],
+	   "Elements of Master when macro = B" );
 
 is($root->fetch_element('macro2')->store('A'), 'A',
    "setting master->macro2 to A") ;
 
-is_deeply( [$root->get_element_name(for => 'intermediate')],
+is_deeply( [$root->get_element_name(for => 'beginner')],
 	   [qw'get_element where_is_element macro macro2 
-	       m_value m_value_old compute var_path class warped_out_ref bar foo foo2'], 
+	       m_value m_value_old compute var_path class warped_out_ref bar 
+	       foo foo2 ClientAliveCheck'], 
 	   "Elements of Master when macro = B macro2 = A"
 	 );
 
@@ -366,18 +392,18 @@ is($root->fetch_element('m_value_old')->fetch , 'Av',
 
 $root->fetch_element('macro')->store('A') ;
 
-is_deeply( [$slave->get_element_name(for => 'intermediate')],
-	   [qw/X Y Z recursive_slave W/], 
+is_deeply( [$slave->get_element_name(for => 'beginner')],
+	   [qw/X Y Z recursive_slave W Comp/], 
 	   "Slave elements from the object (W pops in when macro is set to A)"
 	 );
 $root->fetch_element('macro')->store('B') ;
 
-is_deeply( [$slave->get_element_name(for => 'intermediate')],
-	   [qw/X Y Z recursive_slave/], 
+is_deeply( [$slave->get_element_name(for => 'beginner')],
+	   [qw/X Y Z recursive_slave Comp/], 
 	   "Slave elements from the object (W's out when macro is set to B)"
 	 );
 is_deeply( [$slave->get_element_name(for => 'advanced')],
-	   [qw/X Y Z recursive_slave W/], 
+	   [qw/X Y Z recursive_slave W Comp/], 
 	   "Slave elements from the object for advanced level"
 	 );
 
@@ -390,14 +416,13 @@ is($slave->fetch_element('Y')->store('Cv'), 'Cv',
 
 # testing warp in warp out
 $root->fetch_element('macro')->store('C') ;
-is( $slave->is_element_available(name => 'W', permission => 'advanced'),
+is( $slave->is_element_available(name => 'W', experience => 'advanced'),
     0, " test W is not available") ;
 $root->fetch_element('macro')->store('B') ;
-is( $slave->is_element_available(name => 'W', permission => 'advanced'),
+is( $slave->is_element_available(name => 'W', experience => 'advanced'),
     1, " test W is available") ;
 
 $root->fetch_element('macro')->store('C') ;
-
 
 map {is($slave->fetch_element($_)->fetch , undef,
 	"reading slave->$_ (undef)") ; } qw/X Z/;
@@ -536,3 +561,13 @@ is($root->fetch_element('var_path')->fetch(),
    'get_element is compute, indirect value is \'macro is C, my element is compute\'',
    "reading var_path through compute element");
 
+$root->fetch_element('ClientAliveCheck')-> store (0) ;
+
+eval { $root->fetch_element('ClientAliveInterval')->fetch; };
+like( $@, qr/unavailable element/,
+    'reading ClientAliveInterval when ClientAliveCheck is 0');
+
+
+$root->fetch_element('ClientAliveCheck')-> store (1) ;
+$root->fetch_element('ClientAliveInterval')-> store (10) ;
+is($root->fetch_element('ClientAliveInterval')-> fetch,10,"check ClientAliveInterval") ;

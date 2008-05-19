@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2008-04-18 14:26:22 +0200 (Fri, 18 Apr 2008) $
-# $Revision: 617 $
+# $Date: 2008-05-14 18:56:34 +0200 (Wed, 14 May 2008) $
+# $Revision: 661 $
 
 #    Copyright (c) 2005-2007 Dominique Dumont.
 #
@@ -32,7 +32,7 @@ use Carp;
 use warnings FATAL => qw(all);
 
 use vars qw($VERSION) ;
-$VERSION = sprintf "1.%04d", q$Revision: 617 $ =~ /(\d+)/;
+$VERSION = sprintf "1.%04d", q$Revision: 661 $ =~ /(\d+)/;
 
 use base qw/Config::Model::AnyThing/ ;
 
@@ -272,7 +272,7 @@ sub submit_to_warp {
 	# check if the warp master is available
 	my $available 
 	  = $warper->parent->is_element_available(name => $warper->element_name,
-						  permission => 'master') ;
+						  experience => 'master') ;
 
 	if ($available) {
 	    # read the warp master values, so I can warp myself just
@@ -298,13 +298,13 @@ sub submit_to_warp {
 }
 
 # Internal. This method will change element properties (like level and
-# permission) according to the warp effect.  For instance, if a warp
+# experience) according to the warp effect.  For instance, if a warp
 # rule make a node no longer available in a model, its level must
 # change to 'hidden'
 sub set_parent_element_property {
     my ($self, $arg_ref) = @_ ;
 
-    foreach my $property_name (qw/level permission/) {
+    foreach my $property_name (qw/level experience/) {
 	my $v = delete $arg_ref->{$property_name} ;
 	if (defined $v) {
 	    $self->{parent}
@@ -391,12 +391,22 @@ sub compute_bool {
     my @init_code ;
     foreach my $warper_name (keys %$warp_value_set) {
 	my $v = $warp_value_set->{$warper_name} ;
-	$v = '' unless defined $v ;
-	push @init_code, "my \$$warper_name = '$v' ;\n" ;
+
+	my $code_v = (defined $v and $v =~ m/^[\d\.]$/) ? "$v"
+	           :  defined $v                        ? "'$v'"
+	           :                                      'undef' ;
+
+	push @init_code, "my \$$warper_name = $code_v ;\n" ;
     }
 
     my $perl_code = join('',@init_code)."\n$expr";
-    my $ret = eval($perl_code) ;
+
+    my $ret;
+    {
+	no warnings "uninitialized" ;
+	$ret = eval($perl_code) ;
+    }
+
     if ($@) {
         Config::Model::Exception::Model
 	    -> throw (
@@ -525,7 +535,7 @@ sub register_in_other_value {
 			     ) if /\W/ ;
 	    }  (%$path) ;
 	}
-        elsif (not ref $path) {
+        elsif (defined $path and not ref $path) {
 	    # is ref during test case
 	    #print "path is '$path'\n";
             next if $path =~ /\$/ ; # next if path also contain a variable
@@ -611,7 +621,7 @@ sub warp_error {
 
         my @try = sort grep { $_ ne $warper_value } @choice ;
 
-        $str .= "\t'".$warper->name. "': Try " ;
+        $str .= "\t'".$warper->location. "': Try " ;
 
         my $a = $warper->{value_type} =~ /^[aeiou]/ ? 'an' : 'a' ;
 

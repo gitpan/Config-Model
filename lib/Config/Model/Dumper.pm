@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2008-04-15 13:36:55 +0200 (Tue, 15 Apr 2008) $
-# $Revision: 607 $
+# $Date: 2008-05-01 16:41:22 +0200 (Thu, 01 May 2008) $
+# $Revision: 641 $
 
 #    Copyright (c) 2006-2007 Dominique Dumont.
 #
@@ -29,7 +29,7 @@ use Config::Model::Exception ;
 use Config::Model::ObjTreeScanner ;
 
 use vars qw($VERSION);
-$VERSION = sprintf "1.%04d", q$Revision: 607 $ =~ /(\d+)/;
+$VERSION = sprintf "1.%04d", q$Revision: 641 $ =~ /(\d+)/;
 
 =head1 NAME
 
@@ -241,7 +241,7 @@ sub dump_tree {
     };
 
     my @scan_args = (
-		     permission      => delete $args{permission} || 'master',
+		     experience      => delete $args{experience} || 'master',
 		     fallback        => 'all',
 		     auto_vivify     => $auto_v,
 		     list_element_cb => $list_element_cb,

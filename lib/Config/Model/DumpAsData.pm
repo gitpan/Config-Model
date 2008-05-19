@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2008-04-16 17:55:05 +0200 (Wed, 16 Apr 2008) $
-# $Revision: 611 $
+# $Date: 2008-05-07 11:59:39 +0200 (Wed, 07 May 2008) $
+# $Revision: 650 $
 
 #    Copyright (c) 2007 Dominique Dumont.
 #
@@ -29,7 +29,7 @@ use Config::Model::Exception ;
 use Config::Model::ObjTreeScanner ;
 
 use vars qw($VERSION);
-$VERSION = sprintf "1.%04d", q$Revision: 611 $ =~ /(\d+)/;
+$VERSION = sprintf "1.%04d", q$Revision: 650 $ =~ /(\d+)/;
 
 =head1 NAME
 
@@ -191,7 +191,7 @@ sub dump_as_data {
     } ;
 
     my @scan_args = (
-		     permission            => delete $args{permission} || 'master',
+		     experience            => delete $args{experience} || 'master',
 		     fallback              => 'all',
 		     auto_vivify           => $auto_v,
 		     list_element_cb       => $list_element_cb,
@@ -208,9 +208,25 @@ sub dump_as_data {
     # perform the scan
     my $view_scanner = Config::Model::ObjTreeScanner->new(@scan_args);
 
-    my $result = {};
+    my $obj_type = $dump_node->get_type ;
+    my $result ;
+    my $p = $dump_node->parent;
+    my $e = $dump_node->element_name ;
+    my $i = $dump_node->index_value ; # defined only for hash and list
 
-    $view_scanner->scan_node(\$result ,$dump_node);
+    if ($obj_type =~ /node/) {
+	$view_scanner->scan_node(\$result ,$dump_node);
+    }
+    elsif ( defined $i ) {
+	$view_scanner->scan_hash(\$result ,$p,$e,$i);
+    }
+    elsif (   $obj_type eq 'list' or $obj_type eq 'hash' 
+	   or $obj_type eq 'leaf' or $obj_type eq 'check_list') {
+	$view_scanner->scan_element(\$result ,$p,$e);
+    }
+    else {
+	croak "dump_as_data: unexpected type: $obj_type";
+    }
 
     return $result ;
 }

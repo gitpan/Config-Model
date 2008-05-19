@@ -81,16 +81,19 @@ config-edit - Edit data of configuration managed by Config::Model
 
 =head1 SYNOPSIS
 
-  config-edit [options] -model Fstab
+  config-edit [options] -model Fstab [ commands  ... ]
 
 =head1 DESCRIPTION
 
-Config-model is a general purpose configuration framework. Models
-stored in /C</etc/config-model.d> are configuration description.
+Config-model is a general purpose configuration framework.
 
-The config-edit program will use these configuration descriptions to 
-provide a user interface so user can easily and securely modify the
-configuration of their system.
+The config-edit program will use Config::Model configuration
+descriptions to provide a user interface so user can easily and
+securely modify the configuration of their system.
+
+You can specify commands as arguments that will be run on the
+configuration root before launching the UI. These command follow the
+syntax defined in L<Config::Model::Loader>.
 
 =head1 Options
 
@@ -128,13 +131,22 @@ L<Config::Model::CursesUI> is installed).
 C<shell>: provides a shell like interface.  See L<Config::Model::TermUI>
 for details.
 
+=item *
+
+C<none>: No UI provided. Only command line arguments are handled.
+
 =back
 
+=item -dev
+
+Use this option if you want to test a model under development. This
+option will add C<lib> in C<@INC> and use C<lib/Config/Model/models>
+as model directory. This option is ignored when run as root.
 
 =item -model_dir
 
 Specify an alternate directory to find model files. Mostly useful for
-tests. 
+tests.
 
 =item -instance_name
 
@@ -183,17 +195,21 @@ Load file even if error are found in data. Bad data are discarded
 my $man = 0;
 my $help = 0;
 my $force_load = 0;
+my $dev = 0;
 my $instance_name ;
+my $experience = 'beginner' ;
 
 my $result = GetOptions ("ui|if=s"             => \$ui_type,
 			 "model_dir=s"      => \$model_dir,
 			 "model=s"          => \$root_model,
 			 "verbose!"         => \$verbose,
+			 "experience=s"     => \$experience ,
 			 "instance_name=s"  => \$instance_name,
 			 "debug!"           => \$debug,
 			 "trace!"           => \$trace,
 			 "man!"             => \$man,
 			 "help!"            => \$help,
+			 "dev!"             => \$dev,
 			 "force_load!"      => \$force_load,
 			 "read_conf_dir=s"  => \$read_conf_dir,
 			 "write_conf_dir=s" => \$wr_conf_dir ,
@@ -202,6 +218,12 @@ my $result = GetOptions ("ui|if=s"             => \$ui_type,
 pod2usage(2) if not $result ;
 pod2usage(1) if $help;
 pod2usage(-verbose => 2) if $man;
+
+# ignore $dev if run as root
+if ($> and $dev) {
+    unshift @INC,'lib' ;
+    $model_dir = 'lib/Config/Model/models/' ;
+}
 
 Config::Model::Exception::Any->Trace(1) if $trace ;
 
@@ -233,7 +255,12 @@ of C<config-edit> and get the results from the standard output.
 
 =cut
 
+if (@ARGV) {
+    $root->load("@ARGV") ;
+}
+
 if ($ui_type eq 'simple') {
+    # experience not yet implemented
     require Config::Model::SimpleUI;
     my $shell_ui = Config::Model::SimpleUI
       -> new( root => $root ,
@@ -243,8 +270,11 @@ if ($ui_type eq 'simple') {
 
     # engage in user interaction
     $shell_ui -> run_loop ;
+
+    $inst->write_back; 
 }
 elsif ($ui_type eq 'shell') {
+    # experience not yet implemented
     require Config::Model::TermUI;
     my $shell_ui = Config::Model::TermUI
       -> new( root => $root ,
@@ -254,6 +284,8 @@ elsif ($ui_type eq 'shell') {
 
     # engage in user interaction
     $shell_ui -> run_loop ;
+
+    $inst->write_back; 
 }
 elsif ($ui_type eq 'curses') {
     my $err_file = '/tmp/config-edit-error.log' ;
@@ -265,7 +297,7 @@ elsif ($ui_type eq 'curses') {
 
     my $dialog = Config::Model::CursesUI-> new
       (
-       permission => 'advanced',
+       experience => $experience,
       ) ;
 
     # engage in user interaction
@@ -281,16 +313,18 @@ elsif ($ui_type eq 'tk') {
     my $mw = MainWindow-> new ;
     $mw->withdraw ;
 
-    my $cmu = $mw->ConfigModelUI (-root => $root,) ;
+    my $cmu = $mw->ConfigModelUI (-root => $root, -experience => $experience) ;
 
     &MainLoop ; # Tk's
+}
+elsif ( $ui_type =~ /^no/i ) {
+    # let go
 }
 else {
     die "Unsupported user interface: $ui_type";
 }
 
-
-$inst->write_back; 
+$inst->write_back if scalar @ARGV;
 
 =head1 AUTHOR
 

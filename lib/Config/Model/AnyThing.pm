@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2008-03-18 18:33:16 +0100 (Tue, 18 Mar 2008) $
-# $Revision: 546 $
+# $Date: 2008-05-14 18:02:59 +0200 (Wed, 14 May 2008) $
+# $Revision: 660 $
 
 #    Copyright (c) 2005-2007 Dominique Dumont.
 #
@@ -26,7 +26,7 @@ use Carp;
 use strict;
 
 use vars qw($VERSION);
-$VERSION = sprintf "1.%04d", q$Revision: 546 $ =~ /(\d+)/;
+$VERSION = sprintf "1.%04d", q$Revision: 660 $ =~ /(\d+)/;
 
 =head1 NAME
 
@@ -392,7 +392,7 @@ sub grab {
 
         unless ($grab_non_available 
 		or $obj->is_element_available(name => $name, 
-					      permission => 'master')) {
+					      experience => 'master')) {
             Config::Model::Exception::UnavailableElement
 		->throw (
 			 object => $obj,
@@ -404,9 +404,11 @@ sub grab {
 	   last ;
 	}
 
+	my $next_obj = $obj->fetch_element($name,'master',$grab_non_available) ;
+
 	# create list or hash element only if autoadd is true
         if (defined $action and $autoadd == 0
-	    and not $obj->fetch_element($name)->exists($arg)) 
+	    and not $next_obj->exists($arg)) 
 	  {
             Config::Model::Exception::UnknownId
 		->throw (
@@ -417,8 +419,6 @@ sub grab {
 			)  if $strict;
 	    last ;
 	}
-
-	my $next_obj = $obj->fetch_element($name) ;
 
 	# action can only be :
 	$next_obj = $next_obj -> fetch_with_id($arg) if defined $action ;
@@ -539,6 +539,22 @@ sub searcher {
     return Config::Model::Searcher
       -> new(model => $model, node => $self, %args ) ;
 }
+
+=head2 dump_as_data ( )
+
+Dumps the configuration data of the node and its siblings into a perl
+data structure. 
+
+Returns a hash ref containing the data.
+
+=cut
+
+sub dump_as_data {
+    my $self = shift ;
+    my $dumper = Config::Model::DumpAsData->new ;
+    $dumper->dump_as_data(node => $self, @_) ;
+}
+
 
 1;
 

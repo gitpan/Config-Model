@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2008-04-11 18:19:23 +0200 (Fri, 11 Apr 2008) $
-# $Revision: 599 $
+# $Date: 2008-05-09 17:44:28 +0200 (Fri, 09 May 2008) $
+# $Revision: 654 $
 
 #    Copyright (c) 2005-2007 Dominique Dumont.
 #
@@ -32,7 +32,7 @@ use Data::Dumper () ;
 
 use vars qw($VERSION $compute_grammar $compute_parser) ;
 
-$VERSION = sprintf "1.%04d", q$Revision: 599 $ =~ /(\d+)/;
+$VERSION = sprintf "1.%04d", q$Revision: 654 $ =~ /(\d+)/;
 
 =head1 NAME
 
@@ -255,13 +255,15 @@ compute parameter:
    computed_value_with_override => { 
     type => 'leaf',
     value_type => 'string', 
-    allow_compute_override => 1,
     compute => { formula => '"macro is $m"' , 
-                 variables => { m => '- - macro' }
+                 variables => { m => '- - macro' } ,
+                 allow_override => 1,
                }
    }
 
 =cut
+
+# allow_override is intercepted and handled by Value object
 
 sub new {
     my $type = shift ;
@@ -294,7 +296,7 @@ sub new {
     $compute_parser ||= Parse::RecDescent->new($compute_grammar) ;
 
     # must make a first pass at computation to subsitute index and
-    # slot values.  leaves $xxx outside of $index or &slot untouched
+    # slot values.  leaves $xxx outside of &index or &element untouched
     my $result_r = $compute_parser
       -> pre_compute
 	(
@@ -413,12 +415,16 @@ sub compute_variables {
         my $did_something = 0 ;
         foreach my $key (keys %variables) {
             my $value = $variables{$key} ; # value may be undef
-            next unless (defined $value and $value =~ /\$/) ;
+            next unless (defined $value and $value =~ /\$|&/) ;
             #next if ref($value); # skip replacement rules
             print "key '$key', value '$value', left $var_left\n" 
 	      if $::debug;
+	    my $pre_res = $compute_parser
+	      -> pre_compute ($value, 1,$self->{value_object}, \%variables, $self->{replace});
+            print "key '$key', pre res '$pre_res', left $var_left\n" 
+	      if $::debug;
             my $res_r = $compute_parser
-	      -> compute ($value, 1,$self->{value_object}, \%variables, $self->{replace});
+	      -> compute ($pre_res, 1,$self->{value_object}, \%variables, $self->{replace});
 	    my $res = $$res_r ;
             #return undef unless defined $res ;
             $variables{$key} = $res ;
@@ -449,7 +455,7 @@ sub compute_variables {
 $compute_grammar = << 'END_OF_GRAMMAR' ;
 
 {
-# $Revision: 599 $
+# $Revision: 654 $
 
 # This grammar is compatible with Parse::RecDescent < 1.90 or >= 1.90
 use strict;
