@@ -1,6 +1,6 @@
 # -*- cperl -*-
-# $Date: 2008-04-15 13:57:49 +0200 (Tue, 15 Apr 2008) $
-# $Revision: 608 $
+# $Date: 2008-07-11 17:21:02 +0200 (Fri, 11 Jul 2008) $
+# $Revision: 713 $
 
 use warnings FATAL => qw(all);
 
@@ -26,8 +26,8 @@ $model ->create_config_class
   ) ;
 
 my $inst = $model->instance (root_class_name => 'Master', 
-			     instance_name => 'test1',
-			    'directory'   => 'foobar' );
+			     instance_name   => 'test1',
+			     root_dir        => 'foobar' );
 ok($inst,"created dummy instance") ;
 
 isa_ok( $inst->config_root , 'Config::Model::Node',"test config root class" );
@@ -58,5 +58,5 @@ is( $inst->data('test'),undef,"test empty private data ..." );
 is( $inst->data( 'test', 'coucou' ), 'coucou', "store private data" );
 is( $inst->data( 'test'), 'coucou', "retrieve private data" );
 
-is( $inst->read_directory,  'foobar', "test read directory") ;
-is( $inst->write_directory, 'foobar', "test write directory") ;
+is( $inst->read_directory,  'foobar/', "test read directory") ;
+is( $inst->write_directory, 'foobar/', "test write directory") ;

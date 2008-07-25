@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2008-05-01 16:41:22 +0200 (Thu, 01 May 2008) $
-# $Revision: 641 $
+# $Date: 2008-07-18 14:43:23 +0200 (Fri, 18 Jul 2008) $
+# $Revision: 717 $
 
 #    Copyright (c) 2006-2007 Dominique Dumont.
 #
@@ -28,7 +28,7 @@ use warnings ;
 use Config::Model::Exception ;
 
 use vars qw($VERSION);
-$VERSION = sprintf "1.%04d", q$Revision: 641 $ =~ /(\d+)/;
+$VERSION = sprintf "1.%04d", q$Revision: 717 $ =~ /(\d+)/;
 
 =head1 NAME
 
@@ -102,7 +102,10 @@ element with C<node> cargo_type)
 
 =item xxx~yy
 
-Delete item referenced by C<xxx> element and id C<yy>
+Delete item referenced by C<xxx> element and id C<yy>. For a list,
+this is equivalent to C<splice xxx,yy,1>. This command does not go
+down in the tree (since it has just deleted the element). I.e. a
+'C<->' is generally not needed afterwards.
 
 =item xxx=zz
 
@@ -363,6 +366,7 @@ sub unquote {
     map { s/^"// && s/"$// && s/\\"/"/g if defined $_;  } @_ ;
 }
 
+# used for list and check lists
 sub _load_list {
     my ($self,$node,$element_name,$cmd) = @_ ;
 
@@ -380,8 +384,16 @@ sub _load_list {
 	# replace unquoted empty values by undef
 	map { $_ = undef unless length($_) > 0 } @set; 
 	unquote( @set );
+	# clear the array without deleting underlying objects
+	$element->clear_values ;
 	$element->store_set( @set ) ;
 	return $node;
+    }
+    elsif ($elt_type eq 'list' and $action eq '~') {
+	# remove possible leading or trailing quote
+	unquote ($cmd) ;
+	$element->remove($cmd) ;
+	return $node ;
     }
     elsif ($elt_type eq 'list' and $action eq ':' and $cargo_type =~ /node/) {
 	# remove possible leading or trailing quote
@@ -417,6 +429,12 @@ sub _load_hash {
 	# remove possible leading or trailing quote
 	unquote ($cmd) ;
 	return $element->fetch_with_id($cmd) ;
+    }
+    elsif ($action eq '~') {
+	# remove possible leading or trailing quote
+	unquote ($cmd) ;
+	$element->delete($cmd) ;
+	return $node ;
     }
     elsif ($action eq ':' and $cargo_type =~ /leaf/) {
 	my ($id,$value) = split /=/, $cmd, 2;

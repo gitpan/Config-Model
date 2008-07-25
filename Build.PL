@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2008-05-19 13:44:13 +0200 (Mon, 19 May 2008) $
-# $Revision: 675 $
+# $Date: 2008-07-24 18:29:18 +0200 (Thu, 24 Jul 2008) $
+# $Revision: 729 $
 
 #    Copyright (c) 2005-2008 Dominique Dumont.
 #
@@ -41,25 +41,25 @@ my $build = Module::Build->new
    requires       => {
 		      'Term::ReadLine'    => 0,
 		      'Log::Log4perl'     => '1.11', # for TRACE log level
-		      # P::RD version must be > 1.90 but a bug
-		      # prevents Module::Build to check it with
-		      # installed version (1.95.1)
-		      'Parse::RecDescent' => 0,
+		      'Parse::RecDescent' => '1.90.0',
 		      'Scalar::Util'      => 0, # provided by perl 5.8.0
 		      'Exception::Class'  => 0,
 		      'Carp::Assert::More' => 0,
 		      'Error'             => 0,
 		     },
    build_requires => {
-		      'Test::More'        => 0, # for test
+		      'Test::More'        => 0,
+		      'Test::Exception'   => 0,
+		      'Test::Warn'        => 0,
 		     },
    recommends => {
 		  # recommended modules to get more reader/writer
 		  'Config::Tiny' => 0,
+		  'Config::Augeas' => 0,
 		 },
    # cleanup required by t/auto_read.t
    # PreGrammar.pm is created by t/value_computer.t
-   add_to_cleanup => [qw/PreGrammar.pm wr_test zero_test/],
+   add_to_cleanup => [qw/PreGrammar.pm wr_root r_root/],
   );
 
 $build->create_build_script;

@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2008-05-02 10:44:23 +0200 (Fri, 02 May 2008) $
-# $Revision: 642 $
+# $Date: 2008-07-07 17:52:23 +0200 (Mon, 07 Jul 2008) $
+# $Revision: 708 $
 
 #    Copyright (c) 2005-2007 Dominique Dumont.
 #
@@ -30,7 +30,7 @@ use strict;
 use base qw/Config::Model::AnyId/ ;
 
 use vars qw($VERSION) ;
-$VERSION = sprintf "1.%04d", q$Revision: 642 $ =~ /(\d+)/;
+$VERSION = sprintf "1.%04d", q$Revision: 708 $ =~ /(\d+)/;
 
 =head1 NAME
 
@@ -98,10 +98,10 @@ from L<Config::Model::AnyId>.
 
 =cut
 
-sub set {
+sub set_properties {
     my $self = shift ;
 
-    $self->SUPER::set(@_) ;
+    $self->SUPER::set_properties(@_) ;
 
     # remove unwanted items
     my $data = $self->{data} ;
@@ -112,7 +112,7 @@ sub set {
     # warp mechanism
     foreach my $k (0 .. $#{$data}) {
 	next unless  $k >  $self->{max};
-	print "set: ",$self->name," deleting index $k\n" if $::debug ;
+	print "set_properties: ",$self->name," deleting index $k\n" if $::debug ;
 	delete $data->[$k] ;
     }
 }

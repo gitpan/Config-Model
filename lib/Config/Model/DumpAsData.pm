@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2008-05-07 11:59:39 +0200 (Wed, 07 May 2008) $
-# $Revision: 650 $
+# $Date: 2008-07-04 16:14:06 +0200 (Fri, 04 Jul 2008) $
+# $Revision: 707 $
 
 #    Copyright (c) 2007 Dominique Dumont.
 #
@@ -29,7 +29,7 @@ use Config::Model::Exception ;
 use Config::Model::ObjTreeScanner ;
 
 use vars qw($VERSION);
-$VERSION = sprintf "1.%04d", q$Revision: 650 $ =~ /(\d+)/;
+$VERSION = sprintf "1.%04d", q$Revision: 707 $ =~ /(\d+)/;
 
 =head1 NAME
 
@@ -118,7 +118,7 @@ sub dump_as_data {
       || croak "dumpribe: missing 'node' parameter";
     my $full = delete $args{full_dump} ;
     $full = 1 unless defined $full ;
-    my $skip_aw = delete $args{skip_auto_write} || 0 ;
+    my $skip_aw = delete $args{skip_auto_write} || '' ;
     my $auto_v  = delete $args{auto_vivify}     || 0 ;
 
     my $std_cb = sub {
@@ -185,7 +185,7 @@ sub dump_as_data {
     my $node_element_cb = sub {
 	my ($scanner, $data_ref,$node,$element_name,$key, $next) = @_ ;
 
-	return if $skip_aw and $next->is_auto_write_for_type('perl') ;
+	return if $skip_aw and $next->is_auto_write_for_type($skip_aw) ;
 
 	$scanner->scan_node($data_ref,$next);
     } ;

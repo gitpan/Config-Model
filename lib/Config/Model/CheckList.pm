@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2008-05-18 19:12:33 +0200 (Sun, 18 May 2008) $
-# $Revision: 671 $
+# $Date: 2008-07-18 14:44:13 +0200 (Fri, 18 Jul 2008) $
+# $Revision: 718 $
 
 #    Copyright (c) 2005-2007 Dominique Dumont.
 #
@@ -32,7 +32,7 @@ use strict;
 use base qw/Config::Model::WarpedThing/ ;
 
 use vars qw($VERSION) ;
-$VERSION = sprintf "1.%04d", q$Revision: 671 $ =~ /(\d+)/;
+$VERSION = sprintf "1.%04d", q$Revision: 718 $ =~ /(\d+)/;
 
 =head1 NAME
 
@@ -121,7 +121,7 @@ sub new {
 
     $self->{backup}  = \%args ;
 
-    $self->set() ; # set will use backup data
+    $self->set_properties() ; # set will use backup data
 
     if (defined $warp_info) {
 	$self->check_warp_args( \@allowed_warp_params, $warp_info) ;
@@ -268,7 +268,7 @@ foreach my $datum (@accessible_params, qw/refer_to computed_refer_to/) {
 # warning : call to 'set' are not cumulative. Default value are always
 # restored. Lest keeping track of what was modified with 'set' is
 # too hard for the user.
-sub set {
+sub set_properties {
     my $self = shift ;
 
     # cleanup all parameters that are handled by warp
@@ -572,7 +572,8 @@ sub get_help {
 
 =head2 clear
 
-Reset the check list (all items are set to 0)
+Reset the check list (all items are set to 0) (can also be called as
+C<clear_values>)
 
 =cut
 
@@ -580,6 +581,8 @@ sub clear {
     my $self = shift ;
     map { $self->store($_ , 0 ) } $self->get_choice ;
 }
+
+sub clear_values { goto &clear ; } 
 
 =head2 get_checked_list_as_hash ( [ custom | preset | standard | default ] )
 
@@ -689,6 +692,44 @@ sub fetch_custom {
 sub fetch_preset {
     my $self = shift ;
     return join (',', $self->get_checked_list('preset'));
+}
+
+=head2 get( path  [, custom | preset | standard | default ])
+
+Get a value from a directory like path.
+
+=cut
+
+sub get {
+    my $self = shift ;
+    my $path = shift ;
+    if ($path) {
+	Config::Model::Exception::User
+	    -> throw (
+		      object => $self,
+		      message => "get() called with a value with non-empty path: '$path'"
+		     ) ;
+    }
+    return $self->fetch(@_) ;
+}
+
+=head2 set( path , value )
+
+Set a value with a directory like path.
+
+=cut
+
+sub set {
+    my $self = shift ;
+    my $path = shift ;
+    if ($path) {
+	Config::Model::Exception::User
+	    -> throw (
+		      object => $self,
+		      message => "set() called with a value with non-empty path: '$path'"
+		     ) ;
+    }
+    return $self->store_set(@_) ;
 }
 
 =head2 set_checked_list ( item1, item2, ..)

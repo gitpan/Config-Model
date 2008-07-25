@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2008-05-01 16:41:22 +0200 (Thu, 01 May 2008) $
-# $Revision: 641 $
+# $Date: 2008-07-18 14:48:30 +0200 (Fri, 18 Jul 2008) $
+# $Revision: 721 $
 
 #    Copyright (c) 2005-2007 Dominique Dumont.
 #
@@ -28,7 +28,7 @@ use Carp;
 use strict;
 
 use vars qw($VERSION) ;
-$VERSION = sprintf "1.%04d", q$Revision: 641 $ =~ /(\d+)/;
+$VERSION = sprintf "1.%04d", q$Revision: 721 $ =~ /(\d+)/;
 
 use base qw/Config::Model::WarpedThing/;
 
@@ -342,7 +342,7 @@ my @allowed_warp_params = (@common_params,qw/experience level/) ;
 
 # this method can be called by the warp mechanism to alter (warp) the
 # feature of the Id object.
-sub set {
+sub set_properties {
     my $self= shift;
 
     # mega cleanup
@@ -350,7 +350,7 @@ sub set {
 
     my %args = (%{$self->{backup}},@_) ;
 
-    print $self->name," set called with @_\n" if $::debug;
+    print $self->name," set_properties called with @_\n" if $::debug;
 
     map { $self->{$_} =  delete $args{$_} if defined $args{$_} }
       @common_params ;
@@ -591,7 +591,7 @@ sub handle_args {
 
     %{$self->{backup}}  = %args ;
 
-    $self->set(%args) if defined $self->{index_type} ;
+    $self->set_properties(%args) if defined $self->{index_type} ;
 
     if (defined $warp_info) {
 	$self->check_warp_args( \@allowed_warp_params, $warp_info) ;
@@ -734,6 +734,36 @@ sub fetch_with_id {
     }
 
     return undef ;
+}
+
+=head2 get( path,  [ custom | preset | standard | default ])
+
+Get a value from a directory like path.
+
+=cut
+
+sub get {
+    my $self = shift ;
+    my $path = shift ;
+    $path =~ s!^/!! ;
+    my ($item,$new_path) = split m!/!,$path,2 ;
+    my $obj = $self->fetch_with_id($item) ;
+    return $obj if ($obj->get_type ne 'leaf' and not defined $new_path) ;
+    return $obj->get($new_path,@_) ;
+}
+
+=head2 set( path, value )
+
+Set a value with a directory like path.
+
+=cut
+
+sub set {
+    my $self = shift ;
+    my $path = shift ;
+    $path =~ s!^/!! ;
+    my ($item,$new_path) = split m!/!,$path,2 ;
+    return $self->fetch_with_id($item)->set($new_path,@_) ;
 }
 
 =head2 move ( from_index, to_index )
@@ -1018,7 +1048,7 @@ sub delete {
 
 =head2 clear()
 
-Delete all values.
+Delete all values (also delete underlying value or node objects).
 
 =cut
 
@@ -1029,6 +1059,29 @@ sub clear {
       if ($self->{warp} and @{$self->{warp_info}{computed_master}});
 
     $self->_clear;
+  }
+
+=head2 clear_values()
+
+Delete all values (without deleting underlying value objects).
+
+=cut
+
+sub clear_values {
+    my ($self) = @_ ;
+
+    my $ct = $self->get_cargo_type ;
+    Config::Model::Exception::User
+	-> throw (
+		  object => $self,
+		  message => "clear_values() called on non leaf cargo_type: '$ct'"
+		 ) 
+	  if $ct ne 'leaf';
+
+    $self->warp 
+      if ($self->{warp} and @{$self->{warp_info}{computed_master}});
+
+    map {$self->fetch_with_id($_)->store(undef)} $self->get_all_indexes ;
   }
 
 1;

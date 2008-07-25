@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2008-05-14 18:56:34 +0200 (Wed, 14 May 2008) $
-# $Revision: 661 $
+# $Date: 2008-07-24 18:29:18 +0200 (Thu, 24 Jul 2008) $
+# $Revision: 729 $
 
 #    Copyright (c) 2005-2007 Dominique Dumont.
 #
@@ -32,7 +32,7 @@ use Carp;
 use warnings FATAL => qw(all);
 
 use vars qw($VERSION) ;
-$VERSION = sprintf "1.%04d", q$Revision: 661 $ =~ /(\d+)/;
+$VERSION = sprintf "1.%04d", q$Revision: 729 $ =~ /(\d+)/;
 
 use base qw/Config::Model::AnyThing/ ;
 
@@ -449,10 +449,10 @@ sub _do_warp {
             "\twarp rule is ", (defined $found_rule ? "" : 'not ') , "found\n";
     }
 
-    print "warp_them: call set on '",$self->name,"'\n" 
+    print "warp_them: call set_properties on '",$self->name,"'\n" 
       if $::debug;
 
-    $self->set(%$found_rule) ;
+    $self->set_properties(%$found_rule) ;
 }
 
 sub get_master_object {
@@ -482,7 +482,7 @@ sub get_master_object {
       Config::Model::Exception::Model
 	  -> throw (
 		    object => $self,
-		    error => "path error '$master_path':\n"
+		    error => "path '$master_path' has error:\n"
 		    . $msg
 		   ) ;
     }

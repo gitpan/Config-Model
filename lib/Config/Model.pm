@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2008-05-09 17:44:28 +0200 (Fri, 09 May 2008) $
-# $Revision: 654 $
+# $Date: 2008-07-20 16:59:30 +0200 (Sun, 20 Jul 2008) $
+# $Revision: 725 $
 
 #    Copyright (c) 2005-2008 Dominique Dumont.
 #
@@ -34,7 +34,7 @@ use Config::Model::Instance ;
 # this class holds the version number of the package
 use vars qw($VERSION @status @level @experience_list %experience_index) ;
 
-$VERSION = '0.623';
+$VERSION = '0.624';
 
 =head1 NAME
 
@@ -1497,7 +1497,7 @@ L<Config::Model::Value> <- L<Config::Model::WarpedThing> <- L<Config::Model::Any
 
 =item *
 
-L<Config::Model::CheckList> <- L<Config::Model::ListId> <- L<Config::Model::WarpedThing> <- L<Config::Model::AnyThing> 
+L<Config::Model::CheckList> <- L<Config::Model::WarpedThing> <- L<Config::Model::AnyThing> 
 
 =item *
 

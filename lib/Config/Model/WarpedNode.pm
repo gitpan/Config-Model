@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2008-05-01 16:41:22 +0200 (Thu, 01 May 2008) $
-# $Revision: 641 $
+# $Date: 2008-07-07 17:52:23 +0200 (Mon, 07 Jul 2008) $
+# $Revision: 708 $
 
 #    Copyright (c) 2005-2007 Dominique Dumont.
 #
@@ -31,7 +31,7 @@ use Config::Model::Exception ;
 use Data::Dumper ();
 
 use vars qw($VERSION $AUTOLOAD) ;
-$VERSION = sprintf "1.%04d", q$Revision: 641 $ =~ /(\d+)/;
+$VERSION = sprintf "1.%04d", q$Revision: 708 $ =~ /(\d+)/;
 
 =head1 NAME
 
@@ -205,7 +205,7 @@ sub new {
 
     $self->check_warp_args(\@allowed_warp_params, \%args ) ;
 
-    $self->set() ;
+    $self->set_properties() ;
 
     $self->submit_to_warp($self->{warp}) if $self->{warp} ;
 
@@ -302,7 +302,7 @@ sub check {
     return 1 ;
 }
 
-sub set {
+sub set_properties {
     my $self = shift ;
 
     my %args = (%{$self->{backup}},@_) ;
@@ -310,8 +310,8 @@ sub set {
     # mega cleanup
     map(delete $self->{$_}, @allowed_warp_params) ;
 
-    print $self->name." set called with \n", 
-      Data::Dumper->Dump([\%args],['set_args'])
+    print $self->name." set_properties called with \n", 
+      Data::Dumper->Dump([\%args],['set_properties_args'])
 	  if $::debug ;
 
     my $config_class_name = delete $args{config_class_name};

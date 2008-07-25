@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2008-05-01 16:41:22 +0200 (Thu, 01 May 2008) $
-# $Revision: 641 $
+# $Date: 2008-07-18 14:46:55 +0200 (Fri, 18 Jul 2008) $
+# $Revision: 720 $
 
 #    Copyright (c) 2006-2007 Dominique Dumont.
 #
@@ -29,7 +29,7 @@ use Config::Model::Exception ;
 use Config::Model::ObjTreeScanner ;
 
 use vars qw($VERSION);
-$VERSION = sprintf "1.%04d", q$Revision: 641 $ =~ /(\d+)/;
+$VERSION = sprintf "1.%04d", q$Revision: 720 $ =~ /(\d+)/;
 
 =head1 NAME
 
@@ -121,15 +121,16 @@ By default, the dump contains only data modified by the user
 Reference to the L<Config::Model::Node> object that is dumped. All
 nodes and leaves attached to this node are also dumped.
 
-=item skip_auto_write
+=item skip_auto_write ( <backend_name> )
 
-Skip node that have a C<cds write> capabality in their model. See
-L<Config::Model::AutoRead>.
+Skip node that have a write capability matching C<backend_name> in
+their model. See L<Config::Model::AutoRead>. 
 
 =item auto_vivify
 
 Scan and create data for nodes elements even if no actual data was
 stored in them. This may be useful to trap missing mandatory values.
+(default: 0)
 
 =back
 
@@ -140,7 +141,7 @@ sub dump_tree {
 
     my %args = @_;
     my $full = delete $args{full_dump} || 0;
-    my $skip_aw = delete $args{skip_auto_write} || 0 ;
+    my $skip_aw = delete $args{skip_auto_write} || '' ;
     my $auto_v  = delete $args{auto_vivify}     || 0 ;
     my $mode = delete $args{mode} || '';
     if ($mode and $mode ne 'full' and $mode ne 'preset') {
@@ -228,7 +229,7 @@ sub dump_tree {
 
         my $type = $obj -> element_type($element);
 
-        return if $skip_aw and $next->is_auto_write_for_type('cds') ;
+        return if $skip_aw and $next->is_auto_write_for_type($skip_aw) ;
 
         my $pad = $compute_pad->($obj);
         $$data_r .= "\n$pad$element";

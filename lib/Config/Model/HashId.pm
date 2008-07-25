@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2008-04-29 16:42:56 +0200 (Tue, 29 Apr 2008) $
-# $Revision: 638 $
+# $Date: 2008-07-07 17:52:23 +0200 (Mon, 07 Jul 2008) $
+# $Revision: 708 $
 
 #    Copyright (c) 2005-2007 Dominique Dumont.
 #
@@ -30,7 +30,7 @@ use strict;
 use base qw/Config::Model::AnyId/ ;
 
 use vars qw($VERSION) ;
-$VERSION = sprintf "1.%04d", q$Revision: 638 $ =~ /(\d+)/;
+$VERSION = sprintf "1.%04d", q$Revision: 708 $ =~ /(\d+)/;
 
 =head1 NAME
 
@@ -98,10 +98,10 @@ from L<Config::Model::AnyId>.
 
 =cut
 
-sub set {
+sub set_properties {
     my $self = shift ;
 
-    $self->SUPER::set(@_) ;
+    $self->SUPER::set_properties(@_) ;
 
     my $idx_type = $self->{index_type} ;
 
@@ -123,7 +123,7 @@ sub set {
     # warp mechanism
     foreach my $k (sort keys %$data) {
 	next unless $wrong->($k) ;
-	print "set: ",$self->name," deleting id $k\n" if $::debug ;
+	print "set_properties: ",$self->name," deleting id $k\n" if $::debug ;
 	delete $data->{$k}  ;
     }
 }

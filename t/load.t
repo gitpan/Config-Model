@@ -1,10 +1,10 @@
 # -*- cperl -*-
 # $Author: ddumont $
-# $Date: 2008-04-15 13:57:49 +0200 (Tue, 15 Apr 2008) $
-# $Revision: 608 $
+# $Date: 2008-07-20 16:55:38 +0200 (Sun, 20 Jul 2008) $
+# $Revision: 724 $
 
 use ExtUtils::testlib;
-use Test::More tests => 54;
+use Test::More tests => 57;
 use Config::Model;
 
 use warnings;
@@ -157,4 +157,12 @@ ok( $root->load( step => $step, ), "load : '$step'");
 is($root->fetch_element('lista')->fetch_with_id(1)->fetch ,
    'a "b" ',
    "test value loaded by '$step'");
+
+$step = 'lista~1 hash_a~"a b "' ;
+ok( $root->load( step => $step, ), "load : '$step'");
+is($root->fetch_element('lista')->fetch_with_id(1)->fetch ,
+   undef,
+   "test list value loaded by '$step'");
+$elt = $root->fetch_element('hash_a')->fetch_with_id('a b ');
+is($elt->fetch,undef, "test hash value loaded by '$step'");
 

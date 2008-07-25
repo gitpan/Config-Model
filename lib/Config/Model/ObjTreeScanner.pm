@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2008-05-15 19:13:40 +0200 (Thu, 15 May 2008) $
-# $Revision: 665 $
+# $Date: 2008-07-18 14:38:04 +0200 (Fri, 18 Jul 2008) $
+# $Revision: 715 $
 
 #    Copyright (c) 2006-2007 Dominique Dumont.
 #
@@ -28,7 +28,7 @@ use Carp;
 use warnings ;
 use UNIVERSAL qw( isa can );
 
-our $VERSION = sprintf "1.%04d", q$Revision: 665 $ =~ /(\d+)/;
+our $VERSION = sprintf "1.%04d", q$Revision: 715 $ =~ /(\d+)/;
 
 use Carp qw/croak confess cluck/;
 
@@ -259,6 +259,8 @@ Example:
 
      # resume exploration (if needed)
      map {$scanner->scan_list($data_ref,$node,$element_name,$_)} @idx ;
+
+     # note: scan_list and scan_hash are equivalent
   }
 
 =head2 Check list element callback

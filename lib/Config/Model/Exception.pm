@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2008-05-14 18:02:59 +0200 (Wed, 14 May 2008) $
-# $Revision: 660 $
+# $Date: 2008-07-24 18:29:18 +0200 (Thu, 24 Jul 2008) $
+# $Revision: 729 $
 
 #    Copyright (c) 2005-2007 Dominique Dumont.
 #
@@ -27,7 +27,7 @@ use strict;
 use Data::Dumper ;
 
 use vars qw($VERSION) ;
-$VERSION = sprintf "1.%04d", q$Revision: 660 $ =~ /(\d+)/;
+$VERSION = sprintf "1.%04d", q$Revision: 729 $ =~ /(\d+)/;
 
 push @Exception::Class::Base::ISA, 'Error';
 
@@ -57,7 +57,7 @@ use Exception::Class
 
    'Config::Model::Exception::ObsoleteElement'
    => { isa         => 'Config::Model::Exception::User',
-	description => 'unavailable element',
+	description => 'Obsolete element',
 	fields      => [qw/object element info/],
       },
 
@@ -254,6 +254,24 @@ sub full_message {
     $msg .= "\tError occured when calling $function.\n" if defined $function ;
     $msg .= "\t".$unavail->warp_error if $unavail->can('warp_error');
 
+    $msg .= "\t".$self->info."\n" if defined $self->info ;
+    return $msg;
+}
+
+package Config::Model::Exception::ObsoleteElement ;
+
+sub full_message {
+    my $self = shift;
+
+    my $obj = $self->object ;
+    my $element = $self->element ;
+    my $msg = $self->description;
+
+    my $location = $obj->name ;
+    my $help = $obj->get_help($element) || '';
+
+    $msg .= " '$element' in node '$location'.\n" ;
+    $msg .= "\t$help\n" ;
     $msg .= "\t".$self->info."\n" if defined $self->info ;
     return $msg;
 }
