@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2008-07-24 18:29:18 +0200 (Thu, 24 Jul 2008) $
-# $Revision: 729 $
+# $Date: 2008-07-30 14:01:04 +0200 (Wed, 30 Jul 2008) $
+# $Revision: 740 $
 
 #    Copyright (c) 2005-2007 Dominique Dumont.
 #
@@ -36,7 +36,7 @@ use base qw/Config::Model::WarpedThing/ ;
 
 use vars qw($VERSION) ;
 
-$VERSION = sprintf "1.%04d", q$Revision: 729 $ =~ /(\d+)/;
+$VERSION = sprintf "1.%04d", q$Revision: 740 $ =~ /(\d+)/;
 
 =head1 NAME
 
@@ -953,6 +953,7 @@ the value object (as declared in the model unless they were warped):
 
 # accessor to get some fields through methods (See man perltootc)
 foreach my $datum (@accessible_params) {
+    next if $datum eq 'index_value' ; #provided by AnyThing
     no strict "refs";       # to register new methods in package
     *$datum = sub {
 	my $self= shift;

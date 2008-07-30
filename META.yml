@@ -1,6 +1,6 @@
 ---
 name: Config-Model
-version: 0.624
+version: 0.625
 author:
   - Dominique Dumont (ddumont at cpan dot org)
 abstract: Describe and edit configuration data
@@ -25,7 +25,7 @@ recommends:
 provides:
   Config::Model:
     file: lib/Config/Model.pm
-    version: 0.624
+    version: 0.625
   Config::Model::AnyId:
     file: lib/Config/Model/AnyId.pm
     version: 1.0721
@@ -83,7 +83,7 @@ provides:
     version: 1.0716
   Config::Model::ListId:
     file: lib/Config/Model/ListId.pm
-    version: 1.0708
+    version: 1.0740
   Config::Model::Loader:
     file: lib/Config/Model/Loader.pm
     version: 1.0717
@@ -107,7 +107,7 @@ provides:
     version: 1.0669
   Config::Model::Value:
     file: lib/Config/Model/Value.pm
-    version: 1.0729
+    version: 1.0740
   Config::Model::ValueComputer:
     file: lib/Config/Model/ValueComputer.pm
     version: 1.0728
