@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2008-07-30 14:01:04 +0200 (Wed, 30 Jul 2008) $
-# $Revision: 740 $
+# $Date: 2008-07-31 14:35:16 +0200 (Thu, 31 Jul 2008) $
+# $Revision: 743 $
 
 #    Copyright (c) 2005-2007 Dominique Dumont.
 #
@@ -30,7 +30,7 @@ use strict;
 use base qw/Config::Model::AnyId/ ;
 
 use vars qw($VERSION) ;
-$VERSION = sprintf "1.%04d", q$Revision: 740 $ =~ /(\d+)/;
+$VERSION = sprintf "1.%04d", q$Revision: 743 $ =~ /(\d+)/;
 
 =head1 NAME
 
@@ -293,7 +293,8 @@ sub load_data {
 	    $obj -> load_data($item) ;
 	}
     }
-    else {
+    # do now create one element of undef data.
+    elsif (defined $data) {
 	print "ListId load_data (",$self->location,") will load idx ",
 	  "0\n" if $::verbose ;
 	$self->clear ;

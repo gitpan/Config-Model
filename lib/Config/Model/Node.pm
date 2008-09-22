@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2008-07-24 18:29:18 +0200 (Thu, 24 Jul 2008) $
-# $Revision: 729 $
+# $Date: 2008-09-19 14:17:56 +0200 (Fri, 19 Sep 2008) $
+# $Revision: 752 $
 
 #    Copyright (c) 2005-2007 Dominique Dumont.
 #
@@ -40,7 +40,7 @@ use base qw/Config::Model::AutoRead/;
 use vars qw($VERSION $AUTOLOAD @status @level
 @experience_list %experience_index );
 
-$VERSION = sprintf "1.%04d", q$Revision: 729 $ =~ /(\d+)/;
+$VERSION = sprintf "1.%04d", q$Revision: 752 $ =~ /(\d+)/;
 
 *status           = *Config::Model::status ;
 *level            = *Config::Model::level ;
@@ -684,7 +684,17 @@ element.
 sub element_type {
     my $self= shift ;
     croak "element_type: missing element name" unless @_ ;
-    return $self->{model}{element}{$_[0]}{type} ;
+    my $element_info = $self->{model}{element}{$_[0]} ;
+
+    Config::Model::Exception::UnknownElement->throw(
+        object   => $self,
+        function => 'element_type',
+        where    => $self->location || 'configuration root',
+        element     => $_[0],
+        )
+        unless defined $element_info ;
+
+    return $element_info->{type} ;
 }
 
 =head2 element_name()
@@ -1182,7 +1192,12 @@ sub set {
     my $path = shift ;
     $path =~ s!^/!! ;
     my ($item,$new_path) = split m!/!,$path,2 ;
-    return $self->fetch_element($item)->set($new_path,@_) ;
+    if ($item =~ /([\w\-]+)\[(\d+)\]/) {
+	return $self->fetch_element($1)->fetch_with_id($2)->set($new_path,@_) ;
+    }
+    else {
+	return $self->fetch_element($item)->set($new_path,@_) ;
+    }
 }
 
 =head1 Serialisation

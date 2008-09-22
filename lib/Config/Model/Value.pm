@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2008-07-30 14:01:04 +0200 (Wed, 30 Jul 2008) $
-# $Revision: 740 $
+# $Date: 2008-07-31 18:22:43 +0200 (Thu, 31 Jul 2008) $
+# $Revision: 745 $
 
 #    Copyright (c) 2005-2007 Dominique Dumont.
 #
@@ -36,7 +36,7 @@ use base qw/Config::Model::WarpedThing/ ;
 
 use vars qw($VERSION) ;
 
-$VERSION = sprintf "1.%04d", q$Revision: 740 $ =~ /(\d+)/;
+$VERSION = sprintf "1.%04d", q$Revision: 745 $ =~ /(\d+)/;
 
 =head1 NAME
 
@@ -360,7 +360,7 @@ sub migrate_value {
 
     # check if the migrated result fits with the constraints of the
     # Value object
-    my $ok = $self->check($result) ;
+    my $ok = $self->check_value($result) ;
 
     #print "check result: $ok\n";
     if (not $ok) {
@@ -1071,9 +1071,10 @@ sub enum_error {
     return @error ;
 }
 
-=head2 check( value , [ 0 | 1 ] )
+=head2 check_value ( value , [ 0 | 1 ] )
 
-Check if the value is acceptable or not.
+Check the consistency of the value. Does not check for undefined
+mandatory values.
 
 When the 2nd parameter is non null, check will not try to get extra
 informations from the tree. This is required in some cases to avoid
@@ -1087,7 +1088,7 @@ to the user.
 
 =cut
 
-sub check {
+sub check_value {
     my ($self,$value,$quiet) = @_ ;
 
     $quiet = 0 unless defined $quiet ;
@@ -1096,9 +1097,6 @@ sub check {
 
     if ( $self->{hidden}) {
         push @error, "value is hidden" ;
-    }
-    elsif (not defined $value and $self->{mandatory}) {
-        push @error, "Mandatory value is not defined" ;
     }
     elsif (not defined $value) {
 	# accept with no other check
@@ -1154,6 +1152,28 @@ sub check {
     $self->{error} = \@error ;
     return wantarray ? @error : not scalar @error ;
 }
+
+=head2 check( value , [ 0 | 1 ] )
+
+Like L</check_value>. Also ensure that mandatory value are defined
+
+=cut
+
+sub check {
+    my ($self,$value,$quiet) = @_ ;
+
+    $quiet = 0 unless defined $quiet ;
+
+    my @error = $self->check_value($value,$quiet) ;
+
+    if (not $self->{hidden} and not defined $value and $self->{mandatory}) {
+        push @error, "Mandatory value is not defined" ;
+    }
+
+    $self->{error} = \@error ;
+    return wantarray ? @error : not scalar @error ;
+}
+
 
 =head1 Information management
 

@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2008-07-30 14:01:04 +0200 (Wed, 30 Jul 2008) $
-# $Revision: 740 $
+# $Date: 2008-09-22 14:13:48 +0200 (Mon, 22 Sep 2008) $
+# $Revision: 756 $
 
 #    Copyright (c) 2005-2008 Dominique Dumont.
 #
@@ -34,7 +34,7 @@ use Config::Model::Instance ;
 # this class holds the version number of the package
 use vars qw($VERSION @status @level @experience_list %experience_index) ;
 
-$VERSION = '0.625';
+$VERSION = '0.626';
 
 =head1 NAME
 
@@ -483,10 +483,11 @@ sub create_config_class {
     my %model = ( element_list => [] );
 
     # add included items
-    if ($self->{skip_include}) {
+    if ($self->{skip_include} and defined $raw_copy->{include}) {
 	my $inc = delete $raw_copy->{include} ;
 	$model{include}       =  ref $inc ? $inc : [ $inc ];
-	$model{include_after} = delete $raw_copy->{include_after} ;
+	$model{include_after} = delete $raw_copy->{include_after}
+	  if defined $raw_copy->{include_after};
     }
     else {
 	$self->include_class($config_class_name, $raw_copy ) ; 
