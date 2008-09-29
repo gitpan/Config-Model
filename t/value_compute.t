@@ -1,7 +1,7 @@
 # -*- cperl -*-
 # $Author: ddumont $
-# $Date: 2008-07-24 18:30:25 +0200 (Thu, 24 Jul 2008) $
-# $Revision: 730 $
+# $Date: 2008-09-29 14:33:03 +0200 (Mon, 29 Sep 2008) $
+# $Revision: 766 $
 
 use warnings FATAL => qw(all);
 
@@ -155,10 +155,7 @@ ok($compute_int = $root->fetch_element('compute_int'),
 
 no warnings 'once';
 
-Parse::RecDescent->Precompile($Config::Model::ValueComputer::compute_grammar, "PreGrammar");
-
-my $parser = Parse::RecDescent
-  -> new($Config::Model::ValueComputer::compute_grammar) ;
+my $parser = new Parse::RecDescent ($Config::Model::ValueComputer::compute_grammar) ;
 
 use warnings 'once';
 

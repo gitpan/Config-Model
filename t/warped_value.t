@@ -1,7 +1,7 @@
 # -*- cperl -*-
 # $Author: ddumont $
-# $Date: 2008-05-14 18:02:59 +0200 (Wed, 14 May 2008) $
-# $Revision: 660 $
+# $Date: 2008-09-29 14:33:03 +0200 (Mon, 29 Sep 2008) $
+# $Revision: 766 $
 
 use warnings FATAL => qw(all);
 
@@ -452,9 +452,7 @@ my $rules = {
     up2 => '- -',
 };
 
-no warnings 'once' ;
 my $parser = new Parse::RecDescent ($Config::Model::ValueComputer::compute_grammar) ;
-use warnings 'once';
 
 # the 2 next tests are used to check what going on before trying the
 # real test below. But beware, the error messages for these 2 tests

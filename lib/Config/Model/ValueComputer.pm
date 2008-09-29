@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2008-07-24 18:15:31 +0200 (Thu, 24 Jul 2008) $
-# $Revision: 728 $
+# $Date: 2008-09-29 14:33:03 +0200 (Mon, 29 Sep 2008) $
+# $Revision: 766 $
 
 #    Copyright (c) 2005-2007 Dominique Dumont.
 #
@@ -32,7 +32,7 @@ use Data::Dumper () ;
 
 use vars qw($VERSION $compute_grammar $compute_parser) ;
 
-$VERSION = sprintf "1.%04d", q$Revision: 728 $ =~ /(\d+)/;
+$VERSION = sprintf "1.%04d", q$Revision: 766 $ =~ /(\d+)/;
 
 =head1 NAME
 
@@ -497,7 +497,7 @@ sub compute_variables {
 $compute_grammar = << 'END_OF_GRAMMAR' ;
 
 {
-# $Revision: 728 $
+# $Revision: 766 $
 
 # This grammar is compatible with Parse::RecDescent < 1.90 or >= 1.90
 use strict;
@@ -586,7 +586,7 @@ pre_value:
 
      $return ;
   }
-  | <skip:''> '&' /\w+/ (/\(\s*\)/)(?) {
+  | <skip:''> '&' /\w+/ func_param(?) {
      # print "pre_value handling &foo()\n";
      my $f_name = $item[3] ;
      my $method_name = $f_name eq 'element' ? 'element_name' 
@@ -633,6 +633,8 @@ pre_value:
      my $result = $item[-1] ;
      $return = \$result ;
   }
+
+func_param: /\(\s*\)/
 
 compute:  <skip:''> value[@arg](s) { 
      # if one value is undef, return undef;
