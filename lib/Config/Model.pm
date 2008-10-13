@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2008-09-29 13:43:04 +0200 (Mon, 29 Sep 2008) $
-# $Revision: 765 $
+# $Date: 2008-10-13 16:57:14 +0200 (Mon, 13 Oct 2008) $
+# $Revision: 776 $
 
 #    Copyright (c) 2005-2008 Dominique Dumont.
 #
@@ -34,7 +34,7 @@ use Config::Model::Instance ;
 # this class holds the version number of the package
 use vars qw($VERSION @status @level @experience_list %experience_index) ;
 
-$VERSION = '0.628';
+$VERSION = '0.629';
 
 =head1 NAME
 

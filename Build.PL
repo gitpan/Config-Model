@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2008-07-24 18:29:18 +0200 (Thu, 24 Jul 2008) $
-# $Revision: 729 $
+# $Date: 2008-09-30 13:46:23 +0200 (Tue, 30 Sep 2008) $
+# $Revision: 770 $
 
 #    Copyright (c) 2005-2008 Dominique Dumont.
 #
@@ -48,9 +48,10 @@ my $build = Module::Build->new
 		      'Error'             => 0,
 		     },
    build_requires => {
+		      'Config::Tiny' => 0,
 		      'Test::More'        => 0,
 		      'Test::Exception'   => 0,
-		      'Test::Warn'        => 0,
+		      'Test::Warn'        => '0.11', # tests fail with 0.08
 		     },
    recommends => {
 		  # recommended modules to get more reader/writer

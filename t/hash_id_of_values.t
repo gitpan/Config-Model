@@ -1,12 +1,12 @@
 # -*- cperl -*-
 # $Author: ddumont $
-# $Date: 2008-04-29 16:42:56 +0200 (Tue, 29 Apr 2008) $
-# $Revision: 638 $
+# $Date: 2008-10-01 12:20:16 +0200 (Wed, 01 Oct 2008) $
+# $Revision: 772 $
 
 use warnings FATAL => qw(all);
 
 use ExtUtils::testlib;
-use Test::More tests => 70 ;
+use Test::More tests => 72 ;
 use Config::Model ;
 
 use strict;
@@ -137,6 +137,10 @@ my $root = $inst -> config_root ;
 
 my $b = $root->fetch_element('bounded_hash') ;
 ok($b,"bounded hash created") ;
+
+is($b->get_cargo_type,'leaf', 'check get_cargo_type');
+is($b->get_cargo_info('value_type'),'string', 'check get_cargo_info');
+
 
 is($b->name,'Master bounded_hash id',"check hash id name");
 

@@ -1,6 +1,6 @@
 # -*- cperl -*-
-# $Date: 2008-07-11 17:21:02 +0200 (Fri, 11 Jul 2008) $
-# $Revision: 713 $
+# $Date: 2008-10-06 13:36:30 +0200 (Mon, 06 Oct 2008) $
+# $Revision: 774 $
 
 use warnings FATAL => qw(all);
 
@@ -58,5 +58,5 @@ is( $inst->data('test'),undef,"test empty private data ..." );
 is( $inst->data( 'test', 'coucou' ), 'coucou', "store private data" );
 is( $inst->data( 'test'), 'coucou', "retrieve private data" );
 
-is( $inst->read_directory,  'foobar/', "test read directory") ;
-is( $inst->write_directory, 'foobar/', "test write directory") ;
+is( $inst->read_root_dir,  'foobar/', "test read directory") ;
+is( $inst->write_root_dir, 'foobar/', "test write directory") ;

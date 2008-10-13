@@ -1,6 +1,6 @@
 ---
 name: Config-Model
-version: 0.628
+version: 0.629
 author:
   - Dominique Dumont (ddumont at cpan dot org)
 abstract: Describe and edit configuration data
@@ -16,19 +16,20 @@ requires:
   Scalar::Util: 0
   Term::ReadLine: 0
 build_requires:
+  Config::Tiny: 0
   Test::Exception: 0
   Test::More: 0
-  Test::Warn: 0
+  Test::Warn: 0.11
 recommends:
   Config::Augeas: 0
   Config::Tiny: 0
 provides:
   Config::Model:
     file: lib/Config/Model.pm
-    version: 0.628
+    version: 0.629
   Config::Model::AnyId:
     file: lib/Config/Model/AnyId.pm
-    version: 1.0721
+    version: 1.0772
   Config::Model::AnyThing:
     file: lib/Config/Model/AnyThing.pm
     version: 1.0660
@@ -37,7 +38,7 @@ provides:
     version: 1.0756
   Config::Model::CheckList:
     file: lib/Config/Model/CheckList.pm
-    version: 1.0718
+    version: 1.0775
   Config::Model::Describe:
     file: lib/Config/Model/Describe.pm
     version: 1.0669
@@ -74,10 +75,10 @@ provides:
     file: lib/Config/Model/Exception.pm
   Config::Model::HashId:
     file: lib/Config/Model/HashId.pm
-    version: 1.0708
+    version: 1.0772
   Config::Model::IdElementReference:
     file: lib/Config/Model/IdElementReference.pm
-    version: 1.0631
+    version: 1.0775
   Config::Model::Instance:
     file: lib/Config/Model/Instance.pm
     version: 1.0716

@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2008-07-07 17:52:23 +0200 (Mon, 07 Jul 2008) $
-# $Revision: 708 $
+# $Date: 2008-10-01 12:20:16 +0200 (Wed, 01 Oct 2008) $
+# $Revision: 772 $
 
 #    Copyright (c) 2005-2007 Dominique Dumont.
 #
@@ -30,7 +30,7 @@ use strict;
 use base qw/Config::Model::AnyId/ ;
 
 use vars qw($VERSION) ;
-$VERSION = sprintf "1.%04d", q$Revision: 708 $ =~ /(\d+)/;
+$VERSION = sprintf "1.%04d", q$Revision: 772 $ =~ /(\d+)/;
 
 =head1 NAME
 
@@ -346,8 +346,6 @@ sub move {
 	    # $to is moved in the place of from in the list
 	    $list->[$from_idx] = $to ;
 	}
-
-	print "move: @$list\n";
     }
     else {
 	Config::Model::Exception::WrongValue 
@@ -356,7 +354,6 @@ sub move {
 		      object => $self
 		     ) ;
     }
-
 }
 
 

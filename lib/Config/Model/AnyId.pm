@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2008-07-18 14:48:30 +0200 (Fri, 18 Jul 2008) $
-# $Revision: 721 $
+# $Date: 2008-10-01 12:20:16 +0200 (Wed, 01 Oct 2008) $
+# $Revision: 772 $
 
 #    Copyright (c) 2005-2007 Dominique Dumont.
 #
@@ -28,7 +28,7 @@ use Carp;
 use strict;
 
 use vars qw($VERSION) ;
-$VERSION = sprintf "1.%04d", q$Revision: 721 $ =~ /(\d+)/;
+$VERSION = sprintf "1.%04d", q$Revision: 772 $ =~ /(\d+)/;
 
 use base qw/Config::Model::WarpedThing/;
 
@@ -454,13 +454,11 @@ object (as declared in the model unless they were warped):
 
 =item default_with_init 
 
+=item follow_keys_from
+
 =item auto_create 
 
-=item cargo_type 
-
-=item cargo_class 
-
-=item cargo_args 
+=item ordered
 
 =item morph
 
@@ -484,7 +482,7 @@ for my $datum (qw/min max max_nb index_type default_keys default_with_init
 =head2 get_cargo_type()
 
 Returns the object type contained by the hash or list (i.e. returns
-C<cargo_type>).
+C<< cargo -> type >>).
 
 =cut
 
@@ -498,6 +496,20 @@ sub get_cargo_type {
     #return @ids ? $self->fetch_with_id($ids[0])->get_cargo_type
     #  : $self->{cargo_type} ;
     return $self->{cargo}{type} ;
+}
+
+=head2 get_cargo_info( < what > )
+
+Returns more info on the cargo contained by the hash or list. C<what>
+may be C<value_type> or any other cargo info stored in the model. Will
+return undef if the requested info was not provided in the model.
+
+=cut
+
+sub get_cargo_info {
+    my $self = shift ;
+    my $what = shift ;
+    return $self->{cargo}{$what} ;
 }
 
 # internal, does a grab with improved error mesage
