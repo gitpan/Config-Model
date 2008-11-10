@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2008-05-01 16:41:22 +0200 (Thu, 01 May 2008) $
-# $Revision: 641 $
+# $Date: 2008-11-10 15:31:02 +0100 (lun 10 nov 2008) $
+# $Revision: 790 $
 
 #    Copyright (c) 2006-2007 Dominique Dumont.
 #
@@ -27,10 +27,9 @@ use warnings ;
 use Config::Model::ObjTreeScanner ;
 
 use Config::Model::Exception ;
-use Error qw(:try);
 
 use vars qw($VERSION);
-$VERSION = sprintf "1.%04d", q$Revision: 641 $ =~ /(\d+)/;
+$VERSION = sprintf "1.%04d", q$Revision: 790 $ =~ /(\d+)/;
 
 =head1 NAME
 
@@ -308,20 +307,19 @@ sub leaf_cb {
 
     # now need to check for errors...
     my $result;
-    try {
-	$result = $value_obj->fetch();
-    }
-    catch Config::Model::Exception::User with {
+    eval { $result = $value_obj->fetch();};
+
+    my $e ;
+    if ($e = Exception::Class->caught('Config::Model::Exception::User')) {
 	# ignore errors that has just been catched and call user call-back
-	my $error_msg = shift ;
 	warn "leaf_cb oopsed on '", $node->name,
 	  "' element $element", defined $index ? ", index $index":'', "\n" 
 	    if $::verbose;
-	$user_leaf_cb->($self,$data_r,$node,$element,$index,$value_obj , $error_msg) ;
+	$user_leaf_cb->($self,$data_r,$node,$element,$index,$value_obj , 
+			$e->error) ;
     }
-    otherwise {
-        my $oops = shift ;
-	die $oops ;
+    elsif ($e = Exception::Class->caught()) {
+	$e->rethrow;
         # does not return ...
     } ;
 

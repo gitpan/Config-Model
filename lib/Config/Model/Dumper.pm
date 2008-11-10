@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2008-07-18 14:46:55 +0200 (Fri, 18 Jul 2008) $
-# $Revision: 720 $
+# $Date: 2008-10-29 14:10:01 +0100 (mer 29 oct 2008) $
+# $Revision: 786 $
 
 #    Copyright (c) 2006-2007 Dominique Dumont.
 #
@@ -29,7 +29,7 @@ use Config::Model::Exception ;
 use Config::Model::ObjTreeScanner ;
 
 use vars qw($VERSION);
-$VERSION = sprintf "1.%04d", q$Revision: 720 $ =~ /(\d+)/;
+$VERSION = sprintf "1.%04d", q$Revision: 786 $ =~ /(\d+)/;
 
 =head1 NAME
 
@@ -220,7 +220,7 @@ sub dump_tree {
 	    # skip undef values
 	    my @val = grep (defined $_,$list_obj->fetch_all_values($fetch_mode)) ;
             $$data_r .= "\n$pad$element=" 
-	      . join( ',', @val ) if @keys;
+	      . join( ',', @val ) if @val;
         }
     };
 
@@ -232,13 +232,20 @@ sub dump_tree {
         return if $skip_aw and $next->is_auto_write_for_type($skip_aw) ;
 
         my $pad = $compute_pad->($obj);
-        $$data_r .= "\n$pad$element";
+
+        my $head = "\n$pad$element";
 	if ($type eq 'list' or $type eq 'hash') {
 	    $key = '"' . $key . '"' if  $key =~ /\s/;
-	    $$data_r .= ":$key" ;
+	    $head .= ":$key" ;
 	}
 
-        $scanner->scan_node($data_r, $next);
+	my $sub_data = '';
+        $scanner->scan_node(\$sub_data, $next);
+
+	# skip simple nodes that do not bring data
+	if ($sub_data or $type eq 'list' or $type eq 'hash') { 
+	    $$data_r .= $head.$sub_data.' -';
+	}
     };
 
     my @scan_args = (
@@ -249,7 +256,6 @@ sub dump_tree {
 		     leaf_cb         => $std_cb,
 		     node_element_cb => $element_cb,
 		     check_list_element_cb => $check_list_cb,
-		     up_cb           => sub { ${$_[1]} .= ' -'; }
 		    );
 
     my @left = keys %args;
@@ -262,6 +268,7 @@ sub dump_tree {
     $view_scanner->scan_node(\$ret, $node);
 
     substr( $ret, 0, 1, '' );    # remove leading \n
+    $ret .= ' -' if $ret ;
     return $ret . "\n";
 }
 

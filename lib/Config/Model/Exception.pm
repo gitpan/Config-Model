@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2008-07-24 18:29:18 +0200 (Thu, 24 Jul 2008) $
-# $Revision: 729 $
+# $Date: 2008-11-10 15:31:02 +0100 (lun 10 nov 2008) $
+# $Revision: 790 $
 
 #    Copyright (c) 2005-2007 Dominique Dumont.
 #
@@ -21,15 +21,12 @@
 #    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 
 package Config::Model::Exception ;
-use Error ;
 use warnings ;
 use strict;
 use Data::Dumper ;
 
 use vars qw($VERSION) ;
-$VERSION = sprintf "1.%04d", q$Revision: 729 $ =~ /(\d+)/;
-
-push @Exception::Class::Base::ISA, 'Error';
+$VERSION = sprintf "1.%04d", q$Revision: 790 $ =~ /(\d+)/;
 
 use Exception::Class 
   (
@@ -408,20 +405,16 @@ Config::Model::Exception - Exception mechanism for configuration model
      ) if $fail ;
 
  # in application
- try 
-   { 
-     function_that_may_fail() 
-   }
- catch Config::Model::Exception::Model with
-  {
+ eval { function_that_may_fail() ;}
+ if ($@) {
     my $exception = shift;
     warn $ex->error ;
     # fix failure
-  }
+ }
 
 =head1 DESCRIPTION
 
-You must read L<Exception::Class> and L<Error> before reading on.
+You must read L<Exception::Class> before reading on.
 
 This module creates all the exception class used by L<Config::Model>.
 
@@ -466,7 +459,6 @@ L<Config::Model>,
 L<Config::Model::Instance>, 
 L<Config::Model::Node>,
 L<Config::Model::Value>
-L<Error>, 
 L<Exception::Class>
 
 =cut

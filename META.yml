@@ -1,15 +1,14 @@
 ---
 name: Config-Model
-version: 0.630
+version: 0.631
 author:
   - Dominique Dumont (ddumont at cpan dot org)
-abstract: Describe and edit configuration data
+abstract: Edit and validate configuration data
 license: lgpl
 resources:
   license: http://opensource.org/licenses/lgpl-license.php
 requires:
   Carp::Assert::More: 0
-  Error: 0
   Exception::Class: 0
   Log::Log4perl: 1.11
   Parse::RecDescent: 1.90.0
@@ -26,7 +25,7 @@ recommends:
 provides:
   Config::Model:
     file: lib/Config/Model.pm
-    version: 0.630
+    version: 0.631
   Config::Model::AnyId:
     file: lib/Config/Model/AnyId.pm
     version: 1.0772
@@ -35,7 +34,7 @@ provides:
     version: 1.0660
   Config::Model::AutoRead:
     file: lib/Config/Model/AutoRead.pm
-    version: 1.0756
+    version: 1.0790
   Config::Model::CheckList:
     file: lib/Config/Model/CheckList.pm
     version: 1.0775
@@ -47,10 +46,10 @@ provides:
     version: 1.0707
   Config::Model::Dumper:
     file: lib/Config/Model/Dumper.pm
-    version: 1.0720
+    version: 1.0786
   Config::Model::Exception:
     file: lib/Config/Model/Exception.pm
-    version: 1.0729
+    version: 1.0790
   Config::Model::Exception::Any:
     file: lib/Config/Model/Exception.pm
   Config::Model::Exception::Load:
@@ -108,7 +107,7 @@ provides:
     version: 1.0669
   Config::Model::Value:
     file: lib/Config/Model/Value.pm
-    version: 1.0745
+    version: 1.0790
   Config::Model::ValueComputer:
     file: lib/Config/Model/ValueComputer.pm
     version: 1.0766
@@ -120,7 +119,7 @@ provides:
     version: 1.0729
   Config::Model::WizardHelper:
     file: lib/Config/Model/WizardHelper.pm
-    version: 1.0641
+    version: 1.0790
 generated_by: Module::Build version 0.3
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.2.html

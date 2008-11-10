@@ -1,10 +1,10 @@
 # -*- cperl -*-
 # $Author: ddumont $
-# $Date: 2008-05-14 18:02:59 +0200 (Wed, 14 May 2008) $
-# $Revision: 660 $
+# $Date: 2008-10-29 14:10:01 +0100 (mer 29 oct 2008) $
+# $Revision: 786 $
 
 use ExtUtils::testlib;
-use Test::More tests => 12;
+use Test::More tests => 13;
 use Config::Model;
 
 use warnings;
@@ -72,16 +72,6 @@ olist:0
   X=Av -
 olist:1
   X=Bv -
-warp
-  sub_slave
-    sub_slave - -
-  warp2
-    sub_slave - - -
-slave_y
-  sub_slave
-    sub_slave - -
-  warp2
-    sub_slave - - -
 a_string="toto \"titi\" tata"
 my_check_list=X2,X3 -
 EOF
@@ -114,16 +104,6 @@ olist:0
 olist:1
   X=Bv
   DX=Dv -
-warp
-  sub_slave
-    sub_slave - -
-  warp2
-    sub_slave - - -
-slave_y
-  sub_slave
-    sub_slave - -
-  warp2
-    sub_slave - - -
 string_with_def="yada yada"
 a_uniline="yada yada"
 a_string="toto \"titi\" tata"
@@ -135,7 +115,8 @@ $cds =~ s/\s+\n/\n/g;
 is_deeply( [split /\n/,$cds], [split /\n/,$expect], 
 	   "check dump of all values ") ;
 
-$root->fetch_element('listb')->clear ;
+my $listb = $root->fetch_element('listb');
+$listb->clear ;
 
 $cds = $root->dump_tree( full_dump => 1 );
 print "cds string:\n$cds" if $trace  ;
@@ -160,16 +141,6 @@ olist:0
 olist:1
   X=Bv
   DX=Dv -
-warp
-  sub_slave
-    sub_slave - -
-  warp2
-    sub_slave - - -
-slave_y
-  sub_slave
-    sub_slave - -
-  warp2
-    sub_slave - - -
 string_with_def="yada yada"
 a_uniline="yada yada"
 a_string="toto \"titi\" tata"
@@ -207,16 +178,6 @@ olist:0
 olist:1
   X=Bv
   DX=Dv -
-warp
-  sub_slave
-    sub_slave - -
-  warp2
-    sub_slave - - -
-slave_y
-  sub_slave
-    sub_slave - -
-  warp2
-    sub_slave - - -
 string_with_def="yada yada"
 a_uniline="yada yada"
 a_string=""
@@ -243,17 +204,7 @@ std_id:"b d " -
 std_id:bc -
 lista=a,b
 olist:0 -
-olist:1 -
-warp
-  sub_slave
-    sub_slave - -
-  warp2
-    sub_slave - - -
-slave_y
-  sub_slave
-    sub_slave - -
-  warp2
-    sub_slave - - - -
+olist:1 - -
 EOF
 
 $cds =~ s/\s+\n/\n/g;
@@ -268,3 +219,12 @@ $cds = $root->dump_tree( full_dump => 1 );
 print "cds string:\n$cds" if $trace  ;
 
 like($cds,qr/hidden value/,"check that hidden value is shown (macro=XZ)") ;
+
+
+# check that list of undef is not shown
+map { $listb->fetch_with_id($_)->store(undef) } (0 .. 3);
+
+$cds = $root->dump_tree( full_dump => 1 );
+print "Empty listb dump:\n$cds" if $trace  ;
+
+unlike($cds,qr/listb/,"check that listb containing undef values is not shown") ;

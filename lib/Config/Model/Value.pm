@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2008-07-31 18:22:43 +0200 (Thu, 31 Jul 2008) $
-# $Revision: 745 $
+# $Date: 2008-11-10 15:31:02 +0100 (lun 10 nov 2008) $
+# $Revision: 790 $
 
 #    Copyright (c) 2005-2007 Dominique Dumont.
 #
@@ -29,14 +29,13 @@ use Parse::RecDescent ;
 use Config::Model::Exception ;
 use Config::Model::ValueComputer ;
 use Config::Model::IdElementReference ;
-use Error qw(:try); 
 use Carp ;
 
 use base qw/Config::Model::WarpedThing/ ;
 
 use vars qw($VERSION) ;
 
-$VERSION = sprintf "1.%04d", q$Revision: 745 $ =~ /(\d+)/;
+$VERSION = sprintf "1.%04d", q$Revision: 790 $ =~ /(\d+)/;
 
 =head1 NAME
 
@@ -1380,18 +1379,23 @@ sub _pre_fetch {
     # get stored value or computed value or default value
     my $std_value ;
 
-    try {
+    eval {
 	$std_value 
 	  = defined $self->{preset}        ? $self->{preset}
           : defined $self->{compute}       ? $self->compute 
           :                                  $self->{default} ;
-    }
-    catch Config::Model::Exception::User with { 
+    };
+
+    my $e ;
+    if ($e = Exception::Class->caught('Config::Model::Exception::User')) { 
 	if ($self->instance->get_value_check('fetch')) {
-	    shift->throw ; 
+	    $e->throw ; 
 	}
 	$std_value = undef ;
-    } ;
+    }
+    elsif ($e = Exception::Class->caught()) {
+	$e->rethrow;
+    } 
 
     return $std_value ;
 }

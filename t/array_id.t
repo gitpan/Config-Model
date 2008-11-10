@@ -1,6 +1,6 @@
 # -*- cperl -*-
 # $Author: ddumont $
-# $Date: 2008-07-30 14:01:04 +0200 (Wed, 30 Jul 2008) $
+# $Date: 2008-07-30 14:01:04 +0200 (mer 30 jui 2008) $
 # $Revision: 740 $
 
 use warnings FATAL => qw(all);

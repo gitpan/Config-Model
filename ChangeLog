@@ -1,3 +1,21 @@
+2008-11-10  Dominique Dumont  <dominique.dumont@hp.com> v0.631
+
+	* lib/Config/Model/Value.pm (_pre_fetch): removed dependency on Error
+
+	* lib/Config/Model/WizardHelper.pm : removed dependency on Error
+
+	* lib/Config/Model/AutoRead.pm (auto_write_init): Move Augeas
+	read/write feature out of Config::Model. This feature is now
+	available in an additional class:
+	Config::Model::Backend::Augeas. THis class is distributed in its
+	own Perl distribution.
+
+2008-10-29  Dominique Dumont  <dominique.dumont@hp.com>
+
+	* lib/Config/Model/Dumper.pm (dump_tree): No longer dump list
+	elements that contain only undef values. No longer dump node that
+	do not contain data.
+
 2008-10-21  Dominique Dumont  <dominique.dumont@hp.com> v0.630
 
 	* t/augeas_backend.t: Skip sshd_config tests if Augeas library <= 0.3.1
