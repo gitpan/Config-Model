@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2008-07-18 14:38:33 +0200 (ven 18 jui 2008) $
-# $Revision: 716 $
+# $Date: 2008-12-16 14:18:45 +0100 (Tue, 16 Dec 2008) $
+# $Revision: 814 $
 
 #    Copyright (c) 2005-2007 Dominique Dumont.
 #
@@ -37,7 +37,7 @@ use warnings::register ;
 
 use vars qw/$VERSION/ ;
 
-$VERSION = sprintf "1.%04d", q$Revision: 716 $ =~ /(\d+)/;
+$VERSION = sprintf "1.%04d", q$Revision: 814 $ =~ /(\d+)/;
 
 use Carp qw/croak confess cluck/;
 
@@ -83,6 +83,10 @@ Pseudo root directory where to write back the configuration files
 =item root_dir
 
 Pseudo root directory where to read I<and> write configuration files
+
+=item backend
+
+Specify which backend to use. See L</write_back ( ... )> for details
 
 =back
 
@@ -145,6 +149,8 @@ sub new {
 	 name            => $args{name} ,
 	 read_root_dir   => $args{read_root_dir}   || $args{root_dir},
 	 write_root_dir  => $args{write_root_dir}  || $args{root_dir},
+
+	 backend         => $args{backend} || '',
 	};
 
     map { $self->{$_} .= '/' if defined $self->{$_} and $self->{$_} !~ m!/$!}
@@ -434,7 +440,17 @@ sub read_directory {
 
 sub read_root_dir {
     return shift -> {read_root_dir} ;
+}
 
+=head2 backend()
+
+Get the preferred backend method for this instance (as passed to the
+constructor).
+
+=cut
+
+sub backend {
+    return shift -> {backend} ;
 }
 
 =head2 write_root_dir()
@@ -454,30 +470,36 @@ sub write_root_dir {
     return $self -> {write_root_dir} ;
 }
 
-=head2 register_write_back ( sub_ref )
+=head2 register_write_back ( backend_name, sub_ref )
 
-Register a sub ref that will be called with C<write_back> method.
+Register a sub ref (with the backend name) that will be called with
+C<write_back> method.
 
 =cut
 
 sub register_write_back {
-    my $self = shift ;
-    my $wb = shift;
+    my ($self,$backend,$wb) = @_ ;
 
     croak "register_write_back: parameter is not a code ref"
       unless ref($wb) eq 'CODE' ;
-    push @{$self->{write_back}}, $wb ;
+    push @{$self->{write_back}}, [$backend, $wb] ;
 }
 
 =head2 write_back ( ... )
 
-Run all subroutines registered with C<register_write_back> to write
-the configuration informations. (See L<Config::Model::AutoRead> for
-details).
+Try to run all subroutines registered with C<register_write_back> to
+write the configuration informations until one succeeds (returns
+true). (See L<Config::Model::AutoRead> for details).
 
 You can specify here a pseudo root dir or another config dir to write
 configuration data back with C<root> and C<config_dir> parameters. This
 will override the model specifications.
+
+You can force to use a backend by specifying C<< backend => xxx >>. 
+For instance, C<< backend => 'augeas' >> or C<< backend => 'custom' >>.
+
+You can force to use all backend to write the files by specifying 
+C<< backend => 'all' >>.
 
 =cut
 
@@ -487,7 +509,10 @@ sub write_back {
              : scalar @_ == 1 ? (config_dir => $_[0]) 
 	     :                  () ; 
 
-    map {croak "write_back: wrong parameters $_" unless /^(root|config_dir)$/ ;
+    my $force_backend = delete $args{backend} || $self->{backend} ;
+
+    map {croak "write_back: wrong parameters $_" 
+	     unless /^(root|config_dir)$/ ;
 	 $args{$_} ||= '' ;
 	 $args{$_} .= '/' if $args{$_} and $args{$_} !~ m(/$) ;
      }
@@ -499,7 +524,18 @@ sub write_back {
     my $dir = $args{config_dir} ;
     mkpath($dir,0,0755) if $dir and not -d $dir ;
 
-    map { $_->(%args) ;} @{$self->{write_back}} ;
+    foreach my $wb_info (@{$self->{write_back}}) {
+	my ($backend,$wb) = @$wb_info ;
+	if (not $force_backend 
+	    or  $force_backend eq $backend 
+	    or  $force_backend eq 'all' ) {
+	    # exit when write is successfull
+	    my $res = $wb->(%args) ; 
+	    print "write_back called with $backend backend, result is $res\n"
+	      if $::verbose;
+	    last if ($res and not $force_backend); 
+	}
+    }
 }
 
 1;

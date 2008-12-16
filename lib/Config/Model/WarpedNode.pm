@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2008-07-07 17:52:23 +0200 (Mon, 07 Jul 2008) $
-# $Revision: 708 $
+# $Date: 2008-12-16 14:18:45 +0100 (Tue, 16 Dec 2008) $
+# $Revision: 814 $
 
 #    Copyright (c) 2005-2007 Dominique Dumont.
 #
@@ -24,6 +24,7 @@ package Config::Model::WarpedNode ;
 
 use Carp qw(cluck croak);
 use strict;
+use warnings ;
 use Scalar::Util qw(weaken) ;
 
 use base qw/Config::Model::WarpedThing/ ;
@@ -31,7 +32,7 @@ use Config::Model::Exception ;
 use Data::Dumper ();
 
 use vars qw($VERSION $AUTOLOAD) ;
-$VERSION = sprintf "1.%04d", q$Revision: 708 $ =~ /(\d+)/;
+$VERSION = sprintf "1.%04d", q$Revision: 814 $ =~ /(\d+)/;
 
 =head1 NAME
 

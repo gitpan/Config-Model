@@ -1,12 +1,12 @@
 # -*- cperl -*-
 # $Author: ddumont $
-# $Date: 2008-07-07 17:52:23 +0200 (Mon, 07 Jul 2008) $
-# $Revision: 708 $
+# $Date: 2008-12-16 14:18:45 +0100 (Tue, 16 Dec 2008) $
+# $Revision: 814 $
 
 use warnings FATAL => qw(all);
 
 use ExtUtils::testlib;
-use Test::More tests => 88 ;
+use Test::More tests => 89 ;
 use Config::Model ;
 use Config::Model::Value;
 
@@ -267,6 +267,7 @@ is( $full_help->{a}, 'a help',"full enum help" );
 is( $value_with_help->get_help( 'a' ), 'a help',"enum help on one choice") ;
 is( $value_with_help->get_help('b'), undef ,"test undef help");
 
+is( $value_with_help->fetch, undef, "test undef enum") ;
 
 print "Testing built_in default value\n" if $trace ;
 

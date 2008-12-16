@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2008-10-01 12:20:16 +0200 (mer 01 oct 2008) $
-# $Revision: 772 $
+# $Date: 2008-11-12 18:22:23 +0100 (Wed, 12 Nov 2008) $
+# $Revision: 793 $
 
 #    Copyright (c) 2005-2007 Dominique Dumont.
 #
@@ -28,7 +28,7 @@ use Carp;
 use strict;
 
 use vars qw($VERSION) ;
-$VERSION = sprintf "1.%04d", q$Revision: 772 $ =~ /(\d+)/;
+$VERSION = sprintf "1.%04d", q$Revision: 793 $ =~ /(\d+)/;
 
 use base qw/Config::Model::WarpedThing/;
 
@@ -852,7 +852,8 @@ sub fetch_all {
 
 =head2 fetch_all_values( [ custom | preset | standard | default ] )
 
-Returns an array containing all values held by the hash or list.
+Returns an array containing all defined values held by the hash or
+list. (undefined values are simply discarded)
 
 With a parameter, this method will return either:
 
@@ -885,7 +886,8 @@ sub fetch_all_values {
     my @keys  = $self->get_all_indexes ;
 
     if ($self->{cargo}{type} eq 'leaf') {
-	return map { $self->fetch_with_id($_)->fetch($mode) ;} @keys ;
+	return grep {defined $_} 
+	  map { $self->fetch_with_id($_)->fetch($mode) ;} @keys ;
     }
     else {
 	my $info = "current keys are '".join("', '",@keys)."'." ;

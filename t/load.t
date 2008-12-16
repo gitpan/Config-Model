@@ -1,6 +1,6 @@
 # -*- cperl -*-
 # $Author: ddumont $
-# $Date: 2008-07-20 16:55:38 +0200 (dim 20 jui 2008) $
+# $Date: 2008-07-20 16:55:38 +0200 (Sun, 20 Jul 2008) $
 # $Revision: 724 $
 
 use ExtUtils::testlib;

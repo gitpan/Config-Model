@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2008-11-10 15:31:02 +0100 (lun 10 nov 2008) $
-# $Revision: 790 $
+# $Date: 2008-12-16 14:18:45 +0100 (Tue, 16 Dec 2008) $
+# $Revision: 814 $
 
 #    Copyright (c) 2005-2008 Dominique Dumont.
 #
@@ -36,7 +36,7 @@ $has_augeas = 0 if $@ ;
 
 use base qw/Config::Model::AnyThing/ ;
 
-our $VERSION = sprintf "1.%04d", q$Revision: 790 $ =~ /(\d+)/;
+our $VERSION = sprintf "1.%04d", q$Revision: 814 $ =~ /(\d+)/;
 
 =head1 NAME
 
@@ -303,6 +303,9 @@ sub auto_read_init {
       unless ref $readlist ;
 
     my @list = ref $readlist  eq 'ARRAY' ? @$readlist :  ($readlist) ;
+    my $pref_backend = $instance->backend || '' ;
+    my $read_done = 0;
+
     foreach my $read (@list) {
 	warn $self->config_class_name,
 	  " deprecated 'syntax' parameter in auto_read\n" if defined $read->{syntax} ;
@@ -313,6 +316,8 @@ sub auto_read_init {
 	    $backend .= "_file" ;
 	}
 
+	next if ($pref_backend and $backend ne $pref_backend) ;
+
 	my $read_dir = delete $read->{config_dir} || $r_dir || ''; # r_dir obsolete
 	$read_dir .= '/' if $read_dir and $read_dir !~ m(/$) ; 
 
@@ -322,23 +327,39 @@ sub auto_read_init {
 	    my $f = delete $read->{function} || 'read' ;
 	    require $file.'.pm' unless $c->can($f);
 	    no strict 'refs';
-	    print "Read data with $ {c}::$f\n" if $::verbose;
+	    print "Read data with $ {c}::$f in dir $read_dir\n" if $::verbose;
 
-	    last if &{$c.'::'.$f}(%$read, root => $root_dir, 
-				  conf_dir => $read_dir, # legacy FIXME
-				   config_dir => $read_dir, object => $self) ;
+	    my $res = &{$c.'::'.$f}(%$read, root => $root_dir, 
+				    conf_dir => $read_dir, # legacy FIXME
+				    config_dir => $read_dir, object => $self) ;
+	    if ($res) { 
+		$read_done = 1 ;
+		last;
+	    }
 	}
 	elsif ($backend eq 'xml') {
-	    last if $self->read_xml(root => $root_dir, config_dir => $read_dir) ;
+	    if ($self->read_xml(root => $root_dir, config_dir => $read_dir)) {
+		$read_done = 1 ;
+		last;
+	    }
 	}
 	elsif ($backend eq 'perl_file') {
-	    last if $self->read_perl(root => $root_dir, config_dir => $read_dir) ;
+	    if ($self->read_perl(root => $root_dir, config_dir => $read_dir)) {
+		$read_done = 1 ;
+		last;
+	    }
 	}
 	elsif ($backend eq 'ini_file') {
-	    last if $self->read_ini(root => $root_dir, config_dir => $read_dir) ;
+	    if ($self->read_ini(root => $root_dir, config_dir => $read_dir)) {
+		$read_done = 1 ;
+		last;
+	    }
 	}
 	elsif ($backend eq 'cds_file') {
-	    last if $self->read_cds_file(root => $root_dir, config_dir => $read_dir) ;
+	    if ($self->read_cds_file(root => $root_dir, config_dir => $read_dir)) {
+		$read_done = 1 ;
+		last;
+	    }
 	}
 	else {
 	    # try to load a specific Backend class
@@ -358,10 +379,23 @@ sub auto_read_init {
 	    my $backend_obj = $self->{backend}{$backend} = $c->new(node => $self) ;
 	    print "Read data with $ {c}::$f\n" if $::verbose;
 
-	    last if $backend_obj->$f(%$read, root => $root_dir, 
-				     config_dir => $read_dir) ;
+	    if ($backend_obj->$f(%$read, root => $root_dir, 
+				 config_dir => $read_dir)) {
+		$read_done = 1 ;
+		last;
+	    }
 	}
     }
+
+    if (not $read_done) {
+	Config::Model::Exception::Model -> throw
+	    (
+	     error => "auto_read error: could not read config file "
+	            . ($pref_backend ? "with '$pref_backend' backend" : ''),
+	     object => $self,
+	    ) ;
+    }
+
 }
 
 # called at configuration node creation, NOT when writing
@@ -475,7 +509,7 @@ sub auto_write_init {
 	     };
 	}
 
-	$instance->register_write_back($wb) ;
+	$instance->register_write_back($backend => $wb) ;
     }
 }
 

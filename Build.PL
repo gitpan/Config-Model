@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2008-11-10 15:31:02 +0100 (lun 10 nov 2008) $
-# $Revision: 790 $
+# $Date: 2008-11-16 19:13:07 +0100 (Sun, 16 Nov 2008) $
+# $Revision: 800 $
 
 #    Copyright (c) 2005-2008 Dominique Dumont.
 #
@@ -56,7 +56,6 @@ my $build = Module::Build->new
    recommends => {
 		  # recommended modules to get more reader/writer
 		  'Config::Tiny' => 0,
-		  'Config::Augeas' => '0.301',
 		 },
    # cleanup required by t/auto_read.t
    # PreGrammar.pm is created by t/value_computer.t

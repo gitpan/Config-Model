@@ -1,6 +1,6 @@
 ---
 name: Config-Model
-version: 0.631
+version: 0.632
 author:
   - Dominique Dumont (ddumont at cpan dot org)
 abstract: Edit and validate configuration data
@@ -20,21 +20,20 @@ build_requires:
   Test::More: 0
   Test::Warn: 0.11
 recommends:
-  Config::Augeas: 0.301
   Config::Tiny: 0
 provides:
   Config::Model:
     file: lib/Config/Model.pm
-    version: 0.631
+    version: 0.632
   Config::Model::AnyId:
     file: lib/Config/Model/AnyId.pm
-    version: 1.0772
+    version: 1.0793
   Config::Model::AnyThing:
     file: lib/Config/Model/AnyThing.pm
     version: 1.0660
   Config::Model::AutoRead:
     file: lib/Config/Model/AutoRead.pm
-    version: 1.0790
+    version: 1.0814
   Config::Model::CheckList:
     file: lib/Config/Model/CheckList.pm
     version: 1.0775
@@ -80,7 +79,7 @@ provides:
     version: 1.0775
   Config::Model::Instance:
     file: lib/Config/Model/Instance.pm
-    version: 1.0716
+    version: 1.0814
   Config::Model::ListId:
     file: lib/Config/Model/ListId.pm
     version: 1.0743
@@ -113,7 +112,7 @@ provides:
     version: 1.0766
   Config::Model::WarpedNode:
     file: lib/Config/Model/WarpedNode.pm
-    version: 1.0708
+    version: 1.0814
   Config::Model::WarpedThing:
     file: lib/Config/Model/WarpedThing.pm
     version: 1.0729
