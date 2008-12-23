@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2008-12-16 14:18:45 +0100 (Tue, 16 Dec 2008) $
-# $Revision: 814 $
+# $Date: 2008-12-23 16:33:45 +0100 (Tue, 23 Dec 2008) $
+# $Revision: 819 $
 
 #    Copyright (c) 2005-2008 Dominique Dumont.
 #
@@ -34,7 +34,7 @@ use Config::Model::Instance ;
 # this class holds the version number of the package
 use vars qw($VERSION @status @level @experience_list %experience_index) ;
 
-$VERSION = '0.632';
+$VERSION = '0.633';
 
 =head1 NAME
 
@@ -1475,10 +1475,6 @@ implemented.
 
 Dominique Dumont, (ddumont at cpan dot org)
 
-=head1 SEE ALSO
-
-L<Config::Model::Instance>, 
-
 =head1 LICENSE
 
     Copyright (c) 2005-2008 Dominique Dumont.
@@ -1499,6 +1495,10 @@ L<Config::Model::Instance>,
     along with Config-Model; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
     02110-1301 USA
+
+=head1 SEE ALSO
+
+L<Config::Model::Instance>, 
 
 =head2 Model elements
 

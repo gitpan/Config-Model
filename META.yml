@@ -1,6 +1,6 @@
 ---
 name: Config-Model
-version: 0.632
+version: 0.633
 author:
   - Dominique Dumont (ddumont at cpan dot org)
 abstract: Edit and validate configuration data
@@ -24,7 +24,7 @@ recommends:
 provides:
   Config::Model:
     file: lib/Config/Model.pm
-    version: 0.632
+    version: 0.633
   Config::Model::AnyId:
     file: lib/Config/Model/AnyId.pm
     version: 1.0793
@@ -33,7 +33,7 @@ provides:
     version: 1.0660
   Config::Model::AutoRead:
     file: lib/Config/Model/AutoRead.pm
-    version: 1.0814
+    version: 1.0819
   Config::Model::CheckList:
     file: lib/Config/Model/CheckList.pm
     version: 1.0775
