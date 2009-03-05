@@ -1,8 +1,8 @@
 # $Author: ddumont $
-# $Date: 2008-12-23 16:33:45 +0100 (Tue, 23 Dec 2008) $
-# $Revision: 819 $
+# $Date: 2009-03-05 13:52:10 +0100 (Thu, 05 Mar 2009) $
+# $Revision: 872 $
 
-#    Copyright (c) 2005-2008 Dominique Dumont.
+#    Copyright (c) 2005-2009 Dominique Dumont.
 #
 #    This file is part of Config-Model.
 #
@@ -28,13 +28,16 @@ use warnings FATAL => qw(all);
 use vars qw/@ISA @EXPORT @EXPORT_OK $VERSION/;
 use Storable ('dclone') ;
 use Data::Dumper ();
+use Log::Log4perl qw(get_logger :levels);
+
 
 use Config::Model::Instance ;
 
 # this class holds the version number of the package
 use vars qw($VERSION @status @level @experience_list %experience_index) ;
 
-$VERSION = '0.633';
+$VERSION = '0.634';
+
 
 =head1 NAME
 
@@ -458,6 +461,8 @@ sub create_config_class {
     my $config_class_name = delete $raw_model{name} or
       croak "create_one_config_class: no config class name" ;
 
+    get_logger("Model")->info("Creating class $config_class_name") ;
+
     if (exists $self->{model}{$config_class_name}) {
 	Config::Model::Exception::ModelDeclaration->throw
 	    (
@@ -721,6 +726,9 @@ sub translate_legacy_info {
 	if (defined $info->{default}) {
 	    $self->translate_id_default_info($config_class_name,$elt_name, $info);
 	} 
+	if (defined $info->{auto_create}) {
+	    $self->translate_id_auto_create($config_class_name,$elt_name, $info);
+	} 
 	$self->translate_id_names($config_class_name,$elt_name,$info) ;
 	if (defined $info->{warp} ) {
 	    my $rules_a = $info->{warp}{rules} ;
@@ -799,8 +807,6 @@ sub translate_allow_compute_override {
 	$self->legacy("$config_class_name->$elt_name: parameter allow_compute_override is deprecated in favor of compute -> allow_override");
 	$info->{compute}{allow_override} = delete $info->{allow_compute_override}  ;
     }
-    
-
 }
 
 sub translate_compute_info {
@@ -875,6 +881,40 @@ sub translate_id_default_info {
 	  if $::debug ;
 }
 
+# internal: translate auto_create information for id element
+sub translate_id_auto_create {
+    my $self = shift ;
+    my $config_class_name = shift || die;
+    my $elt_name = shift ;
+    my $info = shift ;
+
+    print "translate_id_auto_create $elt_name input:\n", 
+      Data::Dumper->Dump( [$info ] , [qw/info/ ]) ,"\n"
+	  if $::debug ;
+
+    my $warn = "$config_class_name->$elt_name: 'auto_create' parameter for list or " 
+             . "hash element is deprecated. ";
+
+    my $ac_info = delete $info->{auto_create} ;
+    if ($info->{type} eq 'hash') {
+	$info->{auto_create_keys} 
+	  = ref($ac_info) eq 'ARRAY' ? $ac_info : [ $ac_info ] ;
+	$self->legacy($warn,"Use auto_create_keys") ;
+    }
+    elsif ($info->{type} eq 'list') {
+	$info->{auto_create_ids} = $ac_info ;
+	$self->legacy($warn,"Use auto_create_ids") ;
+    }
+    else {
+	die "Unexpected element ($elt_name) type $info->{type} ",
+	  "for translate_id_auto_create";
+    }
+
+    print "translate_id_default_info $elt_name output:\n",
+      Data::Dumper->Dump([$info ] , [qw/new_info/ ] ) ,"\n"
+	  if $::debug ;
+}
+
 # internal: translate warp information into 'boolean expr' => { ... }
 sub translate_warp_info {
     my $self = shift ;
@@ -931,7 +971,7 @@ sub translate_multi_follow_legacy_rules {
 	# i.e. [ [ f1a, f1b] , b1 ] => { ... }
 	# is equivalent to 
 	# [ f1a, b1 ] => { ... }, [  f1b , b1 ] => { ... }
-	
+
 	# now translate [ [ f1a, f1b] , b1 ] => { ... }
 	# into "( $f1 eq f1a or $f1 eq f1b ) and $f2 eq b1)" => { ... }
 	my @bool_expr ;
@@ -1245,7 +1285,7 @@ sub load {
     $load_file ||=  ($self->{model_dir} || 'Config/Model/models') 
                  . '/'. $load_path ;
 
-    print "Model: load model $load_file\n" if $::verbose ;
+    get_logger("Model::Loader")-> info("load model $load_file") ;
 
     my $err_msg = '';
     my $model = do $load_file ;
@@ -1538,6 +1578,7 @@ L<Config::Model::WarpedNode> <- <- L<Config::Model::WarpedThing> <- L<Config::Mo
 
 L<Config::Model::Describe>,
 L<Config::Model::Dumper>,
+L<Config::Model::DumpAsData>,
 L<Config::Model::Loader>,
 L<Config::Model::ObjTreeScanner>,
 L<Config::Model::Report>,

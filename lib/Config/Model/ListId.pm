@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2008-07-31 14:35:16 +0200 (Thu, 31 Jul 2008) $
-# $Revision: 743 $
+# $Date: 2009-02-24 13:08:18 +0100 (Tue, 24 Feb 2009) $
+# $Revision: 861 $
 
 #    Copyright (c) 2005-2007 Dominique Dumont.
 #
@@ -30,7 +30,7 @@ use strict;
 use base qw/Config::Model::AnyId/ ;
 
 use vars qw($VERSION) ;
-$VERSION = sprintf "1.%04d", q$Revision: 743 $ =~ /(\d+)/;
+$VERSION = sprintf "1.%04d", q$Revision: 861 $ =~ /(\d+)/;
 
 =head1 NAME
 
@@ -246,7 +246,16 @@ sub remove {
 sub auto_create_elements {
     my $self = shift ;
 
-    my $auto_p = $self->{auto_create} - 1;
+    my $auto_nb = $self->{auto_create_ids} ;
+
+    Config::Model::Exception::Model
+	->throw (
+		 object => $self,
+		 error => "Wrong auto_create argument for list: $auto_nb"
+		) unless $auto_nb =~ /^\d+$/;
+
+    my $auto_p = $auto_nb - 1;
+
     # create empty slots
     map {
 	$self->{data}[$_] = undef unless defined $self->{data}[$_];

@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2008-10-01 12:20:16 +0200 (Wed, 01 Oct 2008) $
-# $Revision: 772 $
+# $Date: 2009-02-24 13:08:18 +0100 (Tue, 24 Feb 2009) $
+# $Revision: 861 $
 
 #    Copyright (c) 2005-2007 Dominique Dumont.
 #
@@ -30,7 +30,7 @@ use strict;
 use base qw/Config::Model::AnyId/ ;
 
 use vars qw($VERSION) ;
-$VERSION = sprintf "1.%04d", q$Revision: 772 $ =~ /(\d+)/;
+$VERSION = sprintf "1.%04d", q$Revision: 861 $ =~ /(\d+)/;
 
 =head1 NAME
 
@@ -186,7 +186,7 @@ sub _defined {
 sub auto_create_elements {
     my $self = shift ;
 
-    my $auto_p = $self->{auto_create} ;
+    my $auto_p = $self->{auto_create_keys} ;
     # create empty slots
     map {
 	$self->_store($_, undef) unless exists $self->{data}{$_};

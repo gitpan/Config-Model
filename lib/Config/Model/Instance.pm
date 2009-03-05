@@ -1,8 +1,8 @@
 # $Author: ddumont $
-# $Date: 2008-12-16 14:18:45 +0100 (Tue, 16 Dec 2008) $
-# $Revision: 814 $
+# $Date: 2009-02-24 13:34:40 +0100 (Tue, 24 Feb 2009) $
+# $Revision: 862 $
 
-#    Copyright (c) 2005-2007 Dominique Dumont.
+#    Copyright (c) 2005-2009 Dominique Dumont.
 #
 #    This file is part of Config-Model.
 #
@@ -37,7 +37,7 @@ use warnings::register ;
 
 use vars qw/$VERSION/ ;
 
-$VERSION = sprintf "1.%04d", q$Revision: 814 $ =~ /(\d+)/;
+$VERSION = sprintf "1.%04d", q$Revision: 862 $ =~ /(\d+)/;
 
 use Carp qw/croak confess cluck/;
 
@@ -68,17 +68,9 @@ an existing model:
 
 The directory (or directories) holding configuration files is
 specified within the configuration model. For test purpose you can
-change the "root" directory with any of these parameters :
+change the "root" directory with C<root_dir> parameter:
 
 =over
-
-=item read_root_dir
-
-Pseudo root directory where to read the configuration files
-
-=item write_root_dir
-
-Pseudo root directory where to write back the configuration files
 
 =item root_dir
 
@@ -90,11 +82,8 @@ Specify which backend to use. See L</write_back ( ... )> for details
 
 =back
 
-Note that C<all> directory specified within the configuration model
-will be overridden.
-
-I.e with C<< write_root_dir => '~/mytest/ >>, data read from
-C</etc/foo.conf> will be written back in C<~/mytest/etc/foo.conf>.
+Note that the root directory specified within the configuration model
+will be overridden by C<root_dir> parameter.
 
 If you need to load configuration data that are not correct, you can
 use C<< force_load => 1 >>. Then, wrong data will be discarded.
@@ -115,7 +104,7 @@ sub new {
     confess __PACKAGE__," error: config_model is not a Config::Model object"
       unless $config_model->isa('Config::Model') ; 
 
-    my $force_load = $args{force_load} || 0 ;
+    my $force_load = delete $args{force_load} || 0 ;
 
     my $self 
       = {
@@ -146,15 +135,18 @@ sub new {
 	 write_back => [] ,
 
 	 # used for auto_read auto_write feature
-	 name            => $args{name} ,
-	 read_root_dir   => $args{read_root_dir}   || $args{root_dir},
-	 write_root_dir  => $args{write_root_dir}  || $args{root_dir},
+	 name            =>  delete $args{name} ,
+	 root_dir        =>  delete $args{root_dir},
 
-	 backend         => $args{backend} || '',
+	 backend         =>  delete $args{backend} || '',
 	};
 
+    my @left = keys %args ;
+    croak "Instance->new: unexpected parameter: @left" if @left ;
+
+    # cleanup paths
     map { $self->{$_} .= '/' if defined $self->{$_} and $self->{$_} !~ m!/$!}
-      qw/read_root_dir write_root_dir/;
+      qw/root_dir/;
 
     weaken($self->{config_model}) ;
 
@@ -435,11 +427,11 @@ Returns root directory where configuration data is read from.
 
 sub read_directory {
     carp "read_directory is deprecated";
-    return shift -> {read_root_dir} ;
+    return shift -> {root_dir} ;
 }
 
 sub read_root_dir {
-    return shift -> {read_root_dir} ;
+    return shift -> {root_dir} ;
 }
 
 =head2 backend()
@@ -462,12 +454,12 @@ Returns root directory where configuration data is written to.
 sub write_directory {
     my $self = shift ;
     carp "write_directory is deprecated";
-    return $self -> {write_root_dir} ;
+    return $self -> {root_dir} ;
 }
 
 sub write_root_dir {
     my $self = shift ;
-    return $self -> {write_root_dir} ;
+    return $self -> {root_dir} ;
 }
 
 =head2 register_write_back ( backend_name, sub_ref )

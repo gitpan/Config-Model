@@ -1,7 +1,7 @@
 # -*- cperl -*-
 # $Author: ddumont $
-# $Date: 2008-04-15 13:57:49 +0200 (Tue, 15 Apr 2008) $
-# $Revision: 608 $
+# $Date: 2009-03-05 13:54:24 +0100 (Thu, 05 Mar 2009) $
+# $Revision: 873 $
 
 use ExtUtils::testlib;
 use Test::More tests => 34;
@@ -19,9 +19,13 @@ use vars qw/$model/;
 
 $model = Config::Model -> new (legacy => 'ignore',) ;
 
-my $trace = shift || '';
-$::verbose          = 1 if $trace =~ /v/;
-$::debug            = 1 if $trace =~ /d/;
+my $arg = shift || '';
+$::verbose          = 1 if $arg =~ /v/;
+$::debug            = 1 if $arg =~ /d/;
+my $trace = $arg =~ /t/ ? 1 : 0 ;
+
+use Log::Log4perl qw(:easy) ;
+Log::Log4perl->easy_init($arg =~ /l/ ? $TRACE: $WARN);
 
 ok(1,"compiled");
 

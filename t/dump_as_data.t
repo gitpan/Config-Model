@@ -1,7 +1,7 @@
 # -*- cperl -*-
 # $Author: ddumont $
-# $Date: 2008-05-07 11:59:39 +0200 (Wed, 07 May 2008) $
-# $Revision: 650 $
+# $Date: 2009-03-05 13:54:24 +0100 (Thu, 05 Mar 2009) $
+# $Revision: 873 $
 
 use ExtUtils::testlib;
 use Test::More tests => 19;
@@ -21,6 +21,9 @@ my $trace = $arg =~ /t/ ? 1 : 0 ;
 $::verbose          = 1 if $arg =~ /v/;
 $::debug            = 1 if $arg =~ /d/;
 Config::Model::Exception::Any->Trace(1) if $arg =~ /e/;
+
+use Log::Log4perl qw(:easy) ;
+Log::Log4perl->easy_init($arg =~ /l/ ? $TRACE: $WARN);
 
 ok(1,"compiled");
 

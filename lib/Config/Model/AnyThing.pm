@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2008-05-14 18:02:59 +0200 (Wed, 14 May 2008) $
-# $Revision: 660 $
+# $Date: 2009-01-20 18:18:15 +0100 (Tue, 20 Jan 2009) $
+# $Revision: 845 $
 
 #    Copyright (c) 2005-2007 Dominique Dumont.
 #
@@ -26,7 +26,7 @@ use Carp;
 use strict;
 
 use vars qw($VERSION);
-$VERSION = sprintf "1.%04d", q$Revision: 660 $ =~ /(\d+)/;
+$VERSION = sprintf "1.%04d", q$Revision: 845 $ =~ /(\d+)/;
 
 =head1 NAME
 
@@ -545,7 +545,8 @@ sub searcher {
 Dumps the configuration data of the node and its siblings into a perl
 data structure. 
 
-Returns a hash ref containing the data.
+Returns a hash ref containing the data. See
+L<Config::Model::DumpAsData> for details.
 
 =cut
 

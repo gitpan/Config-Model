@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2008-12-23 16:33:45 +0100 (Tue, 23 Dec 2008) $
-# $Revision: 819 $
+# $Date: 2009-02-24 13:08:18 +0100 (Tue, 24 Feb 2009) $
+# $Revision: 861 $
 
 #    Copyright (c) 2005-2008 Dominique Dumont.
 #
@@ -36,7 +36,7 @@ $has_augeas = 0 if $@ ;
 
 use base qw/Config::Model::AnyThing/ ;
 
-our $VERSION = sprintf "1.%04d", q$Revision: 819 $ =~ /(\d+)/;
+our $VERSION = sprintf "1.%04d", q$Revision: 861 $ =~ /(\d+)/;
 
 =head1 NAME
 
@@ -152,7 +152,11 @@ Use Augeas library. See L<Config::Model::Backend::Augeas> for details.
 Custom backend must be specified with a class name that will features
 the methods used to write and read the configuration files:
 
-  read_config  => [ { backend => 'custom' , class => 'MyRead' } ]
+  read_config  => [ { backend => 'custom' , class => 'MyRead',
+                      config_dir => '/etc/foo'
+                    } ]
+
+Note that C<config_dir> specification is optional.
 
 The C<MyRead> class that you will provide must have the methods
 C<read> and C<write>. Then, C<MyRead::read> will be called with there

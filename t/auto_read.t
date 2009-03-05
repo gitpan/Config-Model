@@ -1,7 +1,7 @@
 # -*- cperl -*-
 # $Author: ddumont $
-# $Date: 2008-12-23 16:33:45 +0100 (Tue, 23 Dec 2008) $
-# $Revision: 819 $
+# $Date: 2009-03-05 13:54:24 +0100 (Thu, 05 Mar 2009) $
+# $Revision: 873 $
 
 use ExtUtils::testlib;
 use Test::More tests => 51;
@@ -20,10 +20,15 @@ use vars qw/$model/;
 
 $model = Config::Model -> new (legacy => 'ignore',) ;
 
-my $trace = shift || 0;
-$::verbose          = 1 if $trace =~ /v/;
-$::debug            = 1 if $trace =~ /d/;
-Config::Model::Exception::Any->Trace(1) if $trace =~ /e/;
+my $arg = shift || '';
+
+my $trace = $arg =~ /t/ ? 1 : 0 ;
+$::verbose          = 1 if $arg =~ /v/;
+$::debug            = 1 if $arg =~ /d/;
+Config::Model::Exception::Any->Trace(1) if $arg =~ /e/;
+
+use Log::Log4perl qw(:easy) ;
+Log::Log4perl->easy_init($arg =~ /l/ ? $TRACE: $WARN);
 
 ok(1,"compiled");
 
@@ -178,8 +183,7 @@ package main;
 throws_ok {
     my $i_fail = $model->instance(instance_name    => 'zero_inst',
 			       root_class_name  => 'Master',
-			       write_root_dir   => $root1 ,
-			       read_root_dir    => $root1 ,
+			       root_dir   => $root1 ,
 			       backend => 'perl_file',
 			      );
     } qr/'perl_file' backend/,  "read with forced perl_file backend fails (normal: no perl file)"  ;
@@ -188,8 +192,7 @@ my $i_zero ;
 warnings_like {
 $i_zero = $model->instance(instance_name    => 'zero_inst',
 			   root_class_name  => 'Master',
-			   write_root_dir   => $root1 ,
-			   read_root_dir    => $root1 ,
+			   root_dir   => $root1 ,
 			  );
 } qr/deprecated auto_read/ , "obsolete warning" ;
 
