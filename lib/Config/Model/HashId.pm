@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2009-02-24 13:08:18 +0100 (Tue, 24 Feb 2009) $
-# $Revision: 861 $
+# $Date: 2009-03-27 10:44:14 +0100 (Fri, 27 Mar 2009) $
+# $Revision: 905 $
 
 #    Copyright (c) 2005-2007 Dominique Dumont.
 #
@@ -30,7 +30,7 @@ use strict;
 use base qw/Config::Model::AnyId/ ;
 
 use vars qw($VERSION) ;
-$VERSION = sprintf "1.%04d", q$Revision: 861 $ =~ /(\d+)/;
+$VERSION = sprintf "1.%04d", q$Revision: 905 $ =~ /(\d+)/;
 
 =head1 NAME
 
@@ -270,7 +270,7 @@ sub nextkey {
     # reset list for next call to next_keys
     $self->{each_list} = [ $self->_get_all_indexes  ] ;
 
-    return undef ;
+    return ;
 }
 
 =head2 swap ( key1 , key2 )

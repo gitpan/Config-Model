@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2008-04-25 18:22:14 +0200 (Fri, 25 Apr 2008) $
-# $Revision: 631 $
+# $Date: 2009-03-27 10:44:14 +0100 (Fri, 27 Mar 2009) $
+# $Revision: 905 $
 
 #    Copyright (c) 2006-2007 Dominique Dumont.
 #
@@ -28,7 +28,7 @@ use warnings ;
 use Config::Model::Exception ;
 
 use vars qw($VERSION);
-$VERSION = sprintf "1.%04d", q$Revision: 631 $ =~ /(\d+)/;
+$VERSION = sprintf "1.%04d", q$Revision: 905 $ =~ /(\d+)/;
 
 =head1 NAME
 
@@ -211,7 +211,7 @@ configuration tree.
 
 sub get_searchable_elements {
     my $self= shift ;
-    return sort keys %{$self->{data}} ;
+    sort keys %{$self->{data}} ;
 }
 
 =head2 prepare(element => ...)

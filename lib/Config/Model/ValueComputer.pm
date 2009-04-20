@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2008-09-29 14:33:03 +0200 (Mon, 29 Sep 2008) $
-# $Revision: 766 $
+# $Date: 2009-03-27 10:44:14 +0100 (Fri, 27 Mar 2009) $
+# $Revision: 905 $
 
 #    Copyright (c) 2005-2007 Dominique Dumont.
 #
@@ -32,7 +32,7 @@ use Data::Dumper () ;
 
 use vars qw($VERSION $compute_grammar $compute_parser) ;
 
-$VERSION = sprintf "1.%04d", q$Revision: 766 $ =~ /(\d+)/;
+$VERSION = sprintf "1.%04d", q$Revision: 905 $ =~ /(\d+)/;
 
 =head1 NAME
 
@@ -371,7 +371,7 @@ sub compute {
 
     my $formula = $$formula_r ;
 
-    return undef unless defined $formula ;
+    return unless defined $formula ;
 
     print "compute $self->{value_type}: pre_formula $pre_formula\n",
       "compute $self->{value_type}: rule to eval $formula\n" if $::debug;
@@ -497,7 +497,7 @@ sub compute_variables {
 $compute_grammar = << 'END_OF_GRAMMAR' ;
 
 {
-# $Revision: 766 $
+# $Revision: 905 $
 
 # This grammar is compatible with Parse::RecDescent < 1.90 or >= 1.90
 use strict;

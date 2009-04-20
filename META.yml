@@ -1,6 +1,6 @@
 ---
 name: Config-Model
-version: 0.634
+version: 0.635
 author:
   - Dominique Dumont (ddumont at cpan dot org)
 abstract: Edit and validate configuration data
@@ -24,19 +24,19 @@ recommends:
 provides:
   Config::Model:
     file: lib/Config/Model.pm
-    version: 0.634
+    version: 0.635
   Config::Model::AnyId:
     file: lib/Config/Model/AnyId.pm
-    version: 1.0861
+    version: 1.0914
   Config::Model::AnyThing:
     file: lib/Config/Model/AnyThing.pm
     version: 1.0845
   Config::Model::AutoRead:
     file: lib/Config/Model/AutoRead.pm
-    version: 1.0861
+    version: 1.0935
   Config::Model::CheckList:
     file: lib/Config/Model/CheckList.pm
-    version: 1.0775
+    version: 1.0905
   Config::Model::Describe:
     file: lib/Config/Model/Describe.pm
     version: 1.0669
@@ -45,7 +45,7 @@ provides:
     version: 1.0707
   Config::Model::Dumper:
     file: lib/Config/Model/Dumper.pm
-    version: 1.0786
+    version: 1.0906
   Config::Model::Exception:
     file: lib/Config/Model/Exception.pm
     version: 1.0790
@@ -73,13 +73,13 @@ provides:
     file: lib/Config/Model/Exception.pm
   Config::Model::HashId:
     file: lib/Config/Model/HashId.pm
-    version: 1.0861
+    version: 1.0905
   Config::Model::IdElementReference:
     file: lib/Config/Model/IdElementReference.pm
     version: 1.0775
   Config::Model::Instance:
     file: lib/Config/Model/Instance.pm
-    version: 1.0862
+    version: 1.0935
   Config::Model::ListId:
     file: lib/Config/Model/ListId.pm
     version: 1.0861
@@ -88,7 +88,7 @@ provides:
     version: 1.0717
   Config::Model::Node:
     file: lib/Config/Model/Node.pm
-    version: 1.0752
+    version: 1.0935
   Config::Model::ObjTreeScanner:
     file: lib/Config/Model/ObjTreeScanner.pm
     version: 1.0715
@@ -97,7 +97,7 @@ provides:
     version: 1.0641
   Config::Model::Searcher:
     file: lib/Config/Model/Searcher.pm
-    version: 1.0631
+    version: 1.0905
   Config::Model::SimpleUI:
     file: lib/Config/Model/SimpleUI.pm
     version: 1.0541
@@ -106,10 +106,10 @@ provides:
     version: 1.0669
   Config::Model::Value:
     file: lib/Config/Model/Value.pm
-    version: 1.0790
+    version: 1.0905
   Config::Model::ValueComputer:
     file: lib/Config/Model/ValueComputer.pm
-    version: 1.0766
+    version: 1.0905
   Config::Model::WarpedNode:
     file: lib/Config/Model/WarpedNode.pm
     version: 1.0814

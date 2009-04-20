@@ -1,10 +1,10 @@
 # -*- cperl -*-
 # $Author: ddumont $
-# $Date: 2009-03-05 13:54:24 +0100 (Thu, 05 Mar 2009) $
-# $Revision: 873 $
+# $Date: 2009-04-17 13:39:18 +0200 (Fri, 17 Apr 2009) $
+# $Revision: 935 $
 
 use ExtUtils::testlib;
-use Test::More tests => 51;
+use Test::More tests => 56;
 use Config::Model;
 use File::Path;
 use File::Copy ;
@@ -28,7 +28,7 @@ $::debug            = 1 if $arg =~ /d/;
 Config::Model::Exception::Any->Trace(1) if $arg =~ /e/;
 
 use Log::Log4perl qw(:easy) ;
-Log::Log4perl->easy_init($arg =~ /l/ ? $TRACE: $WARN);
+Log::Log4perl->easy_init($arg =~ /l/ ? $TRACE: $ERROR);
 
 ok(1,"compiled");
 
@@ -67,7 +67,8 @@ $model->create_config_class
 		       class => 'Level1Read', 
 		       function => 'read_it' } ],
    write_config => [ { backend => 'cds_file', config_dir => $conf_dir},
-		     { backend => 'perl_file', config_dir => $conf_dir},
+		     { backend => 'perl_file', config_dir => $conf_dir,
+		       auto_create => 1},
 		     { backend => 'ini_file' , config_dir => $conf_dir}],
 
    read_config_dir  => $conf_dir,
@@ -86,7 +87,8 @@ $model->create_config_class
    # try first to read with cds string and then custom class
    read_config  => [ { backend => 'cds_file', config_dir => $conf_dir }, 
 		     { backend => 'custom', class => 'SameRWSpec', config_dir => $conf_dir },
-		     { backend => 'ini_file', config_dir => $conf_dir } 
+		     { backend => 'ini_file', config_dir => $conf_dir,
+		       auto_create => 1} 
 		   ],
 
    element => [
@@ -108,10 +110,10 @@ $model->create_config_class
 		       config_dir => $conf_dir, function => 'read_it' }
 		   ],
    write_config => [ { backend => 'cds_file', config_dir => $conf_dir},
-		     { backend => 'perl', config_dir => $conf_dir},
+		     { backend => 'perl_file', config_dir => $conf_dir},
 		     { backend => 'ini_file', config_dir => $conf_dir } ,
 		     { class => 'MasterRead', function => 'wr_stuff', 
-		       config_dir => $conf_dir}
+		       config_dir => $conf_dir, auto_create => 1}
 		   ],
 
    element => [
@@ -130,7 +132,7 @@ $model->create_config_class
    name => 'FromScratch',
 
    read_config  => [ { backend => 'cds_file', config_dir => $conf_dir,
-		       allow_empty => 1},
+		       auto_create => 1},
 		   ],
 
    element => [
@@ -138,7 +140,35 @@ $model->create_config_class
 	      ]
    );
 
-# global variable to snoop on read config action
+$model->create_config_class 
+  (
+   name => 'CdsWithFile',
+
+   read_config  => [ { backend => 'cds_file', config_dir => $conf_dir,
+		       file => 'scratch_inst.cds'},
+		   ],
+
+   element => [
+	       aa => { type => 'leaf',value_type => 'string'} ,
+	      ]
+   );
+
+$model->create_config_class 
+  (
+   name => 'SimpleRW',
+
+   read_config  => [ { backend => 'custom', config_dir => $conf_dir,
+		       class => 'SimpleRW',
+		       file => 'toto.conf'
+		     },
+		   ],
+
+   element => [
+	       aa => { type => 'leaf',value_type => 'string'} ,
+	      ]
+   );
+
+#global variable to snoop on read config action
 my %result;
 
 package MasterRead;
@@ -178,6 +208,29 @@ sub write {
     $result{same_rw_write} = $args{config_dir};
 }
 
+package SimpleRW ;
+
+sub read {
+    my %args = @_;
+    $result{simple_rw}{rfile} = $args{file};
+    my $io = $args{io_handle} ;
+    return 0 unless defined $io ;
+    $args{object}->load($io->getlines);
+    return 1 ;
+}
+
+sub write {
+    my %args = @_;
+    $result{simple_rw}{wfile} = $args{file};
+
+    my $io = $args{io_handle} ;
+    return 0 unless defined $io ;
+    my $dump = $args{object}->dump_tree() ;
+    $io->print($dump);
+}
+
+
+
 package main;
 
 throws_ok {
@@ -188,13 +241,20 @@ throws_ok {
 			      );
     } qr/'perl_file' backend/,  "read with forced perl_file backend fails (normal: no perl file)"  ;
 
-my $i_zero ;
-warnings_like {
-$i_zero = $model->instance(instance_name    => 'zero_inst',
-			   root_class_name  => 'Master',
-			   root_dir   => $root1 ,
-			  );
-} qr/deprecated auto_read/ , "obsolete warning" ;
+my $i_no_read = $model->instance(instance_name    => 'no_read_inst',
+				 root_class_name  => 'Master',
+				 root_dir   => $root1 ,
+				 skip_read => 1,
+				);
+ok( $i_no_read, "Created instance (from scratch without read)-> no warning" );
+
+# check that conf dir was NOT read when instance was created
+is( $result{master_read}, undef, "Master read conf dir" );
+
+my $i_zero = $model->instance(instance_name    => 'zero_inst',
+			      root_class_name  => 'Master',
+			      root_dir   => $root1 ,
+			     );
 
 ok( $i_zero, "Created instance (from scratch)" );
 
@@ -302,15 +362,11 @@ foreach my $f ( keys %cds ) {
 }
 
 # create another instance
-my $test2_inst;
-warnings_like {
-    $test2_inst = $model->instance(root_class_name  => 'Master',
+my $test2_inst = $model->instance(root_class_name  => 'Master',
 				   instance_name    => $inst2 ,
 				   root_dir         => $root2 ,);
-    } [qr/deprecated/],
-  "obsolete warning" ;
 
-ok($inst2,"created second instance") ;
+ok($test2_inst,"created second instance") ;
 
 # access level1 to autoread it
 my $root_2   = $test2_inst  -> config_root ;
@@ -343,12 +399,8 @@ map { my $o = $_; s!$root1/zero!ini!;
   glob("$root1/*.ini") ;
 
 # create another instance to load ini files
-my $ini_inst ;
-warnings_like {
-    $ini_inst = $model->instance(root_class_name  => 'Master',
+my $ini_inst = $model->instance(root_class_name  => 'Master',
 				instance_name => 'ini_inst' );
-} [qr/deprecated/],
-  "obsolete warning" ;
 
 ok($ini_inst,"Created instance to load ini files") ;
 
@@ -376,12 +428,8 @@ map { my $o = $_; s!$root1/zero!pl!;
   } glob("$root1/*.pl") ;
 
 # create another instance to load pl files
-my $pl_inst ;
-warnings_like {
-    $pl_inst = $model->instance(root_class_name  => 'Master',
+my $pl_inst = $model->instance(root_class_name  => 'Master',
 				instance_name => 'pl_inst' );
-} [qr/deprecated/],
-  "obsolete warning" ;
 
 ok($pl_inst,"Created instance to load pl files") ;
 
@@ -396,8 +444,53 @@ my $scratch_i = $model->instance(root_class_name  => 'FromScratch',
 				 instance_name => 'scratch_inst',
 				 root_dir => $root3 ,
 				);
+
 ok($scratch_i,"Created instance from scratch to load cds files") ;
 
 $scratch_i->config_root->load("aa=toto") ;
 $scratch_i -> write_back ;
 ok ( -e "$root3/$conf_dir/scratch_inst.cds", "wrote cds config file") ;
+
+# create model for simple RW class
+
+my $cdswf = $model->instance(root_class_name  => 'CdsWithFile',
+			     instance_name => 'cds_with_file_inst',
+			     root_dir => $root3 ,
+			    );
+ok($cdswf,"Created instance to load custom cds file") ;
+
+$cdswf->config_root->load("aa=toto2") ;
+my $expect = 'aa=toto2 -
+' ;
+is($cdswf->config_root->dump_tree, $expect, "check dump" );
+
+$cdswf -> write_back ;
+
+my $toto_conf  = "$root3/$conf_dir/toto.conf" ;
+copy("$root3/$conf_dir/scratch_inst.cds", $toto_conf)
+  or die "can't copy scratch_inst.cds to toto.conf:$!" ;
+
+my $ctoto = $model->instance(root_class_name  => 'SimpleRW',
+			     instance_name => 'custom_toto',
+			     root_dir => $root3 ,
+			    );
+ok($ctoto,"Created instance to load custom custom toto file") ;
+
+is($ctoto->config_root->dump_tree, $expect, "check dump" );
+$ctoto->config_root->load("aa=toto3") ;
+
+
+
+$ctoto -> write_back ;
+
+map {is($result{simple_rw}{$_},'wr_root/test3//etc/test/toto.conf',
+	"Check Simple_Rw cb file argument ($_)")} 
+  qw/rfile wfile/ ;
+
+open(TOTO,$toto_conf) || die "Can't open $toto_conf:$!" ;
+my @totolines= <TOTO> ;
+close TOTO;
+
+is_deeply(\@totolines,["aa=toto3 -\n"],"checked file written by simpleRW") ;
+
+

@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2008-10-13 16:40:22 +0200 (Mon, 13 Oct 2008) $
-# $Revision: 775 $
+# $Date: 2009-03-27 10:44:14 +0100 (Fri, 27 Mar 2009) $
+# $Revision: 905 $
 
 #    Copyright (c) 2005-2007 Dominique Dumont.
 #
@@ -32,7 +32,7 @@ use strict;
 use base qw/Config::Model::WarpedThing/ ;
 
 use vars qw($VERSION) ;
-$VERSION = sprintf "1.%04d", q$Revision: 775 $ =~ /(\d+)/;
+$VERSION = sprintf "1.%04d", q$Revision: 905 $ =~ /(\d+)/;
 
 =head1 NAME
 
@@ -654,7 +654,7 @@ sub get_help {
     my $on_value = shift ;
     return $help->{$on_value} if defined $help and defined $on_value ;
 
-    return undef ;
+    return ;
 }
 
 =head2 clear

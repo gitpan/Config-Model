@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2009-02-24 13:34:40 +0100 (Tue, 24 Feb 2009) $
-# $Revision: 862 $
+# $Date: 2009-04-17 13:39:18 +0200 (Fri, 17 Apr 2009) $
+# $Revision: 935 $
 
 #    Copyright (c) 2005-2009 Dominique Dumont.
 #
@@ -37,7 +37,7 @@ use warnings::register ;
 
 use vars qw/$VERSION/ ;
 
-$VERSION = sprintf "1.%04d", q$Revision: 862 $ =~ /(\d+)/;
+$VERSION = sprintf "1.%04d", q$Revision: 935 $ =~ /(\d+)/;
 
 use Carp qw/croak confess cluck/;
 
@@ -79,6 +79,11 @@ Pseudo root directory where to read I<and> write configuration files
 =item backend
 
 Specify which backend to use. See L</write_back ( ... )> for details
+
+=item skip_read
+
+When set, configuration files will not be read when creating
+configuration tree.
 
 =back
 
@@ -139,6 +144,7 @@ sub new {
 	 root_dir        =>  delete $args{root_dir},
 
 	 backend         =>  delete $args{backend} || '',
+	 skip_read       =>  delete $args{skip_read} || 0,
 	};
 
     my @left = keys %args ;
@@ -197,7 +203,8 @@ sub reset_config {
     $self->{tree} = Config::Model::Node
       -> new ( config_class_name =>$self->{root_class_name},
 	       instance => $self,
-	       config_model => $self->{config_model}
+	       config_model => $self->{config_model},
+	       skip_read  => $self->{skip_read},
 	     );
 
     return $self->{tree} ;
@@ -206,7 +213,7 @@ sub reset_config {
 
 =head2 config_model()
 
-Returns the model of the configuration tree.
+Returns the model (L<Config::Model> object) of the configuration tree.
 
 =cut
 
