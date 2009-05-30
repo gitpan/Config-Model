@@ -1,6 +1,6 @@
 ---
 name: Config-Model
-version: 0.635
+version: 0.636
 author:
   - Dominique Dumont (ddumont at cpan dot org)
 abstract: Edit and validate configuration data
@@ -10,6 +10,7 @@ resources:
 requires:
   Carp::Assert::More: 0
   Exception::Class: 0
+  IO::File: 0
   Log::Log4perl: 1.11
   Parse::RecDescent: 1.90.0
   Scalar::Util: 0
@@ -24,7 +25,7 @@ recommends:
 provides:
   Config::Model:
     file: lib/Config/Model.pm
-    version: 0.635
+    version: 0.636
   Config::Model::AnyId:
     file: lib/Config/Model/AnyId.pm
     version: 1.0914
@@ -33,7 +34,7 @@ provides:
     version: 1.0845
   Config::Model::AutoRead:
     file: lib/Config/Model/AutoRead.pm
-    version: 1.0935
+    version: 1.0967
   Config::Model::CheckList:
     file: lib/Config/Model/CheckList.pm
     version: 1.0905
@@ -79,7 +80,7 @@ provides:
     version: 1.0775
   Config::Model::Instance:
     file: lib/Config/Model/Instance.pm
-    version: 1.0935
+    version: 1.0968
   Config::Model::ListId:
     file: lib/Config/Model/ListId.pm
     version: 1.0861
@@ -119,7 +120,7 @@ provides:
   Config::Model::WizardHelper:
     file: lib/Config/Model/WizardHelper.pm
     version: 1.0790
-generated_by: Module::Build version 0.3
+generated_by: Module::Build version 0.33
 meta-spec:
-  url: http://module-build.sourceforge.net/META-spec-v1.2.html
-  version: 1.2
+  url: http://module-build.sourceforge.net/META-spec-v1.4.html
+  version: 1.4

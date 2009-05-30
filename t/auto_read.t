@@ -1,7 +1,7 @@
 # -*- cperl -*-
 # $Author: ddumont $
-# $Date: 2009-04-17 13:39:18 +0200 (Fri, 17 Apr 2009) $
-# $Revision: 935 $
+# $Date: 2009-05-13 18:06:57 +0200 (mer 13 mai 2009) $
+# $Revision: 950 $
 
 use ExtUtils::testlib;
 use Test::More tests => 56;
@@ -212,7 +212,7 @@ package SimpleRW ;
 
 sub read {
     my %args = @_;
-    $result{simple_rw}{rfile} = $args{file};
+    $result{simple_rw}{rfile} = $args{file_path};
     my $io = $args{io_handle} ;
     return 0 unless defined $io ;
     $args{object}->load($io->getlines);
@@ -221,7 +221,7 @@ sub read {
 
 sub write {
     my %args = @_;
-    $result{simple_rw}{wfile} = $args{file};
+    $result{simple_rw}{wfile} = $args{file_path};
 
     my $io = $args{io_handle} ;
     return 0 unless defined $io ;

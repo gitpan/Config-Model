@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2008-11-16 19:13:07 +0100 (Sun, 16 Nov 2008) $
-# $Revision: 800 $
+# $Date: 2009-04-28 13:37:56 +0200 (mar 28 avr 2009) $
+# $Revision: 945 $
 
 #    Copyright (c) 2005-2008 Dominique Dumont.
 #
@@ -45,7 +45,9 @@ my $build = Module::Build->new
 		      'Scalar::Util'      => 0, # provided by perl 5.8.0
 		      'Exception::Class'  => 0,
 		      'Carp::Assert::More' => 0,
-		      # removed Error: no longer needed
+		      # should be part of core perl since perl5.003007
+		      # but some do not have it 
+		      'IO::File'          => 0, 
 		     },
    build_requires => {
 		      'Config::Tiny'      => 0,

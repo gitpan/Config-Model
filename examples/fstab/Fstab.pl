@@ -1,5 +1,5 @@
 # $Author: ddumont $
-# $Date: 2008-03-11 18:07:20 +0100 (Tue, 11 Mar 2008) $
+# $Date: 2008-03-11 18:07:20 +0100 (mar, 11 mar 2008) $
 # $Name: not supported by cvs2svn $
 # $Revision: 539 $
 

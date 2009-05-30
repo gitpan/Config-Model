@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2009-04-17 13:39:18 +0200 (Fri, 17 Apr 2009) $
-# $Revision: 935 $
+# $Date: 2009-05-30 17:42:47 +0200 (sam 30 mai 2009) $
+# $Revision: 968 $
 
 #    Copyright (c) 2005-2009 Dominique Dumont.
 #
@@ -37,7 +37,7 @@ use warnings::register ;
 
 use vars qw/$VERSION/ ;
 
-$VERSION = sprintf "1.%04d", q$Revision: 935 $ =~ /(\d+)/;
+$VERSION = sprintf "1.%04d", q$Revision: 968 $ =~ /(\d+)/;
 
 use Carp qw/croak confess cluck/;
 
@@ -377,7 +377,8 @@ L<Config::Model::Loader> for more details
 sub load {
     my $self = shift ;
     my $loader = Config::Model::Loader->new ;
-    $loader->load(node => $self->{tree}, @_) ;
+    my %args = @_ eq 1 ? (step => $_[0]) : @_ ;
+    $loader->load(node => $self->{tree}, %args) ;
 }
 
 =head2 searcher ( )
