@@ -1,7 +1,7 @@
 # -*- cperl -*-
 # $Author: ddumont $
-# $Date: 2009-03-05 13:54:24 +0100 (jeu 05 mar 2009) $
-# $Revision: 873 $
+# $Date: 2009-06-22 14:02:02 +0200 (Mon, 22 Jun 2009) $
+# $Revision: 978 $
 
 use warnings FATAL => qw(all);
 
@@ -80,13 +80,13 @@ $model ->create_config_class
 				value_type => 'string',
 				convert    => 'lc',
 			      },
-		built_in_default => { type => 'leaf',
+		upstream_default => { type => 'leaf',
 				      value_type => 'string',
-				      built_in    => 'bi_def',
+				      built_in    => 'up_def',
 				    },
 		a_uniline  => { type => 'leaf',
 				value_type => 'uniline',
-				built_in    => 'bi_def',
+				built_in    => 'a_uniline_def',
 			      },
 		with_replace => {type => 'leaf',
 				 value_type => 'enum',
@@ -272,20 +272,20 @@ is( $value_with_help->get_help('b'), undef ,"test undef help");
 
 is( $value_with_help->fetch, undef, "test undef enum") ;
 
-print "Testing built_in default value\n" if $trace ;
+print "Testing upstream default value\n" if $trace ;
 
-my $bi_def = $root->fetch_element('built_in_default');
+my $up_def = $root->fetch_element('upstream_default');
 
-is( $bi_def->fetch,                undef,    "built_in actual value" );
-is( $bi_def->fetch_standard,       'bi_def' ,"built_in standard value" );
-is( $bi_def->fetch('built_in'),    'bi_def' ,"built_in actual value" );
-is( $bi_def->fetch('non_built_in'),undef ,   "non_built_in value" );
+is( $up_def->fetch,                undef,    "upstream actual value" );
+is( $up_def->fetch_standard,       'up_def' ,"upstream standard value" );
+is( $up_def->fetch('upstream_default'),    'up_def' ,"upstream actual value" );
+is( $up_def->fetch('non_upstream_default'),undef ,   "non_upstream value" );
 
-$bi_def->store('yada');
-is( $bi_def->fetch('built_in'),    'bi_def' ,"after store: built_in actual value" );
-is( $bi_def->fetch('non_built_in'),'yada' ,  "after store: non_built_in value" );
-is( $bi_def->fetch,                'yada',   "after store: built_in actual value" );
-is( $bi_def->fetch('standard'),    'bi_def' ,"after store: built_in standard value" );
+$up_def->store('yada');
+is( $up_def->fetch('upstream_default'),    'up_def' ,"after store: upstream actual value" );
+is( $up_def->fetch('non_upstream_default'),'yada' ,  "after store: non_upstream value" );
+is( $up_def->fetch,                'yada',   "after store: upstream actual value" );
+is( $up_def->fetch('standard'),    'up_def' ,"after store: upstream standard value" );
 
 ###
 

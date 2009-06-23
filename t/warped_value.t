@@ -1,7 +1,7 @@
 # -*- cperl -*-
 # $Author: ddumont $
-# $Date: 2009-03-05 13:54:24 +0100 (jeu 05 mar 2009) $
-# $Revision: 873 $
+# $Date: 2009-06-22 14:02:02 +0200 (Mon, 22 Jun 2009) $
+# $Revision: 978 $
 
 use warnings FATAL => qw(all);
 
@@ -487,11 +487,11 @@ is( $big_compute_obj->fetch,
     'reading slave->big_compute(b1)'
 );
 
-is( $rslave1->fetch_element('big_replace')->fetch('br1'),
+is( $rslave1->fetch_element('big_replace')->fetch(),
     'trad idx level1',
     'reading rslave1->big_replace(br1)');
 
-is( $rslave2->fetch_element('big_replace')->fetch('br1'),
+is( $rslave2->fetch_element('big_replace')->fetch(),
     'trad idx level2',
     'reading rslave2->big_replace(br1)');
 

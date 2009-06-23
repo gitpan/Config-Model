@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2009-03-27 10:44:14 +0100 (ven 27 mar 2009) $
-# $Revision: 905 $
+# $Date: 2009-06-22 14:02:02 +0200 (Mon, 22 Jun 2009) $
+# $Revision: 978 $
 
 #    Copyright (c) 2005-2007 Dominique Dumont.
 #
@@ -25,17 +25,17 @@ use warnings ;
 use strict;
 use Scalar::Util qw(weaken) ;
 use Data::Dumper ();
-use Parse::RecDescent ;
 use Config::Model::Exception ;
 use Config::Model::ValueComputer ;
 use Config::Model::IdElementReference ;
+use Log::Log4perl qw(get_logger :levels);
 use Carp ;
 
 use base qw/Config::Model::WarpedThing/ ;
 
 use vars qw($VERSION) ;
 
-$VERSION = sprintf "1.%04d", q$Revision: 905 $ =~ /(\d+)/;
+$VERSION = sprintf "1.%04d", q$Revision: 978 $ =~ /(\d+)/;
 
 =head1 NAME
 
@@ -77,15 +77,18 @@ a number, an integer or a string
 =item *
 
 default parameter: a value can have a default value specified during
-the construction.
+the construction. This default value will be written in the target
+configuration file. (C<default> parameter)
 
 =item *
 
-built-in default parameter: specifies the default value that is built
-in the application to be configured. This built-in default value will
-not written in the configuration files. Only the C<fetch_standard>
-method will return the built-in default value. This may be used for
-audit purpose.
+upstream default parameter: specifies a default value that will be
+used by the application when no informations is provided in the
+configuration file. This upstream_default value will not written in
+the configuration files. Only the C<fetch_standard> method will return
+the builtin value. This parameter was previously refered as
+C<built_in> value. This may be used for audit
+purpose. (C<upstream_default> parameter)
 
 =item *
 
@@ -119,8 +122,8 @@ From the lowest default level to the "highest":
 
 =item *
 
-C<built_in>: The value is knows in the application, but is not written
-in the configuration file.
+C<upstream_default>: The value is knows in the application, but is not
+written in the configuration file.
 
 =item *
 
@@ -168,7 +171,7 @@ C<uniline>, C<string>. Mandatory. See L</"Value types">.
 
 Specify the default value (optional)
 
-=item built_in
+=item upstream_default
 
 Specify a built in default value (optional)
 
@@ -178,16 +181,24 @@ Specify a built in default value (optional)
 sub set_default {
     my ($self,$arg_ref) = @_ ;
 
-    if (defined $arg_ref->{default} and defined $arg_ref->{built_in}) {
+    if (exists $arg_ref->{built_in}) {
+      $arg_ref->{upstream_default} = delete $arg_ref->{built_in};
+      warn $self->name," warning: deprecated built_in parameter, ",
+	"use upstream_default\n";
+    }
+
+    if (    defined $arg_ref->{default} 
+	and defined $arg_ref->{upstream_default}
+       ) {
 	Config::Model::Exception::Model
 	    -> throw (
 		      object => $self,
-		      error => "Cannot specify both 'built_in' and "
+		      error => "Cannot specify both 'upstream_default' and "
 		      ."'default' parameters",
 		     ) 
     }
 
-    foreach my $item (qw/built_in default/) {
+    foreach my $item (qw/upstream_default default/) {
 	my $def    = delete $arg_ref->{$item} ;
 
 	next unless defined $def ;
@@ -202,7 +213,8 @@ sub set_default {
 		     ) 
 	      unless $ok ;
 
-	print "Set $item value for ",$self->name,"\n" if $::debug ;
+	get_logger("Tree::Element::Value")
+	  ->debug("Set $item value for ",$self->name,"") ;
 
 	$self->{$item} = $def ;
     }
@@ -426,9 +438,8 @@ sub setup_enum_choice {
 
     my @choice = ref $_[0] ? @{$_[0]} : @_ ;
 
-    print $self->name, " setup_enum_choice:\n\twith '", 
-      join("','",@choice),"'\n"
-	if $::debug ;
+    get_logger("Tree::Element::Value")
+      ->debug($self->name, " setup_enum_choice:\n\twith '",join("','",@choice));
 
     # store all enum values in a hash. This way, checking
     # whether a value is present in the enum set is easier
@@ -481,7 +492,7 @@ ref. Example:
 
 
 my @warp_accessible_params =  qw/min max mandatory default 
-                             choice convert built_in replace/ ;
+                             choice convert upstream_default replace/ ;
 
 my @accessible_params =  (@warp_accessible_params, 
 			  qw/index_value element_name value_type
@@ -559,9 +570,11 @@ sub set_properties {
     # merge data passed to the constructor with data passed to set_properties
     my %args = (%{$self->{backup}},@_ );
 
-    print "'".$self->name."' set_properties called with \n",
-      Data::Dumper->Dump([\%args], ['set_arg'])
-	  if $::debug ;
+    my $logger = get_logger("Tree::Element::Value") ;
+    if ($logger->is_debug) {
+	$logger->debug("'".$self->name."' set_properties called with \n",
+		       Data::Dumper->Dump([\%args], ['set_arg']));
+    }
 
     # this code may be dead as warping value_type is no longer
     # authorized. But we keep it in case this has to be authorized
@@ -595,8 +608,7 @@ sub set_properties {
       qw/min max mandatory help replace/;
 
     $self->set_value_type     ( \%args );
-    $self->set_default        ( \%args ) if (    exists $args{default} 
-					      or exists $args{built_in} );
+    $self->set_default        ( \%args );
     $self->set_compute        ( \%args ) if defined $args{compute};
     $self->set_convert        ( \%args ) if defined $args{convert};
 
@@ -825,10 +837,9 @@ sub warp_them
         next unless defined $warped ; # $warped is a weak ref and may vanish
 
         # pure warp of object
-        print "warp_them: (value ", 
-          defined $value ? $value : 'undefined',
-            ") warping '",$warped->name,"'\n" 
-              if $::debug;
+        get_logger("Tree::Element::Warper")
+	  ->debug("warp_them: (value ", (defined $value ? $value : 'undefined'),
+		  ") warping '",$warped->name );
         $warped->warp($value,$warp_index) ;
       }
   }
@@ -939,7 +950,7 @@ the value object (as declared in the model unless they were warped):
 
 =item default 
 
-=item built_in
+=item upstream_default
 
 =item index_value
 
@@ -958,6 +969,11 @@ foreach my $datum (@accessible_params) {
 	my $self= shift;
 	return $self->{$datum};
     } ;
+}
+
+sub built_in { 
+  carp "warning: built_in sub is deprecated, use upstream_default";
+  goto &upstream_default ;
 }
 
 =head2 name()
@@ -1310,8 +1326,10 @@ sub load_data {
 		     ) ;
     }
     else {
-	print "Value load_data (",$self->location,") will store value $data\n"
-	  if $::verbose ;
+	my $l = get_logger("Tree::Element::Value");
+	if ($l->is_info) {
+	    $l->info("Value load_data (",$self->location,") will store value $data");
+	}
 	$self->store($data) ;
     }
 }
@@ -1347,7 +1365,7 @@ default value or a built-in default value.
 sub fetch_standard {
     my $self = shift ;
     my $pre_fetch = $self->_pre_fetch ;
-    return defined $pre_fetch ? $pre_fetch : $self->{built_in} ;
+    return defined $pre_fetch ? $pre_fetch : $self->{upstream_default} ;
 }
 
 sub _init {
@@ -1406,6 +1424,14 @@ Fetch value from leaf element without checking the value.
 
 =cut
 
+my %old_mode = ( built_in => 'upstream_default',
+		 non_built_in => 'non_upstream_default',
+	       );
+
+my %accept_mode = map { ( $_ => 1) } 
+                      qw/custom standard preset default upstream_default
+			non_upstream_default allow_undef/;
+
 sub fetch_no_check {
     my $self = shift ;
     my $mode = shift || '';
@@ -1418,18 +1444,31 @@ sub fetch_no_check {
 	$data =  $self->migrate_value ;
     }
 
+    foreach my $k (keys %old_mode) {
+	next unless $mode eq $k;
+	$mode = $old_mode{$k} ;
+	carp $self->location," warning: deprecated mode parameter: $k, ",
+	    "expected $mode\n";
+    }
+
+    if ($mode and not defined $accept_mode{$mode}) {
+	croak "fetch_no_check: expected ", 
+	    join (' or ',keys %accept_mode),
+		" parameter, not $mode" ;
+    }
+
     if ($mode eq 'custom') {
 	no warnings "uninitialized" ;
 	my $cust ;
-	$cust = $data if $data ne $std and $data ne $self->{built_in} ;
+	$cust = $data if $data ne $std and $data ne $self->{upstream_default} ;
 	return $cust;
     }
 
-    if ($mode eq 'non_built_in') {
+    if ($mode eq 'non_upstream_default') {
 	no warnings "uninitialized" ;
-	my $nbu = defined $data && $data ne $self->{built_in} ? $data 
-	        : defined $std  && $std  ne $self->{built_in} ? $std 
-                :                                                undef ;
+	my $nbu = defined $data && $data ne $self->{upstream_default} ? $data 
+	        : defined $std  && $std  ne $self->{upstream_default} ? $std 
+                :                                                      undef ;
 
 	return $nbu;
     }
@@ -1437,8 +1476,8 @@ sub fetch_no_check {
     return $mode eq 'preset'                   ? $self->{preset}
          : $mode eq 'default'                  ? $self->{default}
          : $mode eq 'standard' && defined $std ? $std 
-         : $mode eq 'standard'                 ? $self->{built_in}
-	 : $mode eq 'built_in'                 ? $self->{built_in}
+         : $mode eq 'standard'                 ? $self->{upstream_default}
+	 : $mode eq 'upstream_default'         ? $self->{upstream_default}
 	 : defined $data                       ? $data
          :                                       $std ;
 
@@ -1479,14 +1518,14 @@ The preset or computed or default or built in value.
 
 The default value (defined by the configuration model)
 
-=item built_in
+=item upstream_default
 
-The built_in value. (defined by the configuration model)
+The upstream_default value. (defined by the configuration model)
 
-=item non_built_in
+=item non_upstream_default
 
 The custom or preset or computed or default value. Will return undef
-if either of this value is identical to the built_in value. This
+if either of this value is identical to the upstream_default value. This
 feature is useful to reduce data to write in configuration file.
 
 =item allow_undef
@@ -1505,6 +1544,12 @@ sub fetch {
     my $inst = $self->instance ;
 
     my $value = $self->fetch_no_check($mode) ;
+
+    if ($mode and not defined $accept_mode{$mode}) {
+	croak "fetch: expected ", 
+	    join (' or ',keys %accept_mode),
+		" parameter, not $mode" ;
+    }
 
     if (defined $value) {
 	# check validity (all modes)

@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2009-05-30 17:40:17 +0200 (sam 30 mai 2009) $
-# $Revision: 967 $
+# $Date: 2009-06-22 14:02:02 +0200 (Mon, 22 Jun 2009) $
+# $Revision: 978 $
 
 #    Copyright (c) 2005-2009 Dominique Dumont.
 #
@@ -27,6 +27,7 @@ use warnings FATAL => qw/all/;
 use Config::Model::Exception ;
 use Data::Dumper ;
 use File::Path ;
+use IO::File ;
 use UNIVERSAL ;
 use Storable qw/dclone/ ;
 use Log::Log4perl qw(get_logger :levels);
@@ -37,7 +38,7 @@ $has_augeas = 0 if $@ ;
 
 use base qw/Config::Model::AnyThing/ ;
 
-our $VERSION = sprintf "1.%04d", q$Revision: 967 $ =~ /(\d+)/;
+our $VERSION = sprintf "1.%04d", q$Revision: 978 $ =~ /(\d+)/;
 
 my %suffix_table = qw/cds_file .cds perl_file .pl ini_file .ini xml_file .xml/ ;
 

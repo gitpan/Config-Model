@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2008-07-04 16:14:06 +0200 (Fri, 04 Jul 2008) $
-# $Revision: 707 $
+# $Date: 2009-06-22 14:02:02 +0200 (Mon, 22 Jun 2009) $
+# $Revision: 978 $
 
 #    Copyright (c) 2007 Dominique Dumont.
 #
@@ -29,7 +29,7 @@ use Config::Model::Exception ;
 use Config::Model::ObjTreeScanner ;
 
 use vars qw($VERSION);
-$VERSION = sprintf "1.%04d", q$Revision: 707 $ =~ /(\d+)/;
+$VERSION = sprintf "1.%04d", q$Revision: 978 $ =~ /(\d+)/;
 
 =head1 NAME
 
@@ -124,7 +124,7 @@ sub dump_as_data {
     my $std_cb = sub {
         my ( $scanner, $data_r, $obj, $element, $index, $value_obj ) = @_;
 
-	$$data_r =  $full ? $value_obj->fetch ('non_built_in')
+	$$data_r =  $full ? $value_obj->fetch ('non_upstream_default')
                  :          $value_obj->fetch_custom ;
     };
 

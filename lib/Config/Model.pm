@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2009-05-30 17:37:25 +0200 (sam 30 mai 2009) $
-# $Revision: 966 $
+# $Date: 2009-06-22 14:02:02 +0200 (Mon, 22 Jun 2009) $
+# $Revision: 978 $
 
 #    Copyright (c) 2005-2009 Dominique Dumont.
 #
@@ -36,7 +36,7 @@ use Config::Model::Instance ;
 # this class holds the version number of the package
 use vars qw($VERSION @status @level @experience_list %experience_index) ;
 
-$VERSION = '0.636';
+$VERSION = '0.637';
 
 
 =head1 NAME
@@ -146,7 +146,7 @@ sub new {
     my $skip =  $args{skip_include} || 0 ;
 
     my $self = { model_dir => $args{model_dir},
-		 legacy    => $args{legacy}  || 'die' ,
+		 legacy    => $args{legacy}  || 'warn' ,
 		 skip_include => $skip ,
 	       } ;
     bless $self,$type ;
@@ -682,25 +682,25 @@ sub translate_legacy_info {
 
     #translate legacy warp information
     if (defined $info->{warp}) {
-	$self->translate_warp_info($config_class_name,$elt_name, $info->{warp});
+	$self->translate_warp_info($config_class_name,$elt_name, $info->{type}, $info->{warp});
     }
 
     $self->translate_cargo_info($config_class_name,$elt_name, $info);
 
     if (    defined $info->{cargo} 
 	and defined $info->{cargo}{warp}) {
-	$self->translate_warp_info($config_class_name,$elt_name, 
+	$self->translate_warp_info($config_class_name,$elt_name, $info->{cargo}{type} ,
 				   $info->{cargo}{warp});
     }
 
     if (   defined $info->{cargo} 
         && defined $info->{cargo}{type} 
 	&& $info->{cargo}{type} eq 'warped_node') {
-	$self->translate_warp_info($config_class_name,$elt_name, $info->{cargo});
+	$self->translate_warp_info($config_class_name,$elt_name, 'warped_node',$info->{cargo});
     }
 
     if (defined $info->{type} && $info->{type} eq 'warped_node') {
-	$self->translate_warp_info($config_class_name,$elt_name, $info);
+	$self->translate_warp_info($config_class_name,$elt_name, 'warped_node',$info);
     }
 
     # compute cannot be warped
@@ -749,6 +749,14 @@ sub translate_legacy_info {
 		$self->translate_id_default_info($config_class_name,$elt_name, $rule_effect);
 	    }
 	}
+    }
+
+    if ( defined $info->{type} and ($info->{type} eq 'leaf')) {
+	$self->translate_legacy_builtin($config_class_name, $info, $info, );
+    }
+
+    if ( defined $info->{type} and ($info->{type} eq 'check_list')) {
+	$self->translate_legacy_built_in_list($config_class_name, $info, $info, );
     }
 
     print Data::Dumper->Dump([$info ] , ['translated_'.$elt_name ] ) ,"\n" if $::debug;
@@ -927,10 +935,7 @@ sub translate_id_auto_create {
 
 # internal: translate warp information into 'boolean expr' => { ... }
 sub translate_warp_info {
-    my $self = shift ;
-    my $config_class_name = shift ;
-    my $elt_name = shift ;
-    my $warp_info = shift ;
+    my ($self,$config_class_name,$elt_name,$type,$warp_info) = @_ ;
 
     print "translate_warp_info $elt_name input:\n", 
       Data::Dumper->Dump( [$warp_info ] , [qw/warp_info/ ]) ,"\n"
@@ -943,7 +948,7 @@ sub translate_warp_info {
 
     my $multi_follow =  @warper_items > 1 ? 1 : 0;
 
-    my $rules = $self->translate_rules_arg($config_class_name,$elt_name,
+    my $rules = $self->translate_rules_arg($config_class_name,$elt_name,$type,
 					   \@warper_items, $warp_info->{rules});
 
     $warp_info->{follow} = $follow;
@@ -1028,11 +1033,8 @@ sub translate_follow_arg {
 }
 
 sub translate_rules_arg {
-    my $self = shift ;
-    my $config_class_name = shift ;
-    my $elt_name = shift ;
-    my $warper_items = shift ;
-    my $raw_rules = shift ;
+    my ($self,$config_class_name, $elt_name,$type, $warper_items,
+	$raw_rules) = @_ ;
 
     my $multi_follow =  @$warper_items > 1 ? 1 : 0;
 
@@ -1078,13 +1080,50 @@ sub translate_rules_arg {
     }
 
     for (my $idx=1; $idx < @rules ; $idx += 2) {
-	$self->translate_legacy_permission($config_class_name, $rules[$idx], $rules[$idx])
-	    if (ref $rules[$idx] eq 'HASH') ; # other cases are illegal and trapped later
+	next unless (ref $rules[$idx] eq 'HASH') ; # other cases are illegal and trapped later
+	$self->translate_legacy_permission($config_class_name, $rules[$idx], $rules[$idx]);
+	next unless defined $type and $type eq 'leaf';
+	$self->translate_legacy_builtin($config_class_name, $rules[$idx], $rules[$idx]);
      }
 
     return \@rules ;
 }
 
+sub translate_legacy_builtin {
+    my ($self, $config_class_name, $model, $raw_model ) = @_  ;
+
+    my $raw_builtin_default = delete $raw_model -> {built_in} ;
+    return unless defined $raw_builtin_default ;
+
+    print Data::Dumper->Dump([$raw_model ] , ['builtin to translate' ] ) ,"\n" 
+	if $::debug;
+
+    $self->legacy("$config_class_name: parameter 'built_in' is deprecated "
+                  ."in favor of 'upstream_default'");
+
+    $model -> {upstream_default} = $raw_builtin_default ;
+
+    print Data::Dumper->Dump([$model ] , ['translated_builtin' ] ) ,"\n" 
+	if $::debug;
+}
+
+sub translate_legacy_built_in_list {
+    my ($self, $config_class_name, $model, $raw_model ) = @_  ;
+
+    my $raw_builtin_default = delete $raw_model -> {built_in_list} ;
+    return unless defined $raw_builtin_default ;
+
+    print Data::Dumper->Dump([$raw_model ] , ['built_in_list to translate' ] ) ,"\n" 
+	if $::debug;
+
+    $self->legacy("$config_class_name: parameter 'built_in_list' is deprecated "
+                  ."in favor of 'upstream_default_list'");
+
+    $model -> {upstream_default_list} = $raw_builtin_default ;
+
+    print Data::Dumper->Dump([$model ] , ['translated_built_in_list' ] ) ,"\n" 
+	if $::debug;
+}
 
 =item include
 
