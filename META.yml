@@ -1,6 +1,6 @@
 ---
 name: Config-Model
-version: 0.637
+version: 0.638
 author:
   - Dominique Dumont (ddumont at cpan dot org)
 abstract: Edit and validate configuration data
@@ -25,7 +25,7 @@ recommends:
 provides:
   Config::Model:
     file: lib/Config/Model.pm
-    version: 0.637
+    version: 0.638
   Config::Model::AnyId:
     file: lib/Config/Model/AnyId.pm
     version: 1.0914
@@ -113,7 +113,7 @@ provides:
     version: 1.0905
   Config::Model::WarpedNode:
     file: lib/Config/Model/WarpedNode.pm
-    version: 1.0814
+    version: 1.0993
   Config::Model::WarpedThing:
     file: lib/Config/Model/WarpedThing.pm
     version: 1.0729

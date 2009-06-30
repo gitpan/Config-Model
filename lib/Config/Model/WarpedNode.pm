@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2008-12-16 14:18:45 +0100 (Tue, 16 Dec 2008) $
-# $Revision: 814 $
+# $Date: 2009-06-29 14:17:40 +0200 (Mon, 29 Jun 2009) $
+# $Revision: 993 $
 
 #    Copyright (c) 2005-2007 Dominique Dumont.
 #
@@ -32,7 +32,7 @@ use Config::Model::Exception ;
 use Data::Dumper ();
 
 use vars qw($VERSION $AUTOLOAD) ;
-$VERSION = sprintf "1.%04d", q$Revision: 814 $ =~ /(\d+)/;
+$VERSION = sprintf "1.%04d", q$Revision: 993 $ =~ /(\d+)/;
 
 =head1 NAME
 
@@ -393,6 +393,11 @@ sub load_data {
 
     $self->get_actual_node->load_data($h) ;
 
+}
+
+sub is_auto_write_for_type {
+    my $self = shift ;
+    $self->get_actual_node->is_auto_write_for_type(@_) ;
 }
 
 1;

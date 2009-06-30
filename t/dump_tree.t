@@ -1,7 +1,7 @@
 # -*- cperl -*-
 # $Author: ddumont $
-# $Date: 2009-03-05 13:54:24 +0100 (Thu, 05 Mar 2009) $
-# $Revision: 873 $
+# $Date: 2009-06-29 14:17:40 +0200 (Mon, 29 Jun 2009) $
+# $Revision: 993 $
 
 use ExtUtils::testlib;
 use Test::More tests => 13;
@@ -218,7 +218,7 @@ is_deeply( [split /\n/,$cds], [split /\n/,$expect],
 my $tm = $root -> fetch_element('tree_macro') ;
 map { $tm->store($_);} qw/XY XZ mXY XY mXY XZ/;
 
-$cds = $root->dump_tree( full_dump => 1 );
+$cds = $root->dump_tree( full_dump => 1 ,skip_auto_write => 'cds_file');
 print "cds string:\n$cds" if $trace  ;
 
 like($cds,qr/hidden value/,"check that hidden value is shown (macro=XZ)") ;
