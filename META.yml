@@ -1,31 +1,33 @@
 ---
 name: Config-Model
-version: 0.638
+version: 0.639
 author:
   - Dominique Dumont (ddumont at cpan dot org)
 abstract: Edit and validate configuration data
 license: lgpl
 resources:
   license: http://opensource.org/licenses/lgpl-license.php
-requires:
-  Carp::Assert::More: 0
-  Exception::Class: 0
-  IO::File: 0
-  Log::Log4perl: 1.11
-  Parse::RecDescent: 1.90.0
-  Scalar::Util: 0
-  Term::ReadLine: 0
 build_requires:
   Config::Tiny: 0
   Test::Exception: 0
   Test::More: 0
   Test::Warn: 0.11
+requires:
+  Carp::Assert::More: 0
+  Exception::Class: 0
+  IO::File: 0
+  Log::Log4perl: 1.11
+  Parse::RecDescent: v1.90.0
+  Scalar::Util: 0
+  Term::ReadLine: 0
 recommends:
   Config::Tiny: 0
+configure_requires:
+  Module::Build: 0.35
 provides:
   Config::Model:
     file: lib/Config/Model.pm
-    version: 0.638
+    version: 0.639
   Config::Model::AnyId:
     file: lib/Config/Model/AnyId.pm
     version: 1.0914
@@ -98,7 +100,7 @@ provides:
     version: 1.0641
   Config::Model::Searcher:
     file: lib/Config/Model/Searcher.pm
-    version: 1.0905
+    version: 1.1003
   Config::Model::SimpleUI:
     file: lib/Config/Model/SimpleUI.pm
     version: 1.0541
@@ -116,11 +118,11 @@ provides:
     version: 1.0993
   Config::Model::WarpedThing:
     file: lib/Config/Model/WarpedThing.pm
-    version: 1.0729
+    version: 1.1004
   Config::Model::WizardHelper:
     file: lib/Config/Model/WizardHelper.pm
-    version: 1.0790
-generated_by: Module::Build version 0.33
+    version: 1.1008
+generated_by: Module::Build version 0.35
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
   version: 1.4
