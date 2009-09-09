@@ -1,7 +1,7 @@
 # -*- cperl -*-
 # $Author: ddumont $
-# $Date: 2008-04-08 18:22:52 +0200 (Tue, 08 Apr 2008) $
-# $Revision: 595 $
+# $Date: 2009-09-09 18:07:27 +0200 (Wed, 09 Sep 2009) $
+# $Revision: 1026 $
 
 # this file is used by test script
 
@@ -94,7 +94,7 @@
    name => 'Master',
    permission => [ [qw/tree_macro warp/] => 'advanced'] ,
    class_description => "Master description",
-   level      => [ [qw/hash_a tree_macro int_v/] => 'important' ],
+   level      => [ [qw/lista hash_a tree_macro int_v/] => 'important' ],
    element => [
 	       std_id => { type => 'hash',
 			   index_type  => 'string',

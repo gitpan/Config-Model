@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2009-07-30 15:13:21 +0200 (Thu, 30 Jul 2009) $
-# $Revision: 1008 $
+# $Date: 2009-09-09 18:07:27 +0200 (Wed, 09 Sep 2009) $
+# $Revision: 1026 $
 
 #    Copyright (c) 2006-2009 Dominique Dumont.
 #
@@ -30,7 +30,7 @@ use Log::Log4perl qw(get_logger :levels);
 use Config::Model::Exception ;
 
 use vars qw($VERSION);
-$VERSION = sprintf "1.%04d", q$Revision: 1008 $ =~ /(\d+)/;
+$VERSION = sprintf "1.%04d", q$Revision: 1026 $ =~ /(\d+)/;
 
 =head1 NAME
 
@@ -163,7 +163,8 @@ sub new {
     }
 
     # handle optional list_element_cb parameter
-    $cb_hash{list_element_cb} = delete $args{list_element_cb} || $cb_hash{hash_element_cb} ;
+    $cb_hash{list_element_cb} =  delete $args{list_element_cb} 
+                              || $cb_hash{hash_element_cb} ;
 
     # optional call-back parameter
     $cb_hash{check_list_element_cb} 
@@ -188,6 +189,7 @@ sub new {
       -> new ( fallback        => 'all' ,
 	       experience      => $user_scan_args{experience} ,
 	       hash_element_cb => sub { $self -> hash_element_cb (@_) },
+	       list_element_cb => sub { $self -> hash_element_cb (@_) },
 	       node_content_cb => sub { $self -> node_content_cb (@_) },
 	       leaf_cb         => sub { $self -> leaf_cb (@_) },
 	     );

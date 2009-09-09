@@ -1,6 +1,6 @@
 ---
 name: Config-Model
-version: 0.639
+version: 0.640
 author:
   - Dominique Dumont (ddumont at cpan dot org)
 abstract: Edit and validate configuration data
@@ -27,7 +27,7 @@ configure_requires:
 provides:
   Config::Model:
     file: lib/Config/Model.pm
-    version: 0.639
+    version: 0.640
   Config::Model::AnyId:
     file: lib/Config/Model/AnyId.pm
     version: 1.0914
@@ -121,7 +121,7 @@ provides:
     version: 1.1004
   Config::Model::WizardHelper:
     file: lib/Config/Model/WizardHelper.pm
-    version: 1.1008
+    version: 1.1026
 generated_by: Module::Build version 0.35
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
