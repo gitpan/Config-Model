@@ -1,3 +1,25 @@
+2010-01-19  Dominique Dumont  <dominique.dumont@hp.com> v0.641
+
+	* lib/Config/Model/Node.pm: Ported to Log4Perl (Tree::Node class)
+
+	* lib/Config/Model/AutoRead.pm: Doc updates on plugin mechanism
+	for read/write classes
+
+	* lib/Config/Model/Value.pm: model example updates
+
+	* lib/Config/Model/Dumper.pm (dump_tree): Correctly quote values
+	in list elements
+
+2009-12-01  Dominique Dumont  <dominique.dumont@hp.com>
+
+	* lib/Config/Model/HashId.pm: Ported to
+	Log4Perl (Tree::Element::Hash class)
+
+2009-09-25  Dominique Dumont  <domi.dumont@free.fr>
+
+	* lib/Config/Model/Instance.pm (write_back): Croak if no
+	write_back callbacks were registered
+
 2009-09-09  Dominique Dumont  <dominique.dumont@hp.com> v0.640
 
 	* lib/Config/Model/WizardHelper.pm (new): Correctly scan list

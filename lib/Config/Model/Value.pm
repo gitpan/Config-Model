@@ -1,8 +1,8 @@
 # $Author: ddumont $
-# $Date: 2009-06-22 14:02:02 +0200 (Mon, 22 Jun 2009) $
-# $Revision: 978 $
+# $Date: 2010-01-16 19:15:16 +0100 (sam. 16 janv. 2010) $
+# $Revision: 1042 $
 
-#    Copyright (c) 2005-2007 Dominique Dumont.
+#    Copyright (c) 2005-2010 Dominique Dumont.
 #
 #    This file is part of Config-Model.
 #
@@ -35,7 +35,7 @@ use base qw/Config::Model::WarpedThing/ ;
 
 use vars qw($VERSION) ;
 
-$VERSION = sprintf "1.%04d", q$Revision: 978 $ =~ /(\d+)/;
+$VERSION = sprintf "1.%04d", q$Revision: 1042 $ =~ /(\d+)/;
 
 =head1 NAME
 
@@ -48,18 +48,24 @@ Config::Model::Value - Strongly typed configuration value
   (
    name => "SomeClass",
    element => [
-     country  => { type =>       'leaf',
-                   value_type => 'enum',
-                   choice =>      [qw/France US/]
-                 },
-     president => { type =>        'leaf',
-                    value_type => 'string',
-                    warp => [ '- country', 
-                             France => { default => 'Chirac' },
-                             US     => { default => 'Bush' }]
-                  },
-     ]
-  );
+     country => { 
+       type =>       'leaf',
+       value_type => 'enum',
+       choice =>      [qw/France US/]
+     },
+     president => { 
+       type =>        'leaf',
+       value_type => 'string',
+       warp => { 
+         follow => { c => '- country'}, 
+         rules  => {
+           '$c eq "France"' => { default => 'Chirac' },
+           '$c eq "US"'     => { default => 'Bush' }
+         }
+       },
+     }
+   ]
+ );
 
 
 =head1 DESCRIPTION
@@ -740,17 +746,18 @@ For instance if you declare 2 C<Value> element this way:
        type => 'leaf',
        value_type => 'enum',
        choice => [qw/PAL NTSC SECAM/]  
-       warp => { follow => '- country', # this points to the warp master
-                 rules => { US     => { default => 'NTSC'  },
-                            France => { default => 'SECAM' },
-                            Japan  => { default => 'NTSC'  },
-                            Europe => { default => 'PAL'   },
-                          }
-               }
-       ],
+       warp => { 
+         follow => { c => '- country' }, # this points to the warp master
+         rules => { 
+           '$c eq "US"'     => { default => 'NTSC'  },
+           '$c eq "France"' => { default => 'SECAM' },
+           '$c eq "Japan"'  => { default => 'NTSC'  },
+           '$c eq "Europe"' => { default => 'PAL'   },
+         }
+       }
      },
    ]
-  );
+ );
 
 Setting C<country> element to C<US> will mean that C<tv_standard> has
 a default value set to C<NTSC> by the warp mechanism.
@@ -761,33 +768,15 @@ possible values of an enum element:
  state => {
       type => 'leaf',
       value_type => 'enum', # example is admittedly silly
-      warp => [ follow => '- country',
-                rules => { US     => { choice => ['Kansas', 'Texas'    ]},
-                           Europe => { choice => ['France', 'Spain'    ]},
-                           Japan  => { choice => ['Honshu', 'Hokkaido' ]}
-                         }
-      ]
- }
-
-Note that the C<state> element is not available while C<country> is
-undefined.
-
-As syntactic sugar, similar rules can be grouped within an array ref
-instead of a hash ref. I.e., you can specify
-
-                 rules => [ 
-                            [qw/UK Germany Italy/] => { default => 'PAL'  },
-                            US     => { default => 'NTSC'  },
-                          ]
-
-instead of :
-
-                 rules => { 
-                            UK      => { default => 'PAL'  },
-                            Germany => { default => 'PAL'  },
-                            Italy   => { default => 'PAL'  },
-                            US      => { default => 'NTSC'  },
-                          }
+      warp =>{ 
+         follow => { c => '- country' },
+         rules => { 
+           '$c eq "US"'     => { choice => ['Kansas', 'Texas'    ]},
+           '$c eq "Europe"' => { choice => ['France', 'Spain'    ]},
+           '$c eq "Japan"'  => { choice => ['Honshu', 'Hokkaido' ]}
+         }
+      }
+   }
 
 =cut
 

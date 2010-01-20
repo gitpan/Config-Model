@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2009-05-30 17:42:47 +0200 (Sat, 30 May 2009) $
-# $Revision: 968 $
+# $Date: 2009-09-25 13:16:01 +0200 (ven 25 sep 2009) $
+# $Revision: 1033 $
 
 #    Copyright (c) 2005-2009 Dominique Dumont.
 #
@@ -37,7 +37,7 @@ use warnings::register ;
 
 use vars qw/$VERSION/ ;
 
-$VERSION = sprintf "1.%04d", q$Revision: 968 $ =~ /(\d+)/;
+$VERSION = sprintf "1.%04d", q$Revision: 1033 $ =~ /(\d+)/;
 
 use Carp qw/croak confess cluck/;
 
@@ -501,6 +501,8 @@ For instance, C<< backend => 'augeas' >> or C<< backend => 'custom' >>.
 You can force to use all backend to write the files by specifying 
 C<< backend => 'all' >>.
 
+C<write_back> will croak if no write call-back are known.
+
 =cut
 
 sub write_back {
@@ -518,7 +520,7 @@ sub write_back {
      }
       keys %args;
 
-    warn "write_back: no subs registered. cannot save" 
+    croak "write_back: no subs registered. cannot save data\n" 
       unless @{$self->{write_back}} ;
 
     my $dir = $args{config_dir} ;

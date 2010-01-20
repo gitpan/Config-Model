@@ -1,7 +1,7 @@
 # -*- cperl -*-
 # $Author: ddumont $
-# $Date: 2009-06-29 14:17:40 +0200 (Mon, 29 Jun 2009) $
-# $Revision: 993 $
+# $Date: 2010-01-19 14:14:50 +0100 (mar. 19 janv. 2010) $
+# $Revision: 1044 $
 
 use ExtUtils::testlib;
 use Test::More tests => 13;
@@ -48,7 +48,7 @@ $inst->preset_stop ;
 
 $step = 'std_id:ab X=Bv - std_id:bc X=Av - std_id:"b d " X=Av '
   .'- a_string="toto \"titi\" tata" '
-  .'lista=a,b,c,d olist:0 X=Av - olist:1 X=Bv - listb=b,c,d '
+  .'lista=a,b,c,d olist:0 X=Av - olist:1 X=Bv - listb=b,"c c2",d '
   . '! hash_a:X2=x hash_a:Y2=xy  hash_b:X3=xy my_check_list=X2,X3' ;
 ok( $root->load( step => $step, permission => 'intermediate' ),
   "set up data in tree with '$step'");
@@ -67,7 +67,7 @@ std_id:"b d "
 std_id:bc
   X=Av -
 lista=c,d
-listb=c,d
+listb="c c2",d
 hash_a:X2=x
 hash_a:Y2=xy
 hash_b:X3=xy
@@ -97,7 +97,7 @@ std_id:bc
   X=Av
   DX=Dv -
 lista=a,b,c,d
-listb=b,c,d
+listb=b,"c c2",d
 hash_a:X2=x
 hash_a:Y2=xy
 hash_b:X3=xy

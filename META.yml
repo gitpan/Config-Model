@@ -1,33 +1,24 @@
 ---
-name: Config-Model
-version: 0.640
+abstract: 'Edit and validate configuration data'
 author:
-  - Dominique Dumont (ddumont at cpan dot org)
-abstract: Edit and validate configuration data
-license: lgpl
-resources:
-  license: http://opensource.org/licenses/lgpl-license.php
+  - 'Dominique Dumont (ddumont at cpan dot org)'
 build_requires:
   Config::Tiny: 0
   Test::Exception: 0
   Test::More: 0
   Test::Warn: 0.11
-requires:
-  Carp::Assert::More: 0
-  Exception::Class: 0
-  IO::File: 0
-  Log::Log4perl: 1.11
-  Parse::RecDescent: v1.90.0
-  Scalar::Util: 0
-  Term::ReadLine: 0
-recommends:
-  Config::Tiny: 0
 configure_requires:
-  Module::Build: 0.35
+  Module::Build: 0.36
+generated_by: 'Module::Build version 0.3601'
+license: lgpl
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.4.html
+  version: 1.4
+name: Config-Model
 provides:
   Config::Model:
     file: lib/Config/Model.pm
-    version: 0.640
+    version: 0.641
   Config::Model::AnyId:
     file: lib/Config/Model/AnyId.pm
     version: 1.0914
@@ -36,7 +27,7 @@ provides:
     version: 1.0845
   Config::Model::AutoRead:
     file: lib/Config/Model/AutoRead.pm
-    version: 1.0978
+    version: 1.1047
   Config::Model::CheckList:
     file: lib/Config/Model/CheckList.pm
     version: 1.0978
@@ -48,7 +39,7 @@ provides:
     version: 1.0978
   Config::Model::Dumper:
     file: lib/Config/Model/Dumper.pm
-    version: 1.0906
+    version: 1.1044
   Config::Model::Exception:
     file: lib/Config/Model/Exception.pm
     version: 1.0790
@@ -76,13 +67,13 @@ provides:
     file: lib/Config/Model/Exception.pm
   Config::Model::HashId:
     file: lib/Config/Model/HashId.pm
-    version: 1.0905
+    version: 1.1038
   Config::Model::IdElementReference:
     file: lib/Config/Model/IdElementReference.pm
     version: 1.0775
   Config::Model::Instance:
     file: lib/Config/Model/Instance.pm
-    version: 1.0968
+    version: 1.1033
   Config::Model::ListId:
     file: lib/Config/Model/ListId.pm
     version: 1.0861
@@ -91,7 +82,7 @@ provides:
     version: 1.0717
   Config::Model::Node:
     file: lib/Config/Model/Node.pm
-    version: 1.0935
+    version: 1.1044
   Config::Model::ObjTreeScanner:
     file: lib/Config/Model/ObjTreeScanner.pm
     version: 1.0715
@@ -109,7 +100,7 @@ provides:
     version: 1.0669
   Config::Model::Value:
     file: lib/Config/Model/Value.pm
-    version: 1.0978
+    version: 1.1042
   Config::Model::ValueComputer:
     file: lib/Config/Model/ValueComputer.pm
     version: 1.0905
@@ -122,7 +113,16 @@ provides:
   Config::Model::WizardHelper:
     file: lib/Config/Model/WizardHelper.pm
     version: 1.1026
-generated_by: Module::Build version 0.35
-meta-spec:
-  url: http://module-build.sourceforge.net/META-spec-v1.4.html
-  version: 1.4
+recommends:
+  Config::Tiny: 0
+requires:
+  Carp::Assert::More: 0
+  Exception::Class: 0
+  IO::File: 0
+  Log::Log4perl: 1.11
+  Parse::RecDescent: v1.90.0
+  Scalar::Util: 0
+  Term::ReadLine: 0
+resources:
+  license: http://opensource.org/licenses/lgpl-license.php
+version: 0.641

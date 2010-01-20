@@ -1,8 +1,8 @@
 # $Author: ddumont $
-# $Date: 2009-06-22 14:02:02 +0200 (Mon, 22 Jun 2009) $
-# $Revision: 978 $
+# $Date: 2010-01-20 18:27:04 +0100 (mer. 20 janv. 2010) $
+# $Revision: 1047 $
 
-#    Copyright (c) 2005-2009 Dominique Dumont.
+#    Copyright (c) 2005-2010 Dominique Dumont.
 #
 #    This file is part of Config-Model.
 #
@@ -32,13 +32,9 @@ use UNIVERSAL ;
 use Storable qw/dclone/ ;
 use Log::Log4perl qw(get_logger :levels);
 
-my $has_augeas = 1;
-eval { require Config::Augeas ;} ;
-$has_augeas = 0 if $@ ;
-
 use base qw/Config::Model::AnyThing/ ;
 
-our $VERSION = sprintf "1.%04d", q$Revision: 978 $ =~ /(\d+)/;
+our $VERSION = sprintf "1.%04d", q$Revision: 1047 $ =~ /(\d+)/;
 
 my %suffix_table = qw/cds_file .cds perl_file .pl ini_file .ini xml_file .xml/ ;
 
@@ -574,7 +570,7 @@ Idea: sub-files name could be <instance>%<location>.cds
 
 =end comment
 
-This load/store can be done with any of these C<backend>:
+This load/store can be done with different C<backend>:
 
 =over
 
@@ -621,8 +617,80 @@ C<cds_file>, C<ini_file> and C<perl_file> backend must be specified with
 mandatory C<config_dir> parameter. For instance:
 
    read_config  => { backend    => 'cds_file' , 
-                     config_dir => '/etc/cfg_dir'},
+                     config_dir => '/etc/cfg_dir',
+                     file       => 'cfg_file.cds', #optional
+                   },
 
+If C<file> is not specified, a file name will be constructed with
+C<< <config_class_name>.<suffix> >> where suffix is C<pl> or C<ini> or C<cds>.
+
+
+=head2 Plugin backend classes
+
+A plugin backend class can also be specified with:
+
+  read_config  => [ { backend    => 'foo' , 
+                      config_dir => '/etc/cfg_dir'
+                    }
+                  ]
+
+In this case, this class will try to load C<Config::Model::Backend::Foo>.
+(The class name is constructed with C<ucfirst($backend_name)>)
+
+C<read_config> can also have custom parameters that will passed
+verbatim to C<Config::Model::Backend::Foo> methods:
+
+  read_config  => [ { backend    => 'foo' , 
+                      config_dir => '/etc/cfg_dir',
+                      my_param   => 'my_value',
+                    } 
+                  ]
+
+This C<Config::Model::Backend::Foo> class is expected to provide the
+following methods:
+
+=over
+
+=item new
+
+with parameters:
+
+ node => ref_to_config_model_node
+
+C<new()> must return the newly created object
+
+=item read
+
+with parameters:
+
+ %custom_parameters,      # model data
+ root => $root_dir,       # mostly used for tests
+ config_dir => $read_dir, # path below root
+ file_path => $full_name, # full file name (root+path+file)
+ io_handle => $io_file    # IO::File object
+
+Must return 1 if the read was successful, 0 otherwise.
+
+Following the C<my_param> example above, C<%custom_parameters> will contain 
+C< ( 'my_param' , 'my_value' ) >, so C<read()> will also be called with
+C<root>, C<config_dir>, C<file_path>, C<io_handle> B<and>
+C<<  my_param   => 'my_value' >>.
+
+=item write
+
+with parameters:
+
+ %$write,                     # model data
+ auto_create => $auto_create, # from model
+ backend     => $backend,     # backend name
+ config_dir  => $write_dir,   # override from instance
+ io_handle   => $fh,          # IO::File object
+ write       => 1,            # always
+ root        => $root_dir,
+
+Must return 1 if the write was successful, 0 otherwise
+
+=back
 
 =head2 Custom backend
 
@@ -741,6 +809,8 @@ parameters (along with C<read_config> parameter):
                       auto_create => 1, },
                     { backend => 'custom', class => 'NewFormat' } ],
 
+By default, the specifications are tried in order, until the first succeeds.
+
 When required by the user, all configuration informations are written
 back using B<all> the write specifications. See
 L<Config::Model::Instance/write_back ( ... )> for details.
@@ -818,22 +888,22 @@ a graceful migration from a customized format to a C<cds> format.
   read_config  => [ { backend => 'cds_file', config_dir => '/etc/my_cfg/' } , 
                     { backend => 'custom', class => 'Bar' },
                   ],
-  write_config => { backend => 'cds_file', config_dir => '/etc/my_cfg/' },
+  write_config => [{ backend => 'cds_file', config_dir => '/etc/my_cfg/' }],
 
 
 You can choose also to read and write only customized files:
 
-  read_config  => { backend => 'custom', class => 'Bar'},
+  read_config  => [{ backend => 'custom', class => 'Bar'}],
 
 Or to read and write only cds files :
 
-  read_config  => { backend => 'cds_file'} ,
+  read_config  => [{ backend => 'cds_file'}] ,
 
 You can also specify more parameters that must be passed to your
 custom class:
 
-  read_config  => { backend => 'custom', class => 'Bar', 
-                    config_dir => '/etc/foo'},
+  read_config  => [{ backend => 'custom', class => 'Bar', 
+                    config_dir => '/etc/foo'}],
 
 =begin comment
 
@@ -858,16 +928,16 @@ To migrate from an old format to a new format:
                   ],
   write_config => [ { backend => 'custom',
                       class => 'NewFormat'
-                     }
+                    }
                   ],
 
 If C<write_config> is missing, the data provided by C<read_config>
 will be used. For instance:
 
-  read_config  => { backend => 'custom',
-                    class => 'Bar',
-                    config_dir => '/etc/foo'
-                  },
+  read_config  => [ { backend => 'custom',
+                      class => 'Bar',
+                      config_dir => '/etc/foo'
+                  } ],
 
 In this case, configuration data will be read by C<Bar::read> in
 directory C</etc/foo> and will be written back there by C<Bar::write>.
