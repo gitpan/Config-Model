@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2009-06-29 14:17:40 +0200 (lun 29 jun 2009) $
-# $Revision: 993 $
+# $Date: 2010-01-21 14:22:30 +0100 (Thu, 21 Jan 2010) $
+# $Revision: 1051 $
 
 #    Copyright (c) 2005-2007 Dominique Dumont.
 #
@@ -32,7 +32,7 @@ use Config::Model::Exception ;
 use Data::Dumper ();
 
 use vars qw($VERSION $AUTOLOAD) ;
-$VERSION = sprintf "1.%04d", q$Revision: 993 $ =~ /(\d+)/;
+$VERSION = sprintf "1.%04d", q$Revision: 1051 $ =~ /(\d+)/;
 
 =head1 NAME
 
@@ -230,7 +230,7 @@ get_cargo_type describe config_model
 foreach my $method (qw/fetch_element config_class_name get_element_name
                        has_element is_element_available element_type load
 		       fetch_element_value get_type get_cargo_type 
-                       describe config_model/
+                       describe config_model get_help/
 		   ) {
     # to register new methods in package
     no strict "refs"; 

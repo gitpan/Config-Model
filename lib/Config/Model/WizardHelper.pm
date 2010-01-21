@@ -1,5 +1,5 @@
 # $Author: ddumont $
-# $Date: 2009-09-09 18:07:27 +0200 (mer 09 sep 2009) $
+# $Date: 2009-09-09 18:07:27 +0200 (Wed, 09 Sep 2009) $
 # $Revision: 1026 $
 
 #    Copyright (c) 2006-2009 Dominique Dumont.

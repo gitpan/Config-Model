@@ -18,7 +18,7 @@ name: Config-Model
 provides:
   Config::Model:
     file: lib/Config/Model.pm
-    version: 0.641
+    version: 0.642
   Config::Model::AnyId:
     file: lib/Config/Model/AnyId.pm
     version: 1.0914
@@ -106,7 +106,7 @@ provides:
     version: 1.0905
   Config::Model::WarpedNode:
     file: lib/Config/Model/WarpedNode.pm
-    version: 1.0993
+    version: 1.1051
   Config::Model::WarpedThing:
     file: lib/Config/Model/WarpedThing.pm
     version: 1.1004
@@ -125,4 +125,4 @@ requires:
   Term::ReadLine: 0
 resources:
   license: http://opensource.org/licenses/lgpl-license.php
-version: 0.641
+version: 0.642
