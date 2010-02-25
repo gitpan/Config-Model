@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2009-09-25 13:16:01 +0200 (Fri, 25 Sep 2009) $
-# $Revision: 1033 $
+# $Date: 2010-02-17 15:57:16 +0100 (Wed, 17 Feb 2010) $
+# $Revision: 1084 $
 
 #    Copyright (c) 2005-2009 Dominique Dumont.
 #
@@ -23,6 +23,7 @@
 package Config::Model::Instance;
 use Scalar::Util qw(weaken) ;
 use File::Path;
+use Log::Log4perl qw(get_logger :levels);
 
 use Config::Model::Exception ;
 use Config::Model::Node ;
@@ -37,9 +38,11 @@ use warnings::register ;
 
 use vars qw/$VERSION/ ;
 
-$VERSION = sprintf "1.%04d", q$Revision: 1033 $ =~ /(\d+)/;
+$VERSION = sprintf "1.%04d", q$Revision: 1084 $ =~ /(\d+)/;
 
 use Carp qw/croak confess cluck/;
+
+my $logger = get_logger("Backend::Yaml") ;
 
 =head1 NAME
 
@@ -127,9 +130,6 @@ sub new {
 	 # preset mode to load values found by HW scan or other
 	 # automatic scheme
 	 preset => 0,
-
-	 # mode: can be upgrade, downgrade ...
-	 mode => '',
 
 	 config_model => $config_model ,
 	 root_class_name => $root_class_name ,
@@ -242,6 +242,7 @@ Stop preset mode
 
 sub preset_stop {
     my $self = shift ;
+    $logger->info("Stopping preset mode");
     $self->{preset} = 0;
 }
 
@@ -253,6 +254,7 @@ Get preset mode
 
 sub preset {
     my $self = shift ;
+    $logger->info("Starting preset mode");
     return $self->{preset} ;
 }
 
@@ -533,8 +535,7 @@ sub write_back {
 	    or  $force_backend eq 'all' ) {
 	    # exit when write is successfull
 	    my $res = $wb->(%args) ; 
-	    print "write_back called with $backend backend, result is $res\n"
-	      if $::verbose;
+	    $logger->info("write_back called with $backend backend, result is $res");
 	    last if ($res and not $force_backend); 
 	}
     }

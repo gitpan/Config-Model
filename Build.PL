@@ -1,8 +1,8 @@
 # $Author: ddumont $
-# $Date: 2009-04-28 13:37:56 +0200 (Tue, 28 Apr 2009) $
-# $Revision: 945 $
+# $Date: 2010-02-17 15:54:17 +0100 (Wed, 17 Feb 2010) $
+# $Revision: 1082 $
 
-#    Copyright (c) 2005-2008 Dominique Dumont.
+#    Copyright (c) 2005-2010 Dominique Dumont.
 #
 #    This file is part of Config-Model.
 #
@@ -48,6 +48,8 @@ my $build = Module::Build->new
 		      # should be part of core perl since perl5.003007
 		      # but some do not have it 
 		      'IO::File'          => 0, 
+		      # YAML backend
+		      'YAML::Any'         => '0.303',
 		     },
    build_requires => {
 		      'Config::Tiny'      => 0,
@@ -58,7 +60,7 @@ my $build = Module::Build->new
    recommends => {
 		  # recommended modules to get more reader/writer
 		  'Config::Tiny' => 0,
-		 },
+ 		 },
    # cleanup required by t/auto_read.t
    # PreGrammar.pm is created by t/value_computer.t
    add_to_cleanup => [qw/PreGrammar.pm wr_root r_root/],

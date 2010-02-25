@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2010-01-21 18:14:18 +0100 (Thu, 21 Jan 2010) $
-# $Revision: 1052 $
+# $Date: 2010-02-17 16:40:49 +0100 (Wed, 17 Feb 2010) $
+# $Revision: 1085 $
 
 # copyright at the end of the file in the pod section
 
@@ -20,7 +20,7 @@ use Config::Model::Instance ;
 # this class holds the version number of the package
 use vars qw($VERSION @status @level @experience_list %experience_index) ;
 
-$VERSION = '0.642';
+$VERSION = '0.643';
 
 
 =head1 NAME
@@ -336,6 +336,12 @@ C<name> option:
  # instance name is 'default' 
  my $inst = $model->instance (root_class_name => 'SomeRootClass', 
                               name            => 'test1');
+
+
+Usually, model files will be loaded automatically depending on
+C<root_class_name>. But you can choose to specify the file containing
+the model with C<model_file> parameter. This is mostly useful for
+tests.
 
 =cut
 
@@ -763,12 +769,14 @@ sub translate_legacy_info {
 	if (defined $info->{auto_create}) {
 	    $self->translate_id_auto_create($config_class_name,$elt_name, $info);
 	} 
+	$self->translate_id_min_max($config_class_name,$elt_name, $info);
 	$self->translate_id_names($config_class_name,$elt_name,$info) ;
 	if (defined $info->{warp} ) {
 	    my $rules_a = $info->{warp}{rules} ;
 	    my %h = @$rules_a ;
 	    foreach my $rule_effect (values %h) {
 		$self->translate_id_names($config_class_name,$elt_name, $rule_effect) ;
+	$self->translate_id_min_max($config_class_name,$elt_name, $rule_effect);
 		next unless defined $rule_effect->{default} ;
 		$self->translate_id_default_info($config_class_name,$elt_name, $rule_effect);
 	    }
@@ -955,6 +963,26 @@ sub translate_id_auto_create {
     print "translate_id_default_info $elt_name output:\n",
       Data::Dumper->Dump([$info ] , [qw/new_info/ ] ) ,"\n"
 	  if $::debug ;
+}
+
+sub translate_id_min_max {
+    my $self = shift ;
+    my $config_class_name = shift || die;
+    my $elt_name = shift ;
+    my $info = shift ;
+
+    foreach my $bad ( qw/min max/) {
+	next unless defined $info->{$bad} ;
+
+	print "translate_id_min_max $elt_name $bad:\n"
+	    if $::debug ;
+
+	my $good = $bad.'_index' ;
+	my $warn = "$config_class_name->$elt_name: '$bad' parameter for list or " 
+	    . "hash element is deprecated. Use '$good'";
+
+	$info->{$good} = delete $info->{$bad} ;
+    }
 }
 
 # internal: translate warp information into 'boolean expr' => { ... }

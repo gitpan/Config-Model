@@ -1,3 +1,33 @@
+2010-02-23  Dominique Dumont  <dominique.dumont@hp.com>  v0.643
+
+	* lib/Config/Model/DumpAsData.pm (dump_as_data): Can't dump
+	ordered hash in hash ref with __order key to specify order of hash
+	elements
+
+	* lib/Config/Model/HashId.pm (load_data): Accept hash ref with
+	__order to load ordered data
+
+2010-02-17  Dominique Dumont  <domi.dumont@free.fr>
+
+	* lib/Config/Model/AnyId.pm: For better clarity, Hash and List
+	parameter max and min are changed to max_index and
+	min_index. Backward compatibility is kept, but warning will be
+	displayed on the terminal when the old parameters are used.
+
+	* lib/Config/Model/Backend/Yaml.pm: New backend to read and write
+	YAML configuration files.
+
+2010-02-05  Dominique Dumont  <domi.dumont@free.fr>
+
+	* lib/Config/Model/CheckList.pm (set): buf fix: split input value
+	to get the list of checked items.
+	Migrated to Log4perl
+
+2010-02-03  Dominique Dumont  <domi.dumont@free.fr>
+
+	* lib/Config/Model/CheckList.pm: Fixed default and upstream
+	default handling
+
 2010-01-21  Dominique Dumont  <dominique.dumont@hp.com> v0.642
 
 	* lib/Config/Model/WarpedNode.pm: added get_help to methods

@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2009-06-22 14:02:02 +0200 (Mon, 22 Jun 2009) $
-# $Revision: 978 $
+# $Date: 2010-02-23 17:11:06 +0100 (Tue, 23 Feb 2010) $
+# $Revision: 1091 $
 
 #    Copyright (c) 2007 Dominique Dumont.
 #
@@ -29,7 +29,7 @@ use Config::Model::Exception ;
 use Config::Model::ObjTreeScanner ;
 
 use vars qw($VERSION);
-$VERSION = sprintf "1.%04d", q$Revision: 978 $ =~ /(\d+)/;
+$VERSION = sprintf "1.%04d", q$Revision: 1091 $ =~ /(\d+)/;
 
 =head1 NAME
 
@@ -106,6 +106,24 @@ L<Config::Model::AutoRead>.
 Scan and create data for nodes elements even if no actual data was
 stored in them. This may be useful to trap missing mandatory values.
 
+=item ordered_hash_as_list
+
+By default, ordered hash (i.e. the order of the keys are important)
+are dumped as Perl list. This is the faster way to dump such hashed
+while keeping the key order. But it's the less readable way. 
+
+When this parmeter is 1 (default), the ordered hash is dumped as a
+list:
+
+  [ A => 'foo', B => 'bar', C => 'baz' ]
+
+When this parameter is set as 0, the ordered hash is dumped with a
+special key that specifies the order of keys. E.g.:
+
+  { __order => [ 'A', 'B', 'C' ] ,
+    B => 'bar', A => 'foo', C => 'baz' 
+  }
+
 =back
 
 =cut
@@ -120,6 +138,8 @@ sub dump_as_data {
     $full = 1 unless defined $full ;
     my $skip_aw = delete $args{skip_auto_write} || '' ;
     my $auto_v  = delete $args{auto_vivify}     || 0 ;
+    my $ordered_hash_as_list = delete $args{ordered_hash_as_list} ;
+    $ordered_hash_as_list = 1 unless defined $ordered_hash_as_list ;
 
     my $std_cb = sub {
         my ( $scanner, $data_r, $obj, $element, $index, $value_obj ) = @_;
@@ -149,10 +169,13 @@ sub dump_as_data {
 	    ( $_ , $v ) ;
 	} @keys ;
 
-	if ($node->fetch_element($element_name)->ordered) {
+	my $ordered_hash = $node->fetch_element($element_name)->ordered ;
+
+	if ( $ordered_hash and $ordered_hash_as_list ) {
 	    $$data_ref = \@res if @res ;
 	}
 	else {
+	    $h{__order} = \@keys if $ordered_hash and @keys;
 	    $$data_ref = \%h if scalar %h ;
 	}
     };

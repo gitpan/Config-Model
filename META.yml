@@ -9,7 +9,7 @@ build_requires:
   Test::Warn: 0.11
 configure_requires:
   Module::Build: 0.36
-generated_by: 'Module::Build version 0.3601'
+generated_by: 'Module::Build version 0.3603'
 license: lgpl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
@@ -18,25 +18,31 @@ name: Config-Model
 provides:
   Config::Model:
     file: lib/Config/Model.pm
-    version: 0.642
+    version: 0.643
   Config::Model::AnyId:
     file: lib/Config/Model/AnyId.pm
-    version: 1.0914
+    version: 1.1085
   Config::Model::AnyThing:
     file: lib/Config/Model/AnyThing.pm
     version: 1.0845
   Config::Model::AutoRead:
     file: lib/Config/Model/AutoRead.pm
-    version: 1.1047
+    version: 1.1086
+  Config::Model::Backend::Any:
+    file: lib/Config/Model/Backend/Any.pm
+    version: 1.1071
+  Config::Model::Backend::Yaml:
+    file: lib/Config/Model/Backend/Yaml.pm
+    version: 1.1071
   Config::Model::CheckList:
     file: lib/Config/Model/CheckList.pm
-    version: 1.0978
+    version: 1.1086
   Config::Model::Describe:
     file: lib/Config/Model/Describe.pm
     version: 1.0669
   Config::Model::DumpAsData:
     file: lib/Config/Model/DumpAsData.pm
-    version: 1.0978
+    version: 1.1091
   Config::Model::Dumper:
     file: lib/Config/Model/Dumper.pm
     version: 1.1044
@@ -67,19 +73,19 @@ provides:
     file: lib/Config/Model/Exception.pm
   Config::Model::HashId:
     file: lib/Config/Model/HashId.pm
-    version: 1.1038
+    version: 1.1090
   Config::Model::IdElementReference:
     file: lib/Config/Model/IdElementReference.pm
     version: 1.0775
   Config::Model::Instance:
     file: lib/Config/Model/Instance.pm
-    version: 1.1033
+    version: 1.1084
   Config::Model::ListId:
     file: lib/Config/Model/ListId.pm
-    version: 1.0861
+    version: 1.1085
   Config::Model::Loader:
     file: lib/Config/Model/Loader.pm
-    version: 1.0717
+    version: 1.1070
   Config::Model::Node:
     file: lib/Config/Model/Node.pm
     version: 1.1044
@@ -100,7 +106,7 @@ provides:
     version: 1.0669
   Config::Model::Value:
     file: lib/Config/Model/Value.pm
-    version: 1.1042
+    version: 1.1085
   Config::Model::ValueComputer:
     file: lib/Config/Model/ValueComputer.pm
     version: 1.0905
@@ -123,6 +129,7 @@ requires:
   Parse::RecDescent: v1.90.0
   Scalar::Util: 0
   Term::ReadLine: 0
+  YAML::Any: 0.303
 resources:
   license: http://opensource.org/licenses/lgpl-license.php
-version: 0.642
+version: 0.643

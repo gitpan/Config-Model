@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2010-01-16 19:15:16 +0100 (Sat, 16 Jan 2010) $
-# $Revision: 1042 $
+# $Date: 2010-02-17 16:40:49 +0100 (Wed, 17 Feb 2010) $
+# $Revision: 1085 $
 
 #    Copyright (c) 2005-2010 Dominique Dumont.
 #
@@ -35,7 +35,7 @@ use base qw/Config::Model::WarpedThing/ ;
 
 use vars qw($VERSION) ;
 
-$VERSION = sprintf "1.%04d", q$Revision: 1042 $ =~ /(\d+)/;
+$VERSION = sprintf "1.%04d", q$Revision: 1085 $ =~ /(\d+)/;
 
 =head1 NAME
 

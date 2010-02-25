@@ -1,8 +1,8 @@
 # $Author: ddumont $
-# $Date: 2009-12-01 14:09:54 +0100 (Tue, 01 Dec 2009) $
-# $Revision: 1038 $
+# $Date: 2010-02-23 14:12:12 +0100 (Tue, 23 Feb 2010) $
+# $Revision: 1090 $
 
-#    Copyright (c) 2005-2009 Dominique Dumont.
+#    Copyright (c) 2005-2010 Dominique Dumont.
 #
 #    This file is part of Config-Model.
 #
@@ -33,7 +33,7 @@ my $logger = get_logger("Tree::Element::Hash");
 use base qw/Config::Model::AnyId/ ;
 
 use vars qw($VERSION) ;
-$VERSION = sprintf "1.%04d", q$Revision: 1038 $ =~ /(\d+)/;
+$VERSION = sprintf "1.%04d", q$Revision: 1090 $ =~ /(\d+)/;
 
 =head1 NAME
 
@@ -49,8 +49,8 @@ Config::Model::HashId - Handle hash element for configuration model
        bounded_hash 
        => { type => 'hash',
             index_type  => 'integer',
-            min => 1, 
-            max => 123, 
+            min_index => 1, 
+            max_index => 123, 
             max_nb => 2 ,
             cargo_type => 'leaf',
             cargo_args => {value_type => 'string'},
@@ -115,8 +115,8 @@ sub set_properties {
     my $wrong = sub {
         my $k = shift ;
         if ($idx_type eq 'integer') {
-            return 1 if defined $self->{max} and $k > $self->{max} ;
-            return 1 if defined $self->{min} and $k < $self->{min} ;
+            return 1 if defined $self->{max_index} and $k > $self->{max_index} ;
+            return 1 if defined $self->{min_index} and $k < $self->{min_index} ;
 	}
         return 1 if defined $self->{max_nb} and $idx++ > $self->{max_nb};
         return 0 ;
@@ -460,8 +460,16 @@ sub move_down {
 
 =head2 load_data ( hash_ref | array_ref)
 
-Load check_list as a hash ref for standard hash.  Ordered hash should
-be loaded with an array ref.
+Load check_list as a hash ref for standard hash. 
+
+Ordered hash should be loaded with an array ref or with a hash
+containing a special C<__order> element. E.g. loaded with either:
+
+  [ a => 'foo', b => 'bar' ]
+
+or
+
+  { __order => ['a','b'], b => 'bar', a => 'foo' }
 
 =cut
 
@@ -470,9 +478,23 @@ sub load_data {
     my $data = shift ;
 
     if (ref ($data) eq 'HASH') {
-	my @load_keys = sort  keys %$data ;
+	my @load_keys ;
+	my $from = ''; ;
+	if ($self->{ordered} and defined $data->{__order}) {
+	    @load_keys = @{ delete $data->{__order} };
+	    $from = ' with __order' ;
+	}
+	elsif ($self->{ordered}) {
+	    $logger->warn("HashId ".$self->location.": loading ordered "
+		."hash from hash ref without special key '__order'. Element "
+		."order is not defined");
+	    $from = ' without __order' ;
+	}
+
+	@load_keys = sort keys %$data unless @load_keys;
+
 	$logger->info("HashId load_data (".$self->location.
-		      ") will load idx @load_keys from hash ref");
+		      ") will load idx @load_keys from hash ref".$from);
 	foreach my $elt (@load_keys) {
 	    my $obj = $self->fetch_with_id($elt) ;
 	    $obj -> load_data($data->{$elt}) ;
@@ -487,7 +509,8 @@ sub load_data {
 	    $obj -> load_data($data->[$idx++]) ;
 	}
     }
-    else {
+    elsif (defined $data) {
+	# we can skip undefined data
 	my $expected = $self->{ordered} ? 'array' : 'hash' ;
 	Config::Model::Exception::LoadData
 	    -> throw (

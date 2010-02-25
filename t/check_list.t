@@ -1,7 +1,7 @@
 # -*- cperl -*-
 # $Author: ddumont $
-# $Date: 2009-06-22 14:02:02 +0200 (Mon, 22 Jun 2009) $
-# $Revision: 978 $
+# $Date: 2010-02-08 09:15:22 +0100 (Mon, 08 Feb 2010) $
+# $Revision: 1078 $
 
 use warnings FATAL => qw(all);
 
@@ -10,7 +10,7 @@ use Test::More;
 use Config::Model;
 use Data::Dumper ;
 
-BEGIN { plan tests => 68; }
+BEGIN { plan tests => 74; }
 
 use strict;
 
@@ -69,6 +69,14 @@ $model ->create_config_class
        choice_list_with_upstream_default
        => { type          => 'check_list',
 	    choice        => ['A' .. 'Z'],
+	    built_in_list => [ 'A', 'D' ],
+	    help          => { A => 'A help', E => 'E help' } ,
+	  },
+
+       choice_list_with_default_and_upstream_default
+       => { type          => 'check_list',
+	    choice        => ['A' .. 'Z'],
+	    default_list  => [ 'A', 'C' ],
 	    built_in_list => [ 'A', 'D' ],
 	    help          => { A => 'A help', E => 'E help' } ,
 	  },
@@ -162,6 +170,13 @@ is_deeply( $hr , \%expect ,
 
 # check help
 is($cl->get_help('A'),'A help',"test help") ;
+
+# test with the polymorphic 'set' method
+$cl->set('','A,Z,Y,B');
+ok(1, "test set method") ;
+@got = $cl->get_checked_list ;
+is (scalar @got, 4, "test nb of elt in check_list after set") ;
+is_deeply( \@got , [qw/A B Y Z/] , "test get_checked_list after set") ;
 
 my @set = sort qw/A C Z V Y/ ;
 $cl->set_checked_list(@set) ;
@@ -297,7 +312,6 @@ is_deeply([$warp_list->get_choice] ,
 @got = $warp_list->get_checked_list ;
 is_deeply (\@got, [], "test default of warped_choice_list after setting macro=AH") ;
 
-
 # test reference to list values
 $root->load("dumb_list=a,b,c,d,e") ;
 
@@ -313,6 +327,17 @@ is_deeply (\@got, [], "test default of choice_list_with_upstream_default") ;
 
 @got = $wud->get_checked_list('upstream_default') ;
 is_deeply (\@got, [qw/A D/], "test upstream_default of choice_list_with_upstream_default") ;
+
+# test check list with upstream_default *and* default (should override)
+my $wudad = $root->fetch_element("choice_list_with_default_and_upstream_default") ;
+@got = $wudad->get_checked_list('default') ;
+is_deeply (\@got, [qw/A C/], "test default of choice_list_with_default_and_upstream_default") ;
+
+@got = $wudad->get_checked_list() ;
+is_deeply (\@got, [qw/A C/], "test choice_list_with_default_and_upstream_default") ;
+
+is_deeply ($wudad->fetch(), 'A,C', 
+	   "test fetch choice_list_with_default_and_upstream_default") ;
 
 ### test preset feature
 

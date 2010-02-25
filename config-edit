@@ -415,18 +415,18 @@ configuration files will not be modified in this case.
 =head1 LOGGING
 
 All Config::Model logging is (slowly) moved from klunky debug and
-verbose prints to L<Log::Log4perl>. Use can configure logging in the
+verbose prints to L<Log::Log4perl>. Logging can be configured in the
 following files:
 
 =over
 
-=item * 
-
- /etc/log4config-model.conf
-
 =item *
 
  ~/.log4config-model
+
+=item * 
+
+ /etc/log4config-model.conf
 
 =back
 
@@ -452,6 +452,8 @@ Log4perl uses the following categories:
 
 =item Model::Searcher
 
+=item Instance
+
 =item Tree::Element::Value
 
 =item Tree::Element::Hash
@@ -460,7 +462,11 @@ Log4perl uses the following categories:
 
 =item Tree::Element::Warped
 
+=item Tree::Element::CheckList
+
 =item Tree::Node
+
+=item Backend::Yaml
 
 =item Wizard::Helper
 

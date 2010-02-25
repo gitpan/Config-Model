@@ -1,12 +1,12 @@
 # -*- cperl -*-
 # $Author: ddumont $
-# $Date: 2009-03-05 13:54:24 +0100 (Thu, 05 Mar 2009) $
-# $Revision: 873 $
+# $Date: 2010-02-23 14:12:12 +0100 (Tue, 23 Feb 2010) $
+# $Revision: 1090 $
 
 use warnings FATAL => qw(all);
 
 use ExtUtils::testlib;
-use Test::More tests => 72 ;
+use Test::More tests => 73 ;
 use Config::Model ;
 
 use strict;
@@ -174,7 +174,7 @@ ok( $b->delete(2), "delete id 2" );
 is( $b->exists(2), '', "deleted id does not exist" );
 
 is( $b->index_type, 'integer',"reading value_type" );
-is( $b->max, 123,"reading max boundary" );
+is( $b->max_index, 123,"reading max boundary" );
 
 my $ac = $root->fetch_element('hash_with_auto_created_id') ;
 ok($ac,"created hash_with_auto_created_id") ;
@@ -310,6 +310,12 @@ is_deeply([$oh->get_all_indexes], [],
 $oh->load_data([qw/a va b vb c vc d vd e ve/]);
 is_deeply([$oh->get_all_indexes], [qw/a b c d e/],
 	 "check index order of ordered_hash after clear") ;
+
+$oh->clear ;
+$oh->load_data({ __order => [qw/a b c d e/],
+		 qw/a va b vb c vc d vd e ve/});
+is_deeply([$oh->get_all_indexes], [qw/a b c d e/],
+	 "check index order of ordered_hash loaded with hash and __order") ;
 
 $oh->move('e','e2') ;
 is_deeply([$oh->get_all_indexes], [qw/a b c d e2/],

@@ -1,8 +1,8 @@
 # $Author: ddumont $
-# $Date: 2008-07-18 14:43:23 +0200 (Fri, 18 Jul 2008) $
-# $Revision: 717 $
+# $Date: 2010-02-03 14:35:15 +0100 (Wed, 03 Feb 2010) $
+# $Revision: 1070 $
 
-#    Copyright (c) 2006-2007 Dominique Dumont.
+#    Copyright (c) 2006-2008,2010 Dominique Dumont.
 #
 #    This file is part of Config-Model.
 #
@@ -28,7 +28,7 @@ use warnings ;
 use Config::Model::Exception ;
 
 use vars qw($VERSION);
-$VERSION = sprintf "1.%04d", q$Revision: 717 $ =~ /(\d+)/;
+$VERSION = sprintf "1.%04d", q$Revision: 1070 $ =~ /(\d+)/;
 
 =head1 NAME
 
@@ -115,6 +115,8 @@ with a quoted string. (For C<leaf> element)
 For instance C<foo="a quoted string">. Note that you cannot embed
 double quote in this string. I.e C<foo="a \"quoted\" string"> will
 fail.
+
+C<foo=''> will set foo to C<undef>.
 
 =item xxx=z1,z2,z3
 

@@ -1,7 +1,7 @@
 # -*- cperl -*-
 # $Author: ddumont $
-# $Date: 2009-03-05 13:54:24 +0100 (Thu, 05 Mar 2009) $
-# $Revision: 873 $
+# $Date: 2010-02-25 13:52:54 +0100 (Thu, 25 Feb 2010) $
+# $Revision: 1095 $
 
 use ExtUtils::testlib;
 use Test::More ;
@@ -9,17 +9,23 @@ use Test::More ;
 # this block is necessary to avoid failure on some automatic cpan
 # testers setup which fail while loading Term::ReadLine
 BEGIN { 
-    eval { require Term::ReadLine ;
-	   my $test = new Term::ReadLine 'Test' ;
-       } ;
-    if ($@) {
-	plan skip_all => "Cannot load Term::ReadLine" ;
-    }
-    else {
+    my $ok 
+      = eval { require Term::ReadLine ;
+	       my $test = new Term::ReadLine 'Test' ;
+	       1;
+	   } 
+      and (
+	      eval {require Term::ReadLine::Gnu  ; 1;} 
+	   or eval {require Term::ReadLine::Perl ; 1;} 
+	  );
+
+
+    if ($ok) {
 	plan tests => 10 ;
     }
-
-
+    else {
+	plan skip_all => "Cannot load Term::ReadLine" ;
+    }
 }
 
 use Config::Model;
