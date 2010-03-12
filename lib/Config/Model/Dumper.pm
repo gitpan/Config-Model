@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2010-01-19 14:14:50 +0100 (Tue, 19 Jan 2010) $
-# $Revision: 1044 $
+# $Date: 2010-03-12 14:20:29 +0100 (Fri, 12 Mar 2010) $
+# $Revision: 1106 $
 
 #    Copyright (c) 2006-2010 Dominique Dumont.
 #
@@ -29,7 +29,7 @@ use Config::Model::Exception ;
 use Config::Model::ObjTreeScanner ;
 
 use vars qw($VERSION);
-$VERSION = sprintf "1.%04d", q$Revision: 1044 $ =~ /(\d+)/;
+$VERSION = sprintf "1.%04d", q$Revision: 1106 $ =~ /(\d+)/;
 
 =head1 NAME
 
@@ -142,6 +142,11 @@ their model. See L<Config::Model::AutoRead>.
 Scan and create data for nodes elements even if no actual data was
 stored in them. This may be useful to trap missing mandatory values.
 (default: 0)
+
+=item experience ( ... )
+
+Restrict dump to C<beginner> or C<intermediate> parameters. Default is
+to dump all parameters (C<master> level)
 
 =back
 

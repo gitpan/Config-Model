@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2010-02-17 15:54:17 +0100 (Wed, 17 Feb 2010) $
-# $Revision: 1082 $
+# $Date: 2010-03-01 15:54:11 +0100 (Mon, 01 Mar 2010) $
+# $Revision: 1101 $
 
 #    Copyright (c) 2005-2010 Dominique Dumont.
 #
@@ -36,7 +36,7 @@ my $build = Module::Build->new
    module_name    => 'Config::Model',
    license        => 'lgpl',
    script_files   => [ 'config-edit' ],
-   dist_abstract  => 'Edit and validate configuration data',
+   dist_abstract  => 'Describe, edit and validate configuration data',
    dist_author    => 'Dominique Dumont (ddumont at cpan dot org)',
    requires       => {
 		      'Term::ReadLine'    => 0,

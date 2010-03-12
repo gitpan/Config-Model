@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2010-02-17 16:40:49 +0100 (Wed, 17 Feb 2010) $
-# $Revision: 1085 $
+# $Date: 2010-03-11 14:14:02 +0100 (Thu, 11 Mar 2010) $
+# $Revision: 1105 $
 
 #    Copyright (c) 2005-2010 Dominique Dumont.
 #
@@ -35,7 +35,7 @@ use base qw/Config::Model::WarpedThing/ ;
 
 use vars qw($VERSION) ;
 
-$VERSION = sprintf "1.%04d", q$Revision: 1085 $ =~ /(\d+)/;
+$VERSION = sprintf "1.%04d", q$Revision: 1105 $ =~ /(\d+)/;
 
 =head1 NAME
 
@@ -89,7 +89,7 @@ configuration file. (C<default> parameter)
 =item *
 
 upstream default parameter: specifies a default value that will be
-used by the application when no informations is provided in the
+used by the application when no information is provided in the
 configuration file. This upstream_default value will not written in
 the configuration files. Only the C<fetch_standard> method will return
 the builtin value. This parameter was previously refered as
@@ -445,7 +445,7 @@ sub setup_enum_choice {
     my @choice = ref $_[0] ? @{$_[0]} : @_ ;
 
     get_logger("Tree::Element::Value")
-      ->debug($self->name, " setup_enum_choice:\n\twith '",join("','",@choice));
+      ->debug($self->name, " setup_enum_choice with '",join("','",@choice));
 
     # store all enum values in a hash. This way, checking
     # whether a value is present in the enum set is easier
@@ -578,8 +578,8 @@ sub set_properties {
 
     my $logger = get_logger("Tree::Element::Value") ;
     if ($logger->is_debug) {
-	$logger->debug("'".$self->name."' set_properties called with \n",
-		       Data::Dumper->Dump([\%args], ['set_arg']));
+	$logger->debug("Leaf '".$self->name."' set_properties called with '",
+		       join("','",sort keys %args),"'");
     }
 
     # this code may be dead as warping value_type is no longer
@@ -1081,7 +1081,7 @@ Check the consistency of the value. Does not check for undefined
 mandatory values.
 
 When the 2nd parameter is non null, check will not try to get extra
-informations from the tree. This is required in some cases to avoid
+information from the tree. This is required in some cases to avoid
 loops in check, get_info, get_warp_info, re-check ...
 
 In scalar context, return 0 or 1.

@@ -1,7 +1,7 @@
 # -*- cperl -*-
 # $Author: ddumont $
-# $Date: 2010-02-17 16:40:49 +0100 (Wed, 17 Feb 2010) $
-# $Revision: 1085 $
+# $Date: 2010-03-11 14:14:02 +0100 (Thu, 11 Mar 2010) $
+# $Revision: 1105 $
 
 use warnings FATAL => qw(all);
 
@@ -14,7 +14,6 @@ use strict;
 my $arg = shift || '';
 
 my $trace = $arg =~ /t/ ? 1 : 0 ;
-$::verbose          = 1 if $arg =~ /v/;
 $::debug            = 1 if $arg =~ /d/;
 Config::Model::Exception::Any->Trace(1) if $arg =~ /e/;
 

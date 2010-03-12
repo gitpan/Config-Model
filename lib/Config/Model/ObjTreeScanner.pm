@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2008-07-18 14:38:04 +0200 (Fri, 18 Jul 2008) $
-# $Revision: 715 $
+# $Date: 2010-03-01 15:54:11 +0100 (Mon, 01 Mar 2010) $
+# $Revision: 1101 $
 
 #    Copyright (c) 2006-2007 Dominique Dumont.
 #
@@ -28,7 +28,7 @@ use Carp;
 use warnings ;
 use UNIVERSAL qw( isa can );
 
-our $VERSION = sprintf "1.%04d", q$Revision: 715 $ =~ /(\d+)/;
+our $VERSION = sprintf "1.%04d", q$Revision: 1101 $ =~ /(\d+)/;
 
 use Carp qw/croak confess cluck/;
 
@@ -454,7 +454,7 @@ sub scan_node {
     my @element_list= $node->get_element_name(for => $self->{experience}) ;
 
     # we could add here a "last element" call-back, but it's not
-    # very usefull if the last element is a hash.
+    # very useful if the last element is a hash.
     $self->{node_content_cb}->($self, $data_r,$node,@element_list) ;
 
     $self->{up_cb}->($self, $data_r,$node) ;

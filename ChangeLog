@@ -1,7 +1,18 @@
+2010-03-11  Dominique Dumont  <dominique.dumont@hp.com> v0.644
+
+	* lib/Config/Model/Loader.pm (load): Load string now support:
+	- '.=' operator to append to config values.
+	- '=~' to loop configurations instruction over list or hash elements
+
+2010-03-01  Dominique Dumont  <dominique.dumont@hp.com>
+
+	* all: Applied spelling corrections done by Debian Perl
+	team (thanks gregoa)
+
 2010-02-23  Dominique Dumont  <dominique.dumont@hp.com>  v0.643
 
-	* lib/Config/Model/DumpAsData.pm (dump_as_data): Can't dump
-	ordered hash in hash ref with __order key to specify order of hash
+	* lib/Config/Model/DumpAsData.pm (dump_as_data): Can dump ordered
+	hash in hash ref with __order key to specify order of hash
 	elements
 
 	* lib/Config/Model/HashId.pm (load_data): Accept hash ref with

@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2010-01-19 14:14:50 +0100 (Tue, 19 Jan 2010) $
-# $Revision: 1044 $
+# $Date: 2010-03-12 14:20:29 +0100 (Fri, 12 Mar 2010) $
+# $Revision: 1106 $
 
 #    Copyright (c) 2005-2010 Dominique Dumont.
 #
@@ -40,7 +40,7 @@ use base qw/Config::Model::AutoRead/;
 use vars qw($VERSION $AUTOLOAD @status @level
 @experience_list %experience_index );
 
-$VERSION = sprintf "1.%04d", q$Revision: 1044 $ =~ /(\d+)/;
+$VERSION = sprintf "1.%04d", q$Revision: 1106 $ =~ /(\d+)/;
 
 *status           = *Config::Model::status ;
 *level            = *Config::Model::level ;
@@ -213,13 +213,13 @@ See L<Config::Model::AutoRead> for details.
 =head2 Element type
 
 Each element is declared with a list ref that contains all necessary
-informations:
+information:
 
   element => [ 
                foo => { ... }
              ]
 
-This most important informations from this hash ref is the mandatory 
+This most important information from this hash ref is the mandatory
 B<type> parameter. The I<type> type can be:
 
 =cut
@@ -1292,9 +1292,10 @@ sub load_data {
     }
 }
 
-=head2 dump_tree ( [ mode => custom | full ] )
+=head2 dump_tree ( ... )
 
-Dumps the configuration data of the node and its siblings into a string.
+Dumps the configuration data of the node and its siblings into a
+string.  See L<Config::Model::Dumper/dump_tree> for parameter details.
 
 This string follows the syntax defined in
 L<Config::Model::Loader>. The string produced by C<dump_tree> can be
@@ -1418,7 +1419,7 @@ sub get_help {
 
 As configuration model are getting bigger, the load time of a tree
 gets longer. The L<Config::Model::AutoRead> class provides a way to
-load the configuration informations only when needed.
+load the configuration information only when needed.
 
 TBD
 

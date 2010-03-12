@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2010-02-18 18:29:48 +0100 (Thu, 18 Feb 2010) $
-# $Revision: 1086 $
+# $Date: 2010-03-11 14:14:02 +0100 (Thu, 11 Mar 2010) $
+# $Revision: 1105 $
 
 #    Copyright (c) 2005-2010 Dominique Dumont.
 #
@@ -30,7 +30,7 @@ use Log::Log4perl qw(get_logger :levels);
 use base qw/Config::Model::WarpedThing/ ;
 
 use vars qw($VERSION) ;
-$VERSION = sprintf "1.%04d", q$Revision: 1086 $ =~ /(\d+)/;
+$VERSION = sprintf "1.%04d", q$Revision: 1105 $ =~ /(\d+)/;
 
 my $logger = get_logger("Tree::Element::CheckList") ;
 
@@ -196,7 +196,7 @@ Specify whether the order of checked items must be preserved.
 
 =item help
 
-Hash ref to provide informations on the check list items.
+Hash ref to provide information on the check list items.
 
 =item warp
 
@@ -847,6 +847,13 @@ sub set {
     }
 
     return $self->set_checked_list(split /,/,$list) ;
+}
+
+sub load {
+    my ($self,$string) = @_ ;
+    my @set = split /,/,$string;
+    foreach (@set) { s/^"|"$//g; s/\\"/"/g ;}
+    $self->set_checked_list(@set) ;
 }
 
 =head2 set_checked_list ( item1, item2, ..)

@@ -1,7 +1,7 @@
 # -*- cperl -*-
 # $Author: ddumont $
-# $Date: 2010-02-17 16:40:49 +0100 (Wed, 17 Feb 2010) $
-# $Revision: 1085 $
+# $Date: 2010-03-12 14:20:29 +0100 (Fri, 12 Mar 2010) $
+# $Revision: 1106 $
 
 use warnings FATAL => qw(all);
 
@@ -10,14 +10,13 @@ use Test::More;
 use Test::Exception ;
 use Config::Model;
 
-BEGIN { plan tests => 55; }
+BEGIN { plan tests => 64; }
 
 use strict;
 
 my $arg = shift || '';
 
 my $trace = $arg =~ /t/ ? 1 : 0 ;
-$::verbose          = 1 if $arg =~ /v/;
 $::debug            = 1 if $arg =~ /d/;
 Config::Model::Exception::Any->Trace(1) if $arg =~ /e/;
 
@@ -56,12 +55,6 @@ $model ->create_config_class
 	   auto_create => 4,
 	   @element
 	  },
-       list_with_wrong_auto_create
-       => {
-	   type => 'list',
-	   auto_create => [ 'foo' ],
-	   @element
-	  },
        [qw/list_with_default_id list_with_default_id_2/]
        => {
 	   type => 'list',
@@ -81,6 +74,20 @@ $model ->create_config_class
 		}
        ]
    ) ;
+
+$model ->create_config_class 
+  (
+   name => "Bogus",
+   element 
+   => [ 
+       list_with_wrong_auto_create
+       => {
+	   type => 'list',
+	   auto_create => [ 'foo' ],
+	   @element
+	  },
+       ]
+  ) ;
 
 $model -> create_config_class 
   (
@@ -111,7 +118,8 @@ is($b->fetch_with_id(2)->store('bar'),'bar',"stored in 2") ;
 throws_ok { $b->fetch_with_id(124)->store('baz') ;} 
   qr/Index 124 > max_index limit 123/,'max error caught';
 
-throws_ok { $root->fetch_element('list_with_wrong_auto_create') ;} 
+my $bogus_root = $model->instance(root_class_name =>'Bogus')->config_root;
+throws_ok { $bogus_root->fetch_element('list_with_wrong_auto_create') ;} 
   qr/Wrong auto_create argument for list/,'wrong auto_create caught';
 
 is_deeply([$b->get_all_indexes],[0,1,2],"check ids") ;
@@ -197,3 +205,27 @@ is($ol->fetch_with_id(2)->fetch_element('X')->fetch, 'Av' ,
 
 map{ is($ol->fetch_with_id($_)->index_value, $_, 
 	"Check moved index value $_" ); } (0 .. 4) ;
+print $root->dump_tree(experience => 'beginner' ) if $trace;
+
+is($ol->fetch_with_id(0)->fetch_element('X')->fetch, undef ,
+   "check before move") ;
+$ol->remove(0) ;
+print $root->dump_tree(experience => 'beginner' ) if $trace;
+is($ol->fetch_with_id(0)->fetch_element('X')->fetch, 'Bv' ,
+   "check after move") ;
+
+# test store 
+my @test = ( [         a1 => ['a1']       ],
+	     [ '"a","b"'  => [ qw/a b/  ] ],
+	     [ 'a,b'      => [ qw/a b/  ] ],
+	     [ '"a\"a",b' => [ qw/a"a b/] ],
+	     [ '"a,a",b'  => [ 'a,a', 'b'] ],
+	     [    '",a1"' => [ ',a1']     ],
+	   ) ;
+foreach my $l (@test) {
+    $b->load($l->[0]) ;
+    is_deeply( [$b->fetch_all_values], $l->[1], "test store $l->[0]");
+}
+
+throws_ok { $b->load('a,,b');} "Config::Model::Exception::Load",
+  "fails load 'a,,b'" ;

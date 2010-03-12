@@ -1,8 +1,8 @@
 # $Author: ddumont $
-# $Date: 2010-02-17 16:40:49 +0100 (Wed, 17 Feb 2010) $
-# $Revision: 1085 $
+# $Date: 2010-03-11 14:14:02 +0100 (Thu, 11 Mar 2010) $
+# $Revision: 1105 $
 
-#    Copyright (c) 2005-2007 Dominique Dumont.
+#    Copyright (c) 2005-2010 Dominique Dumont.
 #
 #    This file is part of Config-Model.
 #
@@ -30,7 +30,7 @@ use strict;
 use base qw/Config::Model::AnyId/ ;
 
 use vars qw($VERSION) ;
-$VERSION = sprintf "1.%04d", q$Revision: 1085 $ =~ /(\d+)/;
+$VERSION = sprintf "1.%04d", q$Revision: 1105 $ =~ /(\d+)/;
 
 =head1 NAME
 
@@ -154,10 +154,71 @@ sub _fetch_with_id {
     return $self->{data}[$idx];
 }
 
+=head2 load(string)
+
+Store a set of values passed as a comma separated list of values. 
+Values can be quoted strings. (i.e C<"a,a",b> will yield
+C<('a,a', 'b')> list).
+
+=cut
+
+sub load {
+    my ($self, $string) = @_ ;
+    my @set ;
+    my $cmd = $string ;
+    my $regex = qr/^(
+                    (?:
+       	              "
+                        (?: \\" | [^"] )*?
+                      "
+                    )
+                    |
+                    [^,]+
+                   )
+                  /x;
+
+    while (length($string)) {
+	#print "string: $string\n";
+	$string =~ s/$regex// or last;
+	my $tmp = $1 ;
+	#print "tmp: $tmp\n";
+	$tmp =~ s/^"|"$//g if defined $tmp; 
+	$tmp =~ s/\\"/"/g  if defined $tmp; 
+	push @set,$tmp ;
+
+	last unless length($string) ;
+    }
+    continue {
+	$string =~ s/^,// or last ;
+    }
+
+    if (length($string)) {
+	Config::Model::Exception::Load
+	    -> throw ( object => $self, 
+		       command => $cmd,
+		       message => "unexpected load command '$cmd', left '$cmd'" ) ;
+    }
+
+    $self->store_set(@set ) ;
+}
+
+=head2 store_set(@v)
+
+Store a set of values (passed as list)
+
+=cut
+
 sub store_set {
     my $self = shift ;
     my $idx = 0 ;
-    map { $self->fetch_with_id( $idx++ )->store( $_ ) ; } @_ ;
+    foreach (@_) { 
+	if (defined $_) {
+	    $self->fetch_with_id( $idx++ )->store( $_ );
+	}
+	else {
+	    $self->{data}[$idx] = undef ; # detruit l'objet pas bon!
+	}
+    } ;
 
     # and delete unused items
     my $max = scalar @{$self->{data}} ;

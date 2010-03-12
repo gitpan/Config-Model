@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2010-02-17 16:40:49 +0100 (Wed, 17 Feb 2010) $
-# $Revision: 1085 $
+# $Date: 2010-03-01 15:54:11 +0100 (Mon, 01 Mar 2010) $
+# $Revision: 1101 $
 
 #    Copyright (c) 2005-2010 Dominique Dumont.
 #
@@ -28,7 +28,7 @@ use Carp;
 use strict;
 
 use vars qw($VERSION) ;
-$VERSION = sprintf "1.%04d", q$Revision: 1085 $ =~ /(\d+)/;
+$VERSION = sprintf "1.%04d", q$Revision: 1101 $ =~ /(\d+)/;
 
 use base qw/Config::Model::WarpedThing/;
 
@@ -269,7 +269,7 @@ to modify this behavior.
 
 =head1 Warp: dynamic value configuration
 
-The Warp functionnality enables an L<HashId|Config::Model::HashId> or
+The Warp functionality enables an L<HashId|Config::Model::HashId> or
 L<ListId|Config::Model::ListId> object to change its default settings
 (e.g. C<min_index>, C<max_index> or C<max_nb> parameters) dynamically according to
 the value of another C<Value> object. (See
@@ -836,7 +836,7 @@ sub move {
 =head2 copy ( from_index, to_index )
 
 Deep copy an element within the hash or list. If the element contained
-by the hash or list is a node, all configuration informations are
+by the hash or list is a node, all configuration information is
 copied from one node to another.
 
 =cut

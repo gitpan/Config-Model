@@ -1,5 +1,5 @@
 ---
-abstract: 'Edit and validate configuration data'
+abstract: 'Describe, edit and validate configuration data'
 author:
   - 'Dominique Dumont (ddumont at cpan dot org)'
 build_requires:
@@ -18,16 +18,16 @@ name: Config-Model
 provides:
   Config::Model:
     file: lib/Config/Model.pm
-    version: 0.643
+    version: 0.644
   Config::Model::AnyId:
     file: lib/Config/Model/AnyId.pm
-    version: 1.1085
+    version: 1.1101
   Config::Model::AnyThing:
     file: lib/Config/Model/AnyThing.pm
     version: 1.0845
   Config::Model::AutoRead:
     file: lib/Config/Model/AutoRead.pm
-    version: 1.1086
+    version: 1.1101
   Config::Model::Backend::Any:
     file: lib/Config/Model/Backend/Any.pm
     version: 1.1071
@@ -36,7 +36,7 @@ provides:
     version: 1.1071
   Config::Model::CheckList:
     file: lib/Config/Model/CheckList.pm
-    version: 1.1086
+    version: 1.1105
   Config::Model::Describe:
     file: lib/Config/Model/Describe.pm
     version: 1.0669
@@ -45,7 +45,7 @@ provides:
     version: 1.1091
   Config::Model::Dumper:
     file: lib/Config/Model/Dumper.pm
-    version: 1.1044
+    version: 1.1106
   Config::Model::Exception:
     file: lib/Config/Model/Exception.pm
     version: 1.0790
@@ -79,25 +79,25 @@ provides:
     version: 1.0775
   Config::Model::Instance:
     file: lib/Config/Model/Instance.pm
-    version: 1.1084
+    version: 1.1101
   Config::Model::ListId:
     file: lib/Config/Model/ListId.pm
-    version: 1.1085
+    version: 1.1105
   Config::Model::Loader:
     file: lib/Config/Model/Loader.pm
-    version: 1.1070
+    version: 1.1105
   Config::Model::Node:
     file: lib/Config/Model/Node.pm
-    version: 1.1044
+    version: 1.1106
   Config::Model::ObjTreeScanner:
     file: lib/Config/Model/ObjTreeScanner.pm
-    version: 1.0715
+    version: 1.1101
   Config::Model::Report:
     file: lib/Config/Model/Report.pm
     version: 1.0641
   Config::Model::Searcher:
     file: lib/Config/Model/Searcher.pm
-    version: 1.1003
+    version: 1.1101
   Config::Model::SimpleUI:
     file: lib/Config/Model/SimpleUI.pm
     version: 1.0541
@@ -106,7 +106,7 @@ provides:
     version: 1.0669
   Config::Model::Value:
     file: lib/Config/Model/Value.pm
-    version: 1.1085
+    version: 1.1105
   Config::Model::ValueComputer:
     file: lib/Config/Model/ValueComputer.pm
     version: 1.0905
@@ -132,4 +132,4 @@ requires:
   YAML::Any: 0.303
 resources:
   license: http://opensource.org/licenses/lgpl-license.php
-version: 0.643
+version: 0.644

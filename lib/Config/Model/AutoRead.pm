@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2010-02-18 18:29:48 +0100 (Thu, 18 Feb 2010) $
-# $Revision: 1086 $
+# $Date: 2010-03-01 15:54:11 +0100 (Mon, 01 Mar 2010) $
+# $Revision: 1101 $
 
 #    Copyright (c) 2005-2010 Dominique Dumont.
 #
@@ -34,7 +34,7 @@ use Log::Log4perl qw(get_logger :levels);
 
 use base qw/Config::Model::AnyThing/ ;
 
-our $VERSION = sprintf "1.%04d", q$Revision: 1086 $ =~ /(\d+)/;
+our $VERSION = sprintf "1.%04d", q$Revision: 1101 $ =~ /(\d+)/;
 
 sub get_cfg_file_path {
     my $self = shift ; 
@@ -574,7 +574,7 @@ This class provides a way to specify how to load or store
 configuration data within the model (instead of writing dedicated perl
 code).
 
-With these specifications, all the configuration information are read
+With these specifications, all the configuration information is read
 during creation of a node.
 
 =begin comment
@@ -623,7 +623,7 @@ L<Config::Model::Backend::Augeas> for details.
 After loading the data, the object registers itself to the
 instance. Then the user can call the C<write_back> method on the
 instance (See L<Config::Model::Instance>) to store all configuration
-informations back.
+information back.
 
 =head2 Built-in backend
 
@@ -836,7 +836,7 @@ parameters (along with C<read_config> parameter):
 
 By default, the specifications are tried in order, until the first succeeds.
 
-When required by the user, all configuration informations are written
+When required by the user, all configuration information is written
 back using B<all> the write specifications. See
 L<Config::Model::Instance/write_back ( ... )> for details.
 

@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2010-02-17 16:40:49 +0100 (Wed, 17 Feb 2010) $
-# $Revision: 1085 $
+# $Date: 2010-03-02 16:05:33 +0100 (Tue, 02 Mar 2010) $
+# $Revision: 1103 $
 
 # copyright at the end of the file in the pod section
 
@@ -20,7 +20,7 @@ use Config::Model::Instance ;
 # this class holds the version number of the package
 use vars qw($VERSION @status @level @experience_list %experience_index) ;
 
-$VERSION = '0.643';
+$VERSION = '0.644';
 
 
 =head1 NAME

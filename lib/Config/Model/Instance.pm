@@ -1,6 +1,6 @@
 # $Author: ddumont $
-# $Date: 2010-02-17 15:57:16 +0100 (Wed, 17 Feb 2010) $
-# $Revision: 1084 $
+# $Date: 2010-03-01 15:54:11 +0100 (Mon, 01 Mar 2010) $
+# $Revision: 1101 $
 
 #    Copyright (c) 2005-2009 Dominique Dumont.
 #
@@ -38,7 +38,7 @@ use warnings::register ;
 
 use vars qw/$VERSION/ ;
 
-$VERSION = sprintf "1.%04d", q$Revision: 1084 $ =~ /(\d+)/;
+$VERSION = sprintf "1.%04d", q$Revision: 1101 $ =~ /(\d+)/;
 
 use Carp qw/croak confess cluck/;
 
@@ -123,7 +123,7 @@ sub new {
 			    type  => 1 } ],
 
 	 # a unique (instance wise) placeholder for various tree objects
-	 # to store informations
+	 # to store information
 	 safe => {
 		 } ,
 
@@ -224,7 +224,7 @@ sub config_model {
 =head2 preset_start ()
 
 All values stored in preset mode are shown to the user as default
-values. This feature is usefull to enter configuration data entered by
+values. This feature is useful to enter configuration data entered by
 an automatic process (like hardware scan)
 
 =cut
@@ -490,7 +490,7 @@ sub register_write_back {
 =head2 write_back ( ... )
 
 Try to run all subroutines registered with C<register_write_back> to
-write the configuration informations until one succeeds (returns
+write the configuration information until one succeeds (returns
 true). (See L<Config::Model::AutoRead> for details).
 
 You can specify here a pseudo root dir or another config dir to write
