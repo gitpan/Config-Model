@@ -1,7 +1,3 @@
-# $Author: ddumont $
-# $Date: 2010-03-12 14:20:29 +0100 (Fri, 12 Mar 2010) $
-# $Revision: 1106 $
-
 #    Copyright (c) 2005-2010 Dominique Dumont.
 #
 #    This file is part of Config-Model.
@@ -37,10 +33,8 @@ use Storable qw/dclone/ ;
 
 use base qw/Config::Model::AutoRead/;
 
-use vars qw($VERSION $AUTOLOAD @status @level
+use vars qw($AUTOLOAD @status @level
 @experience_list %experience_index );
-
-$VERSION = sprintf "1.%04d", q$Revision: 1106 $ =~ /(\d+)/;
 
 *status           = *Config::Model::status ;
 *level            = *Config::Model::level ;
@@ -827,18 +821,42 @@ sub next_element {
     my $self      = shift;
     my $element   = shift;
     my $min_experience = shift;
+    my $find_previous = shift || 0 ;
 
-    my @elements = $self->get_element_name(for => $min_experience);
+    my @elements = @{$self->{model}{element_list}} ;
+    @elements = reverse @elements if $find_previous ;
 
-    return $elements[0] unless defined $element and $element ;
+    # if element is empty, start from first element
+    my $found_elt = (defined $element and $element) ? 0 : 1 ;
 
-    my $i     = 0;
-    while (@elements) {
-        croak "next_element: element $element is unknown. Expected @elements"
-            unless defined $elements[$i];
-        last if $element eq $elements[ $i++ ];
+    while (my $name = shift @elements) {
+      if ($found_elt) {
+	return $name 
+	  if $self->is_element_available(name => $name, 
+					 experience => $min_experience);
+      }
+      $found_elt = 1 if $element eq $name ;
     }
-    return $elements[$i];
+
+    croak "next_element: element $element is unknown. Expected @elements" 
+      unless $found_elt;
+    return;
+}
+
+=head2 previous_element ( element_name, [ experience_index ] )
+
+This method provides a way to iterate through the elements of a node.
+
+Returns the previous element name for a given experience (default
+C<master>).  Returns undef if no previous element is available.
+
+=cut
+
+sub previous_element {
+    my $self      = shift;
+    my $element   = shift;
+    my $min_experience = shift;
+    $self->next_element($element,$min_experience,1) ;
 }
 
 =head2 get_element_property ( element => ..., property => ... )
@@ -1247,13 +1265,15 @@ sub load_data {
     my $self = shift ;
     my $p    = shift ;
 
+    my $check = $self->instance->get_value_check('store') ;
+
     if ( not defined $p or (ref($p) ne 'HASH' and not $p->isa( 'HASH' )) ) {
 	Config::Model::Exception::LoadData
 	    -> throw (
 		      object => $self,
 		      message => "load_data called with non hash ref arg",
 		      wrong_data => $p,
-		     )  if $self->instance->get_value_check('store');
+		     )  if $check ;
 	return ;
     }
 
@@ -1266,8 +1286,10 @@ sub load_data {
     # the model
     foreach my $elt ( @{$self->{model}{element_list}} ) {
 	next unless defined $h->{$elt} ;
-	if ($self->is_element_available(name => $elt, experience => 'master')) {
-	    my $obj = $self->fetch_element($elt) ;
+	if ($self->is_element_available(name => $elt, experience => 'master')
+	    or not $check
+	   ) {
+	    my $obj = $self->fetch_element($elt,'master', not $check) ;
 	    $obj -> load_data(delete $h->{$elt}) ;
 	}
 	else {
@@ -1277,11 +1299,11 @@ sub load_data {
                                    . "element '$elt' with",
 			  wrong_data => $h->{$elt},
 			  object => $self,
-			 ) if $self->instance->get_value_check('store');
+			 ) ;
 	}
     }
 
-    if (%$h and $self->instance->get_value_check('store')) {
+    if (%$h and $check) {
 	Config::Model::Exception::LoadData 
 	    -> throw (
 		      message => "load_data: unknown elements (expected "

@@ -1,6 +1,3 @@
-# $Author: ddumont $
-# $Date: 2010-03-11 14:14:02 +0100 (Thu, 11 Mar 2010) $
-# $Revision: 1105 $
 
 #    Copyright (c) 2006-2008,2010 Dominique Dumont.
 #
@@ -28,8 +25,7 @@ use warnings ;
 use Config::Model::Exception ;
 use Log::Log4perl qw(get_logger :levels);
 
-use vars qw($VERSION);
-$VERSION = sprintf "1.%04d", q$Revision: 1105 $ =~ /(\d+)/;
+# use vars qw($VERSION);
 
 my $logger = get_logger("Loader") ;
 

@@ -1,6 +1,3 @@
-# $Author: ddumont $
-# $Date: 2010-03-01 15:54:11 +0100 (Mon, 01 Mar 2010) $
-# $Revision: 1101 $
 
 #    Copyright (c) 2005-2009 Dominique Dumont.
 #
@@ -36,9 +33,8 @@ use Carp;
 use warnings FATAL => qw(all);
 use warnings::register ;
 
-use vars qw/$VERSION/ ;
+# use vars qw/$VERSION/ ;
 
-$VERSION = sprintf "1.%04d", q$Revision: 1101 $ =~ /(\d+)/;
 
 use Carp qw/croak confess cluck/;
 

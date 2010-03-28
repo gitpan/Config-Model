@@ -1,7 +1,7 @@
 # -*- cperl -*-
-# $Author: ddumont $
-# $Date: 2010-03-01 15:54:11 +0100 (Mon, 01 Mar 2010) $
-# $Revision: 1101 $
+# $Author$
+# $Date$
+# $Revision$
 
 use ExtUtils::testlib;
 use Test::More tests => 23;

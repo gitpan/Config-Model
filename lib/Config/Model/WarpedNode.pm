@@ -1,6 +1,3 @@
-# $Author: ddumont $
-# $Date: 2010-01-21 14:22:30 +0100 (Thu, 21 Jan 2010) $
-# $Revision: 1051 $
 
 #    Copyright (c) 2005-2007 Dominique Dumont.
 #
@@ -31,8 +28,7 @@ use base qw/Config::Model::WarpedThing/ ;
 use Config::Model::Exception ;
 use Data::Dumper ();
 
-use vars qw($VERSION $AUTOLOAD) ;
-$VERSION = sprintf "1.%04d", q$Revision: 1051 $ =~ /(\d+)/;
+# use vars qw($VERSION $AUTOLOAD) ;
 
 =head1 NAME
 

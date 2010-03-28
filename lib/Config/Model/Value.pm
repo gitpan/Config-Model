@@ -1,7 +1,3 @@
-# $Author: ddumont $
-# $Date: 2010-03-11 14:14:02 +0100 (Thu, 11 Mar 2010) $
-# $Revision: 1105 $
-
 #    Copyright (c) 2005-2010 Dominique Dumont.
 #
 #    This file is part of Config-Model.
@@ -33,9 +29,10 @@ use Carp ;
 
 use base qw/Config::Model::WarpedThing/ ;
 
-use vars qw($VERSION) ;
+# use vars qw($VERSION) ;
 
-$VERSION = sprintf "1.%04d", q$Revision: 1105 $ =~ /(\d+)/;
+
+my $logger = get_logger("Tree::Element::Value") ;
 
 =head1 NAME
 
@@ -219,7 +216,7 @@ sub set_default {
 		     ) 
 	      unless $ok ;
 
-	get_logger("Tree::Element::Value")
+	$logger
 	  ->debug("Set $item value for ",$self->name,"") ;
 
 	$self->{$item} = $def ;
@@ -444,15 +441,16 @@ sub setup_enum_choice {
 
     my @choice = ref $_[0] ? @{$_[0]} : @_ ;
 
-    get_logger("Tree::Element::Value")
+    $logger
       ->debug($self->name, " setup_enum_choice with '",join("','",@choice));
+
+    $self->{choice}  = \@choice ;
 
     # store all enum values in a hash. This way, checking
     # whether a value is present in the enum set is easier
     delete $self->{choice_hash} if defined $self->{choice_hash} ;
-    map {$self->{choice_hash}{$_} =  1;} @choice ;
 
-    $self->{choice}  = \@choice ;
+    map {$self->{choice_hash}{$_} =  1;} @choice ;
 
     # delete the current value if it does not fit in the new
     # choice
@@ -460,6 +458,43 @@ sub setup_enum_choice {
 	delete $self->{$_}
 	  if (defined  $self->{$_} and not $self->check($self->{$_},1)) ;
     } qw/data preset/;
+}
+
+=item match
+
+Perl regular expression. The value will be match with the regex to
+assert its validity. Example C<< match => '^foo' >> means that the
+parameter value must begin with "foo". Valid only for C<string> or
+C<uniline> values.
+
+=cut
+
+sub setup_match_regexp {
+    my ($self,$ref) = @_ ;
+
+    my $str = $self->{match} = delete $ref->{match} ;
+    return unless defined $str ;
+    my $vt = $self->{value_type} ; 
+
+    if ($vt ne 'uniline' and $vt ne 'string') {
+	Config::Model::Exception::Model
+		-> throw (
+			  object => $self,
+			  error => "Can't use match regexp with $vt, "
+			         . "expected 'uniline' or 'string'"
+			 ) ;
+    }
+
+    $logger -> debug($self->name, " setup_match_regexp with '$str'");
+    $self->{regexp} = eval { qr/$str/ ;} ;
+
+    if ($@) {
+	Config::Model::Exception::Model
+		-> throw (
+			  object => $self,
+			  error => "Unvalid match regexp for '$str': $@"
+			 ) ;
+    }
 }
 
 =item replace
@@ -498,7 +533,7 @@ ref. Example:
 
 
 my @warp_accessible_params =  qw/min max mandatory default 
-                             choice convert upstream_default replace/ ;
+				 choice convert upstream_default replace match/ ;
 
 my @accessible_params =  (@warp_accessible_params, 
 			  qw/index_value element_name value_type
@@ -576,7 +611,7 @@ sub set_properties {
     # merge data passed to the constructor with data passed to set_properties
     my %args = (%{$self->{backup}},@_ );
 
-    my $logger = get_logger("Tree::Element::Value") ;
+    my $logger = $logger ;
     if ($logger->is_debug) {
 	$logger->debug("Leaf '".$self->name."' set_properties called with '",
 		       join("','",sort keys %args),"'");
@@ -611,12 +646,14 @@ sub set_properties {
 
 
     map { $self->{$_} =  delete $args{$_} if defined $args{$_} }
-      qw/min max mandatory help replace/;
+      qw/min max mandatory replace/;
 
+    $self->set_help           ( \%args );
     $self->set_value_type     ( \%args );
     $self->set_default        ( \%args );
     $self->set_compute        ( \%args ) if defined $args{compute};
     $self->set_convert        ( \%args ) if defined $args{convert};
+    $self->setup_match_regexp ( \%args ) if defined $args{match};
 
     # cannot be warped
     $self->set_migrate_from   ( \%args ) if defined $args{migrate_from};
@@ -634,6 +671,13 @@ sub set_properties {
     }
 
     return $self; 
+}
+
+# simple but may be overridden
+sub set_help {
+    my ($self,$args) = @_ ;
+    return unless defined $args->{help} ;
+    $self->{help} =  delete $args->{help};
 }
 
 =head2 Value types
@@ -1063,7 +1107,7 @@ sub enum_error {
         return @error ;
     }
 
-    my @choice = map( "'$_'", @{$self->{choice}});
+    my @choice = map( "'$_'", $self->get_choice);
     my $var = $self->{value_type} ;
     push @error, "$self->{value_type} type does not know '$value'. Expected ".
       join(" or ",@choice) ; 
@@ -1146,11 +1190,20 @@ sub check_value {
         # accepted, no more check
     }
     else {
+	my $choice_msg = '';
+	$choice_msg .= ", choice ". join(" ",$self->get_choice).")"
+	    if defined $self->{choice};
+
 	my $msg = "Cannot check value_type '".
-	  $self->{value_type}. "' (value '$value'".
-	    (defined $self->{choice} ? ", choice @{$self->{choice}})" : ')');
+	    $self->{value_type}. "' (value '$value'$choice_msg)";
         Config::Model::Exception::Model 
 	    -> throw (object => $self, message => $msg) ;
+    }
+
+    if (defined $self->{regexp} and defined $value) {
+	push @error,"value '$value' does not match regexp "
+	    .$self->{match} 
+		unless $value =~ $self->{regexp} ;
     }
 
     $self->{error} = \@error ;
@@ -1315,9 +1368,8 @@ sub load_data {
 		     ) ;
     }
     else {
-	my $l = get_logger("Tree::Element::Value");
-	if ($l->is_info) {
-	    $l->info("Value load_data (",$self->location,") will store value $data");
+	if ($logger->is_info) {
+	    $logger->info("Value load_data (",$self->location,") will store value $data");
 	}
 	$self->store($data) ;
     }

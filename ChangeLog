@@ -1,3 +1,37 @@
+2010-03-28  Dominique Dumont  <domi.dumont@free.fr>
+
+	* Build.PL (process_tmpl_files): Build depends on
+	Text::Template. Generates config-edit-popcon
+
+	* config-edit.tmpl: New file to create dedicated config-edit-foo
+	commands
+
+	* lib/Config/Model.pm: Version bumped to 1.001
+
+2010-03-26  Dominique Dumont  <dominique.dumont@hp.com>
+
+	* lib/Config/Model/Backend/ShellVar.pm : New backend to read and
+	write configuration files used by shells (sourced by scripts)
+
+2010-03-22  Dominique Dumont  <domi.dumont@free.fr>
+
+	* lib/Config/Model/WizardHelper.pm (node_content_cb): no longer
+	forget to scan element that are warped in while scanning the node.
+
+	* lib/Config/Model/Node.pm (previous_element): new method to
+	iterate through availalble node elements
+
+2010-03-17  Dominique Dumont  <domi.dumont@free.fr>
+
+	* lib/Config/Model/Value.pm (setup_match_regexp): added new
+	'match' parameter to validate a value against a Perl regular
+	expression.
+
+2010-03-16  Dominique Dumont  <dominique.dumont@hp.com>
+
+	* lib/Config/Model/Node.pm (load_data): can load data in hidden
+	element when store check is ignored.
+
 2010-03-11  Dominique Dumont  <dominique.dumont@hp.com> v0.644
 
 	* lib/Config/Model/Loader.pm (load): Load string now support:

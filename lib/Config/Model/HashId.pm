@@ -1,6 +1,3 @@
-# $Author: ddumont $
-# $Date: 2010-02-23 14:12:12 +0100 (Tue, 23 Feb 2010) $
-# $Revision: 1090 $
 
 #    Copyright (c) 2005-2010 Dominique Dumont.
 #
@@ -32,8 +29,7 @@ my $logger = get_logger("Tree::Element::Hash");
 
 use base qw/Config::Model::AnyId/ ;
 
-use vars qw($VERSION) ;
-$VERSION = sprintf "1.%04d", q$Revision: 1090 $ =~ /(\d+)/;
+# use vars qw($VERSION) ;
 
 =head1 NAME
 

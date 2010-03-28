@@ -1,7 +1,3 @@
-# $Author: ddumont $
-# $Date: 2010-03-02 16:05:33 +0100 (Tue, 02 Mar 2010) $
-# $Revision: 1103 $
-
 # copyright at the end of the file in the pod section
 
 package Config::Model ;
@@ -9,7 +5,6 @@ require Exporter;
 use Carp;
 use strict;
 use warnings FATAL => qw(all);
-use vars qw/@ISA @EXPORT @EXPORT_OK $VERSION/;
 use Storable ('dclone') ;
 use Data::Dumper ();
 use Log::Log4perl qw(get_logger :levels);
@@ -20,8 +15,7 @@ use Config::Model::Instance ;
 # this class holds the version number of the package
 use vars qw($VERSION @status @level @experience_list %experience_index) ;
 
-$VERSION = '0.644';
-
+$VERSION = '1.001';
 
 =head1 NAME
 

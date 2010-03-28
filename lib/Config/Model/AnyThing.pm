@@ -1,6 +1,3 @@
-# $Author: ddumont $
-# $Date: 2009-01-20 18:18:15 +0100 (Tue, 20 Jan 2009) $
-# $Revision: 845 $
 
 #    Copyright (c) 2005-2007 Dominique Dumont.
 #
@@ -25,8 +22,7 @@ use Scalar::Util qw(weaken);
 use Carp;
 use strict;
 
-use vars qw($VERSION);
-$VERSION = sprintf "1.%04d", q$Revision: 845 $ =~ /(\d+)/;
+# use vars qw($VERSION);
 
 =head1 NAME
 

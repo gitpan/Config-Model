@@ -1,6 +1,3 @@
-# $Author: ddumont $
-# $Date: 2010-03-11 14:14:02 +0100 (Thu, 11 Mar 2010) $
-# $Revision: 1105 $
 
 #    Copyright (c) 2005-2010 Dominique Dumont.
 #
@@ -29,8 +26,7 @@ use strict;
 
 use base qw/Config::Model::AnyId/ ;
 
-use vars qw($VERSION) ;
-$VERSION = sprintf "1.%04d", q$Revision: 1105 $ =~ /(\d+)/;
+# use vars qw($VERSION) ;
 
 =head1 NAME
 

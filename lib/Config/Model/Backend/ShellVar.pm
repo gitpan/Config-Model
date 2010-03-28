@@ -1,4 +1,3 @@
-
 #    Copyright (c) 2010 Dominique Dumont.
 #
 #    This file is part of Config-Model.
@@ -17,7 +16,7 @@
 #    along with Config-Model; if not, write to the Free Software
 #    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 
-package Config::Model::Backend::Yaml ;
+package Config::Model::Backend::ShellVar ;
 
 use Carp;
 use strict;
@@ -28,12 +27,10 @@ use File::Path;
 use Log::Log4perl qw(get_logger :levels);
 
 use base qw/Config::Model::Backend::Any/;
-use YAML::Any ;
 
+my $logger = get_logger("Backend::ShellVar") ;
 
-my $logger = get_logger("Backend::Yaml") ;
-
-sub suffix { return '.yml' ; }
+sub suffix { return '.conf' ; }
 
 sub read {
     my $self = shift ;
@@ -49,15 +46,11 @@ sub read {
 
     return 0 unless defined $args{io_handle} ; # no file to read
 
-    # load yaml file
-    my $yaml = join ('',$args{io_handle}->getlines) ;
+    # load shellvar file
+    my $shellvar = join ('', map { s/#.*//; $_} $args{io_handle}->getlines) ;
 
-    # convert to perl data
-    my $perl_data = Load $yaml 
-      || croak "No data found in YAML file $args{file_path}";
-
-    # load perl data in tree
-    $self->{node}->load_data($perl_data) ;
+    # normally, shell variables can be loaded directly
+    $self->{node}->load($shellvar) ;
     return 1 ;
 }
 
@@ -73,13 +66,30 @@ sub write {
     # file_path  => './my_test/etc/foo/foo.conf' 
     # io_handle  => $io           # IO::File object
 
-    croak "Undefined file handle to write"
-      unless defined $args{io_handle} ;
+    my $ioh = $args{io_handle} ;
+    my $node = $args{object} ;
 
-    my $perl_data = $self->{node}->dump_as_data() ;
-    my $yaml = Dump $perl_data ;
+    croak "Undefined file handle to write" unless defined $ioh;
 
-    $args{io_handle} -> print ($yaml) ;
+    $ioh->print("# This file was written by Config::Model\n");
+    $ioh->print("# You may modify the content of this file. Configuration \n");
+    $ioh->print("# modifications will be preserved. Modifications in\n");
+    $ioh->print("# comments will be discarded\n\n");
+
+    # Using Config::Model::ObjTreeScanner would be overkill
+    foreach my $elt ($node->get_element_name) {
+        # write some documentation in comments
+        $ioh->print("# $elt:", $node->get_help(summary => $elt));
+        my $upstream_default 
+	  = $node->fetch_element($elt) -> fetch('upstream_default') ;
+        $ioh->print(" ($upstream_default)") if defined $upstream_default;
+        $ioh->print("\n") ;
+
+        # write value
+        my $v = $node->grab_value($elt) ;
+        $ioh->print(qq!$elt="$v"!) if defined $v ;
+        $ioh->print("\n") ;
+    }
 
     return 1;
 }
@@ -90,7 +100,7 @@ __END__
 
 =head1 NAME
 
-Config::Model::Backend::Yaml - Read and write config as a YAML data structure
+Config::Model::Backend::Shellvar - Read and write config as a SHELLVAR data structure
 
 =head1 SYNOPSIS
 
@@ -98,7 +108,7 @@ Config::Model::Backend::Yaml - Read and write config as a YAML data structure
   name => 'FooConfig',
 
   read_config  => [
-                    { backend => 'yaml' , 
+                    { backend => 'shellvar' , 
                       config_dir => '/etc/foo',
                       file  => 'foo.conf',      # optional
                       auto_create => 1,         # optional
@@ -112,7 +122,7 @@ Config::Model::Backend::Yaml - Read and write config as a YAML data structure
 =head1 DESCRIPTION
 
 This module is used directly by L<Config::Model> to read or write the
-content of a configuration tree written with YAML syntax in
+content of a configuration tree written with SHELLVAR syntax in
 C<Config::Model> configuration tree.
 
 Note that undefined values are skipped for list element. I.e. if a
@@ -122,7 +132,7 @@ contain C<'a','b'>.
 
 =head1 CONSTRUCTOR
 
-=head2 new ( node => $node_obj, name => 'yaml' ) ;
+=head2 new ( node => $node_obj, name => 'shellvar' ) ;
 
 Inherited from L<Config::Model::Backend::Any>. The constructor will be
 called by L<Config::Model::AutoRead>.

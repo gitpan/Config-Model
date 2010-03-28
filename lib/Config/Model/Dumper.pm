@@ -1,6 +1,3 @@
-# $Author: ddumont $
-# $Date: 2010-03-12 14:20:29 +0100 (Fri, 12 Mar 2010) $
-# $Revision: 1106 $
 
 #    Copyright (c) 2006-2010 Dominique Dumont.
 #
@@ -28,8 +25,7 @@ use warnings ;
 use Config::Model::Exception ;
 use Config::Model::ObjTreeScanner ;
 
-use vars qw($VERSION);
-$VERSION = sprintf "1.%04d", q$Revision: 1106 $ =~ /(\d+)/;
+# use vars qw($VERSION);
 
 =head1 NAME
 

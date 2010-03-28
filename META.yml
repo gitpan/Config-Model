@@ -7,6 +7,7 @@ build_requires:
   Test::Exception: 0
   Test::More: 0
   Test::Warn: 0.11
+  Text::Template: 0
 configure_requires:
   Module::Build: 0.36
 generated_by: 'Module::Build version 0.3603'
@@ -18,37 +19,29 @@ name: Config-Model
 provides:
   Config::Model:
     file: lib/Config/Model.pm
-    version: 0.644
+    version: 1.001
   Config::Model::AnyId:
     file: lib/Config/Model/AnyId.pm
-    version: 1.1101
   Config::Model::AnyThing:
     file: lib/Config/Model/AnyThing.pm
-    version: 1.0845
   Config::Model::AutoRead:
     file: lib/Config/Model/AutoRead.pm
-    version: 1.1101
   Config::Model::Backend::Any:
     file: lib/Config/Model/Backend/Any.pm
-    version: 1.1071
+  Config::Model::Backend::ShellVar:
+    file: lib/Config/Model/Backend/ShellVar.pm
   Config::Model::Backend::Yaml:
     file: lib/Config/Model/Backend/Yaml.pm
-    version: 1.1071
   Config::Model::CheckList:
     file: lib/Config/Model/CheckList.pm
-    version: 1.1105
   Config::Model::Describe:
     file: lib/Config/Model/Describe.pm
-    version: 1.0669
   Config::Model::DumpAsData:
     file: lib/Config/Model/DumpAsData.pm
-    version: 1.1091
   Config::Model::Dumper:
     file: lib/Config/Model/Dumper.pm
-    version: 1.1106
   Config::Model::Exception:
     file: lib/Config/Model/Exception.pm
-    version: 1.0790
   Config::Model::Exception::Any:
     file: lib/Config/Model/Exception.pm
   Config::Model::Exception::Load:
@@ -73,52 +66,36 @@ provides:
     file: lib/Config/Model/Exception.pm
   Config::Model::HashId:
     file: lib/Config/Model/HashId.pm
-    version: 1.1090
   Config::Model::IdElementReference:
     file: lib/Config/Model/IdElementReference.pm
-    version: 1.0775
   Config::Model::Instance:
     file: lib/Config/Model/Instance.pm
-    version: 1.1101
   Config::Model::ListId:
     file: lib/Config/Model/ListId.pm
-    version: 1.1105
   Config::Model::Loader:
     file: lib/Config/Model/Loader.pm
-    version: 1.1105
   Config::Model::Node:
     file: lib/Config/Model/Node.pm
-    version: 1.1106
   Config::Model::ObjTreeScanner:
     file: lib/Config/Model/ObjTreeScanner.pm
-    version: 1.1101
   Config::Model::Report:
     file: lib/Config/Model/Report.pm
-    version: 1.0641
   Config::Model::Searcher:
     file: lib/Config/Model/Searcher.pm
-    version: 1.1101
   Config::Model::SimpleUI:
     file: lib/Config/Model/SimpleUI.pm
-    version: 1.0541
   Config::Model::TermUI:
     file: lib/Config/Model/TermUI.pm
-    version: 1.0669
   Config::Model::Value:
     file: lib/Config/Model/Value.pm
-    version: 1.1105
   Config::Model::ValueComputer:
     file: lib/Config/Model/ValueComputer.pm
-    version: 1.0905
   Config::Model::WarpedNode:
     file: lib/Config/Model/WarpedNode.pm
-    version: 1.1051
   Config::Model::WarpedThing:
     file: lib/Config/Model/WarpedThing.pm
-    version: 1.1004
   Config::Model::WizardHelper:
     file: lib/Config/Model/WizardHelper.pm
-    version: 1.1026
 recommends:
   Config::Tiny: 0
 requires:
@@ -131,5 +108,5 @@ requires:
   Term::ReadLine: 0
   YAML::Any: 0.303
 resources:
-  license: http://opensource.org/licenses/lgpl-license.php
-version: 0.644
+  license: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt
+version: 1.001
