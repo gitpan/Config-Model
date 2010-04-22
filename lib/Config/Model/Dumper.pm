@@ -20,6 +20,7 @@
 package Config::Model::Dumper;
 use Carp;
 use strict;
+our $VERSION="1.201";
 use warnings ;
 
 use Config::Model::Exception ;
@@ -88,7 +89,8 @@ sub new {
 }
 
 sub quote {
-    foreach (@_) {
+    my @res = @_ ;
+    foreach (@res) {
 	if (    defined $_ 
 		and ( /(\s|")/ or $_ eq '')
 	   ) {
@@ -96,6 +98,7 @@ sub quote {
 	    $_ = '"' . $_ . '"' ; # add my quotes
 	}
     }
+    return wantarray ? @res : $res[0];
 }
 
 =head1 Methods
@@ -179,69 +182,107 @@ sub dump_tree {
         return '  ' x $depth;
     };
 
-    my $std_cb = sub {
-        my ( $scanner, $data_r, $obj, $element, $index, $value_obj ) = @_;
+   my $std_cb = sub {
+        my ( $scanner, $data_r, $node, $element, $index, $value_obj ) = @_;
 
 	# get value or only customized value
-	my $value = $value_obj->fetch ($fetch_mode) ;
-	quote($index,$value) ;
+	my $value = quote($value_obj->fetch ($fetch_mode)) ;
+	$index = quote($index) ;
 
-        my $pad = $compute_pad->($obj);
+        my $pad = $compute_pad->($node);
 
         my $name = defined $index ? "$element:$index" 
                  :                   $element;
 
-        $$data_r .= "\n" . $pad . $name . '=' . $value if defined $value;
+	# add annotation for obj contained in hash or list
+	my $note = quote($value_obj->annotation) ;
+        $$data_r .= "\n" . $pad . $name if defined $value or $note ;
+	$$data_r .= '='  . $value       if defined $value          ;
+	$$data_r .= '#'  . $note        if                   $note ;
     };
 
     my $check_list_cb = sub {
-        my ( $scanner, $data_r, $obj, $element, $index, $value_obj ) = @_;
+        my ( $scanner, $data_r, $node, $element, $index, $value_obj ) = @_;
 
 	# get value or only customized value
 	my $value = $value_obj->fetch ($fetch_mode) ;
-	my $qvalue = $value ;
-	quote($index,$qvalue) ;
-        my $pad = $compute_pad->($obj);
+	my $qvalue = quote($value) ;
+	$index = quote($index) ;
+        my $pad = $compute_pad->($node);
 
         my $name = defined $index ? "$element:$index" 
                  :                   $element;
 
-        $$data_r .= "\n" . $pad . $name . '=' . $qvalue if $value;
+	# add annotation for obj contained in hash or list
+	my $note = quote($value_obj->annotation) ;
+        $$data_r .= "\n" . $pad . $name if $value or $note ;
+	$$data_r .= '='  . $qvalue      if $value          ;
+	$$data_r .= '#'  . $note        if           $note ;
     };
 
     my $list_element_cb = sub {
-        my ( $scanner, $data_r, $obj, $element, @keys ) = @_;
+        my ( $scanner, $data_r, $node, $element, @keys ) = @_;
 
-        my $pad      = $compute_pad->($obj);
-	my $list_obj = $obj->fetch_element($element) ;
-        my $elt_type = $list_obj->cargo_type ;
+	my $pad      = $compute_pad->($node);
+	my $list_obj = $node->fetch_element($element) ;
 
-        if ( $elt_type eq 'node' ) {
+	# add annotation for list element
+	my $note  = quote($list_obj->annotation) ;
+	$$data_r .= "\n$pad$element#$note" if $note ;
+
+        if ( $list_obj->cargo_type eq 'node' ) {
             foreach my $k ( @keys ) {
-                $scanner->scan_hash( $data_r, $obj, $element, $k );
+                $scanner->scan_list( $data_r, $node, $element, $k );
             }
         }
         else {
 	    # skip undef values
-	    my @val = grep (defined $_,$list_obj->fetch_all_values($fetch_mode)) ;
-	    quote(@val) ;
-            $$data_r .= "\n$pad$element=" . join( ',', @val ) if @val;
+	    my @val = quote( grep (defined $_, 
+				   $list_obj->fetch_all_values($fetch_mode))) ;
+	    my $note = quote($list_obj->annotation) ;
+            $$data_r .= "\n$pad$element"        if @val or $note ;
+	    $$data_r .= "=" . join( ',', @val ) if @val;
+	    $$data_r .= '#'  . $note            if         $note ;
         }
     };
 
-    my $element_cb = sub {
-        my ( $scanner, $data_r, $obj, $element, $key, $next ) = @_;
+    my $hash_element_cb = sub {
+        my ( $scanner, $data_r, $node, $element, @keys ) = @_;
 
-        my $type = $obj -> element_type($element);
+	my $pad      = $compute_pad->($node);
+	my $hash_obj = $node->fetch_element($element) ;
+
+	# add annotation for list or hash element
+	my $note  = quote($hash_obj->annotation) ;
+	$$data_r .= "\n$pad$element#$note" if $note ;
+
+	# resume exploration
+	map {
+	    $scanner->scan_hash($data_r,$node,$element,$_);
+	} @keys ;
+    };
+
+    # called for nodes contained in nodes (not root)
+    my $element_cb = sub {
+        my ( $scanner, $data_r, $node, $element, $key, $next ) = @_;
+
+        my $type = $node -> element_type($element);
 
         return if $skip_aw and $next->is_auto_write_for_type($skip_aw) ;
 
-        my $pad = $compute_pad->($obj);
+        my $pad = $compute_pad->($node);
+	my $node_note = $node->annotation ;
 
-        my $head = "\n$pad$element";
+	my $head = "\n$pad$element";
 	if ($type eq 'list' or $type eq 'hash') {
-	    quote($key) ;
-	    $head .= ":$key" ;
+	    $head.="#$node_note$head" if $node_note ;
+	    $head .= ':'.quote($key) ;
+	    # add list of hash annotation
+	    my $note = $node->fetch_element($element)->annotation ;
+	    $head.="#$note" if $note;
+	}
+	elsif ($node_note) {
+	    $head.="#$node_note";
 	}
 
 	my $sub_data = '';
@@ -258,6 +299,7 @@ sub dump_tree {
 		     fallback        => 'all',
 		     auto_vivify     => $auto_v,
 		     list_element_cb => $list_element_cb,
+		     hash_element_cb => $hash_element_cb,
 		     leaf_cb         => $std_cb,
 		     node_element_cb => $element_cb,
 		     check_list_element_cb => $check_list_cb,
@@ -269,7 +311,9 @@ sub dump_tree {
     # perform the scan
     my $view_scanner = Config::Model::ObjTreeScanner->new(@scan_args);
 
-    my $ret = '' ;
+    my $ret = '';
+    my $note = quote($node->annotation) ;
+    $ret .="\n#$note" if $note ;
     $view_scanner->scan_node(\$ret, $node);
 
     substr( $ret, 0, 1, '' );    # remove leading \n

@@ -1,4 +1,4 @@
-
+#
 #    Copyright (c) 2005-2010 Dominique Dumont.
 #
 #    This file is part of Config-Model.
@@ -31,6 +31,7 @@ use Log::Log4perl qw(get_logger :levels);
 
 use base qw/Config::Model::AnyThing/ ;
 
+our $VERSION="1.201";
 
 sub get_cfg_file_path {
     my $self = shift ; 

@@ -1,10 +1,7 @@
 # -*- cperl -*-
-# $Author$
-# $Date$
-# $Revision$
 
 use ExtUtils::testlib;
-use Test::More tests => 74;
+use Test::More tests => 94;
 use Test::Exception ;
 use Config::Model;
 use Data::Dumper ;
@@ -28,19 +25,28 @@ Log::Log4perl->easy_init($arg =~ /l/ ? $TRACE: $WARN);
 ok(1,"compiled");
 
 # test mega regexp, 'x' means undef
-my @regexp_test = (
-		   [ 'a'		,  [qw/a x x x x/	] ],
-		   [ 'a=b'		,  [qw/a x x = b/	] ],
-		   [ 'a.=b'		,  [qw/a x x .= b/	] ],
-		   [ 'a="b=c"'		,  [qw/a x x = b=c/	] ],
-		   [ 'a="b=\"c\""'	,  [qw/a x x = b="c"/	] ],
-		   [ 'a:b=c'		,  [qw/a : b = c/	] ],
-		   [ 'a:"b\""="\"c"'    ,  [qw/a : b" = "c/	] ],
-		   [ 'a=~/b.*/'		,  [qw!a =~ /b.*/ x x!	] ],
-		   [ 'a=~/b.*/.="\"a"'  ,  [qw!a =~ /b.*/ .= "a!] ],
-		   [ 'a=b,c,d'          ,  [qw/a x x =/, 'b,c,d'] ],
-		   [ 'm=a,"a b "'       ,  [qw/m x x =/, 'a,"a b "']],
- ) ;
+my @regexp_test 
+  = (
+     [ 'a'               , ['a', 'x' ,  'x'    ,'x' , 'x'     , 'x'  ]],
+     [ '#C'              , ['x', 'x' ,  'x'    ,'x' , 'x'     , 'C'  ]],
+     [ '#"m C"'          , ['x', 'x' ,  'x'    ,'x' , 'x'     , 'm C']],
+     [ 'a=b'             , ['a', 'x' ,  'x'    ,'=' , 'b'     , 'x'  ]],
+     [ 'a.=b'            , ['a', 'x' ,  'x'    ,'.=','b'      , 'x'  ]],
+     [ 'a="b=c"'         , ['a', 'x' ,  'x'    ,'=' , 'b=c'   , 'x'  ]],
+     [ 'a="b=\"c\""'     , ['a', 'x' ,  'x'    ,'=' , 'b="c"' , 'x'  ]],
+     [ 'a:b=c'           , ['a', ':' ,  'b'    ,'=' , 'c'     , 'x'  ]],
+     [ 'a:"b\""="\"c"'   , ['a', ':' ,  'b"'   ,'=' ,'"c'     , 'x'  ]],
+     [ 'a=~/b.*/'        , ['a', '=~', '/b.*/' ,'x' , 'x'     , 'x'  ]],
+     [ 'a=~/b.*/.="\"a"' , ['a', '=~', '/b.*/' ,'.=','"a'     , 'x'  ]],
+     [ 'a=b,c,d'         , ['a', 'x' ,  'x'    ,'=' , 'b,c,d' , 'x'  ]],
+     [ 'm=a,"a b "'      , ['m', 'x' ,  'x'    ,'=' , 'a,"a b "', 'x'  ]],
+     [ 'a#B'             , ['a', 'x' ,  'x'    ,'x' , 'x'     , 'B'  ]],
+     [ 'a#"b=c"'         , ['a', 'x' ,  'x'    ,'x' , 'x'     , 'b=c']],
+     [ 'a:"b\""#"\"c"'   , ['a', ':' ,  'b"'   ,'x' , 'x'     ,'"c'  ]],
+     [ 'a=b#B'           , ['a', 'x' ,  'x'    ,'=' , 'b'     , 'B'  ]],
+     [ 'a:b=c#C'         , ['a', ':' ,  'b'    ,'=' , 'c'     , 'C'  ]],
+     [ 'a:b#C'           , ['a', ':' ,  'b'    ,'x' , 'x'     , 'C'  ]],
+    ) ;
 
 foreach my $subtest (@regexp_test) {
     my ($cmd, $ref) = @$subtest ;
@@ -58,7 +64,7 @@ ok($inst,"created dummy instance") ;
 my $root = $inst -> config_root ;
 
 # check with embedded \n
-my $step = qq!std_id:ab X=Bv -\na_string="titi and\ntoto" !;
+my $step = qq!#"root cooment" std_id:ab X=Bv -\na_string="titi and\ntoto" !;
 ok( $root->load( step => $step, permission => 'intermediate' ),
   "load steps with embedded \\n");
 is( $root->fetch_element('a_string')->fetch, "titi and\ntoto",
@@ -215,3 +221,39 @@ $root->load('std_id=~/^\w+$/ DX=Bv - int_v=9') ;
 is($root->grab_value('std_id:ab DX'),'Bv',"check looped assign 1") ;
 is($root->grab_value('std_id:bc DX'),'Bv',"check looped assign 2") ;
 isnt($root->grab_value('std_id:"a b" DX'),'Bv',"check out of loop left alone") ;
+
+# test annotation setting
+my @anno_test = ( 'std_id',
+          'std_id:ab',
+          'lista',
+          'lista:0',
+        );
+foreach my $path (@anno_test) {
+    $root->load(qq!$path#"$path annotation"!) ;
+    is($root->grab($path)->annotation,"$path annotation",
+       "fetch $path annotation") ;
+}
+
+# test combination of annotation plus load
+$step = 'std_id:ab#std_id_ab_note X=Bv X#X_note 
+      - std_id#std_id_note std_id:bc X=Av X#X2_note '
+  .'- a_string="toto \"titi\" tata" a_string#string_note '
+  .'lista=a,b,c,d olist:0 - olist:0#olist0_note X=Av - olist:1 X=Bv - listb=b,"c c2",d '
+  . '! hash_a:X2=x#x_note hash_a:Y2=xy  hash_b:X3=xy my_check_list=X2,X3' ;
+
+ok( $root->load( step => $step, permission => 'intermediate' ),
+  "set up data in tree with combination of load and annotations");
+
+my @to_check = ( 
+		 [ 'std_id','std_id_note' ],
+		 [ 'std_id:ab','std_id_ab_note' ],
+		 [ 'std_id:ab X','X_note' ],
+		 [ 'std_id:bc X','X2_note' ],
+		 [ 'a_string','string_note'],
+		 [ 'olist:0','olist0_note'],
+		 [ 'hash_a:X2','x_note'],
+	       ) ;
+foreach (@to_check) {
+    is($root->grab($_->[0])->annotation,$_->[1],
+       "Check annotation for '$_->[0]'") ;
+}

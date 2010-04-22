@@ -13,9 +13,9 @@ use Log::Log4perl qw(get_logger :levels);
 use Config::Model::Instance ;
 
 # this class holds the version number of the package
-use vars qw($VERSION @status @level @experience_list %experience_index) ;
+use vars qw(@status @level @experience_list %experience_index) ;
 
-$VERSION = '1.001';
+our $VERSION = '1.202';
 
 =head1 NAME
 
@@ -1691,6 +1691,10 @@ L<config-edit>
 =head2 Model utilities
 
 =over
+
+=item * 
+
+L<Config::Model::Annotation>
 
 =item * 
 

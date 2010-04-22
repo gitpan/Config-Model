@@ -1,4 +1,3 @@
-
 #    Copyright (c) 2005-2010 Dominique Dumont.
 #
 #    This file is part of Config-Model.
@@ -19,6 +18,7 @@
 
 package Config::Model::CheckList ;
 use Config::Model::Exception ;
+use Config::Model::IdElementReference ;
 use warnings ;
 use Carp;
 use strict;
@@ -26,7 +26,7 @@ use Log::Log4perl qw(get_logger :levels);
 
 use base qw/Config::Model::WarpedThing/ ;
 
-# use vars qw($VERSION) ;
+our $VERSION="1.202";
 
 my $logger = get_logger("Tree::Element::CheckList") ;
 

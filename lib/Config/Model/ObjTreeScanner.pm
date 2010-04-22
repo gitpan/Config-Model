@@ -1,5 +1,4 @@
-
-#    Copyright (c) 2006-2007 Dominique Dumont.
+#    Copyright (c) 2006-2010 Dominique Dumont.
 #
 #    This file is part of Config-Model.
 #
@@ -25,6 +24,7 @@ use Carp;
 use warnings ;
 use UNIVERSAL qw( isa can );
 
+our $VERSION="1.202";
 
 use Carp qw/croak confess cluck/;
 
@@ -182,7 +182,8 @@ enum_value_cb ...) to string_value_cb or to the mandatory leaf_cb
 value. "fallback" callback will not override callbacks provided by the
 user.
 
-If set to 'all', equivalent to 'node' and 'leaf'.
+If set to 'all', equivalent to 'node' and 'leaf'. By default, no
+fallback is provided.
 
 =item experience
 
@@ -311,7 +312,8 @@ Example:
 =head2 Node element callback
 
 C<node_element_cb> is called for each node contained within a node
-(i.e not with root node):
+(i.e not with root node). This node can be held by a plain element or
+a hash element or a list element:
 
  ($scanner, $data_ref,$node,$element_name,$key, $contained_node)
 

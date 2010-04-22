@@ -1,4 +1,60 @@
-2010-03-28  Dominique Dumont  <domi.dumont@free.fr>
+2010-04-22  Dominique Dumont  <domi.dumont@free.fr> v1.202
+
+	SUMMARY:
+
+	* New core feature: user can store annotation (e.g. structured
+	comments) with each configuration object of the configuration
+	tree, be it node, leaf, hash or list. Read backend can parse
+	confguration file comments and store them in annotations.
+
+	For instance ShellVar read backend will parse comments and store
+	them in the configuration tree. ShellVar write backend will put
+	them back in the configuration file.
+
+	* PopCon editor preserve comments in configuration file.
+
+	* Code: Uses Moose for C::M::Annotation and C::M::Backend::Any. Moose
+	looks good. I may use Moose for all other Config::Model classes later.
+
+2010-04-22  Dominique Dumont  <domi.dumont@free.fr>
+
+	* lib/Config/Model/Backend/ShellVar.pm (read): Tries its best to
+	read user comments and store them in annotations.
+	(write): Write annotation as comments. Write model documentation
+	as comments starting with '##'
+
+2010-04-19  Dominique Dumont  <domi.dumont@free.fr>
+
+	* lib/Config/Model/AnyThing.pm (grab_annotation): new method
+
+2010-04-15  Dominique Dumont  <domi.dumont@free.fr>
+
+	* lib/Config/Model/Loader.pm (load): Can load string with annotations
+
+	* lib/Config/Model/Dumper.pm (dump_tree): Dumps annotations in
+	data string
+
+2010-04-07  Dominique Dumont  <domi.dumont@free.fr>
+
+	* lib/Config/Model/AnyThing.pm (annotation): new accessor method
+	for annotations.
+
+	* lib/Config/Model/Annotation.pm : New file to load and save
+	configuration annotations (just like comments with a structure)
+
+	* Build.PL: added dependency on Moose
+
+2010-04-01  Dominique Dumont  <dominique.dumont@hp.com>
+
+	* lib/Config/Model/models/PopCon.pl: Fixed PopCon config
+	directory. Cosmetic improvements for descriptions.
+
+2010-03-29  Dominique Dumont  <dominique.dumont@hp.com>
+
+	* lib/Config/Model/*.pm: Put back VERSION number and bumped them
+	all to 1.201 to make CPAN indexer happy
+
+2010-03-28  Dominique Dumont  <domi.dumont@free.fr> 1.001
 
 	* Build.PL (process_tmpl_files): Build depends on
 	Text::Template. Generates config-edit-popcon

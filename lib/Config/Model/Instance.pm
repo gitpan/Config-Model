@@ -1,5 +1,4 @@
-
-#    Copyright (c) 2005-2009 Dominique Dumont.
+#    Copyright (c) 2005-2010 Dominique Dumont.
 #
 #    This file is part of Config-Model.
 #
@@ -22,6 +21,7 @@ use Scalar::Util qw(weaken) ;
 use File::Path;
 use Log::Log4perl qw(get_logger :levels);
 
+use Config::Model::Annotation;
 use Config::Model::Exception ;
 use Config::Model::Node ;
 use Config::Model::Loader;
@@ -33,12 +33,11 @@ use Carp;
 use warnings FATAL => qw(all);
 use warnings::register ;
 
-# use vars qw/$VERSION/ ;
-
+our $VERSION="1.202";
 
 use Carp qw/croak confess cluck/;
 
-my $logger = get_logger("Backend::Yaml") ;
+my $logger = get_logger("Instance") ;
 
 =head1 NAME
 
@@ -189,7 +188,7 @@ sub config_root {
 =head2 reset_config
 
 Destroy current configuration tree (with data) and returns a new tree with
-data loaded from disk.
+data (and annotations) loaded from disk.
 
 =cut
 
@@ -197,11 +196,19 @@ sub reset_config {
     my $self= shift ;
 
     $self->{tree} = Config::Model::Node
-      -> new ( config_class_name =>$self->{root_class_name},
+      -> new ( config_class_name => $self->{root_class_name},
 	       instance => $self,
 	       config_model => $self->{config_model},
 	       skip_read  => $self->{skip_read},
 	     );
+
+    # $self->{annotation_saver} = Config::Model::Annotation
+    #   -> new (
+    # 	      config_class_name => $self->{root_class_name},
+    # 	      instance => $self ,
+    # 	      root_dir => $self->{root_dir} ,
+    # 	     ) ;
+    # $self->{annotation_saver}->load ;
 
     return $self->{tree} ;
 }
@@ -217,6 +224,18 @@ sub config_model {
     return shift->{config_model} ;
 }
 
+=head2 annotation_saver()
+
+Returns the object loading and saving annotations. See
+L<Config::Model::Annotation> for details.
+
+=cut
+
+# sub annotation_saver {
+#     my $self = shift ;
+#     return $self->{annotation_saver} ;
+#}
+
 =head2 preset_start ()
 
 All values stored in preset mode are shown to the user as default
@@ -227,6 +246,7 @@ an automatic process (like hardware scan)
 
 sub preset_start {
     my $self = shift ;
+    $logger->info("Starting preset mode");
     $self->{preset} = 1;
 }
 
@@ -250,7 +270,6 @@ Get preset mode
 
 sub preset {
     my $self = shift ;
-    $logger->info("Starting preset mode");
     return $self->{preset} ;
 }
 

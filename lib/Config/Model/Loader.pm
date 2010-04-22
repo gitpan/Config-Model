@@ -1,4 +1,3 @@
-
 #    Copyright (c) 2006-2008,2010 Dominique Dumont.
 #
 #    This file is part of Config-Model.
@@ -25,7 +24,7 @@ use warnings ;
 use Config::Model::Exception ;
 use Log::Log4perl qw(get_logger :levels);
 
-# use vars qw($VERSION);
+our $VERSION="1.202";
 
 my $logger = get_logger("Loader") ;
 
@@ -146,6 +145,10 @@ Using C<xxx=~/yy/=zz> is also possible.
 
 Will append C<zzz> value to current values (valid for C<leaf> elements).
 
+=item xxx#zzz or xxx:yyy#zzz
+
+Element annotation. Can be quoted or not quoted.
+
 =back
 
 =head1 Methods
@@ -251,28 +254,38 @@ sub load {
 sub _split_cmd {
     my $cmd = shift ;
 
-        # do a split on ' ' but take quoted string into account
+    my $quoted_regexp = qr/"(?: \\" | [^"] )* "/x;  # quoted string
+
+
+    # do a split on ' ' but take quoted string into account
     my @command = 
       ( 
        $cmd =~ 
-       m!
-	 (\w+)          # element name can be alone
+       m!^
+	 (\w+)? # element name can be alone
 	 (?:
             (:|=~|~)       # action
             ( /[^/]+/      # regexp
 	      |            # or
-	       "           # quote
-               (?: \\" | [^"] )* # escaped quote or non quote
-               "           # quote
+		$quoted_regexp
               |
-	       [^"=\.~]+    # non action chars
+	      [^"#=\.~]+    # non action chars
             )
          )?
 	 (?:
-            (=|.=)         # assign or append
+            (=|.=)          # assign or append
 	    ( 
               (?:
-                " (?: \\" | [^"] )* "  # quoted string
+                $quoted_regexp
+                | [^#\s]                # or non whitespace
+              )+                       # many
+            )
+	 )?
+	 (?:
+            \#              # optional annotation
+	    ( 
+              (?:
+                 $quoted_regexp
                 | [^\s]                # or non whitespace
               )+                       # many
             )
@@ -313,18 +326,25 @@ sub _load {
         next if $cmd =~ /^\s*$/ ;
 
         if ($cmd eq '!') {
+	    $logger->debug("_load: going to root");
 	    next if $is_root ;
 	    return 'root' ;
 	}
 
 	if ($cmd eq '-') {
+	    $logger->debug("_load: going up");
 	    return 'up';
 	}
 
 	my @instructions = _split_cmd($cmd);
-	my $element_name = $instructions[0] ;
+	my ($element_name,$action,$id,$subaction,$value,$note) = @instructions ;
 
-        unless (defined $element_name) {
+	if ($logger->is_debug) {
+	    my @disp = map { defined $_ ? "'$_'" : '<undef>'} @instructions;
+	    $logger->debug("_load instructions: @disp");
+	}
+
+	if (not defined $element_name and not defined $note) {
 	    Config::Model::Exception::Load
 		-> throw (
 			  command => $cmd ,
@@ -351,6 +371,11 @@ sub _load {
 			 );
 	    # below, has_element method from WarpedNode will raise
 	    # exception if warped_node is not available
+	}
+
+	if (not defined $element_name and defined $note) {
+	    $node->annotation($note);
+	    next ;
 	}
 
         unless ($node->has_element($element_name)) {
@@ -393,8 +418,25 @@ sub _load {
 	croak "_load: unexpected element type '$element_type' for $element_name"
 	  unless defined $method ;
 
+	$logger->debug("_load: calling $element_type loader on element $element_name") ;
+	my $target_obj ;
 	my $ret = $self->$method($node,$experience,
-				 \@instructions,$cmdref) ;
+				 \@instructions,$cmdref,\$target_obj) ;
+
+	# apply note on target object
+	if (defined $note) {
+	    if (defined $target_obj) {
+		$target_obj->annotation($note) ;
+	    }
+	    else {
+		Config::Model::Exception::Load
+		    -> throw (
+			      command => $cmd ,
+			      error => "Error: cannot set annotation with '".
+			      join("','", grep {defined $_ } @instructions)."'"
+			     );
+	    }
+	}
 
 	if ($ret eq 'error' or $ret eq 'done') { return $ret; }
 	return 'root' if $ret eq 'root' and not $is_root ;
@@ -406,10 +448,10 @@ sub _load {
 
 
 sub _walk_node {
-    my ($self,$node,$experience,$inst,$cmdref) = @_ ;
+    my ($self,$node,$experience,$inst,$cmdref,$target_ref) = @_ ;
 
     my $element_name = shift @$inst ;
-    my $element = $node -> fetch_element($element_name) ;
+    my $element = $$target_ref = $node -> fetch_element($element_name) ;
 
     my @left = grep {defined $_} @$inst ;
     if (@left) {
@@ -432,7 +474,7 @@ sub unquote {
 
 # used for list and check lists
 sub _load_list {
-    my ($self,$node,$experience,$inst,$cmdref) = @_ ;
+    my ($self,$node,$experience,$inst,$cmdref,$target_ref) = @_ ;
     my ($element_name,$action,$id,$subaction,$value) = @$inst ;
 
     my $element = $node -> fetch_element($element_name) ;
@@ -440,34 +482,49 @@ sub _load_list {
     my $elt_type   = $node -> element_type( $element_name ) ;
     my $cargo_type = $element->cargo_type ;
 
+    unless (defined $action or defined $subaction) {
+	$$target_ref = $element ;
+	return 'ok';
+    }
+
     if (not defined $action and $subaction eq '=' 
 	and $cargo_type eq 'leaf'
        ) {
+	$logger->debug("_load_list: set whole list");
 	# valid for check_list or list
 	$logger->info("Setting $elt_type element ",$element->name,
 		      " with '$value'");
 	$element->load( $value ) ;
+	$$target_ref = $element ;
 	return 'ok';
     }
 
     if ($elt_type eq 'list' and $action eq '~') {
 	# remove possible leading or trailing quote
+	$logger->debug("_load_list: removing id $id");
 	unquote ($id) ;
 	$element->remove($id) ;
 	return 'ok' ;
     }
 
-    if ($elt_type eq 'list' and $action eq ':' and $cargo_type =~ /node/) {
-	# remove possible leading or trailing quote
-	unquote ($id) ;
-	my $newnode = $element->fetch_with_id($id) ;
-	return $self->_load($newnode, $experience, $cmdref);
-    }
+    if ($elt_type eq 'list' and $action eq ':') {
+	my $obj = $$target_ref = $element->fetch_with_id($id) ;
 
-    if ($elt_type eq 'list' and $action eq ':' and $cargo_type =~ /leaf/) {
-	unquote($value) ;
-	$self->_load_value($element->fetch_with_id($id),$subaction,$value) 
-	  and return 'ok';
+	if ($cargo_type =~ /node/) {
+	    # remove possible leading or trailing quote
+	    $logger->debug("_load_list: calling _load on node id $id");
+	    unquote ($id) ;
+	    return $self->_load($obj, $experience, $cmdref);
+	}
+
+	return 'ok' unless defined $subaction ;
+
+	if ($cargo_type =~ /leaf/) {
+	    $logger->debug("_load_list: calling _load_value on $cargo_type id $id");
+	    unquote($value) ;
+	    $self->_load_value($obj,$subaction,$value) 
+	      and return 'ok';
+	}
     }
 
 
@@ -482,11 +539,16 @@ sub _load_list {
 }
 
 sub _load_hash {
-    my ($self,$node,$experience,$inst,$cmdref) = @_ ;
+    my ($self,$node,$experience,$inst,$cmdref,$target_ref) = @_ ;
     my ($element_name,$action,$id,$subaction,$value) = @$inst ;
 
     my $element = $node -> fetch_element($element_name) ;
     my $cargo_type = $element->cargo_type ;
+
+    unless (defined $action) {
+	$$target_ref = $element ;
+	return 'ok';
+    }
 
     if ($action eq '=~') {
 	my @keys = $element->get_all_indexes;
@@ -524,23 +586,27 @@ sub _load_hash {
 
     if ($action eq '~') {
 	# remove possible leading or trailing quote
+	$logger->debug("_load_hash: deleting $id");
 	unquote ($id) ;
 	$element->delete($id) ;
 	return 'ok' ;
     }
 
+    my $obj = $$target_ref = $element->fetch_with_id($id) ;
+
     if ($action eq ':' and $cargo_type =~ /node/) {
 	# remove possible leading or trailing quote
+	$logger->debug("_load_hash: calling _load on node $id");
 	unquote ($id) ;
-	my $newnode = $element->fetch_with_id($id) ;
-	return $self->_load($newnode, $experience, $cmdref);
+	return $self->_load($obj, $experience, $cmdref);
     }
     elsif ($action eq ':' and $cargo_type =~ /leaf/) {
+	$logger->debug("_load_hash: calling _load_value on leaf $id");
 	unquote($id,$value) ;
-	$self->_load_value($element->fetch_with_id($id),$subaction,$value) 
+	$self->_load_value($obj,$subaction,$value)
 	  and return 'ok';
     }
-    else {
+    elsif ($action) {
 	Config::Model::Exception::Load
 	    -> throw (
 		      object => $element,
@@ -552,16 +618,18 @@ sub _load_hash {
 }
 
 sub _load_leaf {
-    my ($self,$node,$experience,$inst,$cmdref) = @_ ;
+    my ($self,$node,$experience,$inst,$cmdref,$target_ref) = @_ ;
     my ($element_name,$action,$id,$subaction,$value) = @$inst ;
 
-    my $element = $node -> fetch_element($element_name) ;
+    my $element = $$target_ref = $node -> fetch_element($element_name) ;
     unquote($value) ;
 
+    return 'ok' unless defined $subaction ;
+
     if ($logger->is_debug) {
-	my $msg = $value ;
-	$msg =~ s/\n/\\n/g;
-	$logger->debug("_load_leaf: action '$subaction' value '$msg'");
+        my $msg = $value ;
+        $msg =~ s/\n/\\n/g;
+        $logger->debug("_load_leaf: action '$subaction' value '$msg'");
     }
 
     return $self->_load_value($element,$subaction,$value)
@@ -576,12 +644,13 @@ sub _load_leaf {
 }
 
 sub _load_value {
-    my ($self,$element,$action,$value) = @_ ;
+    my ($self,$element,$subaction,$value) = @_ ;
 
-    if ($action eq '=' and $element->isa('Config::Model::Value')) {
+    $logger->debug("_load_value: action '$subaction' value '$value'");
+    if ($subaction eq '=' and $element->isa('Config::Model::Value')) {
 	$element->store($value) ;
     }
-    elsif ($action eq '.=' and $element->isa('Config::Model::Value')) {
+    elsif ($subaction eq '.=' and $element->isa('Config::Model::Value')) {
 	my $orig = $element->fetch() ;
 	$element->store($orig.$value) ;
     }
@@ -604,3 +673,5 @@ Dominique Dumont, (ddumont at cpan dot org)
 L<Config::Model>,L<Config::Model::Node>,L<Config::Model::Dumper>
 
 =cut
+
+

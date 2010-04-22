@@ -36,6 +36,8 @@ use base qw/Config::Model::AutoRead/;
 use vars qw($AUTOLOAD @status @level
 @experience_list %experience_index );
 
+our $VERSION="1.201";
+
 *status           = *Config::Model::status ;
 *level            = *Config::Model::level ;
 *experience_list  = *Config::Model::experience_list ;
