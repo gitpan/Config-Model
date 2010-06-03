@@ -1,3 +1,12 @@
+# 
+# This file is part of Config-Model
+# 
+# This software is Copyright (c) 2010 by Dominique Dumont.
+# 
+# This is free software, licensed under:
+# 
+#   The GNU Lesser General Public License, Version 2.1, February 1999
+# 
 #    Copyright (c) 2005-2010 Dominique Dumont.
 #
 #    This file is part of Config-Model.
@@ -33,6 +42,10 @@ my $logger = get_logger("Tree::Element::CheckList") ;
 =head1 NAME
 
 Config::Model::CheckList - Handle check list element
+
+=head1 VERSION
+
+version 1.203
 
 =head1 SYNOPSIS
 

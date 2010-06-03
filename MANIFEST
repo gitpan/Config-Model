@@ -1,11 +1,14 @@
+Build.PL
+Build.PL.orig
 ChangeLog
 LICENSE
-MANIFEST			This list of files
-Build.PL
+MANIFEST
+MANIFEST.SKIP
+MODELS
 README
 TODO
-META.yml
-MODELS
+_build/cleanup
+_build/lib/MyModuleBuilder.pm
 config-edit
 config-edit.tmpl
 examples/fstab/Fstab.pl
@@ -42,6 +45,11 @@ lib/Config/Model/WarpedNode.pm
 lib/Config/Model/WarpedThing.pm
 lib/Config/Model/WizardHelper.pm
 lib/Config/Model/models/PopCon.pl
+libconfig-model-perl_1.203-1.dsc
+libconfig-model-perl_1.203-1.tar.gz
+libconfig-model-perl_1.203-1_all.deb
+libconfig-model-perl_1.203-1_amd64.changes
+t/annotation.t
 t/array_id.t
 t/auto_load_model.t
 t/auto_read.t
@@ -64,6 +72,7 @@ t/obj_tree_scanner.t
 t/pod.t
 t/popcon_config.t
 t/recursive_warp_value.t
+t/release-pod-syntax.t
 t/report.t
 t/search_element.t
 t/simple_ui.t

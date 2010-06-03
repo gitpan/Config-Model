@@ -1,0 +1,28 @@
+Format: 1.8
+Date: Mon, 03 May 2010 19:27:19 +0200
+Source: libconfig-model-perl
+Binary: libconfig-model-perl
+Architecture: source all
+Version: 1.203-1
+Distribution: unstable
+Urgency: low
+Maintainer: Dominique Dumont <domi@ylum.gre.hp.com>
+Changed-By: Dominique Dumont <domi@ylum.gre.hp.com>
+Description: 
+ libconfig-model-perl - Describe, edit and validate configuration data
+Changes: 
+ libconfig-model-perl (1.203-1) unstable; urgency=low
+ .
+   * new
+Checksums-Sha1: 
+ 912d0d7531347739d1e0049b6c3ccbfeaf473316 843 libconfig-model-perl_1.203-1.dsc
+ 1e9c72ab997f28f494d58bcd4d60fa603ca80a04 191281 libconfig-model-perl_1.203-1.tar.gz
+ 62edb20e81b616f4d3ccb8f25ffa663f8181e51e 256570 libconfig-model-perl_1.203-1_all.deb
+Checksums-Sha256: 
+ 3537050390be3e68a1c9e8cab63447f661712051afd72333b8b0eaf30d61c933 843 libconfig-model-perl_1.203-1.dsc
+ 63805b1e89313e1884bf1c6387780140463191549d6b7eda526b0376cbeff209 191281 libconfig-model-perl_1.203-1.tar.gz
+ 6e630494ec59b53e1a0232790ea70eab180afa7e7008523beabdef5939c5c1b8 256570 libconfig-model-perl_1.203-1_all.deb
+Files: 
+ 1f3f35817b24dac72314a8828b798f02 843 perl optional libconfig-model-perl_1.203-1.dsc
+ 0acae70a785b65457fa8a54c83a29e30 191281 perl optional libconfig-model-perl_1.203-1.tar.gz
+ ad6ba38345863d4fbf11a412909afd1a 256570 perl optional libconfig-model-perl_1.203-1_all.deb

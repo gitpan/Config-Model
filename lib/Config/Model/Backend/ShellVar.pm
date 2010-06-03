@@ -1,3 +1,12 @@
+# 
+# This file is part of Config-Model
+# 
+# This software is Copyright (c) 2010 by Dominique Dumont.
+# 
+# This is free software, licensed under:
+# 
+#   The GNU Lesser General Public License, Version 2.1, February 1999
+# 
 #    Copyright (c) 2010 Dominique Dumont.
 #
 #    This file is part of Config-Model.
@@ -17,6 +26,9 @@
 #    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 
 package Config::Model::Backend::ShellVar ;
+BEGIN {
+  $Config::Model::Backend::ShellVar::VERSION = '1.203';
+}
 
 use Carp;
 use strict;
@@ -146,6 +158,10 @@ __END__
 =head1 NAME
 
 Config::Model::Backend::Shellvar - Read and write config as a SHELLVAR data structure
+
+=head1 VERSION
+
+version 1.203
 
 =head1 SYNOPSIS
 

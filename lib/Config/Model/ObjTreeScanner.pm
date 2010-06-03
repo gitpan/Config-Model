@@ -1,3 +1,12 @@
+# 
+# This file is part of Config-Model
+# 
+# This software is Copyright (c) 2010 by Dominique Dumont.
+# 
+# This is free software, licensed under:
+# 
+#   The GNU Lesser General Public License, Version 2.1, February 1999
+# 
 #    Copyright (c) 2006-2010 Dominique Dumont.
 #
 #    This file is part of Config-Model.
@@ -19,10 +28,10 @@
 package Config::Model::ObjTreeScanner ;
 use strict ;
 use Config::Model::Exception ;
+use Scalar::Util qw/blessed/ ;
 use Carp::Assert::More ;
 use Carp;
 use warnings ;
-use UNIVERSAL qw( isa can );
 
 our $VERSION="1.202";
 
@@ -31,6 +40,10 @@ use Carp qw/croak confess cluck/;
 =head1 NAME
 
 Config::Model::ObjTreeScanner - Scan config tree and perform call-backs
+
+=head1 VERSION
+
+version 1.203
 
 =head1 SYNOPSIS
 
@@ -441,7 +454,7 @@ sub scan_node {
 	-> throw (
 		  error => "'$node' is not a Config::Model object" 
 		 ) 
-	  unless isa($node, "Config::Model::AnyThing") ;
+	  unless blessed($node) and $node->isa("Config::Model::AnyThing") ;
 
     # skip exploration of warped out node
     if ($node->isa('Config::Model::WarpedNode')) {
@@ -642,4 +655,3 @@ L<Config::Model::CheckList>,
 L<Config::Model::Value>
 
 =cut
-

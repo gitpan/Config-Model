@@ -1,3 +1,12 @@
+# 
+# This file is part of Config-Model
+# 
+# This software is Copyright (c) 2010 by Dominique Dumont.
+# 
+# This is free software, licensed under:
+# 
+#   The GNU Lesser General Public License, Version 2.1, February 1999
+# 
 #    Copyright (c) 2005-2007 Dominique Dumont.
 #
 #    This file is part of Config-Model.
@@ -20,11 +29,9 @@ package Config::Model::ValueComputer ;
 
 use warnings ;
 use strict;
-our $VERSION="1.201";
-
 use Scalar::Util qw(weaken) ;
 use Carp ;
-use Parse::RecDescent ;
+use Parse::RecDescent 1.90 ;
 use Data::Dumper () ;
 
 use vars qw($compute_grammar $compute_parser) ;
@@ -32,6 +39,10 @@ use vars qw($compute_grammar $compute_parser) ;
 =head1 NAME
 
 Config::Model::ValueComputer - Provides configuration value computation
+
+=head1 VERSION
+
+version 1.203
 
 =head1 SYNOPSIS
 

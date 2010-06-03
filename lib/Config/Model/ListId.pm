@@ -1,3 +1,12 @@
+# 
+# This file is part of Config-Model
+# 
+# This software is Copyright (c) 2010 by Dominique Dumont.
+# 
+# This is free software, licensed under:
+# 
+#   The GNU Lesser General Public License, Version 2.1, February 1999
+# 
 
 #    Copyright (c) 2005-2010 Dominique Dumont.
 #
@@ -32,6 +41,10 @@ use base qw/Config::Model::AnyId/ ;
 =head1 NAME
 
 Config::Model::ListId - Handle list element for configuration model
+
+=head1 VERSION
+
+version 1.203
 
 =head1 SYNOPSIS
 

@@ -1,3 +1,12 @@
+# 
+# This file is part of Config-Model
+# 
+# This software is Copyright (c) 2010 by Dominique Dumont.
+# 
+# This is free software, licensed under:
+# 
+#   The GNU Lesser General Public License, Version 2.1, February 1999
+# 
 #    Copyright (c) 2010 Dominique Dumont.
 #
 #    This file is part of Config-Model.
@@ -43,6 +52,10 @@ use Carp qw/croak confess cluck/;
 =head1 NAME
 
 Config::Model::Annotation - Read and write configuration annotations
+
+=head1 VERSION
+
+version 1.203
 
 =head1 SYNOPSIS
 
@@ -222,4 +235,3 @@ L<Config::Model::Searcher>,
 L<Config::Model::Value>,
 
 =cut
-

@@ -1,13 +1,25 @@
+# 
+# This file is part of Config-Model
+# 
+# This software is Copyright (c) 2010 by Dominique Dumont.
+# 
+# This is free software, licensed under:
+# 
+#   The GNU Lesser General Public License, Version 2.1, February 1999
+# 
 # copyright at the end of the file in the pod section
 
 package Config::Model ;
+BEGIN {
+  $Config::Model::VERSION = '1.203';
+}
 require Exporter;
 use Carp;
 use strict;
 use warnings FATAL => qw(all);
 use Storable ('dclone') ;
 use Data::Dumper ();
-use Log::Log4perl qw(get_logger :levels);
+use Log::Log4perl 1.11 qw(get_logger :levels);
 
 
 use Config::Model::Instance ;
@@ -15,11 +27,13 @@ use Config::Model::Instance ;
 # this class holds the version number of the package
 use vars qw(@status @level @experience_list %experience_index) ;
 
-our $VERSION = '1.202';
-
 =head1 NAME
 
 Config::Model - Framework to create configuration validation tools and editors
+
+=head1 VERSION
+
+version 1.203
 
 =head1 SYNOPSIS
 

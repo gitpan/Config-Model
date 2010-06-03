@@ -1,3 +1,12 @@
+# 
+# This file is part of Config-Model
+# 
+# This software is Copyright (c) 2010 by Dominique Dumont.
+# 
+# This is free software, licensed under:
+# 
+#   The GNU Lesser General Public License, Version 2.1, February 1999
+# 
 #
 #    Copyright (c) 2005-2010 Dominique Dumont.
 #
@@ -538,6 +547,10 @@ __END__
 
 Config::Model::AutoRead - Load configuration node on demand
 
+=head1 VERSION
+
+version 1.203
+
 =head1 SYNOPSIS
 
   # top level config file name matches instance name
@@ -964,4 +977,3 @@ L<Config::Model>, L<Config::Model::Instance>,
 L<Config::Model::Node>, L<Config::Model::Dumper>, L<Config::Augeas>
 
 =cut
-

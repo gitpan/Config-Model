@@ -1,3 +1,12 @@
+# 
+# This file is part of Config-Model
+# 
+# This software is Copyright (c) 2010 by Dominique Dumont.
+# 
+# This is free software, licensed under:
+# 
+#   The GNU Lesser General Public License, Version 2.1, February 1999
+# 
 #    Copyright (c) 2006-2008,2010 Dominique Dumont.
 #
 #    This file is part of Config-Model.
@@ -24,13 +33,17 @@ use warnings ;
 use Config::Model::Exception ;
 use Log::Log4perl qw(get_logger :levels);
 
-our $VERSION="1.202";
+our $VERSION="1.203";
 
 my $logger = get_logger("Loader") ;
 
 =head1 NAME
 
 Config::Model::Loader - Load serialized data into config tree
+
+=head1 VERSION
+
+version 1.203
 
 =head1 SYNOPSIS
 
@@ -540,7 +553,7 @@ sub _load_list {
 
 sub _load_hash {
     my ($self,$node,$experience,$inst,$cmdref,$target_ref) = @_ ;
-    my ($element_name,$action,$id,$subaction,$value) = @$inst ;
+    my ($element_name,$action,$id,$subaction,$value,$note) = @$inst ;
 
     my $element = $node -> fetch_element($element_name) ;
     my $cargo_type = $element->cargo_type ;
@@ -600,11 +613,15 @@ sub _load_hash {
 	unquote ($id) ;
 	return $self->_load($obj, $experience, $cmdref);
     }
-    elsif ($action eq ':' and $cargo_type =~ /leaf/) {
+    elsif ($action eq ':' and defined $subaction and $cargo_type =~ /leaf/) {
 	$logger->debug("_load_hash: calling _load_value on leaf $id");
 	unquote($id,$value) ;
 	$self->_load_value($obj,$subaction,$value)
 	  and return 'ok';
+    }
+    elsif ($action eq ':' and defined $note) {
+	# action was just to store annotation
+	return 'ok';
     }
     elsif ($action) {
 	Config::Model::Exception::Load
@@ -673,5 +690,3 @@ Dominique Dumont, (ddumont at cpan dot org)
 L<Config::Model>,L<Config::Model::Node>,L<Config::Model::Dumper>
 
 =cut
-
-
