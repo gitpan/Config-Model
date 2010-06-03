@@ -55,7 +55,7 @@ Config::Model::Annotation - Read and write configuration annotations
 
 =head1 VERSION
 
-version 1.203
+version 1.204
 
 =head1 SYNOPSIS
 

@@ -1,6 +1,0 @@
-do{ my $x = {
-       'r_root' => 1,
-       'wr_root' => 1,
-       'PreGrammar.pm' => 1
-     };
-$x; }

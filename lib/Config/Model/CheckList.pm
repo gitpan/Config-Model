@@ -45,7 +45,7 @@ Config::Model::CheckList - Handle check list element
 
 =head1 VERSION
 
-version 1.203
+version 1.204
 
 =head1 SYNOPSIS
 
