@@ -549,7 +549,7 @@ Config::Model::AutoRead - Load configuration node on demand
 
 =head1 VERSION
 
-version 1.204
+version 1.205
 
 =head1 SYNOPSIS
 

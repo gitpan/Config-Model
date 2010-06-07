@@ -1,5 +1,4 @@
 Build.PL
-Build.PL.orig
 ChangeLog
 LICENSE
 MANIFEST
@@ -82,3 +81,4 @@ t/warped_node.t
 t/warped_value.t
 t/wizard.t
 t/yaml_backend.t
+META.yml

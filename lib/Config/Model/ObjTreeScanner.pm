@@ -43,7 +43,7 @@ Config::Model::ObjTreeScanner - Scan config tree and perform call-backs
 
 =head1 VERSION
 
-version 1.204
+version 1.205
 
 =head1 SYNOPSIS
 

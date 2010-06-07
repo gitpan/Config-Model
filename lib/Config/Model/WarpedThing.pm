@@ -50,7 +50,7 @@ Config::Model::WarpedThing - Base class for warped classes
 
 =head1 VERSION
 
-version 1.204
+version 1.205
 
 =head1 SYNOPSIS
 

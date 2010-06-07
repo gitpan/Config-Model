@@ -45,7 +45,7 @@ Config::Model::Searcher - Search an element in a configuration model
 
 =head1 VERSION
 
-version 1.204
+version 1.205
 
 =head1 SYNOPSIS
 
