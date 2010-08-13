@@ -1,12 +1,12 @@
-# 
+#
 # This file is part of Config-Model
-# 
-# This software is Copyright (c) 2010 by Dominique Dumont.
-# 
+#
+# This software is Copyright (c) 2010 by Dominique Dumont, Krzysztof Tyszecki.
+#
 # This is free software, licensed under:
-# 
+#
 #   The GNU Lesser General Public License, Version 2.1, February 1999
-# 
+#
 
 #    Copyright (c) 2007 Dominique Dumont.
 #
@@ -27,15 +27,15 @@
 #    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 
 package Config::Model::DumpAsData;
+BEGIN {
+  $Config::Model::DumpAsData::VERSION = '1.206';
+}
 use Carp;
 use strict;
-our $VERSION="1.201";
 use warnings ;
 
 use Config::Model::Exception ;
 use Config::Model::ObjTreeScanner ;
-
-# use vars qw($VERSION);
 
 =head1 NAME
 
@@ -43,7 +43,7 @@ Config::Model::DumpAsData - Dump configuration content as a perl data structure
 
 =head1 VERSION
 
-version 1.205
+version 1.206
 
 =head1 SYNOPSIS
 

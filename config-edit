@@ -1,13 +1,13 @@
 #!/usr/bin/perl
-# 
+#
 # This file is part of Config-Model
-# 
-# This software is Copyright (c) 2010 by Dominique Dumont.
-# 
+#
+# This software is Copyright (c) 2010 by Dominique Dumont, Krzysztof Tyszecki.
+#
 # This is free software, licensed under:
-# 
+#
 #   The GNU Lesser General Public License, Version 2.1, February 1999
-# 
+#
 
 #    Copyright (c) 2006-2010 Dominique Dumont.
 #
@@ -455,6 +455,8 @@ Log4perl uses the following categories:
 
 =item Model::Load
 
+=item Data
+
 =item Data::Read
 
 =item Data::Write
@@ -465,7 +467,11 @@ Log4perl uses the following categories:
 
 =item Tree::Element::Value
 
-=item Tree::Element::Hash
+=item Tree::Element::Id
+
+=item Tree::Element::Id::Hash
+
+=item Tree::Element::Id::List
 
 =item Tree::Element::Warper
 

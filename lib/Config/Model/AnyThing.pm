@@ -1,12 +1,12 @@
-# 
+#
 # This file is part of Config-Model
-# 
-# This software is Copyright (c) 2010 by Dominique Dumont.
-# 
+#
+# This software is Copyright (c) 2010 by Dominique Dumont, Krzysztof Tyszecki.
+#
 # This is free software, licensed under:
-# 
+#
 #   The GNU Lesser General Public License, Version 2.1, February 1999
-# 
+#
 #    Copyright (c) 2005-2010 Dominique Dumont.
 #
 #    This file is part of Config-Model.
@@ -26,12 +26,12 @@
 #    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 
 package Config::Model::AnyThing;
+BEGIN {
+  $Config::Model::AnyThing::VERSION = '1.206';
+}
 use Scalar::Util qw(weaken);
 use Carp;
 use strict;
-our $VERSION="1.202";
-
-# use vars qw($VERSION);
 
 =head1 NAME
 
@@ -39,7 +39,7 @@ Config::Model::AnyThing - Base class for configuration tree item
 
 =head1 VERSION
 
-version 1.205
+version 1.206
 
 =head1 SYNOPSIS
 
@@ -195,11 +195,18 @@ Annotation is a way to store miscellaneous information associated to
 each node. (Yeah... comments) These comments will be saved outside of
 the configuration file and restored the next time the command is run.
 
+=head2 annotation( [ note1, [ note2 , ... ] ] )
+
+Without argument, return a string containing the object's annotation.
+
+With several arguments, join the arguments with "\n", store the annotations 
+and return the resulting string.
+
 =cut
 
 sub annotation {
     my $self = shift ;
-    $self->{annotation} = join("\n",@_) if @_;
+    $self->{annotation} = join("\n", grep (defined $_,@_)) if @_;
     return $self->{annotation} ;
 }
 

@@ -186,7 +186,10 @@
 	       my_reference => { type => 'leaf',
 				 value_type => 'reference',
 				 refer_to => '- hash_a + ! hash_b',
-			       }
+			       },
+               plain_object => { type => 'node',
+                                 config_class_name => 'SubSlave2',
+                               }
 	      ],
    description => [
 		   tree_macro => 'controls behavior of other elements'

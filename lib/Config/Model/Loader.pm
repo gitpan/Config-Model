@@ -1,12 +1,12 @@
-# 
+#
 # This file is part of Config-Model
-# 
-# This software is Copyright (c) 2010 by Dominique Dumont.
-# 
+#
+# This software is Copyright (c) 2010 by Dominique Dumont, Krzysztof Tyszecki.
+#
 # This is free software, licensed under:
-# 
+#
 #   The GNU Lesser General Public License, Version 2.1, February 1999
-# 
+#
 #    Copyright (c) 2006-2008,2010 Dominique Dumont.
 #
 #    This file is part of Config-Model.
@@ -26,14 +26,15 @@
 #    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 
 package Config::Model::Loader;
+BEGIN {
+  $Config::Model::Loader::VERSION = '1.206';
+}
 use Carp;
 use strict;
 use warnings ;
 
 use Config::Model::Exception ;
 use Log::Log4perl qw(get_logger :levels);
-
-our $VERSION="1.203";
 
 my $logger = get_logger("Loader") ;
 
@@ -43,7 +44,7 @@ Config::Model::Loader - Load serialized data into config tree
 
 =head1 VERSION
 
-version 1.205
+version 1.206
 
 =head1 SYNOPSIS
 
@@ -90,7 +91,8 @@ sub new {
 
 =head1 load string syntax
 
-The string is made of the following items separated by spaces:
+The string is made of the following items (also called C<actions>)
+separated by spaces:
 
 =over 8
 
@@ -160,7 +162,11 @@ Will append C<zzz> value to current values (valid for C<leaf> elements).
 
 =item xxx#zzz or xxx:yyy#zzz
 
-Element annotation. Can be quoted or not quoted.
+Element annotation. Can be quoted or not quoted. Note that annotations are
+always placed at the end of an action item.
+
+I.e. C<foo#comment>, C<foo:bar#comment> or C<foo:bar=baz#comment> are valid.
+C<foo#comment:bar> is B<not> valid.
 
 =back
 
@@ -465,6 +471,10 @@ sub _walk_node {
 
     my $element_name = shift @$inst ;
     my $element = $$target_ref = $node -> fetch_element($element_name) ;
+    
+    # note is handled in _load, just avoid failing if it is set
+    my $note = pop @$inst ;
+
 
     my @left = grep {defined $_} @$inst ;
     if (@left) {
@@ -472,7 +482,7 @@ sub _walk_node {
 	    -> throw (
 		      command => $inst,
 		      error => "Don't know what to do with '@left' ".
-		      "for node element" . $element -> element_name
+		      "for node element " . $element -> element_name
 		     ) ;
     }
 

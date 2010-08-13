@@ -1,12 +1,12 @@
-# 
+#
 # This file is part of Config-Model
-# 
-# This software is Copyright (c) 2010 by Dominique Dumont.
-# 
+#
+# This software is Copyright (c) 2010 by Dominique Dumont, Krzysztof Tyszecki.
+#
 # This is free software, licensed under:
-# 
+#
 #   The GNU Lesser General Public License, Version 2.1, February 1999
-# 
+#
 
 #    Copyright (c) 2005-2007 Dominique Dumont.
 #
@@ -27,12 +27,12 @@
 #    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 
 package Config::Model::Exception ;
+BEGIN {
+  $Config::Model::Exception::VERSION = '1.206';
+}
 use warnings ;
 use strict;
-our $VERSION="1.201";
 use Data::Dumper ;
-
-# use vars qw($VERSION) ;
 
 use Exception::Class 
   (
@@ -143,6 +143,9 @@ use Exception::Class
 Config::Model::Exception::Internal->Trace(1);
 
 package Config::Model::Exception::Any ;
+BEGIN {
+  $Config::Model::Exception::Any::VERSION = '1.206';
+}
 
 sub full_message {
     my $self = shift;
@@ -171,6 +174,9 @@ sub xpath_message {
 }
 
 package Config::Model::Exception::LoadData ;
+BEGIN {
+  $Config::Model::Exception::LoadData::VERSION = '1.206';
+}
 
 sub full_message {
     my $self = shift;
@@ -188,6 +194,9 @@ sub full_message {
 }
 
 package Config::Model::Exception::Model ;
+BEGIN {
+  $Config::Model::Exception::Model::VERSION = '1.206';
+}
 
 sub full_message {
     my $self = shift;
@@ -211,6 +220,9 @@ sub full_message {
 }
 
 package Config::Model::Exception::Load ;
+BEGIN {
+  $Config::Model::Exception::Load::VERSION = '1.206';
+}
 
 sub full_message {
     my $self = shift;
@@ -226,6 +238,9 @@ sub full_message {
 }
 
 package Config::Model::Exception::RestrictedElement ;
+BEGIN {
+  $Config::Model::Exception::RestrictedElement::VERSION = '1.206';
+}
 
 sub full_message {
     my $self = shift;
@@ -243,6 +258,9 @@ sub full_message {
 }
 
 package Config::Model::Exception::UnavailableElement ;
+BEGIN {
+  $Config::Model::Exception::UnavailableElement::VERSION = '1.206';
+}
 
 sub full_message {
     my $self = shift;
@@ -262,6 +280,9 @@ sub full_message {
 }
 
 package Config::Model::Exception::ObsoleteElement ;
+BEGIN {
+  $Config::Model::Exception::ObsoleteElement::VERSION = '1.206';
+}
 
 sub full_message {
     my $self = shift;
@@ -281,6 +302,9 @@ sub full_message {
 
 
 package Config::Model::Exception::UnknownElement ;
+BEGIN {
+  $Config::Model::Exception::UnknownElement::VERSION = '1.206';
+}
 use Carp;
 
 sub full_message {
@@ -313,6 +337,12 @@ sub full_message {
         . " (configuration class '".$obj -> config_class_name ."')\n"
           . "\tExpected: '". join("','",@elements)."'\n" ;
 
+    my @match_keys = $obj->accept_regexp();
+    if (@match_keys) {
+      $msg .= "\tor an acceptable parameter matching '"
+            . join("','",@match_keys)."'\n" ;
+    }
+
     # inform about available elements after a change of warp master value
     if (defined $obj->parent) {
 	my $parent       = $obj->parent ;
@@ -330,6 +360,9 @@ sub full_message {
 }
 
 package Config::Model::Exception::UnknownId ;
+BEGIN {
+  $Config::Model::Exception::UnknownId::VERSION = '1.206';
+}
 
 sub full_message {
     my $self = shift;
@@ -356,6 +389,9 @@ sub full_message {
 }
 
 package Config::Model::Exception::WrongType ;
+BEGIN {
+  $Config::Model::Exception::WrongType::VERSION = '1.206';
+}
 
 sub full_message {
     my $self = shift;
@@ -377,6 +413,9 @@ sub full_message {
 }
 
 package Config::Model::Exception::Xml ;
+BEGIN {
+  $Config::Model::Exception::Xml::VERSION = '1.206';
+}
 
 sub full_message {
     my $self = shift;
@@ -403,7 +442,7 @@ Config::Model::Exception - Exception mechanism for configuration model
 
 =head1 VERSION
 
-version 1.205
+version 1.206
 
 =head1 SYNOPSIS
 
