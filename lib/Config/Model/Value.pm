@@ -1,12 +1,12 @@
-#
+# 
 # This file is part of Config-Model
-#
+# 
 # This software is Copyright (c) 2010 by Dominique Dumont, Krzysztof Tyszecki.
-#
+# 
 # This is free software, licensed under:
-#
+# 
 #   The GNU Lesser General Public License, Version 2.1, February 1999
-#
+# 
 #    Copyright (c) 2005-2010 Dominique Dumont.
 #
 #    This file is part of Config-Model.
@@ -50,7 +50,7 @@ Config::Model::Value - Strongly typed configuration value
 
 =head1 VERSION
 
-version 1.206
+version 1.207
 
 =head1 SYNOPSIS
 
@@ -456,7 +456,7 @@ sub setup_enum_choice {
     my @choice = ref $_[0] ? @{$_[0]} : @_ ;
 
     $logger
-      ->debug($self->name, " setup_enum_choice with '",join("','",@choice));
+      ->debug($self->name, " setup_enum_choice with '",join("','",@choice),"'");
 
     $self->{choice}  = \@choice ;
 
@@ -511,6 +511,64 @@ sub setup_match_regexp {
     }
 }
 
+=item grammar
+
+Setup a L<Parse::RecDescent> grammar to perform validation.
+
+If the grammar does not start with a "check" rule (i.e does not start with "check: "),
+the first line of the grammar will be modified to add "check" rule and set up this rules so
+the entire value must match the passed grammar.
+
+I.e. the grammar:
+
+  token (oper token)(s?)
+  oper: 'and' | 'or'
+  token: 'Apache' | 'CC-BY' | 'Perl'
+
+will be changed to
+
+  check: token (oper token)(s?) /^\Z/ {$return = 1;}
+  oper: 'and' | 'or'
+  token: 'Apache' | 'CC-BY' | 'Perl'
+
+
+=cut
+
+sub setup_grammar_check {
+    my ($self,$ref) = @_ ;
+
+    my $str = $self->{grammar} = delete $ref->{grammar} ;
+    return unless defined $str ;
+    my $vt = $self->{value_type} ; 
+
+    if ($vt ne 'uniline' and $vt ne 'string') {
+	Config::Model::Exception::Model
+		-> throw (
+			  object => $self,
+			  error => "Can't use match regexp with $vt, "
+			         . "expected 'uniline' or 'string'"
+			 ) ;
+    }
+
+    my @lines = split /\n/,$str ;
+    chomp @lines ;
+    if ($lines[0] !~ /^check:/) {
+	$lines[0] = 'check: '.$lines[0].' /^\Z/ {$return = 1;}';
+    }	
+
+    my $actual_grammar = join("\n",@lines) . "\n";
+    $logger -> debug($self->name, " setup_grammar_check with '$actual_grammar'");
+    eval {$self->{validation_parser} = Parse::RecDescent->new($actual_grammar) ; };
+
+    if ($@) {
+	Config::Model::Exception::Model
+		-> throw (
+			  object => $self,
+			  error => "Unvalid grammar for '$str': $@"
+			 ) ;
+    }
+}
+
 =item replace
 
 Hash ref. Used for enum to substitute one value with another. This
@@ -547,7 +605,7 @@ ref. Example:
 
 
 my @warp_accessible_params =  qw/min max mandatory default 
-				 choice convert upstream_default replace match/ ;
+				 choice convert upstream_default replace match grammar/ ;
 
 my @accessible_params =  (@warp_accessible_params, 
 			  qw/index_value element_name value_type
@@ -668,6 +726,7 @@ sub set_properties {
     $self->set_compute        ( \%args ) if defined $args{compute};
     $self->set_convert        ( \%args ) if defined $args{convert};
     $self->setup_match_regexp ( \%args ) if defined $args{match};
+    $self->setup_grammar_check( \%args ) if defined $args{grammar};
 
     # cannot be warped
     $self->set_migrate_from   ( \%args ) if defined $args{migrate_from};
@@ -1218,6 +1277,12 @@ sub check_value {
 	push @error,"value '$value' does not match regexp "
 	    .$self->{match} 
 		unless $value =~ $self->{regexp} ;
+    }
+
+    if (defined $self->{validation_parser} and defined $value) {
+	my $prd = $self->{validation_parser};
+	push @error,"value '$value' does not match grammar " .$self->{grammar} 
+		unless $prd->check ( $value,1,$self);
     }
 
     $self->{error} = \@error ;

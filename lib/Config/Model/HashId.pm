@@ -1,12 +1,12 @@
-#
+# 
 # This file is part of Config-Model
-#
+# 
 # This software is Copyright (c) 2010 by Dominique Dumont, Krzysztof Tyszecki.
-#
+# 
 # This is free software, licensed under:
-#
+# 
 #   The GNU Lesser General Public License, Version 2.1, February 1999
-#
+# 
 #    Copyright (c) 2005-2010 Dominique Dumont.
 #
 #    This file is part of Config-Model.
@@ -27,7 +27,7 @@
 
 package Config::Model::HashId ;
 BEGIN {
-  $Config::Model::HashId::VERSION = '1.206';
+  $Config::Model::HashId::VERSION = '1.207';
 }
 use Config::Model::Exception ;
 use Scalar::Util qw(weaken) ;
@@ -47,7 +47,7 @@ Config::Model::HashId - Handle hash element for configuration model
 
 =head1 VERSION
 
-version 1.206
+version 1.207
 
 =head1 SYNOPSIS
 

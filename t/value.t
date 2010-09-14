@@ -6,7 +6,7 @@
 use warnings FATAL => qw(all);
 
 use ExtUtils::testlib;
-use Test::More tests => 91 ;
+use Test::More tests => 96 ;
 use Test::Exception ;
 use Config::Model ;
 use Config::Model::Value;
@@ -98,7 +98,20 @@ $model ->create_config_class
 		match => { type => 'leaf',
 			   value_type => 'string',
 			   match => '^foo\d{2}$',
-			 }
+			 },
+                prd_test_action => { type => 'leaf',
+                                     value_type => 'string',
+                                   } ,
+		prd_match => { type => 'leaf',
+                               value_type => 'string',
+			       grammar => q^token (oper token)(s?) 
+			                    oper: 'and' | 'or'
+			                    token: 'Apache' | 'CC-BY' | 'Perl' 
+			                       {my $v = $arg[0]->grab("! prd_test_action")->fetch ;
+			                        $return = ($v =~ /$item[0]/) ; 
+			                       }
+                                           ^,
+			 },
 	      ] , # dummy class
   ) ;
 
@@ -350,3 +363,16 @@ throws_ok { $match->store('bar');} 'Config::Model::Exception::WrongValue',
 
 $match->store('foo42') ;
 is($match->fetch, 'foo42',"test stored matching value") ;
+
+### test Parse::RecDescent validation
+my $prd_match = $root->fetch_element('prd_match') ;
+throws_ok { $match->store('bar');} 'Config::Model::Exception::WrongValue',
+    'match value: test for non matching grammar';
+throws_ok { $match->store('Perl');} 'Config::Model::Exception::WrongValue',
+    'match value: test for non matching grammar';
+$root->fetch_element('prd_test_action')->store('Perl CC-BY Apache');
+
+foreach my $prd_test (('Perl','Perl and CC-BY', 'Perl and CC-BY or Apache')) {
+    $prd_match->store($prd_test) ;
+    is($prd_match->fetch, $prd_test,"test stored prd value $prd_test") ;
+}

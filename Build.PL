@@ -1,12 +1,12 @@
-#
+# 
 # This file is part of Config-Model
-#
+# 
 # This software is Copyright (c) 2010 by Dominique Dumont, Krzysztof Tyszecki.
-#
+# 
 # This is free software, licensed under:
-#
+# 
 #   The GNU Lesser General Public License, Version 2.1, February 1999
-#
+# 
 #    Copyright (c) 2005-2010 Dominique Dumont.
 #
 #    This file is part of Config-Model.
@@ -40,7 +40,9 @@ print "\nIf you want to use the TermUI interface, you should install\n",
 my $code = << 'EOF';
 
 use Text::Template ;
-my %models = ( popcon => [ 'PopCon', '/etc/popularity-contest.conf']) ;
+my %models = ( popcon => [ 'PopCon', '/etc/popularity-contest.conf'],
+               dep5   => [ 'Debian::Dep5', 'License'],
+             ) ;
 
 sub process_tmpl_files {
   my $self = shift;
@@ -79,27 +81,7 @@ my $build = $class->new
    dist_abstract  => 'Describe, edit and validate configuration data',
    dist_author    => 'Dominique Dumont (ddumont at cpan dot org)',
 
-  'build_requires' => {
-    'Module::Build' => '0.34',
-    'Test::Exception' => '0',
-    'Test::More' => '0',
-    'Test::Warn' => '0.11',
-    'Text::Template' => '0'
-  },
-  'configure_requires' => {
-    'Module::Build' => '0.34'
-  },
-  'requires' => {
-    'Carp::Assert::More' => '0',
-    'Exception::Class' => '0',
-    'IO::File' => '0',
-    'Log::Log4perl' => '1.11',
-    'Moose' => '0',
-    'Parse::RecDescent' => '1.90.0',
-    'Scalar::Util' => '0',
-    'Term::ReadLine' => '0',
-    'YAML::Any' => '0.303'
-  },
+
 
     meta_merge => {
                   resources => {

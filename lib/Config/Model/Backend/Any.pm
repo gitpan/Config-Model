@@ -1,12 +1,12 @@
-#
+# 
 # This file is part of Config-Model
-#
+# 
 # This software is Copyright (c) 2010 by Dominique Dumont, Krzysztof Tyszecki.
-#
+# 
 # This is free software, licensed under:
-#
+# 
 #   The GNU Lesser General Public License, Version 2.1, February 1999
-#
+# 
 
 #    Copyright (c) 2010 Dominique Dumont.
 #
@@ -48,7 +48,7 @@ has 'node'       => ( is => 'ro', isa => 'Config::Model::Node',
 
 sub suffix {
     my $self = shift ;
-    $logger->error("Internal error: suffix called for backend $self->{name}. But this method should be overloaded") ;
+    $logger->warn("Internal warning: suffix called for backend $self->{name}.This method can be overloaded") ;
 }
 
 sub read {
@@ -78,7 +78,7 @@ Config::Model::Backend::Any - Virtual class for other backends
 
 =head1 VERSION
 
-version 1.206
+version 1.207
 
 =head1 SYNOPSIS
 

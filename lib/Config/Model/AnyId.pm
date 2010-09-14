@@ -1,12 +1,12 @@
-#
+# 
 # This file is part of Config-Model
-#
+# 
 # This software is Copyright (c) 2010 by Dominique Dumont, Krzysztof Tyszecki.
-#
+# 
 # This is free software, licensed under:
-#
+# 
 #   The GNU Lesser General Public License, Version 2.1, February 1999
-#
+# 
 #    Copyright (c) 2005-2010 Dominique Dumont.
 #
 #    This file is part of Config-Model.
@@ -27,7 +27,7 @@
 
 package Config::Model::AnyId ;
 BEGIN {
-  $Config::Model::AnyId::VERSION = '1.206';
+  $Config::Model::AnyId::VERSION = '1.207';
 }
 use Config::Model::Exception ;
 use Scalar::Util qw(weaken) ;
@@ -54,7 +54,7 @@ Config::Model::AnyId - Base class for hash or list element
 
 =head1 VERSION
 
-version 1.206
+version 1.207
 
 =head1 SYNOPSIS
 
@@ -247,6 +247,12 @@ by C<allow_keys_from> specified the authorized keys for this hash.
 
   allow_keys_from => '- another_hash'
 
+=item allow_keys_matching
+
+Keys must match the specified regular expression. For instance:
+
+  allow_keys_matching => '^foo\d\d$'
+
 =item auto_create_keys
 
 When set, the default parameter (or set of parameters) are used as
@@ -358,7 +364,7 @@ leads to a nb of items greater than the max_nb constraint.
 
 my @common_params =  qw/min_index max_index max_nb default_with_init default_keys
                         follow_keys_from auto_create_ids auto_create_keys
-                        allow_keys allow_keys_from/ ;
+                        allow_keys allow_keys_from allow_keys_matching/ ;
 
 my @allowed_warp_params = (@common_params,qw/experience level/) ;
 
@@ -669,6 +675,10 @@ sub check {
         $self->check_allow_keys_from($idx) or return 0 ;
     }
 
+    if ($self->{allow_keys_matching}) {
+        $self->check_allow_keys_matching($idx) or return 0 ;
+    }
+
     my $nb =  $self->fetch_size ;
     my $new_nb = $nb ;
     $new_nb++ unless $self->_exists($idx) ;
@@ -733,6 +743,18 @@ sub check_allow_keys {
 
     $self->{error} = ["Unexpected key '$idx'. Expected '".
                       join("', '",@{$self->{allow_keys}} ). "'"]   ;
+    return 0 ;
+}
+
+#internal
+sub check_allow_keys_matching {
+    my ($self,$idx) = @_ ; 
+    my $match = $self->{allow_keys_matching} ;
+    my $ok = ($idx =~ /$match/) ;
+
+    return 1 if $ok ;
+
+    $self->{error} = ["Unexpected key '$idx'. Key must match $match"]   ;
     return 0 ;
 }
 

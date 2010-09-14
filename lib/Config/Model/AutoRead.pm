@@ -1,12 +1,12 @@
-#
+# 
 # This file is part of Config-Model
-#
+# 
 # This software is Copyright (c) 2010 by Dominique Dumont, Krzysztof Tyszecki.
-#
+# 
 # This is free software, licensed under:
-#
+# 
 #   The GNU Lesser General Public License, Version 2.1, February 1999
-#
+# 
 #
 #    Copyright (c) 2005-2010 Dominique Dumont.
 #
@@ -28,7 +28,7 @@
 
 package Config::Model::AutoRead ;
 BEGIN {
-  $Config::Model::AutoRead::VERSION = '1.206';
+  $Config::Model::AutoRead::VERSION = '1.207';
 }
 use Carp;
 use strict;
@@ -90,7 +90,13 @@ sub get_cfg_file_path {
         $name .= '/'.$loc ;
     }
 
-    return $name. ( $args{suffix} );
+    $name .= $args{suffix} ;
+
+    get_logger($w ? 'Data::Write' : 'Data::Read')
+          ->info("get_cfg_file_path: auto_". ($w ? 'write' : 'read') 
+                 ." $args{backend} target file is $name" );
+
+    return $name;
 }
 
 sub open_read_file {
@@ -262,6 +268,7 @@ sub auto_read_init {
             my $res = $backend_obj->$f(@read_args, 
                                        file_path => $file_path,
                                        io_handle => $fh,
+                                       object => $self,
                                       );
             if ($res) {
                 $read_done = 1 ;
@@ -492,7 +499,7 @@ Config::Model::AutoRead - Load configuration node on demand
 
 =head1 VERSION
 
-version 1.206
+version 1.207
 
 =head1 SYNOPSIS
 

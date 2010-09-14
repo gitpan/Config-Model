@@ -1,12 +1,12 @@
-#
+# 
 # This file is part of Config-Model
-#
+# 
 # This software is Copyright (c) 2010 by Dominique Dumont, Krzysztof Tyszecki.
-#
+# 
 # This is free software, licensed under:
-#
+# 
 #   The GNU Lesser General Public License, Version 2.1, February 1999
-#
+# 
 
 #    Copyright (c) 2006-2010 Dominique Dumont.
 #
@@ -28,7 +28,7 @@
 
 package Config::Model::Dumper;
 BEGIN {
-  $Config::Model::Dumper::VERSION = '1.206';
+  $Config::Model::Dumper::VERSION = '1.207';
 }
 use Carp;
 use strict;
@@ -43,7 +43,7 @@ Config::Model::Dumper - Serialize data of config tree
 
 =head1 VERSION
 
-version 1.206
+version 1.207
 
 =head1 SYNOPSIS
 
@@ -105,7 +105,7 @@ sub quote {
     my @res = @_ ;
     foreach (@res) {
 	if (    defined $_ 
-		and ( /(\s|")/ or $_ eq '')
+		and ( /(\s|"|\*)/ or $_ eq '')
 	   ) {
 	    s/"/\\"/g ; # escape present quotes
 	    $_ = '"' . $_ . '"' ; # add my quotes
