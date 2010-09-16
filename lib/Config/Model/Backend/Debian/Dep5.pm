@@ -10,7 +10,7 @@
 
 package Config::Model::Backend::Debian::Dep5 ;
 BEGIN {
-  $Config::Model::Backend::Debian::Dep5::VERSION = '1.207';
+  $Config::Model::Backend::Debian::Dep5::VERSION = '1.208';
 }
 
 use Carp;
@@ -157,7 +157,7 @@ Config::Model::Backend::Debian::Dep5 - Read and write Debian DEP-5 License infor
 
 =head1 VERSION
 
-version 1.207
+version 1.208
 
 =head1 SYNOPSIS
 

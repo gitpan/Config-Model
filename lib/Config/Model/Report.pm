@@ -44,7 +44,7 @@ Config::Model::Report - Reports data from config tree
 
 =head1 VERSION
 
-version 1.207
+version 1.208
 
 =head1 SYNOPSIS
 

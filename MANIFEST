@@ -13,7 +13,6 @@ examples/fstab/Fstab.pl
 examples/fstab/README
 examples/fstab/fstab.sample
 examples/fstab/fstab_test.pl
-index.html
 lib/Config/Model.pm
 lib/Config/Model/Annotation.pm
 lib/Config/Model/AnyId.pm

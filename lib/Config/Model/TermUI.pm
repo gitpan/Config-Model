@@ -46,7 +46,7 @@ Config::Model::TermUI - Provides Config::Model UI à la Term::ReadLine
 
 =head1 VERSION
 
-version 1.207
+version 1.208
 
 =head1 SYNOPSIS
 

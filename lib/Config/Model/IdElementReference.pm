@@ -45,7 +45,7 @@ Config::Model::IdElementReference - Refer to id element(s) and extract keys
 
 =head1 VERSION
 
-version 1.207
+version 1.208
 
 =head1 SYNOPSIS
 

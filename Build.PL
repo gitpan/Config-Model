@@ -81,7 +81,27 @@ my $build = $class->new
    dist_abstract  => 'Describe, edit and validate configuration data',
    dist_author    => 'Dominique Dumont (ddumont at cpan dot org)',
 
-
+  'build_requires' => {
+    'Module::Build' => '0.34',
+    'Test::Exception' => '0',
+    'Test::More' => '0',
+    'Test::Warn' => '0.11',
+    'Text::Template' => '0'
+  },
+  'configure_requires' => {
+    'Module::Build' => '0.34'
+  },
+  'requires' => {
+    'Carp::Assert::More' => '0',
+    'Exception::Class' => '0',
+    'IO::File' => '0',
+    'Log::Log4perl' => '1.11',
+    'Moose' => '0',
+    'Parse::RecDescent' => '1.90.0',
+    'Scalar::Util' => '0',
+    'Term::ReadLine' => '0',
+    'YAML::Any' => '0.303'
+  },
 
     meta_merge => {
                   resources => {

@@ -44,7 +44,7 @@ Config::Model::WizardHelper - Helps to create wizard widget for config models
 
 =head1 VERSION
 
-version 1.207
+version 1.208
 
 =head1 SYNOPSIS
 
