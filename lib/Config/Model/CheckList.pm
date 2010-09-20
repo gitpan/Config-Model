@@ -26,6 +26,9 @@
 #    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 
 package Config::Model::CheckList ;
+BEGIN {
+  $Config::Model::CheckList::VERSION = '1.209';
+}
 use Config::Model::Exception ;
 use Config::Model::IdElementReference ;
 use warnings ;
@@ -35,7 +38,6 @@ use Log::Log4perl qw(get_logger :levels);
 
 use base qw/Config::Model::WarpedThing/ ;
 
-our $VERSION="1.202";
 
 my $logger = get_logger("Tree::Element::CheckList") ;
 
@@ -45,7 +47,7 @@ Config::Model::CheckList - Handle check list element
 
 =head1 VERSION
 
-version 1.208
+version 1.209
 
 =head1 SYNOPSIS
 

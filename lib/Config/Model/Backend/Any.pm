@@ -27,6 +27,9 @@
 #    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 
 package Config::Model::Backend::Any ;
+BEGIN {
+  $Config::Model::Backend::Any::VERSION = '1.209';
+}
 
 use Carp;
 use strict;
@@ -36,8 +39,6 @@ use Moose ;
 
 use File::Path;
 use Log::Log4perl qw(get_logger :levels);
-
-our $VERSION = '1.202';
 
 my $logger = get_logger("Backend::Any") ;
 
@@ -78,7 +79,7 @@ Config::Model::Backend::Any - Virtual class for other backends
 
 =head1 VERSION
 
-version 1.208
+version 1.209
 
 =head1 SYNOPSIS
 

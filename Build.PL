@@ -41,7 +41,7 @@ my $code = << 'EOF';
 
 use Text::Template ;
 my %models = ( popcon => [ 'PopCon', '/etc/popularity-contest.conf'],
-               dep5   => [ 'Debian::Dep5', 'License'],
+               dep5   => [ 'Debian::Dep5', 'debian/copyright'],
              ) ;
 
 sub process_tmpl_files {

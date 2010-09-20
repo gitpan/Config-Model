@@ -27,8 +27,10 @@
 #    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 
 package Config::Model::WarpedThing ;
+BEGIN {
+  $Config::Model::WarpedThing::VERSION = '1.209';
+}
 use strict;
-our $VERSION="1.201";
 use Scalar::Util qw(weaken) ;
 use Data::Dumper ;
 use Config::Model::ValueComputer ;
@@ -38,7 +40,6 @@ use Carp;
 
 use warnings FATAL => qw(all);
 
-# use vars qw($VERSION) ;
 
 use base qw/Config::Model::AnyThing/ ;
 
@@ -50,7 +51,7 @@ Config::Model::WarpedThing - Base class for warped classes
 
 =head1 VERSION
 
-version 1.208
+version 1.209
 
 =head1 SYNOPSIS
 

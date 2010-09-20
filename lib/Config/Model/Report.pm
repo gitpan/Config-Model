@@ -27,16 +27,17 @@
 #    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 
 package Config::Model::Report;
+BEGIN {
+  $Config::Model::Report::VERSION = '1.209';
+}
 use Carp;
 use strict;
-our $VERSION="1.201";
 use warnings ;
 
 use Config::Model::Exception ;
 use Config::Model::ObjTreeScanner ;
 use Text::Wrap ;
 
-# use vars qw($VERSION);
 
 =head1 NAME
 
@@ -44,7 +45,7 @@ Config::Model::Report - Reports data from config tree
 
 =head1 VERSION
 
-version 1.208
+version 1.209
 
 =head1 SYNOPSIS
 

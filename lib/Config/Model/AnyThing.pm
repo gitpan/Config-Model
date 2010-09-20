@@ -27,7 +27,7 @@
 
 package Config::Model::AnyThing;
 BEGIN {
-  $Config::Model::AnyThing::VERSION = '1.208';
+  $Config::Model::AnyThing::VERSION = '1.209';
 }
 use Scalar::Util qw(weaken);
 use Carp;
@@ -39,7 +39,7 @@ Config::Model::AnyThing - Base class for configuration tree item
 
 =head1 VERSION
 
-version 1.208
+version 1.209
 
 =head1 SYNOPSIS
 
@@ -395,7 +395,7 @@ sub grab {
 	}
 
         my ($name, $action, $arg) 
-	  = ($cmd =~ /(\w+)(?:(:)((?:"[^\"]*")|(?:[\w:\/\.\-]+)))?/);
+	  = ($cmd =~ /([\-\w]+)(?:(:)((?:"[^\"]*")|(?:[\w:\/\.\-]+)))?/);
 
 	if (defined $arg and $arg =~ /^"/ and $arg =~ /"$/) {
 	    $arg =~ s/^"// ; # remove leading quote

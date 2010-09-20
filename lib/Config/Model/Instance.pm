@@ -26,6 +26,9 @@
 #    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 
 package Config::Model::Instance;
+BEGIN {
+  $Config::Model::Instance::VERSION = '1.209';
+}
 use Scalar::Util qw(weaken) ;
 use File::Path;
 use Log::Log4perl qw(get_logger :levels);
@@ -42,7 +45,6 @@ use Carp;
 use warnings FATAL => qw(all);
 use warnings::register ;
 
-our $VERSION="1.202";
 
 use Carp qw/croak confess cluck/;
 
@@ -54,7 +56,7 @@ Config::Model::Instance - Instance of configuration tree
 
 =head1 VERSION
 
-version 1.208
+version 1.209
 
 =head1 SYNOPSIS
 

@@ -27,15 +27,16 @@
 #    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 
 package Config::Model::Searcher;
+BEGIN {
+  $Config::Model::Searcher::VERSION = '1.209';
+}
 use Log::Log4perl qw(get_logger :levels);
 use Carp;
 use strict;
-our $VERSION="1.201";
 use warnings ;
 
 use Config::Model::Exception ;
 
-# use vars qw($VERSION);
 
 my $logger = get_logger("Model::Searcher") ;
 
@@ -45,7 +46,7 @@ Config::Model::Searcher - Search an element in a configuration model
 
 =head1 VERSION
 
-version 1.208
+version 1.209
 
 =head1 SYNOPSIS
 

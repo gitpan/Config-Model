@@ -26,9 +26,11 @@
 #    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 
 package Config::Model::Value ;
+BEGIN {
+  $Config::Model::Value::VERSION = '1.209';
+}
 use warnings ;
 use strict;
-our $VERSION="1.201";
 use Scalar::Util qw(weaken) ;
 use Data::Dumper ();
 use Config::Model::Exception ;
@@ -39,9 +41,6 @@ use Carp ;
 
 use base qw/Config::Model::WarpedThing/ ;
 
-# use vars qw($VERSION) ;
-
-
 my $logger = get_logger("Tree::Element::Value") ;
 
 =head1 NAME
@@ -50,7 +49,7 @@ Config::Model::Value - Strongly typed configuration value
 
 =head1 VERSION
 
-version 1.208
+version 1.209
 
 =head1 SYNOPSIS
 

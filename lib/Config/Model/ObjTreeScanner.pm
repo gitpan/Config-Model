@@ -26,6 +26,9 @@
 #    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 
 package Config::Model::ObjTreeScanner ;
+BEGIN {
+  $Config::Model::ObjTreeScanner::VERSION = '1.209';
+}
 use strict ;
 use Config::Model::Exception ;
 use Scalar::Util qw/blessed/ ;
@@ -33,7 +36,6 @@ use Carp::Assert::More ;
 use Carp;
 use warnings ;
 
-our $VERSION="1.202";
 
 use Carp qw/croak confess cluck/;
 
@@ -43,7 +45,7 @@ Config::Model::ObjTreeScanner - Scan config tree and perform call-backs
 
 =head1 VERSION
 
-version 1.208
+version 1.209
 
 =head1 SYNOPSIS
 

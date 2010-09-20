@@ -26,6 +26,9 @@
 #    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 
 package Config::Model::ValueComputer ;
+BEGIN {
+  $Config::Model::ValueComputer::VERSION = '1.209';
+}
 
 use warnings ;
 use strict;
@@ -42,7 +45,7 @@ Config::Model::ValueComputer - Provides configuration value computation
 
 =head1 VERSION
 
-version 1.208
+version 1.209
 
 =head1 SYNOPSIS
 
@@ -506,7 +509,6 @@ $compute_grammar = << 'END_OF_GRAMMAR' ;
 
 # This grammar is compatible with Parse::RecDescent < 1.90 or >= 1.90
 use strict;
-our $VERSION="1.201";
 use warnings ;
 }
 

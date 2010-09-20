@@ -27,15 +27,16 @@
 #    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 
 package Config::Model::Describe;
+BEGIN {
+  $Config::Model::Describe::VERSION = '1.209';
+}
 use Carp;
 use strict;
-our $VERSION="1.201";
 use warnings ;
 
 use Config::Model::Exception ;
 use Config::Model::ObjTreeScanner ;
 
-# use vars qw($VERSION);
 
 =head1 NAME
 
@@ -43,7 +44,7 @@ Config::Model::Describe - Provide a description of a node element
 
 =head1 VERSION
 
-version 1.208
+version 1.209
 
 =head1 SYNOPSIS
 

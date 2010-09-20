@@ -26,6 +26,9 @@
 #    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 
 package Config::Model::Annotation;
+BEGIN {
+  $Config::Model::Annotation::VERSION = '1.209';
+}
 
 use Moose ;
 use English ;
@@ -43,7 +46,6 @@ use Config::Model::ObjTreeScanner;
 use Carp;
 #use warnings FATAL => qw(all);
 
-our $VERSION="1.202";
 
 use Carp qw/croak confess cluck/;
 
@@ -55,7 +57,7 @@ Config::Model::Annotation - Read and write configuration annotations
 
 =head1 VERSION
 
-version 1.208
+version 1.209
 
 =head1 SYNOPSIS
 

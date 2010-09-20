@@ -27,16 +27,17 @@
 #    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 
 package Config::Model::WizardHelper ;
+BEGIN {
+  $Config::Model::WizardHelper::VERSION = '1.209';
+}
 use Carp;
 use strict;
-our $VERSION="1.201";
 use warnings ;
 use Config::Model::ObjTreeScanner ;
 use Log::Log4perl qw(get_logger :levels);
 
 use Config::Model::Exception ;
 
-# use vars qw($VERSION);
 
 =head1 NAME
 
@@ -44,7 +45,7 @@ Config::Model::WizardHelper - Helps to create wizard widget for config models
 
 =head1 VERSION
 
-version 1.208
+version 1.209
 
 =head1 SYNOPSIS
 

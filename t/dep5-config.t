@@ -1,10 +1,11 @@
 # -*- cperl -*-
 
 use ExtUtils::testlib;
-use Test::More tests => 15;
+use Test::More tests => 35;
 use Config::Model ;
 use Log::Log4perl qw(:easy) ;
 use File::Path ;
+use File::Copy ;
 
 use warnings;
 
@@ -12,12 +13,13 @@ use strict;
 
 my $arg = shift || '';
 
-my ($log,$show) = (0) x 2 ;
+my ($log,$show,$one) = (0) x 3 ;
 
 my $trace = $arg =~ /t/ ? 1 : 0 ;
 $::debug            = 1 if $arg =~ /d/;
 $log                = 1 if $arg =~ /l/;
 $show               = 1 if $arg =~ /s/;
+$one                = 1 if $arg =~ /1/;
 
 Log::Log4perl->easy_init($log ? $TRACE: $WARN);
 
@@ -42,15 +44,22 @@ Format-Specification: http://svn.debian.org/wsvn/dep/web/deps/dep5.mdwn?op=file&
 Name: xyz
 Maintainer: Jane Smith <jane.smith@example.com>
 Source: http://www.example.com/gitwww
+X-test: yada yada
+ .
+ yada
+
 Files: *
 Copyright: 2008, John Doe <john.doe@example.com>
            2007, Jane Smith <jane.smith@example.com>
 License: PsF
  [PSF LICENSE TEXT]
+
 EOD
 
-$tests[$i++]{check} = [ 'License:PsF',"[PSF LICENSE TEXT]" ,
-                      'Files:"*" License abbrev',"PsF"
+$tests[$i++]{check} = [ 'License:PsF',           "[PSF LICENSE TEXT]" ,
+                       'Files:"*" Copyright',              "2008, John Doe <john.doe\@example.com>\n          2007, Jane Smith <jane.smith\@example.com>",
+                      'Files:"*" License abbrev',"PsF",
+                      '"X-test"' ,                 "yada yada\n\nyada",
                     ];
 
 $tests[$i]{text} = <<'EOD2' ;
@@ -172,6 +181,23 @@ $tests[$i++]{check} = [
                       'Files:"planet/vendor/compat_logging/*" License abbrev',"MIT",
                     ];
 
+$tests[$i]{text} = <<'EOD5' ;
+Format-Specification: http://svn.debian.org/wsvn/dep/web/deps/dep5.mdwn?op=file&amp;rev=135
+Files: *
+Copyright: 1993, John Doe
+           1993, Joe Average
+License: GPL-2+ with OpenSSL exception
+  This program is free software; you can redistribute it
+  and/or modify it under the terms of the [snip]
+
+EOD5
+
+$tests[$i++]{check} = [ 
+                      'Files:"*" License abbrev',"GPL-2+",
+                      'Files:"*" License exception',"OpenSSL",
+                    ];
+
+
 my $idx = 0 ;
 foreach my $t (@tests) {
    my $wr_dir = $wr_root.'/dep5-'.$idx ;
@@ -184,7 +210,7 @@ foreach my $t (@tests) {
 
    my $inst = $model->instance (root_class_name   => 'Debian::Dep5',
                                 root_dir          => $wr_dir,
-                                name => "deptest".$idx++,
+                                instance_name => "deptest".$idx,
                                );  
    ok($inst,"Read $license_file and created instance") ;
 
@@ -197,5 +223,30 @@ foreach my $t (@tests) {
      my ($path,$v) = splice @{$t->{check}},0,2 ;
      is($lic->grab_value($path),$v,"check $path value");
    }
+   
+   $inst->write_back ;
+   ok(1,"Dep-5 write back done") ;
+
+   # create another instance to read the IniFile that was just written
+   my $wr_dir2 = $wr_dir.'-w' ;
+   mkpath($wr_dir2.'/debian',{ mode => 0755 })   || die "can't mkpath: $!";
+   copy($wr_dir.'/debian/copyright',$wr_dir2.'/debian/') 
+      or die "can't copy from $wr_dir to $wr_dir2: $!";
+
+   my $i2_test = $model->instance(root_class_name   => 'Debian::Dep5',
+                                  root_dir    => $wr_dir2 ,
+                                  instance_name => "deptest".$idx."-w",
+                                 );
+
+   ok( $i2_test, "Created instance $idx-w" );
+
+   my $i2_root = $i2_test->config_root ;
+
+   my $p2_dump = $i2_root->dump_tree ;
+
+   is($p2_dump,$dump,"compare original data with 2nd instance data") ;
+   
+   $idx++ ;
+   last if $one ;
 }
 

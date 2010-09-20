@@ -28,13 +28,14 @@
 #    02110-1301 USA
 
 package Config::Model::SimpleUI ;
+BEGIN {
+  $Config::Model::SimpleUI::VERSION = '1.209';
+}
 
 use Carp;
 use strict ;
-our $VERSION="1.201";
 use warnings ;
 
-# use vars qw($VERSION);
 
 =head1 NAME
 
@@ -42,7 +43,7 @@ Config::Model::SimpleUI - Simple interface for Config::Model
 
 =head1 VERSION
 
-version 1.208
+version 1.209
 
 =head1 SYNOPSIS
 

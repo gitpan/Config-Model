@@ -27,10 +27,12 @@
 #    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 
 package Config::Model::WarpedNode ;
+BEGIN {
+  $Config::Model::WarpedNode::VERSION = '1.209';
+}
 
 use Carp qw(cluck croak);
 use strict;
-our $VERSION="1.201";
 use warnings ;
 use Scalar::Util qw(weaken) ;
 
@@ -38,7 +40,6 @@ use base qw/Config::Model::WarpedThing/ ;
 use Config::Model::Exception ;
 use Data::Dumper ();
 
-# use vars qw($VERSION $AUTOLOAD) ;
 
 =head1 NAME
 
@@ -46,7 +47,7 @@ Config::Model::WarpedNode - Node that change config class properties
 
 =head1 VERSION
 
-version 1.208
+version 1.209
 
 =head1 SYNOPSIS
 
