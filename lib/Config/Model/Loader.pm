@@ -27,7 +27,7 @@
 
 package Config::Model::Loader;
 BEGIN {
-  $Config::Model::Loader::VERSION = '1.209';
+  $Config::Model::Loader::VERSION = '1.210';
 }
 use Carp;
 use strict;
@@ -44,7 +44,7 @@ Config::Model::Loader - Load serialized data into config tree
 
 =head1 VERSION
 
-version 1.209
+version 1.210
 
 =head1 SYNOPSIS
 

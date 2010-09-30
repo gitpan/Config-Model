@@ -1,7 +1,7 @@
 # -*- cperl -*-
 
 use ExtUtils::testlib;
-use Test::More tests => 35;
+use Test::More tests => 36;
 use Config::Model ;
 use Log::Log4perl qw(:easy) ;
 use File::Path ;
@@ -32,7 +32,6 @@ ok(1,"compiled");
 # pseudo root where config files are written by config-model
 my $wr_root = 'wr_root';
 
-
 # cleanup before tests
 rmtree($wr_root);
 mkpath($wr_root, { mode => 0755 }) ;
@@ -56,11 +55,13 @@ License: PsF
 
 EOD
 
-$tests[$i++]{check} = [ 'License:PsF',           "[PSF LICENSE TEXT]" ,
-                       'Files:"*" Copyright',              "2008, John Doe <john.doe\@example.com>\n          2007, Jane Smith <jane.smith\@example.com>",
-                      'Files:"*" License abbrev',"PsF",
-                      '"X-test"' ,                 "yada yada\n\nyada",
-                    ];
+$tests[$i++]{check} 
+   = [ 'License:PsF',           "[PSF LICENSE TEXT]" ,
+       'Files:"*" Copyright:0', "2008, John Doe <john.doe\@example.com>",
+       'Files:"*" Copyright:1', "2007, Jane Smith <jane.smith\@example.com>",
+       'Files:"*" License abbrev',"PsF",
+       '"X-test"' ,                 "yada yada\n\nyada",
+     ];
 
 $tests[$i]{text} = <<'EOD2' ;
 Format-specification: http://svn.debian.org/wsvn/dep/web/deps/dep5.mdwn?op=file&amp;rev=135
@@ -200,7 +201,7 @@ $tests[$i++]{check} = [
 
 my $idx = 0 ;
 foreach my $t (@tests) {
-   my $wr_dir = $wr_root.'/dep5-'.$idx ;
+   my $wr_dir = $wr_root.'/test-'.$idx ;
    mkpath($wr_dir."/debian/", { mode => 0755 }) ;
    my $license_file = "$wr_dir/debian/copyright" ;
 
@@ -208,7 +209,7 @@ foreach my $t (@tests) {
    print LIC $t->{text} ;
    close LIC ;
 
-   my $inst = $model->instance (root_class_name   => 'Debian::Dep5',
+   my $inst = $model->instance (root_class_name   => 'Debian::Dpkg::Copyright',
                                 root_dir          => $wr_dir,
                                 instance_name => "deptest".$idx,
                                );  
@@ -233,7 +234,7 @@ foreach my $t (@tests) {
    copy($wr_dir.'/debian/copyright',$wr_dir2.'/debian/') 
       or die "can't copy from $wr_dir to $wr_dir2: $!";
 
-   my $i2_test = $model->instance(root_class_name   => 'Debian::Dep5',
+   my $i2_test = $model->instance(root_class_name   => 'Debian::Dpkg::Copyright',
                                   root_dir    => $wr_dir2 ,
                                   instance_name => "deptest".$idx."-w",
                                  );

@@ -9,14 +9,14 @@
 # 
 [
           {
-            'name' => 'Debian::Dep5::License',
+            'name' => 'Debian::Dpkg::Copyright::License',
             'element' => [
                            'abbrev',
                            {
                              'value_type' => 'uniline',
                              'grammar' => 'license (oper license)(s?) 
 oper: \'and\' | \'or\' 
-license: /[\w\-\.\+]+/i
+license: /[\\w\\-\\.\\+]+/i
    { # PRD action to check if the license text is provided
      $return = $arg[0]->grab("! License")->defined($item[0]);
    } ',

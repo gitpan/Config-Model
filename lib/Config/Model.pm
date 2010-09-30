@@ -9,7 +9,7 @@
 # 
 package Config::Model;
 BEGIN {
-  $Config::Model::VERSION = '1.209';
+  $Config::Model::VERSION = '1.210';
 }
 require Exporter;
 use Carp;
@@ -42,7 +42,7 @@ Config::Model - Framework to create configuration validation tools and editors
 
 =head1 VERSION
 
-version 1.209
+version 1.210
 
 =head1 SYNOPSIS
 

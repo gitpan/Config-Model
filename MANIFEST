@@ -19,7 +19,9 @@ lib/Config/Model/AnyId.pm
 lib/Config/Model/AnyThing.pm
 lib/Config/Model/AutoRead.pm
 lib/Config/Model/Backend/Any.pm
-lib/Config/Model/Backend/Debian/Dep5.pm
+lib/Config/Model/Backend/Debian/Dpkg/Control.pm
+lib/Config/Model/Backend/Debian/Dpkg/Copyright.pm
+lib/Config/Model/Backend/Debian/DpkgSyntax.pm
 lib/Config/Model/Backend/IniFile.pm
 lib/Config/Model/Backend/ShellVar.pm
 lib/Config/Model/Backend/Yaml.pm
@@ -44,9 +46,12 @@ lib/Config/Model/ValueComputer.pm
 lib/Config/Model/WarpedNode.pm
 lib/Config/Model/WarpedThing.pm
 lib/Config/Model/WizardHelper.pm
-lib/Config/Model/models/Debian/Dep5.pl
-lib/Config/Model/models/Debian/Dep5/Content.pl
-lib/Config/Model/models/Debian/Dep5/License.pl
+lib/Config/Model/models/Debian/Dpkg/Control.pl
+lib/Config/Model/models/Debian/Dpkg/Control/Binary.pl
+lib/Config/Model/models/Debian/Dpkg/Control/Source.pl
+lib/Config/Model/models/Debian/Dpkg/Copyright.pl
+lib/Config/Model/models/Debian/Dpkg/Copyright/Content.pl
+lib/Config/Model/models/Debian/Dpkg/Copyright/License.pl
 lib/Config/Model/models/PopCon.pl
 t/accept.t
 t/annotation.t
@@ -55,7 +60,8 @@ t/auto_load_model.t
 t/auto_read.t
 t/big_model.pm
 t/check_list.t
-t/dep5-config.t
+t/debian-dpkg-control.t
+t/debian-dpkg-copyright.t
 t/describe_node.t
 t/dump_as_data.t
 t/dump_load_model.pm
