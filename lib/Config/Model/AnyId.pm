@@ -27,7 +27,7 @@
 
 package Config::Model::AnyId ;
 BEGIN {
-  $Config::Model::AnyId::VERSION = '1.210';
+  $Config::Model::AnyId::VERSION = '1.211';
 }
 use Config::Model::Exception ;
 use Scalar::Util qw(weaken) ;
@@ -54,7 +54,7 @@ Config::Model::AnyId - Base class for hash or list element
 
 =head1 VERSION
 
-version 1.210
+version 1.211
 
 =head1 SYNOPSIS
 
@@ -114,7 +114,7 @@ sub new {
     # args hash is modified for arg check in derived class constructor
     my $args_ref = shift ; 
 
-    my $self= { } ;
+    my $self= { warning_hash => { } } ;
 
     bless $self,$type;
 
@@ -261,6 +261,13 @@ keys hashes and created automatically. (valid only for hash elements)
 Called with C<< auto_create => 'foo' >>, or 
 C<< auto_create => ['foo', 'bar'] >>.
 
+=item warn_if_key_match
+
+Issue a warning if the key matches the specified regular expression
+
+=item warn_unless_key_match
+
+Issue a warning unless the key matches the specified regular expression
 
 =item auto_create_ids
 
@@ -364,7 +371,8 @@ leads to a nb of items greater than the max_nb constraint.
 
 my @common_params =  qw/min_index max_index max_nb default_with_init default_keys
                         follow_keys_from auto_create_ids auto_create_keys
-                        allow_keys allow_keys_from allow_keys_matching/ ;
+                        allow_keys allow_keys_from allow_keys_matching
+                        warn_if_key_match warn_unless_key_match/ ;
 
 my @allowed_warp_params = (@common_params,qw/experience level/) ;
 
@@ -436,7 +444,7 @@ sub set_properties {
     Config::Model::Exception::Model
         ->throw (
                  object => $self,
-                 error => "Unexpected parameters :". join(' ', keys %args)
+                 error => "Unexpected parameters: ". join(' ', keys %args)
                 ) if scalar keys %args ;
 }
 
@@ -501,7 +509,7 @@ object (as declared in the model unless they were warped):
 
 for my $datum (qw/min_index max_index max_nb index_type default_keys default_with_init
                   follow_keys_from auto_create_keys auto_create_ids
-                  morph ordered
+                  morph ordered warn_unless_key_match warn_if_key_match
                   config_model/) {
     no strict "refs";       # to register new methods in package
     *$datum = sub {
@@ -657,37 +665,32 @@ sub handle_args {
     return $self ;
 }
 
+my %check_dispatch = map { ($_ => 'check_'.$_) ;}
+    qw/follow_keys_from allow_keys allow_keys_from allow_keys_matching
+        warn_if_key_match warn_unless_key_match/;
+
 # internal function to check the validity of the index
 sub check {
     my ($self,$idx) = @_ ; 
-
-    my @error  ;
-
-    if ($self->{follow_keys_from}) {
-        $self->check_follow_keys_from($idx) or return 0 ;
-    }
-
-    if ($self->{allow_keys}) {
-        $self->check_allow_keys($idx) or return 0 ;
-    }
-
-    if ($self->{allow_keys_from}) {
-        $self->check_allow_keys_from($idx) or return 0 ;
-    }
-
-    if ($self->{allow_keys_matching}) {
-        $self->check_allow_keys_matching($idx) or return 0 ;
-    }
-
-    my $nb =  $self->fetch_size ;
-    my $new_nb = $nb ;
-    $new_nb++ unless $self->_exists($idx) ;
 
     Config::Model::Exception::Internal
         -> throw (
                   object => $self,
                   error => "check method: key or index is not defined"
                  ) unless defined $idx ;
+
+    my @error ;
+    my @warn ;
+
+    foreach my $key_check_name (keys %check_dispatch) {
+        next unless $self->{$key_check_name} ;
+        my $method = $check_dispatch{$key_check_name} ;
+        $self->$method($idx,\@error,\@warn) ;
+    }
+
+    my $nb =  $self->fetch_size ;
+    my $new_nb = $nb ;
+    $new_nb++ unless $self->_exists($idx) ;
 
     if ($idx eq '') {
         push @error,"Index is empty";
@@ -713,68 +716,77 @@ sub check {
     }
 
     $self->{error} = \@error ;
-    return not scalar @error ;
+
+    if (@warn) {
+        $self->{warning_hash}{$idx} = \@warn ;
+        warn(map { "Warning in '".$self->location."': $_\n"} @warn) ;
+    }
+        
+    return scalar @error ? 0 : 1 ;
 }
+
+
 
 #internal
 sub check_follow_keys_from {
-    my ($self,$idx) = @_ ; 
+    my ($self,$idx,$error) = @_ ; 
 
     my $followed = $self->safe_typed_grab('follow_keys_from') ;
-    if ($followed->exists($idx)) {
-        return 1;
-    }
+    return if $followed->exists($idx) ;
 
-    $self->{error} = ["key '$idx' does not exists in '".$followed->name 
-                      . "'. Expected '"
-                      . join("', '", $followed->get_all_indexes)
-                      . "'"
-                     ] ;
-    return 0 ;
+    push @$error, "key '$idx' does not exists in '".$followed->name 
+              . "'. Expected '" . join("', '", $followed->get_all_indexes) . "'" ;
 }
 
 #internal
 sub check_allow_keys {
-    my ($self,$idx) = @_ ; 
+    my ($self,$idx,$error) = @_ ; 
 
     my $ok = grep { $_ eq $idx } @{$self->{allow_keys}} ;
 
-    return 1 if $ok ;
-
-    $self->{error} = ["Unexpected key '$idx'. Expected '".
-                      join("', '",@{$self->{allow_keys}} ). "'"]   ;
-    return 0 ;
+    push @$error, "Unexpected key '$idx'. Expected '".
+                      join("', '",@{$self->{allow_keys}} ). "'" 
+        unless $ok ;
 }
 
 #internal
 sub check_allow_keys_matching {
-    my ($self,$idx) = @_ ; 
+    my ($self,$idx,$error) = @_ ; 
     my $match = $self->{allow_keys_matching} ;
-    my $ok = ($idx =~ /$match/) ;
 
-    return 1 if $ok ;
-
-    $self->{error} = ["Unexpected key '$idx'. Key must match $match"]   ;
-    return 0 ;
+    push @$error,"Unexpected key '$idx'. Key must match $match" 
+        unless $idx =~ /$match/;
 }
 
 #internal
 sub check_allow_keys_from {
-    my ($self,$idx) = @_ ; 
+    my ($self,$idx,$error) = @_ ; 
 
     my $from = $self->safe_typed_grab('allow_keys_from');
     my $ok = grep { $_ eq $idx } $from->get_all_indexes ;
 
-    return 1 if $ok ;
+    return if $ok ;
 
-    $self->{error} = ["key '$idx' does not exists in '"
+    push @$error, "key '$idx' does not exists in '"
                       . $from->name 
                       . "'. Expected '"
-                      . join( "', '", $from->get_all_indexes). "'" ] ;
+                      . join( "', '", $from->get_all_indexes). "'"  ;
 
-    return 0 ;
 }
 
+sub check_warn_if_key_match {
+    my ($self,$idx,$error,$warn) = @_ ; 
+    my $re = $self->{warn_if_key_match} ;
+
+    push @$warn, "key '$idx' should not match $re\n" if $idx =~ /$re/ ;
+}
+
+sub check_warn_unless_key_match {
+    my ($self,$idx,$error,$warn) = @_ ; 
+    my $re = $self->{warn_unless_key_match} ;
+
+    push @$warn, "key '$idx' should match $re\n" unless $idx =~ /$re/;
+}
 
 =head1 Informations management
 
@@ -837,35 +849,6 @@ sub set {
     return $self->fetch_with_id($item)->set($new_path,@_) ;
 }
 
-=head2 move ( from_index, to_index )
-
-Move an element within the hash or list.
-
-=cut
-
-sub move {
-    my ($self,$from, $to) = @_ ;
-
-    my $moved = $self->fetch_with_id($from) ;
-    $self->_delete($from);
-
-    my $ok = $self->check($to) ;
-    if ($ok) {
-        $self->_store($to, $moved) ;
-        $moved->index_value($to) ;
-    }
-    else {
-        # restore moved item where it came from
-        $self->_store($from, $moved) ;
-        if ($self->instance->get_value_check('fetch')) {
-            Config::Model::Exception::WrongValue 
-                -> throw (
-                          error => join("\n\t",@{$self->{error}}),
-                          object => $self
-                         ) ;
-        }
-    }
-}
 
 =head2 copy ( from_index, to_index )
 
@@ -1116,6 +1099,7 @@ sub delete {
     $self->warp 
       if ($self->{warp} and @{$self->{warp_info}{computed_master}});
 
+    delete $self->{warning_hash}{$idx}  ;
     return $self->_delete($idx);
   }
 
@@ -1130,7 +1114,7 @@ sub clear {
 
     $self->warp 
       if ($self->{warp} and @{$self->{warp_info}{computed_master}});
-
+    $self->{warning_hash} = {} ;
     $self->_clear;
   }
 
@@ -1156,6 +1140,20 @@ sub clear_values {
 
     map {$self->fetch_with_id($_)->store(undef)} $self->get_all_indexes ;
   }
+
+=head2 warning_msg ( [index] )
+
+Returns warnings concerning indexes of this hash. 
+Without parameter, returns a hash ref or undef. With an index, return the warnings
+concerning this index or undef.
+
+=cut
+
+sub warning_msg {
+    my ($self,$idx) = @_ ;
+    return unless scalar %{$self->{warning_hash}};
+    return defined $idx ? $self->{warning_hash}{$idx} : $self->{warning_hash} ;
+}
 
 1;
 

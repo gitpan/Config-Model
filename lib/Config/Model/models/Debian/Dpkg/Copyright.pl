@@ -76,9 +76,7 @@
                                         },
                              'ordered' => '1',
                              'type' => 'hash',
-                             'description' => 'o Required for all but the first stanza. If omitted from the first
-  stanza, this is equivalent to a value of \'*\'.
-o Syntax: List of patterns indicating files having the same license
+                             'description' => 'Patterns indicating files having the same license
   and sharing copyright holders. See "File patterns" below',
                              'index_type' => 'string'
                            },
@@ -90,11 +88,7 @@ o Syntax: List of patterns indicating files having the same license
                                         },
                              'allow_keys_matching' => '^[\\w\\-\\.]+$',
                              'type' => 'hash',
-                             'description' => 'key should match the following regexp:
-
-^(?i:Apache|Artistic|BSD|FreeBSD|ISC|CC-BY|CC-BY-SA|CC-BY-ND|CC-BY-NC|CC-BY-NC-SA|CC-BY-NC-ND|CC0|CDDL|CPL|Eiffel|Expat|GPL|LGPL|GFDL|GFDL-NIV|LPPL|MIT|MPL|Perl|PSF|QPL|W3C-Software|ZLIB|Zope|other)[\\d\\.\\-]*\\+?$
-
-Future version of Config::Model will provde a way to emit a warning if this regecp is not matched.',
+                             'warn_unless_key_match' => '^(?i:Apache|Artistic|BSD|FreeBSD|ISC|CC-BY|CC-BY-SA|CC-BY-ND|CC-BY-NC|CC-BY-NC-SA|CC-BY-NC-ND|CC0|CDDL|CPL|Eiffel|Expat|GPL|LGPL|GFDL|GFDL-NIV|LPPL|MIT|MPL|Perl|PSF|QPL|W3C-Software|ZLIB|Zope)[\\d\\.\\-]*\\+?$',
                              'index_type' => 'string'
                            }
                          ]

@@ -10,7 +10,7 @@
 
 package Config::Model::Backend::Debian::Dpkg::Copyright ;
 BEGIN {
-  $Config::Model::Backend::Debian::Dpkg::Copyright::VERSION = '1.210';
+  $Config::Model::Backend::Debian::Dpkg::Copyright::VERSION = '1.211';
 }
 
 use Moose ;
@@ -216,7 +216,7 @@ Config::Model::Backend::Debian::Dpkg::Copyright - Read and write Debian Dpkg Lic
 
 =head1 VERSION
 
-version 1.210
+version 1.211
 
 =head1 SYNOPSIS
 
@@ -240,7 +240,7 @@ version 1.210
 This module is used directly by L<Config::Model> to read or write the
 content of a configuration tree written with Debian Dep-5 syntax in
 C<Config::Model> configuration tree. This syntax is used to specify 
-license information in Debian source pacakge format.
+license information in Debian source package format.
 
 =head1 CONSTRUCTOR
 

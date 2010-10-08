@@ -27,7 +27,7 @@
 
 package Config::Model::ListId ;
 BEGIN {
-  $Config::Model::ListId::VERSION = '1.210';
+  $Config::Model::ListId::VERSION = '1.211';
 }
 use Config::Model::Exception ;
 use Scalar::Util qw(weaken) ;
@@ -46,7 +46,7 @@ Config::Model::ListId - Handle list element for configuration model
 
 =head1 VERSION
 
-version 1.210
+version 1.211
 
 =head1 SYNOPSIS
 
@@ -261,6 +261,37 @@ sub _delete {
 sub _clear {
     my ($self)= @_ ;
     $self->{data} = [] ;
+}
+
+=head2 move ( from_index, to_index )
+
+Move an element within the list.
+
+=cut
+
+sub move {
+    my ($self,$from, $to) = @_ ;
+
+    my $moved = $self->fetch_with_id($from) ;
+    $self->_delete($from);
+    delete $self->{warning_hash}{$from} ;
+
+    my $ok = $self->check($to) ;
+    if ($ok) {
+        $self->_store($to, $moved) ;
+        $moved->index_value($to) ;
+    }
+    else {
+        # restore moved item where it came from
+        $self->_store($from, $moved) ;
+        if ($self->instance->get_value_check('fetch')) {
+            Config::Model::Exception::WrongValue 
+                -> throw (
+                          error => join("\n\t",@{$self->{error}}),
+                          object => $self
+                         ) ;
+        }
+    }
 }
 
 =head2 push( value )

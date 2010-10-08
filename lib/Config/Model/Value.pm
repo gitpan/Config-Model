@@ -27,7 +27,7 @@
 
 package Config::Model::Value ;
 BEGIN {
-  $Config::Model::Value::VERSION = '1.210';
+  $Config::Model::Value::VERSION = '1.211';
 }
 use warnings ;
 use strict;
@@ -49,7 +49,7 @@ Config::Model::Value - Strongly typed configuration value
 
 =head1 VERSION
 
-version 1.210
+version 1.211
 
 =head1 SYNOPSIS
 
@@ -225,7 +225,7 @@ sub set_default {
 	    -> throw (
 		      object => $self,
 		      error => "Wrong $item value\n\t".
-		      join("\n\t",@{$self->{error}})
+		      join("\n\t",@{$self->{error_list}})
 		     ) 
 	      unless $ok ;
 
@@ -315,7 +315,7 @@ sub compute {
 
     #print "check result: $ok\n";
     if (not $ok) {
-        my $error =  join("\n\t",@{$self->{error}}) .
+        my $error =  join("\n\t",@{$self->{error_list}}) .
           "\n\t".$self->compute_info;
 
         Config::Model::Exception::WrongValue
@@ -391,7 +391,7 @@ sub migrate_value {
 
     #print "check result: $ok\n";
     if (not $ok) {
-        my $error =  join("\n\t",@{$self->{error}}) .
+        my $error =  join("\n\t",@{$self->{error_list}}) .
           "\n\t".$self->{_migrate_from}->compute_info;
 
         Config::Model::Exception::WrongValue
@@ -480,12 +480,29 @@ assert its validity. Example C<< match => '^foo' >> means that the
 parameter value must begin with "foo". Valid only for C<string> or
 C<uniline> values.
 
+=item warn_if_match
+
+Perl regular expression. A warning will be issued when the value match the 
+passed regular expression. Valid only for C<string> or
+C<uniline> values.
+
+=item warn_unless_match
+
+Perl regular expression. A warning will be issued when the value does not match the 
+passed regular expression. Valid only for C<string> or
+C<uniline> values.
+
+=item warn
+
+String. Issue a warning to user with the specified string any time a value is set or read.
+
+
 =cut
 
-sub setup_match_regexp {
-    my ($self,$ref) = @_ ;
+sub setup_validation_regexp {
+    my ($self,$what,$ref) = @_ ;
 
-    my $str = $self->{match} = delete $ref->{match} ;
+    my $str = $self->{$what} = delete $ref->{$what} ;
     return unless defined $str ;
     my $vt = $self->{value_type} ; 
 
@@ -493,19 +510,19 @@ sub setup_match_regexp {
 	Config::Model::Exception::Model
 		-> throw (
 			  object => $self,
-			  error => "Can't use match regexp with $vt, "
+			  error => "Can't use $what regexp with $vt, "
 			         . "expected 'uniline' or 'string'"
 			 ) ;
     }
 
-    $logger -> debug($self->name, " setup_match_regexp with '$str'");
-    $self->{regexp} = eval { qr/$str/ ;} ;
+    $logger -> debug($self->name, " setup $what regexp with '$str'");
+    $self->{$what.'_regexp'} = eval { qr/$str/ ;} ;
 
     if ($@) {
 	Config::Model::Exception::Model
 		-> throw (
 			  object => $self,
-			  error => "Unvalid match regexp for '$str': $@"
+			  error => "Unvalid $what regexp for '$str': $@"
 			 ) ;
     }
 }
@@ -604,7 +621,8 @@ ref. Example:
 
 
 my @warp_accessible_params =  qw/min max mandatory default 
-				 choice convert upstream_default replace match grammar/ ;
+				 choice convert upstream_default replace match grammar
+				 warn warn_if_match warn_unless_match/ ;
 
 my @accessible_params =  (@warp_accessible_params, 
 			  qw/index_value element_name value_type
@@ -703,14 +721,16 @@ sub set_properties {
 
 
     map { $self->{$_} =  delete $args{$_} if defined $args{$_} }
-      qw/min max mandatory replace/;
+      qw/min max mandatory replace warn/;
 
     $self->set_help           ( \%args );
     $self->set_value_type     ( \%args );
     $self->set_default        ( \%args );
     $self->set_compute        ( \%args ) if defined $args{compute};
     $self->set_convert        ( \%args ) if defined $args{convert};
-    $self->setup_match_regexp ( \%args ) if defined $args{match};
+    foreach (qw/match warn_if_match warn_unless_match/) {
+	$self->setup_validation_regexp ( $_ =>  \%args ) if defined $args{$_};
+    }
     $self->setup_grammar_check( \%args ) if defined $args{grammar};
 
     # cannot be warped
@@ -719,7 +739,7 @@ sub set_properties {
     Config::Model::Exception::Model
 	-> throw (
 		  object => $self,
-		  error => "Unexpected parameters :".join(' ', keys %args )
+		  error => "Unexpected parameters: ".join(' ', keys %args )
 		 ) 
 	  if scalar keys %args ;
 
@@ -1151,7 +1171,22 @@ sub get_help {
 
 # internal
 sub error_msg {
-    return join("\n\t",@{ shift ->{error}}) ;
+    my $self = shift ;
+    return unless $self->{errror_list} ;
+    return wantarray ? @{$self->{error_list}} : join("\n\t",@{ $self ->{error_list}}) ;
+}
+
+=head2 warning_msg
+
+Returns warning concerning this value. Returns a list in list 
+context and a string in scalar context.
+
+=cut
+
+sub warning_msg {
+    my $self = shift ;
+    return unless $self->{warning_list} ;
+    return wantarray ? @{$self->{warning_list}} : join("\n\t",@{ $self ->{warning_list}})
 }
 
 # construct an error message for enum types
@@ -1199,7 +1234,8 @@ sub check_value {
 
     $quiet = 0 unless defined $quiet ;
 
-    my @error  ;
+    my @error ;
+    my @warn ;
 
     if (not defined $value) {
 	# accept with no other check
@@ -1255,11 +1291,25 @@ sub check_value {
 	    -> throw (object => $self, message => $msg) ;
     }
 
-    if (defined $self->{regexp} and defined $value) {
+    if (defined $self->{match_regexp} and defined $value) {
 	push @error,"value '$value' does not match regexp "
 	    .$self->{match} 
-		unless $value =~ $self->{regexp} ;
+		unless $value =~ $self->{match_regexp} ;
     }
+
+    foreach my $t (qw/warn_if warn_unless/) {
+	my $k = $t.'_match_regexp' ;
+	next unless defined $self->{$k} and defined $value ;
+	my $rxp = $self->{$k} ;
+
+	push @warn,"value '$value' should not match regexp $rxp"  
+	    if $t =~ /if/ and $value =~ $rxp ;
+	push @warn,"value '$value' should match regexp $rxp"  
+	    if $t =~ /unless/ and $value !~ $rxp;
+    }
+    
+    # unconditional warn
+    push @warn, $self->{warn} if defined $value and $self->{warn};
 
     if (defined $self->{validation_parser} and defined $value) {
 	my $prd = $self->{validation_parser};
@@ -1267,7 +1317,9 @@ sub check_value {
 		unless $prd->check ( $value,1,$self);
     }
 
-    $self->{error} = \@error ;
+    $self->{error_list} = \@error ;
+    $self->{warning_list} = \@warn ;
+    warn(map { "Warning in '".$self->location."': $_\n"} @warn) if @warn ;
     return wantarray ? @error : not scalar @error ;
 }
 
@@ -1288,7 +1340,7 @@ sub check {
         push @error, "Mandatory value is not defined" ;
     }
 
-    $self->{error} = \@error ;
+    $self->{error_list} = \@error ;
     return wantarray ? @error : not scalar @error ;
 }
 
@@ -1316,7 +1368,7 @@ sub store {
     }
     elsif ($self->instance->get_value_check('store')) {
         Config::Model::Exception::WrongValue 
-	    -> throw ( error => join("\n\t",@{$self->{error}}),
+	    -> throw ( error => join("\n\t",@{$self->{error_list}}),
 		       object => $self) ;
     }
 
@@ -1660,7 +1712,7 @@ sub fetch {
         Config::Model::Exception::WrongValue
 	    -> throw (
 		      object => $self,
-		      error => join("\n\t",@{$self->{error}})
+		      error => join("\n\t",@{$self->{error_list}})
 		     ) 
 	      if $inst->get_value_check('fetch') ;
     }

@@ -27,7 +27,7 @@
 
 package Config::Model::HashId ;
 BEGIN {
-  $Config::Model::HashId::VERSION = '1.210';
+  $Config::Model::HashId::VERSION = '1.211';
 }
 use Config::Model::Exception ;
 use Scalar::Util qw(weaken) ;
@@ -47,7 +47,7 @@ Config::Model::HashId - Handle hash element for configuration model
 
 =head1 VERSION
 
-version 1.210
+version 1.211
 
 =head1 SYNOPSIS
 
@@ -338,6 +338,7 @@ sub move {
     if ($ok) {
         # this may clobber the old content of $self->{data}{$to}
         $self->{data}{$to} = delete $self->{data}{$from} ;
+        delete $self->{warning_hash}{$from} ;
         # update index_value attribute in moved objects
         $self->{data}{$to}->index_value($to) ;
 
