@@ -7,7 +7,7 @@
 # 
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 # 
-#    Copyright (c) 2005-2007 Dominique Dumont.
+#    Copyright (c) 2005-2010 Dominique Dumont.
 #
 #    This file is part of Config-Model.
 #
@@ -27,14 +27,14 @@
 
 package Config::Model::ValueComputer ;
 BEGIN {
-  $Config::Model::ValueComputer::VERSION = '1.211';
+  $Config::Model::ValueComputer::VERSION = '1.212';
 }
 
 use warnings ;
 use strict;
 use Scalar::Util qw(weaken) ;
 use Carp ;
-use Parse::RecDescent 1.90 ;
+use Parse::RecDescent ;
 use Data::Dumper () ;
 
 use vars qw($compute_grammar $compute_parser) ;
@@ -45,7 +45,7 @@ Config::Model::ValueComputer - Provides configuration value computation
 
 =head1 VERSION
 
-version 1.211
+version 1.212
 
 =head1 SYNOPSIS
 
@@ -364,10 +364,12 @@ sub variables     { return shift->{variables} ;}
 
 sub compute {
     my $self = shift ;
+    my %args = @_ ;
+    my $check = $args{check} || 'yes' ;
 
     my $pre_formula = $self->{pre_formula};
 
-    my $variables = $self->compute_variables ;
+    my $variables = $self->compute_variables(check => $check) ;
 
     return unless defined $variables ;
 
@@ -376,7 +378,7 @@ sub compute {
 
     my $formula_r = $compute_parser
       -> compute ($pre_formula, 1,$self->{value_object}, $variables, 
-		  $self->{replace},$need_quote) ;
+		  $self->{replace},$check,$need_quote) ;
 
     my $formula = $$formula_r ;
 
@@ -405,6 +407,8 @@ sub compute {
 
 sub compute_info {
     my $self = shift;
+    my %args = @_ ;
+    my $check = $args{check} || 'yes' ;
 
     my $orig_variables = $self->{variables} ;
     my $variables = $self->compute_variables ;
@@ -436,7 +440,7 @@ sub compute_info {
 				  error => "Compute variable:\n". $msg
 				 ) ;
 		  }
-		  $val = $obj->get_type eq 'node' ? '<node>' : $obj->fetch ;
+		  $val = $obj->get_type eq 'node' ? '<node>' : $obj->fetch(check => $check) ;
 		}
 		$str.= "\n\t\t'$k' from path '$orig_variables->{$k}' is ";
 		$str.= defined $val ? "'$val'" : 'undef' ;
@@ -453,6 +457,8 @@ sub compute_info {
 #internal
 sub compute_variables {
     my $self = shift ;
+    my %args = @_ ;
+    my $check = $args{check} || 'yes';
 
     # a shallow copy should be enough as we don't allow
     # replace in replacement rules
@@ -471,11 +477,11 @@ sub compute_variables {
             print "key '$key', value '$value', left $var_left\n" 
 	      if $::debug;
 	    my $pre_res = $compute_parser
-	      -> pre_compute ($value, 1,$self->{value_object}, \%variables, $self->{replace});
+	      -> pre_compute ($value, 1,$self->{value_object}, \%variables, $self->{replace},$check);
             print "key '$key', pre res '$pre_res', left $var_left\n" 
 	      if $::debug;
             my $res_r = $compute_parser
-	      -> compute ($pre_res, 1,$self->{value_object}, \%variables, $self->{replace});
+	      -> compute ($pre_res, 1,$self->{value_object}, \%variables, $self->{replace},$check);
 	    my $res = $$res_r ;
             #return undef unless defined $res ;
             $variables{$key} = $res ;
@@ -544,7 +550,7 @@ pre_value:
 		  ) 
          unless defined $fetch_str;
 
-     my $object = eval {$arg[0]->grab($fetch_str) };
+     my $object = eval {$arg[0]->grab(step => $fetch_str, check => $arg[3]) };
 
      if ($@) {
 	    my $e = $@ ;
@@ -705,7 +711,7 @@ value:
      }
      elsif (defined $path) {
          # print "fetching var object '$name' with '$path'\n";
-         $my_res = eval {$arg[0]->grab_value($path) ;} ;
+         $my_res = eval {$arg[0]->grab_value(step => $path, check => $arg[3]) ;} ;
          if ($@) {
 	    my $e = $@ ;
 	    my $msg = $e ? $e->full_message : '' ;
@@ -723,7 +729,7 @@ value:
      # my_res stays undef if $path if not defined
 
      # quote result if asked when calling compute
-     my $quote = $arg[3] || 0;
+     my $quote = $arg[4] || 0;
      $my_res = "'$my_res'" if $quote && $my_res ;
 
      $return = \$my_res ; # So I can return undef ... or a ref to undef

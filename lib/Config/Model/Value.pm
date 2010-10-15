@@ -27,7 +27,7 @@
 
 package Config::Model::Value ;
 BEGIN {
-  $Config::Model::Value::VERSION = '1.211';
+  $Config::Model::Value::VERSION = '1.212';
 }
 use warnings ;
 use strict;
@@ -49,7 +49,7 @@ Config::Model::Value - Strongly typed configuration value
 
 =head1 VERSION
 
-version 1.211
+version 1.212
 
 =head1 SYNOPSIS
 
@@ -220,7 +220,7 @@ sub set_default {
 	next unless defined $def ;
 
 	# will check default value
-	my $ok = $self->check($def,0) ;
+	my $ok = $self->check($def) ;
 	Config::Model::Exception::Model
 	    -> throw (
 		      object => $self,
@@ -369,9 +369,7 @@ sub set_migrate_from {
 	     );
 
     # resolve any recursive variables before registration
-    $self->{instance}->push_no_value_check('fetch') ;
     my $v = $self->{_migrate_from}->compute_variables ;
-    $self->{instance}->pop_no_value_check ;
 }
 
 # FIXME: should it be used only once ???
@@ -381,9 +379,7 @@ sub migrate_value {
     my $i = $self->instance;
 
     # avoid warning when reading deprecated values
-    $i->push_no_value_check('fetch') ;
-    my $result = $self->{_migrate_from} -> compute ;
-    $i ->pop_no_value_check ;
+    my $result = $self->{_migrate_from} -> compute (check => 'no');
 
     # check if the migrated result fits with the constraints of the
     # Value object
@@ -469,7 +465,7 @@ sub setup_enum_choice {
     # choice
     map {
 	delete $self->{$_}
-	  if (defined  $self->{$_} and not $self->check($self->{$_},1)) ;
+	  if (defined  $self->{$_} and not $self->check(value => $self->{$_}, quiet => 1)) ;
     } qw/data preset/;
 }
 
@@ -950,7 +946,7 @@ sub warp_them
         # pure warp of object
         get_logger("Tree::Element::Warper")
 	  ->debug("warp_them: (value ", (defined $value ? $value : 'undefined'),
-		  ") warping '",$warped->name );
+		  ") warping '",$warped->name, "'" );
         $warped->warp($value,$warp_index) ;
       }
   }
@@ -1212,14 +1208,29 @@ sub enum_error {
     return @error ;
 }
 
-=head2 check_value ( value , [ 0 | 1 ] )
+=head2 check_value ( value )
 
 Check the consistency of the value. Does not check for undefined
 mandatory values.
 
-When the 2nd parameter is non null, check will not try to get extra
+C<check_value> also accepts named parameters:
+
+=over 4
+
+=item value
+
+=item quiet
+
+When non null, check will not try to get extra
 information from the tree. This is required in some cases to avoid
 loops in check, get_info, get_warp_info, re-check ...
+
+=item silent
+
+Don't display value warning on STDOUT. User is expected to retrieve them witj
+L<warning_msg>.
+
+=back
 
 In scalar context, return 0 or 1.
 
@@ -1230,9 +1241,11 @@ to the user.
 =cut
 
 sub check_value {
-    my ($self,$value,$quiet) = @_ ;
-
-    $quiet = 0 unless defined $quiet ;
+    my $self = shift ;
+    my %args = @_ > 1 ? @_ : (value => $_[0]) ;
+    my $value = $args{value} ;
+    my $quiet = $args{quiet} || 0 ;
+    my $silent = $args{silent} || 0 ;
 
     my @error ;
     my @warn ;
@@ -1313,28 +1326,30 @@ sub check_value {
 
     if (defined $self->{validation_parser} and defined $value) {
 	my $prd = $self->{validation_parser};
-	push @error,"value '$value' does not match grammar " .$self->{grammar} 
+	push @error,"value '$value' does not match grammar:\n" .$self->{grammar} 
 		unless $prd->check ( $value,1,$self);
     }
 
     $self->{error_list} = \@error ;
     $self->{warning_list} = \@warn ;
-    warn(map { "Warning in '".$self->location."': $_\n"} @warn) if @warn ;
+
+    warn(map { "Warning in '".$self->location."': $_\n"} @warn) if @warn and not $silent;
+
     return wantarray ? @error : not scalar @error ;
 }
 
-=head2 check( value , [ 0 | 1 ] )
+=head2 check( value  )
 
 Like L</check_value>. Also ensure that mandatory value are defined
 
 =cut
 
 sub check {
-    my ($self,$value,$quiet) = @_ ;
+    my $self = shift ;
+    my %args = @_ > 1 ? @_ : (value => $_[0]) ;
+    my $value = $args{value} ;
 
-    $quiet = 0 unless defined $quiet ;
-
-    my @error = $self->check_value($value,$quiet) ;
+    my @error = $self->check_value(%args) ;
 
     if (not defined $value and $self->{mandatory}) {
         push @error, "Mandatory value is not defined" ;
@@ -1349,16 +1364,24 @@ sub check {
 
 =head2 store( value )
 
-Store value in leaf element.
+Can be called as C<< value => ...,  check => yes|no|skip ) >>
+
+Store value in leaf element. C<check> parameter can be used to 
+skip validation check.
 
 =cut
 
 sub store {
     my $self = shift ;
+    my %args = @_ == 1 ? (value => $_[0]) 
+             : @_ == 3 ? ( 'value' , @_ ) 
+             : @_ ;
+    my $check = $self->_check_check($args{check}) ;
 
-    my ($ok,$value) = $self->pre_store(@_) ;
+    my ($ok,$value) = $self->pre_store(value => $args{value}, check => $check ) ;
 
-    if ($ok) {
+    # we let store the value even if wrong when check is disabled
+    if ($ok or $check eq 'no') {
 	if ($self->instance->preset) {
 	    $self->{preset} = $value ;
 	} 
@@ -1366,7 +1389,7 @@ sub store {
 	    $self->{data} = $value ; # may be undef
 	}
     }
-    elsif ($self->instance->get_value_check('store')) {
+    elsif ($check ne 'skip') {
         Config::Model::Exception::WrongValue 
 	    -> throw ( error => join("\n\t",@{$self->{error_list}}),
 		       object => $self) ;
@@ -1378,12 +1401,16 @@ sub store {
 # internal. return ( 1|0, value)
 # May return an undef value if actual store should be skipped
 sub pre_store {
-    my ($self,$value) = @_ ;
+    my $self = shift ;
+    my %args = @_ > 1 ? @_ : (value => $_[0]) ;
+    my $value = $args{value} ;
+    my $check = $args{check} || 0 ;
 
     my $inst = $self->instance ;
 
     $self->warp 
-      if ($self->{warp} and defined $self->{warp_info} and @{$self->{warp_info}{computed_master}});
+      if ($self->{warp} and defined $self->{warp_info} 
+          and @{$self->{warp_info}{computed_master}});
 
     if (defined $self->{compute} 
 	and not $self->{allow_compute_override}) {
@@ -1391,8 +1418,8 @@ sub pre_store {
 	  .'compute -> allow_override is set.' ;
 	Config::Model::Exception::Model
 	    -> throw (object => $self, message => $msg) 
-	      if $inst->get_value_check('store') ;
-        return 1 ; # ok, but don't store a value
+	      if $check eq 'yes';
+        return 1 ; 
     }
 
     if (defined $self->{refer_to} or defined $self->{computed_refer_to}) {
@@ -1401,8 +1428,7 @@ sub pre_store {
 
     # check if the object was initialized
     if (not defined $self->{value_type}) {
-        $self->_value_type_error if ($self->instance->get_value_check('fetch_and_store') 
-				     and $inst->get_value_check('type')) ;
+        $self->_value_type_error if $check eq 'yes';
 	return 0 ;
     }
 
@@ -1536,15 +1562,13 @@ sub _init {
 }
 
 sub _pre_fetch {
-    my $self = shift ;
+    my ($self, $mode, $check) = @_ ;
 
     $self->_init ;
 
     my $inst = $self->instance ;
 
-    if (     not defined $self->{value_type} 
-	 and $inst->get_value_check('type')
-       ) {
+    if ( not defined $self->{value_type} and $check eq 'yes') {
         $self->_value_type_error ;
     }
 
@@ -1560,7 +1584,7 @@ sub _pre_fetch {
 
     my $e ;
     if ($e = Exception::Class->caught('Config::Model::Exception::User')) { 
-	if ($self->instance->get_value_check('fetch')) {
+	if ($check eq 'yes') {
 	    $e->throw ; 
 	}
 	$std_value = undef ;
@@ -1572,12 +1596,6 @@ sub _pre_fetch {
     return $std_value ;
 }
 
-=head2 fetch_no_check
-
-Fetch value from leaf element without checking the value.
-
-=cut
-
 my %old_mode = ( built_in => 'upstream_default',
 		 non_built_in => 'non_upstream_default',
 	       );
@@ -1586,12 +1604,11 @@ my %accept_mode = map { ( $_ => 1) }
                       qw/custom standard preset default upstream_default
 			non_upstream_default allow_undef/;
 
-sub fetch_no_check {
-    my $self = shift ;
-    my $mode = shift || '';
+sub _fetch {
+    my ($self, $mode, $check) = @_ ;
 
     # always call to perform submit_to_warp
-    my $std = $self->_pre_fetch ;
+    my $std = $self->_pre_fetch($mode, $check) ;
     my $data = $self->{data} ;
 
     if (not defined $data and defined $self->{_migrate_from}) {
@@ -1637,6 +1654,12 @@ sub fetch_no_check {
 
 }
 
+sub fetch_no_check {
+    my $self = shift ;
+    carp "fetch_no_check is deprecated. Use fetch (check => 'no')";
+    $self->fetch(check => 'no') ;
+}
+
 # likewise but without any warp, etc related check
 sub _fetch_no_check {
     my $self = shift ;
@@ -1647,13 +1670,52 @@ sub _fetch_no_check {
           :                            $self->{default} ;
 }
 
-=head2 fetch( [ custom | preset | standard | default ] )
+=head2 fetch( ... )
 
-Check and fetch value from leaf element.
+Check and fetch value from leaf element. The method can have one parameter (the fetch mode)
+or several pairs:
 
-With a parameter, this method will return either:
+=over 4
+
+=item mode
+
+Whether to fetch default, custom, etc value. See below for details
+
+=item check
+
+Whether to check if the value is valid or not before returning it. Default is 'yes'.
+Possible value are
+
+=over 4
+
+=item yes
+
+Perform check and raise an exception for bad values
+
+=item skip
+
+Perform check and return undef for bad values
+
+=item no
+
+Do not check and return values even if bad
+
+=back
+
+=item silent
+
+When set to 1, warning are not displayed on STDOUT. User is expected to read warnings
+with L<warning_msg>.
+
+=back
+
+According to the C<mode> parameter, this method will return either:
 
 =over
+
+=item empty mode parameter (default)
+
+Value entered by user or default value if the value is different from upstream_default
 
 =item custom
 
@@ -1685,19 +1747,23 @@ feature is useful to reduce data to write in configuration file.
 =item allow_undef
 
 This mode will accept to return undef for mandatory values. Normally,
-trying to fetch an undefined manadatory value leads to an exception.
+trying to fetch an undefined mandatory value leads to an exception.
 
 =back
-
 
 =cut
 
 sub fetch {
     my $self = shift ;
-    my $mode = shift || '';
+
+    my %args =  @_ > 1 ? @_ : (mode => $_[0]) ;
+    my $mode = $args{mode} || '';
+    my $silent = $args{silent} || 0 ;
+    my $check = $self->_check_check($args{check}); 
+    
     my $inst = $self->instance ;
 
-    my $value = $self->fetch_no_check($mode) ;
+    my $value = $self->_fetch($mode,$check) ;
 
     if ($mode and not defined $accept_mode{$mode}) {
 	croak "fetch: expected ", 
@@ -1707,20 +1773,26 @@ sub fetch {
 
     if (defined $value) {
 	# check validity (all modes)
-        return $value if $self->check($value) ;
-
+	my $ok = $self->check(value => $value, silent => $silent) ;
+	if ($ok or $check eq 'no') {
+	    return $value ;
+	}
+	elsif ($check eq 'skip') {
+	    return undef ;
+	}
+	
         Config::Model::Exception::WrongValue
 	    -> throw (
 		      object => $self,
 		      error => join("\n\t",@{$self->{error_list}})
-		     ) 
-	      if $inst->get_value_check('fetch') ;
+		     ) ;
     }
-    elsif (     $self->{mandatory}
-	    and $inst->get_value_check('fetch') 
-	    and (not $mode or $mode eq 'custom' )
-            and ($mode ne 'allow_undef')
-	    and (not defined $self->fetch_no_check() )
+    
+    if (     $self->{mandatory}
+	 and $check eq 'yes'
+	 and (not $mode or $mode eq 'custom' )
+         and ($mode ne 'allow_undef')
+	 and (not defined $self->_fetch('', $check) )
 	  ) {
 	# check only custom or "empty" mode. But undef custom value is
 	# authorized if standard value is defined (that's what is

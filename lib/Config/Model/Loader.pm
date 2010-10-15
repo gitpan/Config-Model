@@ -27,7 +27,7 @@
 
 package Config::Model::Loader;
 BEGIN {
-  $Config::Model::Loader::VERSION = '1.211';
+  $Config::Model::Loader::VERSION = '1.212';
 }
 use Carp;
 use strict;
@@ -44,7 +44,7 @@ Config::Model::Loader - Load serialized data into config tree
 
 =head1 VERSION
 
-version 1.211
+version 1.212
 
 =head1 SYNOPSIS
 
@@ -220,10 +220,8 @@ sub load {
     my $inst = $node->instance ;
 
     # tune value checking
-    my $tune_check
-      = defined $args{check_store}
-	and $args{check_store} == 0 ? 1 : 0 ;
-    $inst->push_no_value_check('store') if $tune_check ;
+    my $check = delete $args{check} || 'yes';
+    croak __PACKAGE__,"load: unexpected check $check" unless $check =~ /yes|no|skip/;
 
     # accept commands
     my $huge_string = ref $step ? join( ' ', @$step) : $step ;
@@ -253,7 +251,7 @@ sub load {
 
     #print "command is ",join('+',@command),"\n" ;
 
-    my $ret = $self->_load($node, $experience, \@command,1) ;
+    my $ret = $self->_load($node, $check, $experience, \@command,1) ;
 
     if (@command) {
         my $str = "Error: command '@command' was not executed, you may have".
@@ -262,11 +260,14 @@ sub load {
 	    -> throw (
 		      error => $str,
 		      object => $node
-		     ) if $node->instance->get_value_check('store') ;
+		     ) if $check eq 'yes' ;
     }
 
-    # restore default value checks
-    $inst->pop_no_value_check  if $tune_check ;
+    if (%args) {
+	Config::Model::Exception::Internal->throw (
+	    error => __PACKAGE__." load: unexpected parameters: ".join(', ',keys %args) 
+	);
+    }
 
     return $ret ;
 }
@@ -329,7 +330,7 @@ my %load_dispatch = (
 
 # return 'done', 'root', 'up', 'error'
 sub _load {
-    my ($self, $node, $experience, $cmdref,$is_root) = @_ ;
+    my ($self, $node, $check, $experience, $cmdref,$is_root) = @_ ;
     $is_root ||= 0;
     my $node_name = "'".$node->name."'" ;
     $logger->debug("_load: called on node $node_name");
@@ -404,7 +405,7 @@ sub _load {
 		-> throw (
 			  object => $node,
 			  element => $element_name,
-			 ) if $inst->get_value_check('store');
+			 ) if $check eq 'yes';
             unshift @$cmdref,$cmd ;
             return 'error' ;
 	}
@@ -415,7 +416,7 @@ sub _load {
 		-> throw (
 			  object => $node,
 			  element => $element_name
-			 ) if $inst->get_value_check('fetch_or_store') ;
+			 ) if $check eq 'yes';
             unshift @$cmdref,$cmd ;
             return 'error';
 	}
@@ -427,7 +428,7 @@ sub _load {
 			  object => $node,
 			  element => $element_name,
 			  level => $experience,
-			 ) if $inst->get_value_check('fetch_or_store');
+			 ) if $check eq 'yes';
             unshift @$cmdref,$cmd ;
             return 'error' ;
 	}
@@ -441,7 +442,7 @@ sub _load {
 
 	$logger->debug("_load: calling $element_type loader on element $element_name") ;
 	my $target_obj ;
-	my $ret = $self->$method($node,$experience,
+	my $ret = $self->$method($node, $check,$experience,
 				 \@instructions,$cmdref,\$target_obj) ;
 
 	# apply note on target object
@@ -469,7 +470,7 @@ sub _load {
 
 
 sub _walk_node {
-    my ($self,$node,$experience,$inst,$cmdref,$target_ref) = @_ ;
+    my ($self,$node, $check,$experience,$inst,$cmdref,$target_ref) = @_ ;
 
     my $element_name = shift @$inst ;
     my $element = $$target_ref = $node -> fetch_element($element_name) ;
@@ -490,16 +491,16 @@ sub _walk_node {
 
     $logger->info("Opening node element ", $element->name);
 
-    return $self->_load($element, $experience, $cmdref);
+    return $self->_load($element, $check, $experience, $cmdref);
 }
 
 sub unquote {
-    map { s/^"// && s/"$// && s/\\"/"/g if defined $_;  } @_ ;
+    map { s/^"// && s/"$// && s!\\"!"!g if defined $_;  } @_ ;
 }
 
 # used for list and check lists
 sub _load_list {
-    my ($self,$node,$experience,$inst,$cmdref,$target_ref) = @_ ;
+    my ($self,$node, $check,$experience,$inst,$cmdref,$target_ref) = @_ ;
     my ($element_name,$action,$id,$subaction,$value) = @$inst ;
 
     my $element = $node -> fetch_element($element_name) ;
@@ -519,9 +520,19 @@ sub _load_list {
 	# valid for check_list or list
 	$logger->info("Setting $elt_type element ",$element->name,
 		      " with '$value'");
-	$element->load( $value ) ;
+	$element->load( $value , check => $check) ;
 	$$target_ref = $element ;
 	return 'ok';
+    }
+
+    if (not defined $action and defined $subaction ) {
+	Config::Model::Exception::Load
+	-> throw (
+		  object => $element,
+		  command => join('',grep (defined $_,@$inst)) ,
+		  error => "Wrong assignment with '$subaction' on "
+		  ."element type: $elt_type, cargo_type: $cargo_type"
+		 ) ;
     }
 
     if ($elt_type eq 'list' and $action eq '~') {
@@ -533,13 +544,13 @@ sub _load_list {
     }
 
     if ($elt_type eq 'list' and $action eq ':') {
-	my $obj = $$target_ref = $element->fetch_with_id($id) ;
+	my $obj = $$target_ref = $element->fetch_with_id(index => $id, check => $check) ;
 
 	if ($cargo_type =~ /node/) {
 	    # remove possible leading or trailing quote
 	    $logger->debug("_load_list: calling _load on node id $id");
 	    unquote ($id) ;
-	    return $self->_load($obj, $experience, $cmdref);
+	    return $self->_load($obj, $check, $experience, $cmdref);
 	}
 
 	return 'ok' unless defined $subaction ;
@@ -547,7 +558,7 @@ sub _load_list {
 	if ($cargo_type =~ /leaf/) {
 	    $logger->debug("_load_list: calling _load_value on $cargo_type id $id");
 	    unquote($value) ;
-	    $self->_load_value($obj,$subaction,$value)
+	    $self->_load_value($obj,$check,$subaction,$value)
 	      and return 'ok';
 	}
     }
@@ -564,7 +575,7 @@ sub _load_list {
 }
 
 sub _load_hash {
-    my ($self,$node,$experience,$inst,$cmdref,$target_ref) = @_ ;
+    my ($self,$node,$check,$experience,$inst,$cmdref,$target_ref) = @_ ;
     my ($element_name,$action,$id,$subaction,$value,$note) = @$inst ;
 
     my $element = $node -> fetch_element($element_name) ;
@@ -588,10 +599,10 @@ sub _load_hash {
 	    my $sub_elt =  $element->fetch_with_id($loop_id) ;
 	    if ($cargo_type =~ /node/) {
 		# remove possible leading or trailing quote
-		$ret = $self->_load($sub_elt, $experience, $cmdref);
+		$ret = $self->_load($sub_elt, $check,$experience, $cmdref);
 	    }
 	    elsif ($cargo_type =~ /leaf/) {
-		$ret = $self->_load_value($sub_elt,$subaction,$value) ;
+		$ret = $self->_load_value($sub_elt,$check,$subaction,$value) ;
 	    }
 	    else {
 		Config::Model::Exception::Load
@@ -617,18 +628,18 @@ sub _load_hash {
 	return 'ok' ;
     }
 
-    my $obj = $$target_ref = $element->fetch_with_id($id) ;
+    my $obj = $$target_ref = $element->fetch_with_id( index => $id , check => $check) ;
 
     if ($action eq ':' and $cargo_type =~ /node/) {
 	# remove possible leading or trailing quote
 	$logger->debug("_load_hash: calling _load on node $id");
 	unquote ($id) ;
-	return $self->_load($obj, $experience, $cmdref);
+	return $self->_load($obj,$check, $experience, $cmdref);
     }
     elsif ($action eq ':' and defined $subaction and $cargo_type =~ /leaf/) {
 	$logger->debug("_load_hash: calling _load_value on leaf $id");
 	unquote($id,$value) ;
-	$self->_load_value($obj,$subaction,$value)
+	$self->_load_value($obj,$check,$subaction,$value)
 	  and return 'ok';
     }
     elsif ($action eq ':' and defined $note) {
@@ -647,7 +658,7 @@ sub _load_hash {
 }
 
 sub _load_leaf {
-    my ($self,$node,$experience,$inst,$cmdref,$target_ref) = @_ ;
+    my ($self,$node,$check,$experience,$inst,$cmdref,$target_ref) = @_ ;
     my ($element_name,$action,$id,$subaction,$value) = @$inst ;
 
     my $element = $$target_ref = $node -> fetch_element($element_name) ;
@@ -666,7 +677,7 @@ sub _load_leaf {
         $logger->debug("_load_leaf: action '$subaction' value '$msg'");
     }
 
-    return $self->_load_value($element,$subaction,$value)
+    return $self->_load_value($element,$check,$subaction,$value)
       or Config::Model::Exception::Load
 	-> throw (
 		  object => $element,
@@ -678,15 +689,15 @@ sub _load_leaf {
 }
 
 sub _load_value {
-    my ($self,$element,$subaction,$value) = @_ ;
+    my ($self,$element,$check,$subaction,$value) = @_ ;
 
     $logger->debug("_load_value: action '$subaction' value '$value'");
     if ($subaction eq '=' and $element->isa('Config::Model::Value')) {
-	$element->store($value) ;
+	$element->store(value => $value, check => $check) ;
     }
     elsif ($subaction eq '.=' and $element->isa('Config::Model::Value')) {
-	my $orig = $element->fetch() ;
-	$element->store($orig.$value) ;
+	my $orig = $element->fetch(check => $check) ;
+	$element->store(value => $orig.$value, check => $check) ;
     }
     else {
 	return undef ;

@@ -10,7 +10,7 @@
 
 package Config::Model::Backend::Debian::Dpkg::Control ;
 BEGIN {
-  $Config::Model::Backend::Debian::Dpkg::Control::VERSION = '1.211';
+  $Config::Model::Backend::Debian::Dpkg::Control::VERSION = '1.212';
 }
 
 use Moose ;
@@ -41,10 +41,11 @@ sub read {
     # file       => 'foo.conf',   # file name
     # file_path  => './my_test/etc/foo/foo.conf' 
     # io_handle  => $io           # IO::File object
+    # check      => yes|no|skip  
 
     return 0 unless defined $args{io_handle} ;
 
-    $logger->info("Parsing $args{file} control file");
+    $logger->info("Parsing control file");
     # load dpkgctrl file
     my $c = $self -> parse_dpkg_file ($args{io_handle}) ;
     
@@ -76,7 +77,7 @@ sub read {
         } 
         
         $node = $root->grab("binary:$package_name") ;
-        $self->read_section ($node, $section);
+        $self->read_section ($node, $section, $args{check});
     }
 
     return 1 ;
@@ -89,11 +90,12 @@ sub read_section {
     my $self = shift ;
     my $node = shift;
     my $section = shift;
+    my $check = shift ;
 
     for (my $i=0; $i < @$section ; $i += 2 ) {
         my $key = $section->[$i];
         my $v = $section->[$i+1];
-        $logger->info("reading key '$key' from control file (for node " .$node->location.")"); #<--- Global symbol "%args" requires explicit package name at (eval 677) line 15.
+        $logger->info("reading key '$key' from control file (for node " .$node->location.")");
         $logger->debug("$key value: $v");
         my $type = $node->element_type($key) ;
         my $elt_obj = $node->fetch_element($key) ;
@@ -104,11 +106,11 @@ sub read_section {
         }
         elsif (my $found = $node->find_element($key, case => 'any')) { 
             $logger->debug("found $key value: $v");
-            $node->fetch_element($found)->store($v) ;
+            $node->fetch_element($found)->store(value => $v, check => $check ) ;
         }
         else {
             # try anyway to trigger an error message
-            $node->fetch_element($key)->store($v) ;
+            $node->fetch_element($key)->store(value => $v, check => $check ) ;
         }
     }
 }
@@ -179,7 +181,7 @@ Config::Model::Backend::Debian::Dpkg::Control - Read and write Debian Dpkg contr
 
 =head1 VERSION
 
-version 1.211
+version 1.212
 
 =head1 SYNOPSIS
 

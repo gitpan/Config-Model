@@ -27,7 +27,7 @@
 
 package Config::Model::ObjTreeScanner ;
 BEGIN {
-  $Config::Model::ObjTreeScanner::VERSION = '1.211';
+  $Config::Model::ObjTreeScanner::VERSION = '1.212';
 }
 use strict ;
 use Config::Model::Exception ;
@@ -45,7 +45,7 @@ Config::Model::ObjTreeScanner - Scan config tree and perform call-backs
 
 =head1 VERSION
 
-version 1.211
+version 1.212
 
 =head1 SYNOPSIS
 
@@ -355,7 +355,7 @@ sub new {
     my $type = shift ;
     my %args = @_;
 
-    my $self = { experience => 'beginner' , auto_vivify => 1 } ;
+    my $self = { experience => 'beginner' , auto_vivify => 1, check => 'yes' } ;
     bless $self,$type ;
 
     $self->{leaf_cb} = delete $args{leaf_cb} or
@@ -373,7 +373,7 @@ sub new {
     my @value_cb = map {$_.'_value_cb'} 
 	qw/boolean enum string uniline integer number reference/; 
 
-    foreach my $param (qw/node_element_cb hash_element_cb 
+    foreach my $param (qw/check node_element_cb hash_element_cb 
                           list_element_cb check_list_element_cb node_content_cb
                           experience auto_vivify up_cb/, @value_cb) {
         $self->{$param} = $args{$param} if defined $args{$param};
@@ -381,6 +381,9 @@ sub new {
         croak __PACKAGE__,"->new: missing $param parameter"
           unless defined $self->{$param} ;
     }
+
+    croak __PACKAGE__,"->new: unexpected check: $self->{check}" 
+	unless $self->{check} =~ /yes|no|skip/;
 
     croak __PACKAGE__,"->new: unexpected parameter: ",join (' ',keys %args)
       if scalar %args ;
@@ -556,7 +559,7 @@ sub scan_hash {
 
 
     my $cargo_type = $item->cargo_type($element_name);
-    my $next_obj = $item->fetch_with_id($key) ;
+    my $next_obj = $item->fetch_with_id(index  => $key, check => $self->{check}) ;
 
     if ($cargo_type =~ /node$/) {
         #print "type object or warped\n";

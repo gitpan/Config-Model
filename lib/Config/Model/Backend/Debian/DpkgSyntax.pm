@@ -10,7 +10,7 @@
 
 package Config::Model::Backend::Debian::DpkgSyntax ;
 BEGIN {
-  $Config::Model::Backend::Debian::DpkgSyntax::VERSION = '1.211';
+  $Config::Model::Backend::Debian::DpkgSyntax::VERSION = '1.212';
 }
 
 use Moose::Role ;
@@ -65,6 +65,8 @@ sub parse_dpkg_file {
         map { $logger->debug("Parse result section:\n'".join("','",@$_)."'") ;} @res ;
     }
     
+    warn "No section found\n" unless @res ;
+    
     return wantarray ? @res : \@res ;   
 }
 
@@ -82,9 +84,10 @@ sub write_dpkg_section {
     foreach (my $i=0; $i < @$array_ref; $i += 2 ) {
         my $name  = $array_ref->[$i] ;
         my $value = $array_ref->[$i + 1];
-        my $label = "$name: " ;
-        my $l = length ($label) ;
+        my $label = "$name:" ;
         if (ref ($value)) {
+            $label .= ' ';
+            my $l = length ($label) ;
             $ioh -> print ($label.join( $list_sep . ' ' x $l , @$value ) . "\n");
         }
         else {
@@ -114,7 +117,7 @@ Config::Model::Backend::Debian::DpkgSyntax - Role to read and write files with D
 
 =head1 VERSION
 
-version 1.211
+version 1.212
 
 =head1 SYNOPSIS
 

@@ -28,7 +28,7 @@
 
 package Config::Model::AutoRead ;
 BEGIN {
-  $Config::Model::AutoRead::VERSION = '1.211';
+  $Config::Model::AutoRead::VERSION = '1.212';
 }
 use Carp;
 use strict;
@@ -112,6 +112,7 @@ sub open_read_file {
     my $fh = new IO::File;
     if (defined $file_path and -e $file_path) {
         $fh->open($file_path);
+        $fh->binmode(":utf8");
         return ($file_path,$fh) ;
     }
     else {
@@ -166,7 +167,7 @@ sub load_backend_class {
 }
 
 sub auto_read_init {
-    my ($self, $readlist_orig, $r_dir) = @_ ;
+    my ($self, $readlist_orig, $check, $r_dir) = @_ ;
     # r_dir is obsolete
     if (defined $r_dir) {
         warn $self->config_class_name," : read_config_dir is obsolete\n";
@@ -211,7 +212,7 @@ sub auto_read_init {
         $auto_create ||= delete $read->{auto_create} if defined $read->{auto_create};
 
         my @read_args = (%$read, root => $root_dir, config_dir => $read_dir,
-                        backend => $backend);
+                        backend => $backend, check => $check);
 
         if ($backend eq 'custom') {
             my $c = my $file = delete $read->{class} ;
@@ -439,6 +440,7 @@ sub open_file_to_write {
     get_logger("Data::Write")
       ->debug("$backend backend opened file $file_path to write");
     $fh ->open("> $file_path") || die "Cannot open $file_path:$!";
+    $fh->binmode(':utf8');
   }
   return $file_path ;
 }
@@ -466,7 +468,8 @@ sub write_cds_file {
     my $file_path = $args{file_path} ;
     get_logger("Data::Write")->info("Write cds data to $file_path");
 
-    $args{io_handle}->print( $self->dump_tree(skip_auto_write => 'cds_file' )) ;
+    my $dump = $self->dump_tree(skip_auto_write => 'cds_file', check => $args{check} ) ;
+    $args{io_handle}->print( $dump ) ;
     return 1 ;
 }
 
@@ -488,7 +491,7 @@ sub write_perl {
     my $file_path = $args{file_path} ;
     get_logger("Data::Write")->info("Write perl data to $file_path");
 
-    my $p_data = $self->dump_as_data(skip_auto_write => 'perl_file' ) ;
+    my $p_data = $self->dump_as_data(skip_auto_write => 'perl_file', check => $args{check} ) ;
     my $dumper = Data::Dumper->new([$p_data]) ;
     $dumper->Terse(1) ;
 
@@ -506,7 +509,7 @@ Config::Model::AutoRead - Load configuration node on demand
 
 =head1 VERSION
 
-version 1.211
+version 1.212
 
 =head1 SYNOPSIS
 
@@ -650,6 +653,7 @@ with parameters:
  config_dir => $read_dir, # path below root
  file_path => $full_name, # full file name (root+path+file)
  io_handle => $io_file    # IO::File object
+ check     => [ yes|no|skip] 
 
 Must return 1 if the read was successful, 0 otherwise.
 
@@ -668,6 +672,7 @@ with parameters:
  config_dir  => $write_dir,   # override from instance
  io_handle   => $fh,          # IO::File object
  write       => 1,            # always
+ check       => [ yes|no|skip] ,
  root        => $root_dir,
 
 Must return 1 if the write was successful, 0 otherwise
@@ -825,7 +830,8 @@ Read callback function will be called with these parameters:
   config_dir => /etc/foo',    # absolute path 
   file       => 'foo.conf',   # file name
   file_path  => './my_test/etc/foo/foo.conf' 
-  io_handle  => $io           # IO::File object
+  io_handle  => $io           # IO::File object with binmode :utf8
+  check      => [yes|no|skip]
 
 The L<IO::File> object is undef if the file cannot be read.
 
@@ -840,8 +846,10 @@ Write callback function will be called with these parameters:
   config_dir  => /etc/foo',    # absolute path 
   file        => 'foo.conf',   # file name
   file_path  => './my_test/etc/foo/foo.conf' 
-  io_handle   => $io           # IO::File object opened in write mode
+  io_handle   => $io           # IO::File object opened in write mode 
+                               # with binmode :utf8
   auto_create => 1             # create dir as needed
+  check      => [yes|no|skip]
 
 The L<IO::File> object is undef if the file cannot be written to.
 

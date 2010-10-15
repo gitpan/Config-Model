@@ -27,7 +27,7 @@
 
 package Config::Model::Backend::ShellVar ;
 BEGIN {
-  $Config::Model::Backend::ShellVar::VERSION = '1.211';
+  $Config::Model::Backend::ShellVar::VERSION = '1.212';
 }
 
 use Carp;
@@ -57,6 +57,7 @@ sub read {
     # file       => 'foo.conf',   # file name
     # file_path  => './my_test/etc/foo/foo.conf' 
     # io_handle  => $io           # IO::File object
+    # check      => yes|no|skip
 
     return 0 unless defined $args{io_handle} ; # no file to read
 
@@ -87,7 +88,7 @@ sub read {
 			$global_zone = 0 ;
 			$data .= '#"'.join("\n",@comments).'"' if @comments ;
 			$logger->debug("Loading:$data\n");
-			$self->node->load($data) ;
+			$self->node->load(step => $data, check => $args{check}) ;
 			@comments = () ;
 		}
     }
@@ -107,6 +108,7 @@ sub write {
     # file       => 'foo.conf',   # file name
     # file_path  => './my_test/etc/foo/foo.conf' 
     # io_handle  => $io           # IO::File object
+    # check      => yes|no|skip
 
     my $ioh = $args{io_handle} ;
     my $node = $args{object} ;
@@ -161,7 +163,7 @@ Config::Model::Backend::Shellvar - Read and write config as a SHELLVAR data stru
 
 =head1 VERSION
 
-version 1.211
+version 1.212
 
 =head1 SYNOPSIS
 

@@ -28,7 +28,7 @@
 
 package Config::Model::Exception ;
 BEGIN {
-  $Config::Model::Exception::VERSION = '1.211';
+  $Config::Model::Exception::VERSION = '1.212';
 }
 use warnings ;
 use strict;
@@ -144,7 +144,7 @@ Config::Model::Exception::Internal->Trace(1);
 
 package Config::Model::Exception::Any ;
 BEGIN {
-  $Config::Model::Exception::Any::VERSION = '1.211';
+  $Config::Model::Exception::Any::VERSION = '1.212';
 }
 
 sub full_message {
@@ -175,7 +175,7 @@ sub xpath_message {
 
 package Config::Model::Exception::LoadData ;
 BEGIN {
-  $Config::Model::Exception::LoadData::VERSION = '1.211';
+  $Config::Model::Exception::LoadData::VERSION = '1.212';
 }
 
 sub full_message {
@@ -195,7 +195,7 @@ sub full_message {
 
 package Config::Model::Exception::Model ;
 BEGIN {
-  $Config::Model::Exception::Model::VERSION = '1.211';
+  $Config::Model::Exception::Model::VERSION = '1.212';
 }
 
 sub full_message {
@@ -221,7 +221,7 @@ sub full_message {
 
 package Config::Model::Exception::Load ;
 BEGIN {
-  $Config::Model::Exception::Load::VERSION = '1.211';
+  $Config::Model::Exception::Load::VERSION = '1.212';
 }
 
 sub full_message {
@@ -239,7 +239,7 @@ sub full_message {
 
 package Config::Model::Exception::RestrictedElement ;
 BEGIN {
-  $Config::Model::Exception::RestrictedElement::VERSION = '1.211';
+  $Config::Model::Exception::RestrictedElement::VERSION = '1.212';
 }
 
 sub full_message {
@@ -259,7 +259,7 @@ sub full_message {
 
 package Config::Model::Exception::UnavailableElement ;
 BEGIN {
-  $Config::Model::Exception::UnavailableElement::VERSION = '1.211';
+  $Config::Model::Exception::UnavailableElement::VERSION = '1.212';
 }
 
 sub full_message {
@@ -270,7 +270,8 @@ sub full_message {
     my $msg = $self->description;
     my $element = $self->element ;
     my $function = $self->function ;
-    my $unavail = $obj->fetch_element($element,undef,1) ;
+    my $unavail = $obj->fetch_element(name => $element, experience => 'master',	
+				      check => 'no', accept_hidden => 1) ;
     $msg .= " '$element' in node '$location'.\n" ;
     $msg .= "\tError occured when calling $function.\n" if defined $function ;
     $msg .= "\t".$unavail->warp_error if $unavail->can('warp_error');
@@ -281,7 +282,7 @@ sub full_message {
 
 package Config::Model::Exception::ObsoleteElement ;
 BEGIN {
-  $Config::Model::Exception::ObsoleteElement::VERSION = '1.211';
+  $Config::Model::Exception::ObsoleteElement::VERSION = '1.212';
 }
 
 sub full_message {
@@ -303,7 +304,7 @@ sub full_message {
 
 package Config::Model::Exception::UnknownElement ;
 BEGIN {
-  $Config::Model::Exception::UnknownElement::VERSION = '1.211';
+  $Config::Model::Exception::UnknownElement::VERSION = '1.212';
 }
 use Carp;
 
@@ -350,7 +351,8 @@ sub full_message {
 
 	if ($parent->element_type ( $element_name ) eq 'warped_node' ) {
 	    $msg .= "\t". 
-	      $parent -> fetch_element( $element_name,undef,1 ) -> warp_error ;
+	      $parent -> fetch_element( name => $element_name,
+		qw/experience master check no accept_hidden 1/ ) -> warp_error ;
 	}
     }
 
@@ -361,7 +363,7 @@ sub full_message {
 
 package Config::Model::Exception::UnknownId ;
 BEGIN {
-  $Config::Model::Exception::UnknownId::VERSION = '1.211';
+  $Config::Model::Exception::UnknownId::VERSION = '1.212';
 }
 
 sub full_message {
@@ -390,7 +392,7 @@ sub full_message {
 
 package Config::Model::Exception::WrongType ;
 BEGIN {
-  $Config::Model::Exception::WrongType::VERSION = '1.211';
+  $Config::Model::Exception::WrongType::VERSION = '1.212';
 }
 
 sub full_message {
@@ -414,7 +416,7 @@ sub full_message {
 
 package Config::Model::Exception::Xml ;
 BEGIN {
-  $Config::Model::Exception::Xml::VERSION = '1.211';
+  $Config::Model::Exception::Xml::VERSION = '1.212';
 }
 
 sub full_message {
@@ -442,7 +444,7 @@ Config::Model::Exception - Exception mechanism for configuration model
 
 =head1 VERSION
 
-version 1.211
+version 1.212
 
 =head1 SYNOPSIS
 

@@ -27,7 +27,7 @@
 
 package Config::Model::ListId ;
 BEGIN {
-  $Config::Model::ListId::VERSION = '1.211';
+  $Config::Model::ListId::VERSION = '1.212';
 }
 use Config::Model::Exception ;
 use Scalar::Util qw(weaken) ;
@@ -46,7 +46,7 @@ Config::Model::ListId - Handle list element for configuration model
 
 =head1 VERSION
 
-version 1.211
+version 1.212
 
 =head1 SYNOPSIS
 
@@ -166,16 +166,20 @@ sub _fetch_with_id {
     return $self->{data}[$idx];
 }
 
-=head2 load(string)
+=head2 load(string, [ check => 'no' ] )
 
 Store a set of values passed as a comma separated list of values. 
 Values can be quoted strings. (i.e C<"a,a",b> will yield
-C<('a,a', 'b')> list).
+C<('a,a', 'b')> list). 
+
+C<check> can be yes, no or skip
 
 =cut
 
 sub load {
-    my ($self, $string) = @_ ;
+    my ($self, $string, %args) = @_ ;
+    my $check = $self->_check_check($args{check}) ; # I write too many checks.
+    
     my @set ;
     my $cmd = $string ;
     my $regex = qr/^(
@@ -189,6 +193,7 @@ sub load {
                    )
                   /x;
 
+    
     while (length($string)) {
         #print "string: $string\n";
         $string =~ s/$regex// or last;
@@ -214,18 +219,33 @@ sub load {
     $self->store_set(@set ) ;
 }
 
-=head2 store_set(@v)
+=head2 store_set( ... )
 
 Store a set of values (passed as list)
+
+If tinkering with check is required, use the following way : 
+
+ store_set ( \@v , check => 'skip' );
 
 =cut
 
 sub store_set {
     my $self = shift ;
+    my @v = @_ ;
+    my $r = shift ;
+    my %args = (check => 'yes');
+    
+    if (ref $r eq 'ARRAY') {
+        @v = @$r ;
+        %args = @_; # note that $r was shifted out of @_
+    }
+
+    my $check = $self->_check_check($args{check});
+    
     my $idx = 0 ;
-    foreach (@_) { 
+    foreach (@v) { 
         if (defined $_) {
-            $self->fetch_with_id( $idx++ )->store( $_ );
+            $self->fetch_with_id( $idx++ )->store( $_ , check => $check);
         }
         else {
             $self->{data}[$idx] = undef ; # detruit l'objet pas bon!
@@ -263,28 +283,29 @@ sub _clear {
     $self->{data} = [] ;
 }
 
-=head2 move ( from_index, to_index )
+=head2 move ( from_index, to_index, [ check => 'no' )
 
-Move an element within the list.
+Move an element within the list. C<check> can be 'yes' 'no' 'skip'
 
 =cut
 
 sub move {
-    my ($self,$from, $to) = @_ ;
+    my ($self,$from, $to,%args) = @_ ;
+    my $check = $self->_check_check($args{check}) ;
 
     my $moved = $self->fetch_with_id($from) ;
     $self->_delete($from);
     delete $self->{warning_hash}{$from} ;
 
     my $ok = $self->check($to) ;
-    if ($ok) {
+    if ($ok or $check eq 'no') {
         $self->_store($to, $moved) ;
         $moved->index_value($to) ;
     }
     else {
         # restore moved item where it came from
         $self->_store($from, $moved) ;
-        if ($self->instance->get_value_check('fetch')) {
+        if ($check ne 'skip') {
             Config::Model::Exception::WrongValue 
                 -> throw (
                           error => join("\n\t",@{$self->{error}}),

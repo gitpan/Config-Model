@@ -31,7 +31,7 @@
 
 package Config::Model::Backend::IniFile ;
 BEGIN {
-  $Config::Model::Backend::IniFile::VERSION = '1.211';
+  $Config::Model::Backend::IniFile::VERSION = '1.212';
 }
 
 use Carp;
@@ -61,6 +61,7 @@ sub read {
     # file       => 'foo.conf',   # file name
     # file_path  => './my_test/etc/foo/foo.conf' 
     # io_handle  => $io           # IO::File object
+    # check      => yes|no|skip
 
     return 0 unless defined $args{io_handle} ; # no file to read
 
@@ -132,7 +133,7 @@ sub read {
 
     # use Data::Dumper; print Dumper(\%annot) ;
 
-    $self->node->load_data(\%data,\%annot);
+    $self->node->load_data(\%data,\%annot, $args{check});
 
     return 1 ;
 }
@@ -149,6 +150,7 @@ sub write {
     # file       => 'foo.conf',   # file name
     # file_path  => './my_test/etc/foo/foo.conf' 
     # io_handle  => $io           # IO::File object
+    # check      => yes|no|skip
 
     my $ioh = $args{io_handle} ;
     my $node = $args{object} ;
@@ -219,7 +221,7 @@ Config::Model::Backend::IniFile - Read and write config as a INI file
 
 =head1 VERSION
 
-version 1.211
+version 1.212
 
 =head1 SYNOPSIS
 

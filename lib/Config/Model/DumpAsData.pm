@@ -28,7 +28,7 @@
 
 package Config::Model::DumpAsData;
 BEGIN {
-  $Config::Model::DumpAsData::VERSION = '1.211';
+  $Config::Model::DumpAsData::VERSION = '1.212';
 }
 use Carp;
 use strict;
@@ -43,7 +43,7 @@ Config::Model::DumpAsData - Dump configuration content as a perl data structure
 
 =head1 VERSION
 
-version 1.211
+version 1.212
 
 =head1 SYNOPSIS
 
@@ -225,6 +225,7 @@ sub dump_as_data {
 
     my @scan_args = (
 		     experience            => delete $args{experience} || 'master',
+		     check                 => delete $args{check} || 'yes' ,
 		     fallback              => 'all',
 		     auto_vivify           => $auto_v,
 		     list_element_cb       => $list_element_cb,

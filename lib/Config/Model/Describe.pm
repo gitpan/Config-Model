@@ -8,7 +8,7 @@
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 # 
 
-#    Copyright (c) 2006-2007 Dominique Dumont.
+#    Copyright (c) 2006-2010 Dominique Dumont.
 #
 #    This file is part of Config-Model.
 #
@@ -28,7 +28,7 @@
 
 package Config::Model::Describe;
 BEGIN {
-  $Config::Model::Describe::VERSION = '1.211';
+  $Config::Model::Describe::VERSION = '1.212';
 }
 use Carp;
 use strict;
@@ -44,7 +44,7 @@ Config::Model::Describe - Provide a description of a node element
 
 =head1 VERSION
 
-version 1.211
+version 1.212
 
 =head1 SYNOPSIS
 
@@ -127,11 +127,12 @@ sub describe {
     my $desc_node = delete $args{node} 
       || croak "describe: missing 'node' parameter";
     my $element = delete $args{element} ; # optional
+    my $check = delete $args{check} || 'yes' ;
 
     my $std_cb = sub {
         my ( $scanner, $data_r, $obj, $element, $index, $value_obj ) = @_;
 
-	my $value = $value_obj->fetch ;
+	my $value = $value_obj->fetch (check => $check) ;
         $value = '"' . $value . '"' if defined $value and $value =~ /\s/;
 
 	#print "DEBUG: std_cb on $element, idx $index, value $value\n";
@@ -163,7 +164,7 @@ sub describe {
         }
         else {
             push @$data_r , [ $element,
-			    join( ',', $list_obj->fetch_all_values ),
+			    join( ',', $list_obj->fetch_all_values(check => 'no' )),
 			    'list','' ];
         }
     };
