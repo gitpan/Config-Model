@@ -28,7 +28,7 @@
 
 package Config::Model::WizardHelper ;
 BEGIN {
-  $Config::Model::WizardHelper::VERSION = '1.214';
+  $Config::Model::WizardHelper::VERSION = '1.215';
 }
 use Carp;
 use strict;
@@ -45,7 +45,7 @@ Config::Model::WizardHelper - Helps to create wizard widget for config models
 
 =head1 VERSION
 
-version 1.214
+version 1.215
 
 =head1 SYNOPSIS
 
