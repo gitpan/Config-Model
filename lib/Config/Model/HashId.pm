@@ -27,7 +27,7 @@
 
 package Config::Model::HashId ;
 BEGIN {
-  $Config::Model::HashId::VERSION = '1.212';
+  $Config::Model::HashId::VERSION = '1.213';
 }
 use Config::Model::Exception ;
 use Scalar::Util qw(weaken) ;
@@ -47,7 +47,7 @@ Config::Model::HashId - Handle hash element for configuration model
 
 =head1 VERSION
 
-version 1.212
+version 1.213
 
 =head1 SYNOPSIS
 
@@ -192,7 +192,7 @@ sub _exists {
 
 sub _defined {
     my ($self,$key) = @_ ;
-    return defined $self->{data}{$key};
+    return defined $self->{data}{$key} ? 1 : 0;
 }
 
 #internal

@@ -27,7 +27,7 @@
 
 package Config::Model::Instance;
 BEGIN {
-  $Config::Model::Instance::VERSION = '1.212';
+  $Config::Model::Instance::VERSION = '1.213';
 }
 use Scalar::Util qw(weaken) ;
 use File::Path;
@@ -56,7 +56,7 @@ Config::Model::Instance - Instance of configuration tree
 
 =head1 VERSION
 
-version 1.212
+version 1.213
 
 =head1 SYNOPSIS
 
@@ -468,7 +468,7 @@ sub write_back {
 	    or  $force_backend eq 'all' ) {
 	    # exit when write is successfull
 	    my $res = $wb->(%args) ; 
-	    $logger->info("write_back called with $backend backend, result is $res");
+	    $logger->info("write_back called with $backend backend, result is ", defined $res ? $res : '<undef>' );
 	    last if ($res and not $force_backend); 
 	}
     }

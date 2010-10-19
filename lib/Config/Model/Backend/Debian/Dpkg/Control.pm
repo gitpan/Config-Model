@@ -10,7 +10,7 @@
 
 package Config::Model::Backend::Debian::Dpkg::Control ;
 BEGIN {
-  $Config::Model::Backend::Debian::Dpkg::Control::VERSION = '1.212';
+  $Config::Model::Backend::Debian::Dpkg::Control::VERSION = '1.213';
 }
 
 use Moose ;
@@ -90,7 +90,7 @@ sub read_section {
     my $self = shift ;
     my $node = shift;
     my $section = shift;
-    my $check = shift ;
+    my $check = shift || 'yes';
 
     for (my $i=0; $i < @$section ; $i += 2 ) {
         my $key = $section->[$i];
@@ -181,7 +181,7 @@ Config::Model::Backend::Debian::Dpkg::Control - Read and write Debian Dpkg contr
 
 =head1 VERSION
 
-version 1.212
+version 1.213
 
 =head1 SYNOPSIS
 

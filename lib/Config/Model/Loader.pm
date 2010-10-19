@@ -27,7 +27,7 @@
 
 package Config::Model::Loader;
 BEGIN {
-  $Config::Model::Loader::VERSION = '1.212';
+  $Config::Model::Loader::VERSION = '1.213';
 }
 use Carp;
 use strict;
@@ -44,7 +44,7 @@ Config::Model::Loader - Load serialized data into config tree
 
 =head1 VERSION
 
-version 1.212
+version 1.213
 
 =head1 SYNOPSIS
 
@@ -691,7 +691,7 @@ sub _load_leaf {
 sub _load_value {
     my ($self,$element,$check,$subaction,$value) = @_ ;
 
-    $logger->debug("_load_value: action '$subaction' value '$value'");
+    $logger->debug("_load_value: action '$subaction' value '$value' check $check");
     if ($subaction eq '=' and $element->isa('Config::Model::Value')) {
 	$element->store(value => $value, check => $check) ;
     }

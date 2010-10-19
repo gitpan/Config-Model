@@ -27,7 +27,7 @@
 
 package Config::Model::Backend::ShellVar ;
 BEGIN {
-  $Config::Model::Backend::ShellVar::VERSION = '1.212';
+  $Config::Model::Backend::ShellVar::VERSION = '1.213';
 }
 
 use Carp;
@@ -60,6 +60,7 @@ sub read {
     # check      => yes|no|skip
 
     return 0 unless defined $args{io_handle} ; # no file to read
+    my $check = $args{check} || 'yes' ;
 
     # try to get global comments (comments before a blank line)
     my @global_comments ;
@@ -88,7 +89,7 @@ sub read {
 			$global_zone = 0 ;
 			$data .= '#"'.join("\n",@comments).'"' if @comments ;
 			$logger->debug("Loading:$data\n");
-			$self->node->load(step => $data, check => $args{check}) ;
+			$self->node->load(step => $data, check => $check) ;
 			@comments = () ;
 		}
     }
@@ -163,7 +164,7 @@ Config::Model::Backend::Shellvar - Read and write config as a SHELLVAR data stru
 
 =head1 VERSION
 
-version 1.212
+version 1.213
 
 =head1 SYNOPSIS
 

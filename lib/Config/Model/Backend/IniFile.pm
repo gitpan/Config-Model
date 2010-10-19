@@ -31,7 +31,7 @@
 
 package Config::Model::Backend::IniFile ;
 BEGIN {
-  $Config::Model::Backend::IniFile::VERSION = '1.212';
+  $Config::Model::Backend::IniFile::VERSION = '1.213';
 }
 
 use Carp;
@@ -133,7 +133,7 @@ sub read {
 
     # use Data::Dumper; print Dumper(\%annot) ;
 
-    $self->node->load_data(\%data,\%annot, $args{check});
+    $self->node->load_data(\%data,\%annot, $args{check} || 'yes' );
 
     return 1 ;
 }
@@ -221,7 +221,7 @@ Config::Model::Backend::IniFile - Read and write config as a INI file
 
 =head1 VERSION
 
-version 1.212
+version 1.213
 
 =head1 SYNOPSIS
 

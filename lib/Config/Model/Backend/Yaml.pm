@@ -10,7 +10,7 @@
 
 package Config::Model::Backend::Yaml ;
 BEGIN {
-  $Config::Model::Backend::Yaml::VERSION = '1.212';
+  $Config::Model::Backend::Yaml::VERSION = '1.213';
 }
 
 use Carp;
@@ -52,7 +52,7 @@ sub read {
       || croak "No data found in YAML file $args{file_path}";
 
     # load perl data in tree
-    $self->{node}->load_data($perl_data, undef, $args{check}) ;
+    $self->{node}->load_data($perl_data, undef, $args{check} || 'yes' ) ;
     return 1 ;
 }
 
@@ -90,7 +90,7 @@ Config::Model::Backend::Yaml - Read and write config as a YAML data structure
 
 =head1 VERSION
 
-version 1.212
+version 1.213
 
 =head1 SYNOPSIS
 

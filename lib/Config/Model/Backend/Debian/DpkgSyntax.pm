@@ -10,7 +10,7 @@
 
 package Config::Model::Backend::Debian::DpkgSyntax ;
 BEGIN {
-  $Config::Model::Backend::Debian::DpkgSyntax::VERSION = '1.212';
+  $Config::Model::Backend::Debian::DpkgSyntax::VERSION = '1.213';
 }
 
 use Moose::Role ;
@@ -20,7 +20,6 @@ use Config::Model::Exception ;
 use Log::Log4perl qw(get_logger :levels);
 
 use base qw/Config::Model::Backend::Any/;
-
 
 my $logger = get_logger("Backend::Debian::Dpkg") ;
 
@@ -62,7 +61,8 @@ sub parse_dpkg_file {
     $fh->close ;
 
     if ($logger->is_debug ) {
-        map { $logger->debug("Parse result section:\n'".join("','",@$_)."'") ;} @res ;
+        my $i = 1 ;
+        map { $logger->debug("Parse result section ".$i++.":\n'".join("','",@$_)."'") ;} @res ;
     }
     
     warn "No section found\n" unless @res ;
@@ -117,7 +117,7 @@ Config::Model::Backend::Debian::DpkgSyntax - Role to read and write files with D
 
 =head1 VERSION
 
-version 1.212
+version 1.213
 
 =head1 SYNOPSIS
 

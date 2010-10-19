@@ -1,12 +1,13 @@
 # -*- cperl -*-
 
 use ExtUtils::testlib;
-use Test::More tests => 41 ;
+use Test::More tests => 57 ;
 use Config::Model ;
 use Log::Log4perl qw(:easy) ;
 use File::Path ;
 use File::Copy ;
 use Test::Warn ;
+use Test::Exception ;
 
 use warnings;
 
@@ -14,7 +15,8 @@ use strict;
 
 my $arg = shift || '';
 
-my ($log,$show,$do) = (0) x 3 ;
+my ($log,$show) = (0) x 2 ;
+my $do ;
 
 my $trace = $arg =~ /t/ ? 1 : 0 ;
 $::debug            = 1 if $arg =~ /d/;
@@ -39,7 +41,7 @@ mkpath($wr_root, { mode => 0755 }) ;
 
 my @tests ;
 my $i = 0;
-$tests[$i]{text} = <<'EOD' ;
+$tests[$i]{text} = <<'EOD0' ;
 Format-Specification: http://svn.debian.org/wsvn/dep/web/deps/dep5.mdwn?op=file&amp;rev=135
 Name: xyz
 Maintainer: Jane Smith <jane.smith@example.com>
@@ -54,17 +56,17 @@ Copyright: 2008, John Doe <john.doe@example.com>
 License: PsF
  [PSF LICENSE TEXT]
 
-EOD
+EOD0
 
 $tests[$i++]{check} 
-   = [ 'License:PsF',           "[PSF LICENSE TEXT]" ,
+   = [ 'Files:"*" License full_license',           "[PSF LICENSE TEXT]\n" ,
        'Files:"*" Copyright:0', "2008, John Doe <john.doe\@example.com>",
        'Files:"*" Copyright:1', "2007, Jane Smith <jane.smith\@example.com>",
        'Files:"*" License abbrev',"PsF",
        '"X-test"' ,                 "yada yada\n\nyada",
      ];
 
-$tests[$i]{text} = <<'EOD2' ;
+$tests[$i]{text} = <<'EOD1' ;
 Format-specification: http://svn.debian.org/wsvn/dep/web/deps/dep5.mdwn?op=file&amp;rev=135
 Name: SOFTware
 Maintainer: John Doe <john.doe@example.com>
@@ -72,7 +74,7 @@ Source: http://www.example.com/software/project
 Files: src/js/editline/*
 Copyright: 1993, John Doe
            1993, Joe Average
-License: MPL-1.1 or GPL-2 or LGPL-2.1
+License: MPL-1.1 or GPL-2+ or LGPL-2.1+
 
 License: MPL-1.1
  [MPL-1.1 LICENSE TEXT]
@@ -83,16 +85,16 @@ License: GPL-2
 License: LGPL-2.1
  [LGPL-2.1 LICENSE TEXT]
 
-EOD2
+EOD1
 
 $tests[$i++]{check} = [ 'License:MPL-1.1',"[MPL-1.1 LICENSE TEXT]" ,
                         'License:GPL-2', "[GPL-2 LICENSE TEXT]",
                         'License:LGPL-2.1', "[LGPL-2.1 LICENSE TEXT]",
-                      'Files:"src/js/editline/*" License abbrev',"MPL-1.1 or GPL-2 or LGPL-2.1"
+                      'Files:"src/js/editline/*" License abbrev',"MPL-1.1 or GPL-2+ or LGPL-2.1+"
                     ];
 
 
-$tests[$i]{text} = <<'EOD3' ;
+$tests[$i]{text} = <<'EOD2' ;
 Format-Specification: http://svn.debian.org/wsvn/dep/web/deps/dep5.mdwn?op=file&amp;rev=135
 Files: src/js/editline/*
 Copyright: 1993, John Doe
@@ -106,19 +108,21 @@ License: MPL-1.1
 License: MPL-1.1
  [MPL-1.1 LICENSE TEXT]
 
-EOD3
+EOD2
+
 $tests[$i++]{check} = [ 'License:MPL-1.1',"[MPL-1.1 LICENSE TEXT]" ,
                       'Files:"src/js/editline/*" License abbrev',"MPL-1.1",
                       'Files:"src/js/fdlibm/*" License abbrev',"MPL-1.1",
                     ];
 
 # the empty license will default to 'other'
-$tests[$i]{text} = <<'EOD4' ;
+$tests[$i]{text} = <<'EOD3' ;
 Format-Specification: http://svn.debian.org/wsvn/dep/web/deps/dep5.mdwn?op=file&rev=135
 Name: Planet Venus
 Maintainer: John Doe <jdoe@example.com>
 Source: http://www.example.com/code/venus
 
+Files: *
 Copyright: 2008, John Doe <jdoe@example.com>
            2007, Jane Smith <jsmith@example.org>
            2007, Joe Average <joe@example.org>
@@ -148,7 +152,7 @@ License: PSF-2
 
 Files: planet/vendor/htmltmpl.py
 Copyright: 2004, Thomas Brown <coder@example.org>
-License: GPL-2+
+License: GPL-2
  This program is free software; you can redistribute it
  and/or modify it under the terms of the GNU General Public
  License as published by the Free Software Foundation; either
@@ -170,82 +174,96 @@ License: GPL-2+
  License version 2 can be found in the file
  ‘/usr/share/common-licenses/GPL-2’.
 
-EOD4
+EOD3
 
 $tests[$i++]{check} = [ 
                       'Files:"planet/vendor/compat_logging/*" License abbrev',"MIT",
                     ];
 
-$tests[$i]{text} = <<'EOD5' ;
+$tests[$i]{text} = <<'EOD4' ;
 Format-Specification: http://svn.debian.org/wsvn/dep/web/deps/dep5.mdwn?op=file&amp;rev=135
 Files: *
 Copyright: 1993, John Doe
            1993, Joe Average
 License: GPL-2+ with OpenSSL exception
-  This program is free software; you can redistribute it
+ This program is free software; you can redistribute it
   and/or modify it under the terms of the [snip]
 
-EOD5
+EOD4
 
 $tests[$i++]{check} = [ 
                       'Files:"*" License abbrev',"GPL-2+",
                       'Files:"*" License exception',"OpenSSL",
-                    ];
+                      'Files:"*" License full_license',
+                      "This program is free software; you can redistribute it\n"
+                      ." and/or modify it under the terms of the [snip]\n",
+                   ];
 
 my $idx = 0 ;
 foreach my $t (@tests) {
-   if ($do and $do ne $idx) { $idx ++; next; }
+    if (defined $do and $do ne $idx) { $idx ++; next; }
    
-   my $wr_dir = $wr_root.'/test-'.$idx ;
-   mkpath($wr_dir."/debian/", { mode => 0755 }) ;
-   my $license_file = "$wr_dir/debian/copyright" ;
+    my $wr_dir = $wr_root.'/test-'.$idx ;
+    mkpath($wr_dir."/debian/", { mode => 0755 }) ;
+    my $license_file = "$wr_dir/debian/copyright" ;
 
-   open(LIC,"> $license_file" ) || die "can't open $license_file: $!";
-   print LIC $t->{text} ;
-   close LIC ;
+    open(LIC,"> $license_file" ) || die "can't open $license_file: $!";
+    print LIC $t->{text} ;
+    close LIC ;
 
-   my $inst = $model->instance (root_class_name   => 'Debian::Dpkg::Copyright',
-                                root_dir          => $wr_dir,
-                                instance_name => "deptest".$idx,
-                               );  
-   ok($inst,"Read $license_file and created instance") ;
+    my $inst = $model->instance (root_class_name   => 'Debian::Dpkg::Copyright',
+                                 root_dir          => $wr_dir,
+                                 instance_name => "deptest".$idx,
+                                );  
+    ok($inst,"Read $license_file and created instance") ;
 
-   my $lic = $inst -> config_root ;
+    my $lic = $inst -> config_root ;
 
-   my $dump =  $lic->dump_tree ();
-   print $dump if $trace ;
+    my $dump =  $lic->dump_tree ();
+    rint $dump if $trace ;
    
-   while (@{$t->{check}}) { 
-     my ($path,$v) = splice @{$t->{check}},0,2 ;
-     is($lic->grab_value($path),$v,"check $path value");
-   }
+    while (@{$t->{check}}) { 
+       my ($path,$v) = splice @{$t->{check}},0,2 ;
+       is($lic->grab_value($path),$v,"check $path value");
+    }
    
-   $inst->write_back ;
-   ok(1,"Dep-5 write back done") ;
+    $inst->write_back ;
+    ok(1,"Dep-5 write back done") ;
 
-   # create another instance to read the IniFile that was just written
-   my $wr_dir2 = $wr_dir.'-w' ;
-   mkpath($wr_dir2.'/debian',{ mode => 0755 })   || die "can't mkpath: $!";
-   copy($wr_dir.'/debian/copyright',$wr_dir2.'/debian/') 
-      or die "can't copy from $wr_dir to $wr_dir2: $!";
+    # create another instance to read the IniFile that was just written
+    my $wr_dir2 = $wr_dir.'-w' ;
+    mkpath($wr_dir2.'/debian',{ mode => 0755 })   || die "can't mkpath: $!";
+    copy($wr_dir.'/debian/copyright',$wr_dir2.'/debian/') 
+        or die "can't copy from $wr_dir to $wr_dir2: $!";
 
-   my $i2_test = $model->instance(root_class_name   => 'Debian::Dpkg::Copyright',
-                                  root_dir    => $wr_dir2 ,
-                                  instance_name => "deptest".$idx."-w",
-                                 );
+    my $i2_test = $model->instance(root_class_name   => 'Debian::Dpkg::Copyright',
+                                   root_dir    => $wr_dir2 ,
+                                   instance_name => "deptest".$idx."-w",
+                                  );
 
-   ok( $i2_test, "Created instance $idx-w" );
+    ok( $i2_test, "Created instance $idx-w" );
 
-   my $i2_root = $i2_test->config_root ;
+    my $i2_root = $i2_test->config_root ;
 
-   my $p2_dump = $i2_root->dump_tree ;
+    my $p2_dump = $i2_root->dump_tree ;
 
-   is($p2_dump,$dump,"compare original data with 2nd instance data") ;
+    is($p2_dump,$dump,"compare original data with 2nd instance data") ;
    
-   # test license warnings
-   warning_like { $i2_root->load('License:YADA="yada license"') ; }
-    qr/should match/, "test license warning" ;
+    # test license warnings
+    warning_like { $i2_root->load('License:YADA="yada license"') ; }
+       qr/should match/, "test license warning" ;
    
-   $idx++ ;
+    my $elt = $i2_root->grab("! License") ;
+    is($elt->defined('foobar'),0,"test defined method");
+
+    # test backups, load a wrong value
+    $i2_root->load(step => qq!Files:foobar License abbrev="FOO or BAR"!, check => 'no');
+    # then try to write backups
+    throws_ok {$i2_test->write_back} 'Config::Model::Exception::WrongValue',
+        "check that write back is aborted with bad values" ;
+
+    ok( -s $wr_dir2.'/debian/copyright',"check that original file was not clobbered");
+   
+    $idx++ ;
 }
 
