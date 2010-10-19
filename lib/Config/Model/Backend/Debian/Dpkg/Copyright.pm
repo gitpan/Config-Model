@@ -10,7 +10,7 @@
 
 package Config::Model::Backend::Debian::Dpkg::Copyright ;
 BEGIN {
-  $Config::Model::Backend::Debian::Dpkg::Copyright::VERSION = '1.213';
+  $Config::Model::Backend::Debian::Dpkg::Copyright::VERSION = '1.214';
 }
 
 use Moose ;
@@ -226,7 +226,7 @@ Config::Model::Backend::Debian::Dpkg::Copyright - Read and write Debian Dpkg Lic
 
 =head1 VERSION
 
-version 1.213
+version 1.214
 
 =head1 SYNOPSIS
 

@@ -1,0 +1,539 @@
+#!/usr/bin/perl 
+# 
+# This file is part of Config-Model
+# 
+# This software is Copyright (c) 2010 by Dominique Dumont, Krzysztof Tyszecki.
+# 
+# This is free software, licensed under:
+# 
+#   The GNU Lesser General Public License, Version 2.1, February 1999
+# 
+
+eval 'exec /usr/bin/perl  -S $0 ${1+"$@"}'
+    if 0; # not running under some shell
+
+#    Copyright (c) 2006-2010 Dominique Dumont.
+#
+#    This file is part of Config-Model.
+#
+#    Config-Model is free software; you can redistribute it and/or
+#    modify it under the terms of the GNU Lesser Public License as
+#    published by the Free Software Foundation; either version 2.1 of
+#    the License, or (at your option) any later version.
+#
+#    Config-Model is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#    Lesser Public License for more details.
+#
+#    You should have received a copy of the GNU Lesser Public License
+#    along with Config-Model; if not, write to the Free Software
+#    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+#    02110-1301 USA
+
+use strict ;
+use warnings ;
+
+use Config::Model;
+use Getopt::Long ;
+use Pod::Usage ;
+use Log::Log4perl qw(get_logger :levels);
+
+# lame tracing that will be replaced by Log4perl
+use vars qw/$verbose $debug/ ;
+
+$verbose = 0;
+$debug = 0;
+
+my $log4perl_syst_conf_file = '/etc/log4config-model.conf' ;
+my $log4perl_user_conf_file = $ENV{HOME}.'/.log4config-model' ;
+my $fallback_conf = << 'EOC';
+log4perl.logger=WARN, Screen
+log4perl.appender.Screen        = Log::Log4perl::Appender::Screen
+log4perl.appender.Screen.stderr = 0
+log4perl.appender.Screen.layout = Log::Log4perl::Layout::PatternLayout
+log4perl.appender.Screen.layout.ConversionPattern = %d %m %n
+EOC
+
+my $log4perl_conf 
+  = -e $log4perl_user_conf_file ?  $log4perl_user_conf_file
+  : -e $log4perl_syst_conf_file ?  $log4perl_syst_conf_file
+  :                               \$fallback_conf ;
+
+Log::Log4perl::init($log4perl_conf);
+
+
+my $ui_type ;
+
+eval {require Config::Model::TkUI ; } ;
+my $has_tk = $@ ? 0 : 1 ;
+
+eval {require Config::Model::CursesUI ;} ;
+my $has_curses = $@ ? 0 : 1 ;
+
+if ($has_tk) {
+    $ui_type = 'tk';
+}
+elsif ($has_curses) {
+    warn "You should install Config::Model::TkUI for a more friendly user interface\n";
+    $ui_type = 'curses';
+}
+else {
+    warn "You should install Config::Model::TkUI or Config::Model::CursesUI ",
+      "for a more friendly user interface\n";
+    $ui_type = 'shell' ;
+}
+
+my $model_dir ;
+my $root_model ;
+my $trace = 0 ;
+my $root_dir ;
+
+=head1 NAME
+
+config-edit - Edit data of configuration managed by Config::Model
+
+=head1 SYNOPSIS
+
+  config-edit [options] -model Fstab [ commands  ... ]
+
+=head1 DESCRIPTION
+
+Config-model is a general purpose configuration framework.
+
+The config-edit program will use Config::Model configuration
+descriptions to provide a user interface so user can easily and
+securely modify the configuration of their system.
+
+You can specify commands as arguments that will be run on the
+configuration root before launching the UI. These command follow the
+syntax defined in L<Config::Model::Loader>.
+
+=head1 Options
+
+=over
+
+=item -model
+
+Mandatory option that specifies the configuration data to be
+edited. The model must be available in C</etc/config-model.d/>
+directory in a C<.pl> file. E.g. this command:
+
+  config-edit -model Fstab
+
+will look for C</etc/config-model.d/Fstab.pl> model file. See
+L<Config::Model> for more details.
+
+=item -ui
+
+Specify the user interface type. 
+
+=over
+
+=item *
+
+C<tk>: provides a Tk graphical interface (If L<Config::Model::TkUI> is
+installed).
+
+=item *
+
+C<curses>: provides a curses user interface (If
+L<Config::Model::CursesUI> is installed).
+
+=item *
+
+C<shell>: provides a shell like interface.  See L<Config::Model::TermUI>
+for details.
+
+=item *
+
+C<none>: No UI provided. Only command line arguments are handled.
+
+=back
+
+=item -dev
+
+Use this option if you want to test a model under development. This
+option will add C<lib> in C<@INC> and use C<lib/Config/Model/models>
+as model directory. This option is ignored when run as root.
+
+=item -model_dir
+
+Specify an alternate directory to find model files. Mostly useful for
+tests.
+
+=item -instance_name
+
+Specify an instance_name. By default the instance name is copied from
+model name. 
+
+=begin comment 
+
+Could be useful for a backup config data feature. To be implemented
+
+=end comment
+
+=item -root_dir
+
+Specify a pseudo root directory to read and write the configuration
+files. (Actual default directory and file names depends on the model
+(See C<-model> option). For instance, if you specify C<~/mytest>, the
+C</etc/ssh/sshd_config> files will be written in C<~/mytest/etc/ssh/>
+directory.
+
+=item -verbose
+
+Be (very) verbose
+
+=item -debug
+
+Provide debug infos.
+
+=item -trace
+
+Provides a full stack trace when exiting on error.
+
+=item -force-load
+
+Load file even if error are found in data. Bad data are discarded
+
+=item -backend
+
+Specify a read/write backend. The actual backend name depends on the model
+passed to C<-model> option. See L<Config::Model::AutoRead> for details.
+
+=item -dump [ file ]
+
+Dump configuration content on STDOUT or in the specified with
+Config::Model syntax.
+
+By default, dump only custom values, i.e. different from application
+built-in values or model default values. See -dumptype option for
+other types of dump
+
+=item -dumptype [ full | preset | custom ]
+
+Choose to dump every values (full), only preset values or only
+customized values (default)
+
+=item -load <cds_file_to_load>
+
+Load configuration data in model from cds file (using Config::Model
+serialisation format, typically done with -dump option). When this
+option is used, the usual configuration files will not be read.
+
+If used with C<-ui none>, this option will load configuration data, 
+validate it and save it in configuration file (if no error was found).
+
+=item -save
+
+Force re-writing the configuration. (useful for configuration upgrade)
+
+=back
+
+=cut
+
+
+my $man = 0;
+my $help = 0;
+my $force_load = 0;
+my $dev = 0;
+my $instance_name ;
+my $backend ;
+my $experience = 'beginner' ;
+my $dump;
+my $dumptype;
+my $load;
+my $force_save = 0;
+
+my $result = GetOptions ("ui|if=s"          => \$ui_type,
+			 "model_dir=s"      => \$model_dir,
+			 "model=s"          => \$root_model,
+			 "verbose!"         => \$verbose,
+			 "experience=s"     => \$experience ,
+			 "instance_name=s"  => \$instance_name,
+			 "debug!"           => \$debug,
+			 "trace!"           => \$trace,
+			 "man!"             => \$man,
+			 "help!"            => \$help,
+			 "dev!"             => \$dev,
+			 "force_load!"      => \$force_load,
+			 "root_dir=s"       => \$root_dir ,
+			 "backend=s"        => \$backend,
+                         "dump:s"           => \$dump,
+                         "dumptype:s"       => \$dumptype,
+                         "load=s"           => \$load,
+			 'save!'            => \$force_save ,
+			);
+
+pod2usage(2) if not $result ;
+pod2usage(1) if $help;
+pod2usage(-verbose => 2) if $man;
+
+# ignore $dev if run as root
+if ($> and $dev) {
+    unshift @INC,'lib' ;
+    $model_dir = 'lib/Config/Model/models/' ;
+}
+
+Config::Model::Exception::Any->Trace(1) if $trace ;
+
+die "Unspecified root configuration model (option -model)\n"
+  unless defined $root_model ;
+
+if (defined $root_dir && ! -e $root_dir) {
+    mkdir $root_dir, 0755 || die "can't create $root_dir:$!";
+}
+
+my $model = Config::Model -> new(model_dir => $model_dir) ;
+
+$instance_name = $root_model unless defined $instance_name ;
+
+my $inst = $model->instance (root_class_name => $root_model ,
+			     instance_name   => $root_model ,
+			     root_dir        => $root_dir ,
+			     force_load      => $force_load,
+			     skip_read       => $load ? 1 : 0,
+			     backend         => $backend,
+			    );
+
+my $root = $inst -> config_root ;
+
+=head1 Embedding config-edit
+
+You can use config-edit from another program by using C<-ui simple>
+option. This way you will be able to send command on the standard input
+of C<config-edit> and get the results from the standard output.
+
+=cut
+
+if (defined $dump) {
+    my $dump_string = $root->dump_tree( mode => $dumptype || 'custom' ) ;
+    if ($dump) {
+	open(DUMP,">$dump") or die "cannot dump in $dump:$!";
+	print DUMP $dump_string ;
+	close DUMP;
+    }
+    else {
+	print $dump_string ;
+    }
+    exit ;
+}
+
+if (defined $load) {
+    open(LOAD,$load) || die "cannot open load file $load:$!";
+    my @data = <LOAD> ;
+    close LOAD; 
+    get_logger("Data")->info("Skipping config file and loading $load");
+    $root->load("@data");
+}
+
+if (@ARGV) {
+    $root->load("@ARGV") ;
+}
+
+if ($ui_type eq 'simple') {
+    # experience not yet implemented
+    require Config::Model::SimpleUI;
+    my $shell_ui = Config::Model::SimpleUI
+      -> new( root => $root ,
+	      title => $root_model.' configuration',
+	      prompt => ' >',
+	    );
+
+    # engage in user interaction
+    $shell_ui -> run_loop ;
+}
+elsif ($ui_type eq 'shell') {
+    # experience not yet implemented
+    require Config::Model::TermUI;
+    my $shell_ui = Config::Model::TermUI
+      -> new( root => $root ,
+	      title => $root_model.' configuration',
+	      prompt => ' >',
+	    );
+
+    # engage in user interaction
+    $shell_ui -> run_loop ;
+}
+elsif ($ui_type eq 'curses') {
+    my $err_file = '/tmp/config-edit-error.log' ;
+
+    print "In case of error, check $err_file\n";
+
+    open (FH,"> $err_file") || die "Can't open $err_file: $!" ;
+    open STDERR, ">&FH";
+
+    my $dialog = Config::Model::CursesUI-> new
+      (
+       experience => $experience,
+      ) ;
+
+    # engage in user interaction
+    $dialog->start( $model )  ;
+
+    close FH ;
+}
+elsif ($ui_type eq 'tk') {
+    require Tk;
+    require Tk::ErrorDialog;
+    Tk->import ;
+
+    my $mw = MainWindow-> new ;
+    $mw->withdraw ;
+    # Thanks to Jerome Quelin for the tip
+    $mw->optionAdd('*BorderWidth' => 1);
+
+    my $cmu = $mw->ConfigModelUI (-root => $root, -experience => $experience) ;
+
+    &MainLoop ; # Tk's
+}
+elsif ( $ui_type =~ /^no/i ) {
+    # let go
+}
+else {
+    die "Unsupported user interface: $ui_type";
+}
+
+$inst->write_back if ($force_save or $load or scalar @ARGV);
+
+=head1 Saving configuration data
+
+Configuration data are saved only when :
+
+=over
+
+=item *
+
+Requested through the user interface
+
+=item *
+
+When commands are specified with arguments
+
+=item *
+
+When C<-load> option is used
+
+=item *
+
+When C<-save> option is used
+
+=back
+
+You can run safely C<config-edit -ui none> to test a configuration,
+configuration files will not be modified in this case.
+
+=head1 LOGGING
+
+All Config::Model logging is (slowly) moved from klunky debug and
+verbose prints to L<Log::Log4perl>. Logging can be configured in the
+following files:
+
+=over
+
+=item *
+
+ ~/.log4config-model
+
+=item * 
+
+ /etc/log4config-model.conf
+
+=back
+
+Without these files, the following Log4perl config is used:
+
+ log4perl.logger=WARN, Screen
+ log4perl.appender.Screen        = Log::Log4perl::Appender::Screen
+ log4perl.appender.Screen.stderr = 0
+ log4perl.appender.Screen.layout = Log::Log4perl::Layout::PatternLayout
+ log4perl.appender.Screen.layout.ConversionPattern = %d %m %n
+
+Log4perl uses the following categories:
+
+=over
+
+=item Model
+
+=item Model::Load
+
+=item Data
+
+=item Data::Read
+
+=item Data::Write
+
+=item Model::Searcher
+
+=item Instance
+
+=item Tree::Element::Value
+
+=item Tree::Element::Id
+
+=item Tree::Element::Id::Hash
+
+=item Tree::Element::Id::List
+
+=item Tree::Element::Warper
+
+=item Tree::Element::Warped
+
+=item Tree::Element::CheckList
+
+=item Tree::Node
+
+=item Loader
+
+=item Backend::Yaml
+
+=item Wizard::Helper
+
+=back
+
+More categories will come.
+
+=for comment
+Tree
+Tree::Element
+Tree::Element::Value::Compute
+Tree::Element::Hash
+Tree::Element::List
+
+=head1 SUPPORT
+
+For support, please check the following ressources:
+
+=over
+
+=item *
+
+The config-model wiki: L<http://config-model.wiki.sourceforge.net/>
+
+=item *
+
+The config-model users mailing list:
+L<http://lists.sourceforge.net/mailman/listinfo/config-model-users>
+
+=back
+
+=head1 AUTHOR
+
+Dominique Dumont, ddumont at cpan dot org
+
+=head1 SEE ALSO
+
+L<Config::Model::Model>, 
+L<Config::Model::Instance>, 
+L<Config::Model::Node>, 
+L<Config::Model::HashId>,
+L<Config::Model::ListId>,
+L<Config::Model::WarpedNode>,
+L<Config::Model::Value>
+
+=cut
+
+
+
+

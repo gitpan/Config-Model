@@ -27,7 +27,7 @@
 
 package Config::Model::Loader;
 BEGIN {
-  $Config::Model::Loader::VERSION = '1.213';
+  $Config::Model::Loader::VERSION = '1.214';
 }
 use Carp;
 use strict;
@@ -44,7 +44,7 @@ Config::Model::Loader - Load serialized data into config tree
 
 =head1 VERSION
 
-version 1.213
+version 1.214
 
 =head1 SYNOPSIS
 
@@ -216,7 +216,11 @@ sub load {
     my $step = delete $args{step} ;
     croak "load error: missing 'step' parameter" unless defined $step ;
 
-    my $experience = delete $args{experience} || 'master' ;
+    if (defined $args{permission}) {
+	carp "load: permission parameter is deprecated. Use experience";
+    }
+
+    my $experience = delete $args{experience} || delete $args{permission} || 'master' ;
     my $inst = $node->instance ;
 
     # tune value checking
