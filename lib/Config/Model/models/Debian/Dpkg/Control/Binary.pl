@@ -64,12 +64,6 @@
                                         },
                              'type' => 'list'
                            },
-                           'Description',
-                           {
-                             'value_type' => 'string',
-                             'mandatory' => '1',
-                             'type' => 'leaf'
-                           },
                            'Conflicts',
                            {
                              'cargo' => {
@@ -94,9 +88,10 @@
                                         },
                              'type' => 'list'
                            },
-                           'Homepage',
+                           'Description',
                            {
-                             'value_type' => 'uniline',
+                             'value_type' => 'string',
+                             'mandatory' => '1',
                              'type' => 'leaf'
                            }
                          ]

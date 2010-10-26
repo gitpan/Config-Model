@@ -27,7 +27,7 @@
 
 package Config::Model::Node;
 BEGIN {
-  $Config::Model::Node::VERSION = '1.215';
+  $Config::Model::Node::VERSION = '1.216';
 }
 use Carp ;
 use strict;
@@ -68,7 +68,7 @@ Config::Model::Node - Class for configuration tree node
 
 =head1 VERSION
 
-version 1.215
+version 1.216
 
 =head1 SYNOPSIS
 
@@ -1536,7 +1536,8 @@ sub load_data {
         foreach my $elt (keys %$perl_data) {
             #load value
             #TODO: annotations
-            my $obj = $self->fetch_element($elt,'master', $check) ;
+            my $obj = $self->fetch_element(name => $elt, experience => 'master', check => $check) ;
+            $logger->debug("Node load_data: accepting element $elt");
             $obj ->load_data(delete $perl_data->{$elt}, 
                              delete $annotation_data->{$elt}
                              ) if defined $obj;
@@ -1545,7 +1546,7 @@ sub load_data {
 
     # now load annotations that were put aside
     foreach my $elt (keys %elt_note) {
-        my $obj = $self->fetch_element($elt,'master', $check) ;
+        my $obj = $self->fetch_element(name => $elt, experience => 'master', check => $check) ;
         $logger->debug("Node load_data: store element $elt annotation: $elt_note{$elt}");
         $obj -> annotation($elt_note{$elt}) if defined $obj;
         }
