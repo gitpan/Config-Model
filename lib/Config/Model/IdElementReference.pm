@@ -28,7 +28,7 @@
 
 package Config::Model::IdElementReference ;
 BEGIN {
-  $Config::Model::IdElementReference::VERSION = '1.216';
+  $Config::Model::IdElementReference::VERSION = '1.217';
 }
 
 use warnings ;
@@ -46,7 +46,7 @@ Config::Model::IdElementReference - Refer to id element(s) and extract keys
 
 =head1 VERSION
 
-version 1.216
+version 1.217
 
 =head1 SYNOPSIS
 
@@ -225,6 +225,8 @@ specified choice and the refered_to values.
 
 
 # internal
+
+# FIXME: do not call back value object -> may recurse
 sub get_choice_from_refered_to {
     my $self = shift ;
 

@@ -27,7 +27,7 @@
 
 package Config::Model::Value ;
 BEGIN {
-  $Config::Model::Value::VERSION = '1.216';
+  $Config::Model::Value::VERSION = '1.217';
 }
 use warnings ;
 use strict;
@@ -49,7 +49,7 @@ Config::Model::Value - Strongly typed configuration value
 
 =head1 VERSION
 
-version 1.216
+version 1.217
 
 =head1 SYNOPSIS
 
@@ -1132,11 +1132,17 @@ empty).
 =cut
 
 sub get_default_choice {
-    goto &get_choice ;
+    my $self = shift ;
+    return @{$self->{backup}{choice} || [] } ;
 }
 
 sub get_choice {
     my $self = shift ;
+
+    # just in case the reference_object has been changed
+    if (defined $self->{refer_to} or defined $self->{computed_refer_to}) {
+	$self->{ref_object}->get_choice_from_refered_to ;
+    }
 
     return @{$self->{choice} || [] } ;
 }

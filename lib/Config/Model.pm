@@ -9,7 +9,7 @@
 # 
 package Config::Model;
 BEGIN {
-  $Config::Model::VERSION = '1.216';
+  $Config::Model::VERSION = '1.217';
 }
 require Exporter;
 use Carp;
@@ -42,7 +42,7 @@ Config::Model - Framework to create configuration validation tools and editors
 
 =head1 VERSION
 
-version 1.216
+version 1.217
 
 =head1 SYNOPSIS
 
@@ -1521,7 +1521,7 @@ sub get_raw_model {
     my $config_class_name = shift ;
 
     $self->load($config_class_name) 
-      unless defined $self->{model}{$config_class_name} ;
+      unless defined $self->{raw_model}{$config_class_name} ;
 
     my $model = $self->{raw_model}{$config_class_name} ||
       croak "get_raw_model error: unknown config class name: $config_class_name";
