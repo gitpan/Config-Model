@@ -27,7 +27,7 @@
 
 package Config::Model::AnyId ;
 BEGIN {
-  $Config::Model::AnyId::VERSION = '1.217';
+  $Config::Model::AnyId::VERSION = '1.218';
 }
 use Config::Model::Exception ;
 use Scalar::Util qw(weaken) ;
@@ -54,7 +54,7 @@ Config::Model::AnyId - Base class for hash or list element
 
 =head1 VERSION
 
-version 1.217
+version 1.218
 
 =head1 SYNOPSIS
 
@@ -858,11 +858,15 @@ sub copy {
     my $ok = $self->check($to) ;
 
     if ($ok && $self->{cargo}{type} eq 'leaf') {
+        $logger->trace("AnyId: copy leaf value from ".$self->name." $from to $to") ;
         $self->fetch_with_id($to)->store($from_obj->fetch()) ;
     }
     elsif ( $ok ) {
         # node object 
-        $self->fetch_with_id($to)->copy_from($from_obj) ;
+        $logger->trace("AnyId: deep copy node from ".$self->name) ;
+        my $target = $self->fetch_with_id($to);
+        $logger->trace("AnyId: deep copy node to ".$target->name) ;
+        $target->copy_from($from_obj) ;
     }
     else {
         Config::Model::Exception::WrongValue 

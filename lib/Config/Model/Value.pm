@@ -27,7 +27,7 @@
 
 package Config::Model::Value ;
 BEGIN {
-  $Config::Model::Value::VERSION = '1.217';
+  $Config::Model::Value::VERSION = '1.218';
 }
 use warnings ;
 use strict;
@@ -49,7 +49,7 @@ Config::Model::Value - Strongly typed configuration value
 
 =head1 VERSION
 
-version 1.217
+version 1.218
 
 =head1 SYNOPSIS
 
@@ -543,6 +543,8 @@ will be changed to
   oper: 'and' | 'or'
   token: 'Apache' | 'CC-BY' | 'Perl'
 
+The rule is called with Value object and a string reference. So, in the actions you may need to define,
+you can call the value object as C<$arg[0]> and store error message in C<${$arg[1]}}>.
 
 =cut
 
@@ -1332,10 +1334,11 @@ sub check_value {
 
     if (defined $self->{validation_parser} and defined $value) {
 	my $prd = $self->{validation_parser};
-	my $prd_check = $prd->check ( $value,1,$self) ; 
+	my $msg = '';
+	my $prd_check = $prd->check ( $value,1,$self, \$msg) ; 
 	my $prd_result = defined $prd_check ? 1 : 0; 
 	$logger->debug("grammar check on $value returned ", defined $prd_check ? $prd_check : '<undef>');
-	push @error,"value '$value' does not match grammar:\n" .$self->{grammar} 
+	push @error,$msg || "value '$value' does not match grammar:\n" .$self->{grammar} 
 		unless $prd_result ;
     }
 

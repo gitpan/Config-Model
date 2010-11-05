@@ -1,5 +1,5 @@
 ---
-abstract: 'Framework to create configuration validation tools and editors'
+abstract: 'Create tools to validate, migrate and edit configuration files'
 author:
   - 'Dominique Dumont'
   - 'Krzysztof Tyszecki'
@@ -8,9 +8,9 @@ build_requires:
   Test::Exception: 0
   Test::More: 0
   Test::Warn: 0.11
-  Text::Template: 0
 configure_requires:
   Module::Build: 0.34
+  Text::Template: 0
 dynamic_config: 0
 generated_by: 'Dist::Zilla version 4.102342, CPAN::Meta::Converter version 2.102400'
 license: lgpl
@@ -32,4 +32,4 @@ resources:
   bugtracker: http://rt.cpan.org/NoAuth/Bugs.html?Dist=Config-Model
   homepage: http://config-model.wiki.sourceforge.net
   repository: http://config-model.hg.sourceforge.net:8000/hgroot/config-model/config-model
-version: 1.217
+version: 1.218
