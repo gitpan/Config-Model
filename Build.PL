@@ -1,12 +1,12 @@
-# 
+#
 # This file is part of Config-Model
-# 
+#
 # This software is Copyright (c) 2010 by Dominique Dumont, Krzysztof Tyszecki.
-# 
+#
 # This is free software, licensed under:
-# 
+#
 #   The GNU Lesser General Public License, Version 2.1, February 1999
-# 
+#
 #    Copyright (c) 2005-2010 Dominique Dumont.
 #
 #    This file is part of Config-Model.
@@ -36,50 +36,9 @@ require 5.008;
 print "\nIf you want to use the TermUI interface, you should install\n",
   "Term::ReadLine::Perl or Term::ReadLine::Gnu\n\n";
 
-# The code below will be fed to subclass method of Module::Build.
-# This will create a new Module::Build class that can handle 
-# config-edit.tmpl template file to generate scripts dedicated
-# to models included within this distribution (e.g. config-edit-popcon ...)
-# For more details see 
-# http://search.cpan.org/~dagolden/Module-Build-0.3607/lib/Module/Build/Authoring.pod#SUBCLASSING
-
-my $code = << 'EOF';
-
-use Text::Template ;
-my %models = ( popcon => [ 'PopCon', '/etc/popularity-contest.conf'],
-               'dpkg-copyright'   => [ 'Debian::Dpkg::Copyright', 'debian/copyright'],
-               'dpkg-control'     => [ 'Debian::Dpkg::Control'  , 'debian/control'],
-             ) ;
-
-sub process_tmpl_files {
-  my $self = shift;
-  print "process_tmpl_files called\n";
-  my $template = Text::Template->new(SOURCE => 'config-edit.tmpl')
-    or die "Couldn't construct template: $Text::Template::ERROR";
-
-  foreach (keys %models) {
-    my $v = $models{$_} ;
-    my %vars = ( name => $_,  model => $v->[0], conf_file => $v->[1]) ;
-    my $fout = "blib/script/config-edit-$_" ;
-    print "Creating $fout\n";
-    my $result = $template->fill_in( HASH => \%vars) ;
-    if (defined $result) { 
-      open (FOUT, "> $fout") || die "Can't open $fout:$!";
-      print FOUT $result;
-      close FOUT ;
-      chmod 0755,$fout || die "Can't chmod $fout:$!";
-    }
-    else { die "Couldn't fill in template: $Text::Template::ERROR"  ; }
-  }
-}
-
-EOF
-
-my $class = Module::Build->subclass(code => $code);
 my @version_info = @ARGV ? (dist_version => $ARGV[0]) : () ;
 
-
-my $build = $class->new
+my $build = Module::Build -> new
   (
    module_name    => 'Config::Model',
    @version_info,
@@ -95,8 +54,7 @@ my $build = $class->new
     'Test::Warn' => '0.11'
   },
   'configure_requires' => {
-    'Module::Build' => '0.34',
-    'Text::Template' => '0'
+    'Module::Build' => '0.34'
   },
   'requires' => {
     'Carp::Assert::More' => '0',

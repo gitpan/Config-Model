@@ -8,7 +8,7 @@ MODELS
 README
 TODO
 config-edit
-config-edit.tmpl
+contrib/bash_completion.config-edit
 examples/fstab/README
 examples/fstab/add-ext4-workshop.txt
 examples/fstab/fstab.sample
@@ -43,6 +43,7 @@ lib/Config/Model/IdElementReference.pm
 lib/Config/Model/Instance.pm
 lib/Config/Model/ListId.pm
 lib/Config/Model/Loader.pm
+lib/Config/Model/Manual/ModelCreationIntroduction.pod
 lib/Config/Model/Node.pm
 lib/Config/Model/ObjTreeScanner.pm
 lib/Config/Model/Report.pm
@@ -54,6 +55,8 @@ lib/Config/Model/ValueComputer.pm
 lib/Config/Model/WarpedNode.pm
 lib/Config/Model/WarpedThing.pm
 lib/Config/Model/WizardHelper.pm
+lib/Config/Model/application.d/dpkg-control
+lib/Config/Model/application.d/dpkg-copyright
 lib/Config/Model/models/Debian/Dpkg/Control.pl
 lib/Config/Model/models/Debian/Dpkg/Control/Binary.pl
 lib/Config/Model/models/Debian/Dpkg/Control/Source.pl
@@ -69,6 +72,7 @@ lib/Config/Model/models/Fstab/Iso9660_Opt.pl
 lib/Config/Model/models/Fstab/SwapOptions.pl
 lib/Config/Model/models/Fstab/UsbFsOptions.pl
 lib/Config/Model/models/PopCon.pl
+lib/Config/Model/system.d/popcon
 t/accept.t
 t/annotation.t
 t/array_id.t

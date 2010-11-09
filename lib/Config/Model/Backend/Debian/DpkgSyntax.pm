@@ -1,16 +1,16 @@
-# 
+#
 # This file is part of Config-Model
-# 
+#
 # This software is Copyright (c) 2010 by Dominique Dumont, Krzysztof Tyszecki.
-# 
+#
 # This is free software, licensed under:
-# 
+#
 #   The GNU Lesser General Public License, Version 2.1, February 1999
-# 
+#
 
 package Config::Model::Backend::Debian::DpkgSyntax ;
 BEGIN {
-  $Config::Model::Backend::Debian::DpkgSyntax::VERSION = '1.218';
+  $Config::Model::Backend::Debian::DpkgSyntax::VERSION = '1.219';
 }
 
 use Moose::Role ;
@@ -117,7 +117,7 @@ Config::Model::Backend::Debian::DpkgSyntax - Role to read and write files with D
 
 =head1 VERSION
 
-version 1.218
+version 1.219
 
 =head1 SYNOPSIS
 

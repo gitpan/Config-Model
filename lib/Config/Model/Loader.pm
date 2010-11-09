@@ -1,12 +1,12 @@
-# 
+#
 # This file is part of Config-Model
-# 
+#
 # This software is Copyright (c) 2010 by Dominique Dumont, Krzysztof Tyszecki.
-# 
+#
 # This is free software, licensed under:
-# 
+#
 #   The GNU Lesser General Public License, Version 2.1, February 1999
-# 
+#
 #    Copyright (c) 2006-2008,2010 Dominique Dumont.
 #
 #    This file is part of Config-Model.
@@ -27,7 +27,7 @@
 
 package Config::Model::Loader;
 BEGIN {
-  $Config::Model::Loader::VERSION = '1.218';
+  $Config::Model::Loader::VERSION = '1.219';
 }
 use Carp;
 use strict;
@@ -44,7 +44,7 @@ Config::Model::Loader - Load serialized data into config tree
 
 =head1 VERSION
 
-version 1.218
+version 1.219
 
 =head1 SYNOPSIS
 

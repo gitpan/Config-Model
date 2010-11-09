@@ -1,12 +1,12 @@
-# 
+#
 # This file is part of Config-Model
-# 
+#
 # This software is Copyright (c) 2010 by Dominique Dumont, Krzysztof Tyszecki.
-# 
+#
 # This is free software, licensed under:
-# 
+#
 #   The GNU Lesser General Public License, Version 2.1, February 1999
-# 
+#
 #    Copyright (c) 2010 Dominique Dumont.
 #
 #    This file is part of Config-Model.
@@ -27,7 +27,7 @@
 
 package Config::Model::Backend::ShellVar ;
 BEGIN {
-  $Config::Model::Backend::ShellVar::VERSION = '1.218';
+  $Config::Model::Backend::ShellVar::VERSION = '1.219';
 }
 
 use Carp;
@@ -68,30 +68,30 @@ sub read {
     my $global_zone = 1 ;
 
     foreach ($args{io_handle}->getlines) {
-		next if /^##/ ;		  # remove comments added by Config::Model
-		chomp ;
+        next if /^##/ ;		  # remove comments added by Config::Model
+        chomp ;
 
-		my ($data,$comment) = split /\s*#\s?/ ;
+        my ($data,$comment) = split /\s*#\s?/ ;
 
-		push @global_comments, $comment if defined $comment and $global_zone;
-		push @comments, $comment        if defined $comment and not $global_zone;
+        push @global_comments, $comment if defined $comment and $global_zone;
+        push @comments, $comment        if defined $comment and not $global_zone;
 
-		if ($global_zone and /^\s*$/ and @global_comments) {
-			$self->node->annotation(@global_comments);
-			$logger->debug("Setting global comment with @global_comments") ;
-			$global_zone = 0 ;
-		}
+        if ($global_zone and /^\s*$/ and @global_comments) {
+            $self->node->annotation(@global_comments);
+            $logger->debug("Setting global comment with @global_comments") ;
+            $global_zone = 0 ;
+        }
 
-		# stop global comment at first blank line
-		$global_zone = 0 if /^\s*$/ ;
+        # stop global comment at first blank line
+        $global_zone = 0 if /^\s*$/ ;
 
-		if (defined $data and $data ) {
-			$global_zone = 0 ;
-			$data .= '#"'.join("\n",@comments).'"' if @comments ;
-			$logger->debug("Loading:$data\n");
-			$self->node->load(step => $data, check => $check) ;
-			@comments = () ;
-		}
+        if (defined $data and $data ) {
+            $global_zone = 0 ;
+            $data .= '#"'.join("\n",@comments).'"' if @comments ;
+            $logger->debug("Loading:$data\n");
+            $self->node->load(step => $data, check => $check) ;
+            @comments = () ;
+        }
     }
 
 
@@ -124,32 +124,32 @@ sub write {
     # write global comment
     my $global_note = $node->annotation ;
     if ($global_note) {
-		map { $ioh->print("# $_\n") } split /\n/,$global_note ;
-		$ioh->print("\n") ;
+        map { $ioh->print("# $_\n") } split /\n/,$global_note ;
+        $ioh->print("\n") ;
     }
 
     # Using Config::Model::ObjTreeScanner would be overkill
     foreach my $elt ($node->get_element_name) {
-		my $obj =  $node->fetch_element($elt) ;
+        my $obj =  $node->fetch_element($elt) ;
         my $v = $node->grab_value($elt) ;
 
-		# write some documentation in comments
-		my $help = $node->get_help(summary => $elt);
-		my $upstream_default = $obj -> fetch('upstream_default') ;
-		$help .=" ($upstream_default)" if defined $upstream_default;
-		$ioh->print("## $elt: $help\n") if $help;
+        # write some documentation in comments
+        my $help = $node->get_help(summary => $elt);
+        my $upstream_default = $obj -> fetch('upstream_default') ;
+        $help .=" ($upstream_default)" if defined $upstream_default;
+        $ioh->print("## $elt: $help\n") if $help;
 
 
-		# write annotation
-		my $note = $obj->annotation ;
-		if ($note) {
-			map { $ioh->print("# $_\n") } split /\n/,$note ;
-		}
+        # write annotation
+        my $note = $obj->annotation ;
+        if ($note) {
+            map { $ioh->print("# $_\n") } split /\n/,$note ;
+        }
 
-		# write value
-		$ioh->print(qq!$elt="$v"\n!) if defined $v ;
-		$ioh->print("\n") if defined $v or $help;
-	}
+        # write value
+        $ioh->print(qq!$elt="$v"\n!) if defined $v ;
+        $ioh->print("\n") if defined $v or $help;
+    }
 
     return 1;
 }
@@ -160,11 +160,11 @@ __END__
 
 =head1 NAME
 
-Config::Model::Backend::Shellvar - Read and write config as a SHELLVAR data structure
+Config::Model::Backend::ShellVar - Read and write config as a SHELLVAR data structure
 
 =head1 VERSION
 
-version 1.218
+version 1.219
 
 =head1 SYNOPSIS
 

@@ -1,12 +1,12 @@
-# 
+#
 # This file is part of Config-Model
-# 
+#
 # This software is Copyright (c) 2010 by Dominique Dumont, Krzysztof Tyszecki.
-# 
+#
 # This is free software, licensed under:
-# 
+#
 #   The GNU Lesser General Public License, Version 2.1, February 1999
-# 
+#
 
 #    Copyright (c) 2005-2010 Dominique Dumont.
 #
@@ -28,7 +28,7 @@
 
 package Config::Model::WarpedNode ;
 BEGIN {
-  $Config::Model::WarpedNode::VERSION = '1.218';
+  $Config::Model::WarpedNode::VERSION = '1.219';
 }
 
 use Carp qw(cluck croak);
@@ -50,7 +50,7 @@ Config::Model::WarpedNode - Node that change config class properties
 
 =head1 VERSION
 
-version 1.218
+version 1.219
 
 =head1 SYNOPSIS
 

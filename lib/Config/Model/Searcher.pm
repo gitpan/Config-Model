@@ -1,12 +1,12 @@
-# 
+#
 # This file is part of Config-Model
-# 
+#
 # This software is Copyright (c) 2010 by Dominique Dumont, Krzysztof Tyszecki.
-# 
+#
 # This is free software, licensed under:
-# 
+#
 #   The GNU Lesser General Public License, Version 2.1, February 1999
-# 
+#
 
 #    Copyright (c) 2006-2009 Dominique Dumont.
 #
@@ -28,7 +28,7 @@
 
 package Config::Model::Searcher;
 BEGIN {
-  $Config::Model::Searcher::VERSION = '1.218';
+  $Config::Model::Searcher::VERSION = '1.219';
 }
 use Log::Log4perl qw(get_logger :levels);
 use Carp;
@@ -46,7 +46,7 @@ Config::Model::Searcher - Search an element in a configuration model
 
 =head1 VERSION
 
-version 1.218
+version 1.219
 
 =head1 SYNOPSIS
 
