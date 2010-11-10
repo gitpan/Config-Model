@@ -34,6 +34,7 @@ lib/Config/Model/Backend/IniFile.pm
 lib/Config/Model/Backend/ShellVar.pm
 lib/Config/Model/Backend/Yaml.pm
 lib/Config/Model/CheckList.pm
+lib/Config/Model/Cookbook/CreateModelFromDoc.pod
 lib/Config/Model/Describe.pm
 lib/Config/Model/DumpAsData.pm
 lib/Config/Model/Dumper.pm

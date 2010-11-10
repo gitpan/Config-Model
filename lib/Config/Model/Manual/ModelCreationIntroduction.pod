@@ -6,7 +6,7 @@ Introduction to model creation with Config::Model
 
 =head1 VERSION
 
-version 1.219
+version 1.220
 
 =head1 Introduction
 
