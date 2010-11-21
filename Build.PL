@@ -52,6 +52,7 @@ my $build = Module::Build -> new
 
   'build_requires' => {
     'Module::Build' => '0.34',
+    'Test::Command' => '0',
     'Test::Exception' => '0',
     'Test::More' => '0',
     'Test::Warn' => '0.11'

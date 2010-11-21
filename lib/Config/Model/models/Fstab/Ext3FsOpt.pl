@@ -9,6 +9,7 @@
 #
 [
           {
+            'class_description' => 'Options for ext4 file systems. Please contact author (domi.dumont at cpan.org) if options are missing.',
             'name' => 'Fstab::Ext3FsOpt',
             'include' => [
                            'Fstab::Ext2FsOpt'

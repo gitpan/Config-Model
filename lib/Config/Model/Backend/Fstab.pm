@@ -7,50 +7,35 @@
 #
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
-#    Copyright (c) 2010 Dominique Dumont.
-#
-#    This file is part of Config-Model.
-#
-#    Config-Model is free software; you can redistribute it and/or
-#    modify it under the terms of the GNU Lesser Public License as
-#    published by the Free Software Foundation; either version 2.1 of
-#    the License, or (at your option) any later version.
-#
-#    Config-Model is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    Lesser Public License for more details.
-#
-#    You should have received a copy of the GNU Lesser Public License
-#    along with Config-Model; if not, write to the Free Software
-#    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-
-package Config::Model::Backend::ShellVar ;
+package Config::Model::Backend::Fstab ;
 BEGIN {
-  $Config::Model::Backend::ShellVar::VERSION = '1.221';
+  $Config::Model::Backend::Fstab::VERSION = '1.221';
 }
-
-use Carp;
-use Moose;
-use Config::Model::Exception ;
-use UNIVERSAL ;
-use File::Path;
+use Moose ;
+use Carp ;
 use Log::Log4perl qw(get_logger :levels);
-
+ 
 extends 'Config::Model::Backend::Any';
 
-my $logger = get_logger("Backend::ShellVar") ;
+my $logger = get_logger("Backend::Fstab") ;
 
-sub suffix { return '.conf' ; }
+sub suffix { return '' ; }
 
 sub annotation { return 1 ;}
+
+my %opt_r_translate 
+  = (
+     ro => 'rw=0',
+     rw => 'rw=1',
+     bsddf => 'statfs_behavior=bsddf',
+     minixdf => 'statfs_behavior=minixdf',
+    ) ;
 
 sub read {
     my $self = shift ;
     my %args = @_ ;
 
     # args are:
-    # object     => $obj,         # Config::Model::Node object 
     # root       => './my_test',  # fake root directory, userd for tests
     # config_dir => /etc/foo',    # absolute path 
     # file       => 'foo.conf',   # file name
@@ -62,6 +47,7 @@ sub read {
     my $check = $args{check} || 'yes' ;
 
     my @lines = $args{io_handle}->getlines ;
+
     # try to get global comments (comments before a blank line)
     $self->read_global_comments(\@lines,'#') ;
 
@@ -69,15 +55,45 @@ sub read {
     foreach (@lines) {
         next if /^##/ ;		  # remove comments added by Config::Model
         chomp ;
+        s/\s+$//;
 
         my ($data,$comment) = split /\s*#\s?/ ;
 
         push @comments, $comment        if defined $comment ;
+        $logger->debug("Fstab: line $. '$_'\n");
 
         if (defined $data and $data ) {
-            $data .= '#"'.join("\n",@comments).'"' if @comments ;
-            $logger->debug("Loading:$data\n");
-            $self->node->load(step => $data, check => $check) ;
+            my ($device,$mount_point,$type,$options, $dump, $pass) = split /\s+/,$data ;
+
+            my $swap_idx = 0;
+            my $label = $device =~ /LABEL=(\w+)$/  ? $1 
+                      : $type eq 'swap'            ? "swap-".$swap_idx++ 
+                      :                              $mount_point; 
+
+            my $fs_obj = $self->node->fetch_element('fs')->fetch_with_id($label) ;
+
+            if (@comments) {
+                $logger->debug("Annotation: @comments\n");
+                $fs_obj->annotation(@comments);
+            }
+
+            my $load_line = "fs_vfstype=$type fs_spec=$device fs_file=$mount_point "
+                          . "fs_freq=$dump fs_passno=$pass" ;
+            $logger->debug("Loading:$load_line\n");
+            $fs_obj->load(step => $load_line, check => $check) ;
+
+            # now load fs options
+            $logger->trace("fs_type $type options is $options");
+            my @options = split /,/,$options ;
+            map {
+                $_ = $opt_r_translate{$_} if defined $opt_r_translate{$_};
+                s/no(.*)/$1=0/ ;
+                $_ .= '=1' unless /=/ ;
+            } @options ;
+            
+            $logger->debug("Loading:@options");
+            $fs_obj->fetch_element('fs_mntopts')->load (step => "@options", check => $check) ;
+
             @comments = () ;
         }
     }
@@ -116,29 +132,42 @@ sub write {
     }
 
     # Using Config::Model::ObjTreeScanner would be overkill
-    foreach my $elt ($node->get_element_name) {
-        my $obj =  $node->fetch_element($elt) ;
-        my $v = $node->grab_value($elt) ;
-
-        # write some documentation in comments
-        my $help = $node->get_help(summary => $elt);
-        my $upstream_default = $obj -> fetch('upstream_default') ;
-        $help .=" ($upstream_default)" if defined $upstream_default;
-        $ioh->print("## $elt: $help\n") if $help;
-
-
-        # write annotation
-        my $note = $obj->annotation ;
+    foreach my $line_obj ($node->fetch_element('fs')->fetch_all ) {
+        # write line annotation
+        my $note = $line_obj->annotation ;
         if ($note) {
-            map { $ioh->print("# $_\n") } split /\n/,$note ;
+            map { $ioh->print("\n# $_") } split /\n/,$note ;
+            $ioh->print("\n");
         }
 
-        # write value
-        $ioh->print(qq!$elt="$v"\n!) if defined $v ;
-        $ioh->print("\n") if defined $v or $help;
+        $ioh->printf("%-30s %-25s %-6s %-10s %d %d\n",
+                     map ($line_obj->fetch_element_value($_), qw/fs_spec fs_file fs_vfstype/),
+                     $self->option_string($line_obj->fetch_element('fs_mntopts')) ,
+                     map ($line_obj->fetch_element_value($_) , qw/fs_freq fs_passno/),
+                    );
     }
 
     return 1;
+}
+
+my %rev_opt_r_translate = reverse %opt_r_translate ;
+
+sub option_string {
+    my ($self,$obj) = @_ ;
+    
+    my @options ;
+    foreach my $opt ($obj->get_element_name ) {
+        my $v = $obj->fetch_element_value($opt) ;
+        next unless defined $v ;
+        my $key = "$opt=$v" ;
+        my $str = defined $rev_opt_r_translate{$key} ? $rev_opt_r_translate{$key} 
+                : "$v" eq '0'                        ? 'no'.$opt 
+                : "$v" eq '1'                        ? $opt 
+                :                                      $key ;
+        push @options , $str ;
+    }
+    
+    return join',',@options ;
 }
 
 no Moose ;

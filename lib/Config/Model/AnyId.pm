@@ -27,7 +27,7 @@
 
 package Config::Model::AnyId ;
 BEGIN {
-  $Config::Model::AnyId::VERSION = '1.220';
+  $Config::Model::AnyId::VERSION = '1.221';
 }
 use Config::Model::Exception ;
 use Scalar::Util qw(weaken) ;
@@ -54,7 +54,7 @@ Config::Model::AnyId - Base class for hash or list element
 
 =head1 VERSION
 
-version 1.220
+version 1.221
 
 =head1 SYNOPSIS
 
@@ -892,7 +892,8 @@ sub fetch_all {
 =head2 fetch_all_values( mode => ..., check => ...)
 
 Returns an array containing all defined values held by the hash or
-list. (undefined values are simply discarded)
+list. (undefined values are simply discarded). This method is only 
+valid for hash or list containing leaves.
 
 With C<mode> parameter, this method will return either:
 

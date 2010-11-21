@@ -27,7 +27,7 @@
 
 package Config::Model::ObjTreeScanner ;
 BEGIN {
-  $Config::Model::ObjTreeScanner::VERSION = '1.220';
+  $Config::Model::ObjTreeScanner::VERSION = '1.221';
 }
 use strict ;
 use Config::Model::Exception ;
@@ -45,7 +45,7 @@ Config::Model::ObjTreeScanner - Scan config tree and perform call-backs
 
 =head1 VERSION
 
-version 1.220
+version 1.221
 
 =head1 SYNOPSIS
 
@@ -315,7 +315,7 @@ C<@element_list> contains all the element names of the node.
 
 Example:
 
-  sub my_node_element_cb = { 
+  sub my_content_cb = { 
      my ($scanner, $data_ref,$node,@element) = @_ ;
 
      # custom code using $data_ref
@@ -340,7 +340,7 @@ C<auto_vivify> is 0.
 
 Example:
 
-  sub my_node_content_cb {
+  sub my_node_element_cb {
     my ($scanner, $data_ref,$node,$element_name,$key, $contained_node) = @_;
 
     # your custom code using $data_ref

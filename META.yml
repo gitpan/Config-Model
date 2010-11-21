@@ -5,6 +5,7 @@ author:
   - 'Krzysztof Tyszecki'
 build_requires:
   Module::Build: 0.34
+  Test::Command: 0
   Test::Exception: 0
   Test::More: 0
   Test::Warn: 0.11
@@ -31,4 +32,4 @@ resources:
   bugtracker: http://rt.cpan.org/NoAuth/Bugs.html?Dist=Config-Model
   homepage: http://config-model.wiki.sourceforge.net
   repository: http://config-model.hg.sourceforge.net:8000/hgroot/config-model/config-model
-version: 1.220
+version: 1.221
