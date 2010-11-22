@@ -27,7 +27,7 @@
 
 package Config::Model::ListId ;
 BEGIN {
-  $Config::Model::ListId::VERSION = '1.221';
+  $Config::Model::ListId::VERSION = '1.222';
 }
 use Config::Model::Exception ;
 use Scalar::Util qw(weaken) ;
@@ -46,7 +46,7 @@ Config::Model::ListId - Handle list element for configuration model
 
 =head1 VERSION
 
-version 1.221
+version 1.222
 
 =head1 SYNOPSIS
 

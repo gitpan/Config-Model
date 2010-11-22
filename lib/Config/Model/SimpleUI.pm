@@ -29,7 +29,7 @@
 
 package Config::Model::SimpleUI ;
 BEGIN {
-  $Config::Model::SimpleUI::VERSION = '1.221';
+  $Config::Model::SimpleUI::VERSION = '1.222';
 }
 
 use Carp;
@@ -43,7 +43,7 @@ Config::Model::SimpleUI - Simple interface for Config::Model
 
 =head1 VERSION
 
-version 1.221
+version 1.222
 
 =head1 SYNOPSIS
 

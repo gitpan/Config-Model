@@ -79,7 +79,6 @@ lib/Config/Model/models/Fstab/UsbFsOptions.pl
 lib/Config/Model/models/PopCon.pl
 lib/Config/Model/system.d/fstab
 lib/Config/Model/system.d/popcon
-log.txt
 t/accept.t
 t/annotation.t
 t/array_id.t

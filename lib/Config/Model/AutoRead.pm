@@ -28,7 +28,7 @@
 
 package Config::Model::AutoRead ;
 BEGIN {
-  $Config::Model::AutoRead::VERSION = '1.221';
+  $Config::Model::AutoRead::VERSION = '1.222';
 }
 use Carp;
 use strict;
@@ -43,13 +43,14 @@ use Log::Log4perl qw(get_logger :levels);
 
 use base qw/Config::Model::AnyThing/ ;
 
+my $logger = get_logger('Data') ;
+
 sub get_cfg_file_path {
     my $self = shift ; 
     my %args = @_;
 
-    #print Dumper(\%args);
-
     my $w = $args{write} || 0 ;
+
     Config::Model::Exception::Model -> throw
         (
          error=> "auto_". ($w ? 'write' : 'read') 
@@ -58,22 +59,28 @@ sub get_cfg_file_path {
         ) unless $args{config_dir};
 
     my $dir = $args{root}.$args{config_dir} ;
+    $dir .= '/' unless $dir =~ m!/$! ;
     if (not -d $dir and $w and $args{auto_create}) {
-        get_logger('Data::Write')
-          ->info("get_cfg_file_path: auto_write create directory $dir" );
+        $logger->info("get_cfg_file_path: auto_write create directory $dir" );
         mkpath ($dir,0, 0755);
     }
 
     unless (-d $dir) { 
-        get_logger($w ? 'Data::Write' : 'Data::Read')
-          ->info("get_cfg_file_path: auto_". ($w ? 'write' : 'read') 
-                 ." $args{backend} no directory $dir" );
+        $logger->info( "get_cfg_file_path: auto_". ($w ? 'write' : 'read') 
+                      ." $args{backend} no directory $dir" );
         return;
     }
 
-    return $dir.$args{file} if $args{file};
+    if ($args{file}) {
+        my $res = $dir.$args{file} ;
+        $logger->trace("get_cfg_file_path: returns $res"); 
+        return $res ;
+    }
 
-    return if not defined $args{suffix} ;
+    if (not defined $args{suffix}) {
+        $logger->trace("get_cfg_file_path: returns undef (no suffix, no file argurment)"); 
+        return ;
+    }
 
     my $i = $self->instance ;
     my $name = $dir. $i->name ;
@@ -82,9 +89,8 @@ sub get_cfg_file_path {
     my $loc = $self->location ; # not very good
     if ($loc) {
         if (($w and not -d $name and $args{auto_create})) {
-          get_logger('Data::Write')
-            ->info("get_cfg_file_path: auto_write create subdirectory ",
-                   "$name (location $loc)" );
+          $logger->info("get_cfg_file_path: auto_write create subdirectory ",
+                        "$name (location $loc)" );
           mkpath ($name,0, 0755);
         }
         $name .= '/'.$loc ;
@@ -92,9 +98,8 @@ sub get_cfg_file_path {
 
     $name .= $args{suffix} ;
 
-    get_logger($w ? 'Data::Write' : 'Data::Read')
-          ->info("get_cfg_file_path: auto_". ($w ? 'write' : 'read') 
-                 ." $args{backend} target file is $name" );
+    $logger->trace("get_cfg_file_path: auto_". ($w ? 'write' : 'read') 
+                  ." $args{backend} target file is $name" );
 
     return $name;
 }
@@ -160,7 +165,7 @@ sub load_backend_class {
     return unless defined $class_to_load ;
     my $file_to_load = $c{$class_to_load} ;
 
-    get_logger("Data")->debug("load_backend_class: loading class $class_to_load, $file_to_load");
+    $logger->debug("load_backend_class: loading class $class_to_load, $file_to_load");
     eval {require $file_to_load; } ;
 
     if ($@) {
@@ -224,8 +229,7 @@ sub auto_read_init {
             require $file.'.pm' unless $c->can($f);
             no strict 'refs';
 
-            get_logger("Data::Read")
-              ->info("Read with custom backend $ {c}::$f in dir $read_dir");
+            $logger->info("Read with custom backend $ {c}::$f in dir $read_dir");
 
             my ($file_path,$fh) = $self->open_read_file(@read_args);
             my $res = &{$c.'::'.$f}(@read_args, 
@@ -274,7 +278,7 @@ sub auto_read_init {
             $suffix = $backend_obj->suffix if $backend_obj->can('suffix');
             my ($file_path,$fh) = $self->open_read_file(@read_args,
                                                         suffix => $suffix);
-            get_logger("Data::Read")->info("Read with $backend ".$c."::$f");
+            $logger->info("Read with $backend ".$c."::$f");
 
             my $res = $backend_obj->$f(@read_args, 
                                        file_path => $file_path,
@@ -300,7 +304,7 @@ sub auto_read_init {
              object => $self,
             ) unless $auto_create ;
 
-        get_logger("Data::Read")->warn("Warning: $msg");
+        $logger->warn("Warning: $msg");
     }
 
 }
@@ -348,8 +352,7 @@ sub auto_write_init {
         my $fh ;
         $fh = new IO::File ; # opened in write callback
 
-        get_logger("Data::Write")
-          ->debug("init: registering write cb ($backend) for ",$self->name);
+        $logger->debug("init: registering write cb ($backend) for ",$self->name);
 
         my @wr_args = (%$write,                  # model data
                        auto_create => $auto_create,
@@ -448,8 +451,7 @@ sub open_file_to_write {
 
     my $file_path = $self->get_cfg_file_path(@args);
     if (defined $file_path) {
-        get_logger("Data::Write")
-            ->debug("$backend backend opened file $file_path to write");
+        $logger->debug("$backend backend opened file $file_path to write");
         $fh ->open("> $file_path") || die "Cannot open $file_path:$!";
         $fh->binmode(':utf8');
     }
@@ -465,8 +467,7 @@ sub close_file_to_write {
     if ($error) {
         # restore backup and display error
         my $data = $self->{file_backup} ;
-        get_logger("Data::Write")
-            ->debug("Error during write, restoring backup in $file_path with ".scalar @$data." lines");
+        $logger->debug("Error during write, restoring backup in $file_path with ".scalar @$data." lines");
         $fh->seek(0,0) ; # go back to beginning of file
         $fh->print(@$data);
         $fh->close;
@@ -487,7 +488,7 @@ sub read_cds_file {
     my %args = @_ ;
 
     my $file_path = $args{file_path} ;
-    get_logger("Data::Read")->info( "Read cds data from $file_path");
+    $logger->info( "Read cds data from $file_path");
 
     $self->load( step => [ $args{io_handle}->getlines ] ) ;
     return 1 ;
@@ -497,7 +498,7 @@ sub write_cds_file {
     my $self = shift;
     my %args = @_ ;
     my $file_path = $args{file_path} ;
-    get_logger("Data::Write")->info("Write cds data to $file_path");
+    $logger->info("Write cds data to $file_path");
 
     my $dump = $self->dump_tree(skip_auto_write => 'cds_file', check => $args{check} ) ;
     $args{io_handle}->print( $dump ) ;
@@ -509,7 +510,7 @@ sub read_perl {
     my %args = @_ ;
 
     my $file_path = $args{file_path} ;
-    get_logger("Data::Read")->info("Read Perl data from $file_path");
+    $logger->info("Read Perl data from $file_path");
 
     my $pdata = do $file_path || die "Cannot open $file_path:$!";
     $self->load_data( $pdata ) ;
@@ -520,7 +521,7 @@ sub write_perl {
     my $self = shift;
     my %args = @_ ;
     my $file_path = $args{file_path} ;
-    get_logger("Data::Write")->info("Write perl data to $file_path");
+    $logger->info("Write perl data to $file_path");
 
     my $p_data = $self->dump_as_data(skip_auto_write => 'perl_file', check => $args{check} ) ;
     my $dumper = Data::Dumper->new([$p_data]) ;
@@ -540,7 +541,7 @@ Config::Model::AutoRead - Load configuration node on demand
 
 =head1 VERSION
 
-version 1.221
+version 1.222
 
 =head1 SYNOPSIS
 

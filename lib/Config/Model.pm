@@ -9,7 +9,7 @@
 #
 package Config::Model;
 BEGIN {
-  $Config::Model::VERSION = '1.221';
+  $Config::Model::VERSION = '1.222';
 }
 use Carp;
 use strict;
@@ -41,7 +41,7 @@ Config::Model - Create tools to validate, migrate and edit configuration files
 
 =head1 VERSION
 
-version 1.221
+version 1.222
 
 =head1 SYNOPSIS
 
