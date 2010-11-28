@@ -27,7 +27,7 @@
 
 package Config::Model::Node;
 BEGIN {
-  $Config::Model::Node::VERSION = '1.222';
+  $Config::Model::Node::VERSION = '1.223';
 }
 use Carp ;
 use strict;
@@ -68,7 +68,7 @@ Config::Model::Node - Class for configuration tree node
 
 =head1 VERSION
 
-version 1.222
+version 1.223
 
 =head1 SYNOPSIS
 
@@ -1285,9 +1285,9 @@ sub accept_element {
     
     return unless defined $self->{model}{accept};
     
-    foreach my $acc ( @{$self->{model}{accept}} ) {
-        my $accept_regexp = $acc->{name_match} ;
-        if (not defined $accept_regexp or $name =~ /^$accept_regexp$/) {
+    foreach my $accept_regexp ( @{$self->{model}{accept_list}} ) {
+        if ($name =~ /^$accept_regexp$/) {
+            my $acc = $self->{model}{accept}{$accept_regexp} ;
             return $self->reset_accepted_element_model ($name,$acc);
         }
     }
@@ -1305,7 +1305,7 @@ Useful for diagnostics.
 sub accept_regexp {
     my ($self) = @_;
 
-    return map { $_->{name_match} } @{$self->{model}{accept} || []};
+    return @{$self->{model}{accept_list} || []};
 }
 
 

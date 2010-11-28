@@ -9,17 +9,18 @@
 #
 package Config::Model;
 BEGIN {
-  $Config::Model::VERSION = '1.222';
+  $Config::Model::VERSION = '1.223';
 }
+use Moose ;
+use Moose::Util::TypeConstraints;
+use MooseX::StrictConstructor ;
+
 use Carp;
-use strict;
-use warnings FATAL => qw(all);
 use Storable ('dclone') ;
 use Data::Dumper ();
 use Log::Log4perl 1.11 qw(get_logger :levels);
-
-
 use Config::Model::Instance ;
+use Hash::Merge qw/merge/ ;
 
 # this class holds the version number of the package
 use vars qw(@status @level @experience_list %experience_index
@@ -34,6 +35,58 @@ use vars qw(@status @level @experience_list %experience_index
    description => '',
   );
 
+enum LegacyTreament => qw/die warn ignore/;
+
+has skip_include => ( isa => 'Bool', is => 'ro', default => 0 ) ;
+has model_dir    => ( isa => 'Str',  is => 'ro', default => 'Config/Model/models' );
+has legacy       => ( isa => 'LegacyTreament', is => 'ro', default => 'warn' ) ;
+has instances    => ( isa => 'HashRef[Config::Model::Instance]', is => 'ro', default => sub { {} } ) ;
+
+has models => ( 
+    isa => 'HashRef', 
+    is => 'ro' , 
+    default => sub { {} } ,
+    traits  => [ 'Hash' ],
+    handles => {
+        model_exists => 'exists',
+        model_defined => 'defined',
+        model => 'get',
+    },
+)  ;
+
+has raw_models => ( 
+    isa => 'HashRef', 
+    is => 'ro' , 
+    default => sub { {} } ,
+    traits  => [ 'Hash' ],
+    handles => {
+        raw_model_exists => 'exists',
+        raw_model_defined => 'defined',
+        raw_model => 'get',
+        raw_model_names => 'keys',
+    },
+)  ;
+
+
+has skip_inheritance => ( 
+    isa => 'Bool', is => 'ro', default => 0,
+    trigger => sub { 
+        my $self = shift ;
+        $self->show_legacy_issue("skip_inheritance is deprecated, use skip_include") ;
+        $self->skip_include = $self->skip_inheritance ;
+    }
+) ;
+
+around BUILDARGS => sub {
+    my $orig = shift;
+    my $class = shift;
+
+    my %args = @_ ;
+    my %new = map { defined $args{$_} ? ( $_ => $args{$_} ) : () } keys %args ;
+
+    return $class->$orig(%new);
+  };
+
 
 =head1 NAME
 
@@ -41,7 +94,7 @@ Config::Model - Create tools to validate, migrate and edit configuration files
 
 =head1 VERSION
 
-version 1.222
+version 1.223
 
 =head1 SYNOPSIS
 
@@ -389,29 +442,9 @@ This will create an empty shell for your model.
 
 =cut
 
-sub new {
-    my $type = shift ;
-    my %args = @_;
-
-    my $skip =  $args{skip_include} || 0 ;
-
-    my $self = { model_dir => $args{model_dir},
-                 legacy    => $args{legacy}  || 'warn' ,
-                 skip_include => $skip ,
-               } ;
-    bless $self,$type ;
-
-    if (defined $args{skip_inheritance}) {
-        $self->legacy("skip_inheritance is deprecated, use skip_include") ;
-        $self->{skip_include} = $args{skip_inheritance} ;
-    }
-
-    return $self ;
-}
-
-sub legacy {
+sub show_legacy_issue {
     my $self = shift ;
-    my $behavior = $self->{legacy} ;
+    my $behavior = $self->legacy ;
 
     if ($behavior eq 'die') {
         die @_,"\n";
@@ -627,8 +660,10 @@ sub instance {
     my $instance_name =  delete $args{instance_name} || delete $args{name}
       || 'default';
 
-    if (defined $self->{instance}{$instance_name}) {
-        return $self->{instance}{$instance_name} ;
+    # could add more syntactic suger with 'hash' trait
+    # see Moose::Meta::Attribute::Native
+    if (defined $self->instances->{$instance_name}) {
+        return $self->instances->{$instance_name} ;
     }
 
     my $root_class_name = delete $args{root_class_name}
@@ -647,13 +682,13 @@ sub instance {
               %args                 # for optional parameters like *directory
              ) ;
 
-    $self->{instance}{$instance_name} = $i ;
+    $self->instances->{$instance_name} = $i ;
     return $i ;
 }
 
 sub instance_names {
     my $self = shift ;
-    return keys %{$self->{instance}} ;
+    return keys %{$self->instances} ;
 }
 
 =head1 Configuration class
@@ -752,52 +787,76 @@ sub create_config_class {
     my %raw_model = @_ ;
 
     my $config_class_name = delete $raw_model{name} or
-      croak "create_one_config_class: no config class name" ;
+        croak "create_config_class: no config class name" ; 
 
     get_logger("Model")->info("Creating class $config_class_name") ;
 
-    if (exists $self->{model}{$config_class_name}) {
+    if ($self->model_exists($config_class_name)) {
         Config::Model::Exception::ModelDeclaration->throw
             (
-             error=> "create_one_config_class: attempt to clobber $config_class_name".
+             error=> "create_config_class: attempt to clobber $config_class_name".
              "config class name "
             );
     }
 
     if (defined $raw_model{inherit_after}) {
-        $self->legacy("Model $config_class_name: inherit_after is deprecated ",
+        $self->show_legacy_issue("Model $config_class_name: inherit_after is deprecated ",
           "in favor of include_after" );
         $raw_model{include_after} = delete $raw_model{inherit_after} ;
     }
     if (defined $raw_model{inherit}) {
-        $self->legacy("Model $config_class_name: inherit is deprecated in favor of include");
+        $self->show_legacy_issue("Model $config_class_name: inherit is deprecated in favor of include");
         $raw_model{include} = delete $raw_model{inherit} ;
     }
 
-    $self->{raw_model}{$config_class_name} = \%raw_model ;
+    my ($model, $raw_copy) = $self->load_raw_model ($config_class_name, \%raw_model);
+    $self->raw_models->{$config_class_name} = \%raw_model ;
 
+
+    $self->_create_config_class ($config_class_name, $model, $raw_copy);
+    return $config_class_name ;
+}
+
+#
+# New subroutine "load_raw_model" extracted - Sat Nov 27 17:01:30 2010.
+#
+sub load_raw_model {
+    my ($self, $config_class_name, $raw_model) = @_;
+    
     # perform some syntax and rule checks and expand compacted
     # elements ie  [qw/foo bar/] => {...} is transformed into
     #  foo => {...} , bar => {...} before being stored
 
-    my $raw_copy = dclone \%raw_model ;
+    my $raw_copy = dclone $raw_model ;
 
     my %model = ( element_list => [] );
 
     # add included items
-    if ($self->{skip_include} and defined $raw_copy->{include}) {
+    if ($self->skip_include and defined $raw_copy->{include}) {
         my $inc = delete $raw_copy->{include} ;
         $model{include}       =  ref $inc ? $inc : [ $inc ];
         $model{include_after} = delete $raw_copy->{include_after}
           if defined $raw_copy->{include_after};
     }
     else {
+        # include class in raw_copy, raw_model is left as is
         $self->include_class($config_class_name, $raw_copy ) ;
     }
+    return (\%model, $raw_copy);
+}
 
+#
+# New subroutine "_create_config_class" extracted - Sat Nov 27 17:06:42 2010.
+#
+sub _create_config_class {
+    my $self = shift;
+    my $config_class_name = shift;
+    my $model = shift;
+    my $raw_copy = shift;
 
+    
     # check config class parameters and fill %model
-    $self->check_class_parameters($config_class_name, \%model, $raw_copy) ;
+    $self->check_class_parameters($config_class_name, $model, $raw_copy) ;
 
     my @left_params = keys %$raw_copy ;
     Config::Model::Exception::ModelDeclaration->throw
@@ -809,9 +868,9 @@ sub create_config_class {
           if @left_params ;
 
 
-    $self->{model}{$config_class_name} = \%model ;
+    $self->models->{$config_class_name} = $model ;
 
-    return $config_class_name ;
+    return (\@left_params);
 }
 
 sub check_class_parameters {
@@ -864,7 +923,6 @@ sub check_class_parameters {
     my @info_to_move = (
         qw/read_config  read_config_dir
            write_config write_config_dir/, # read/write stuff
-        'accept',
 
         # this parameter is filled by class generated by a program. It may
         # be used to avoid interactive edition of a generated model
@@ -876,6 +934,18 @@ sub check_class_parameters {
         next unless defined $raw_model->{$info} ;
         $model->{$info} = delete $raw_model->{$info} ;
     }
+
+    # handle accept parameter
+    my @accept_list ;
+    my %accept_hash ;
+    my $accept_info = delete $raw_model->{'accept'} || [] ;
+    foreach my $accept_item (@$accept_info) {
+        my $name_match = delete $accept_item->{name_match} || '.*';
+        push @accept_list, $name_match ;
+        $accept_hash{$name_match} = $accept_item ;
+    }
+    $model->{accept}  = \%accept_hash ;
+    $model->{accept_list}  = \@accept_list ;
 
     # check for duplicate in @element_list.
     my %check_list ;
@@ -964,7 +1034,7 @@ sub translate_legacy_permission {
     print Data::Dumper->Dump([$raw_model ] , ['permission to translate' ] ) ,"\n"
         if $::debug;
 
-    $self->legacy("$config_class_name: parameter permission is deprecated "
+    $self->show_legacy_issue("$config_class_name: parameter permission is deprecated "
                   ."in favor of 'experience'");
 
     # now change intermediate in beginner
@@ -1083,19 +1153,19 @@ sub translate_cargo_info {
 
     my $c_type = delete $info->{cargo_type} ;
     return unless defined $c_type;
-    $self->legacy("$config_class_name->$elt_name: parameter cargo_type is deprecated.");
+    $self->show_legacy_issue("$config_class_name->$elt_name: parameter cargo_type is deprecated.");
     my %cargo ;
 
     if (defined $info->{cargo_args}) {
        %cargo = %{ delete $info->{cargo_args}} ;
-       $self->legacy("$config_class_name->$elt_name: parameter cargo_args is deprecated.");
+       $self->show_legacy_issue("$config_class_name->$elt_name: parameter cargo_args is deprecated.");
     }
 
     $cargo{type} = $c_type;
 
     if (defined $info->{config_class_name}) {
         $cargo{config_class_name} = delete $info->{config_class_name} ;
-        $self->legacy("$config_class_name->$elt_name: parameter config_class_name is ",
+        $self->show_legacy_issue("$config_class_name->$elt_name: parameter config_class_name is ",
              "deprecated. This one must be specified within cargo. ",
              "Ie. cargo=>{config_class_name => 'FooBar'}");
     }
@@ -1123,7 +1193,7 @@ sub translate_name {
     my $to       = shift ;
 
     if (defined $info->{$from}) {
-        $self->legacy("$config_class_name->$elt_name: parameter $from is deprecated in favor of $to");
+        $self->show_legacy_issue("$config_class_name->$elt_name: parameter $from is deprecated in favor of $to");
         $info->{$to} = delete $info->{$from}  ;
     }
 }
@@ -1135,7 +1205,7 @@ sub translate_allow_compute_override {
     my $info = shift ;
 
     if (defined $info->{allow_compute_override}) {
-        $self->legacy("$config_class_name->$elt_name: parameter allow_compute_override is deprecated in favor of compute -> allow_override");
+        $self->show_legacy_issue("$config_class_name->$elt_name: parameter allow_compute_override is deprecated in favor of compute -> allow_override");
         $info->{compute}{allow_override} = delete $info->{allow_compute_override}  ;
     }
 }
@@ -1154,7 +1224,7 @@ sub translate_compute_info {
           Data::Dumper->Dump( [$compute_info ] , [qw/compute_info/ ]) ,"\n"
               if $::debug ;
 
-        $self->legacy("$config_class_name->$elt_name: specifying compute info with ",
+        $self->show_legacy_issue("$config_class_name->$elt_name: specifying compute info with ",
           "an array ref is deprecated");
 
         my ($user_formula,%var) = @$compute_info ;
@@ -1197,15 +1267,15 @@ sub translate_id_default_info {
     my $def_info = delete $info->{default} ;
     if (ref($def_info) eq 'HASH') {
         $info->{default_with_init} = $def_info ;
-        $self->legacy($warn,"Use default_with_init") ;
+        $self->show_legacy_issue($warn,"Use default_with_init") ;
     }
     elsif (ref($def_info) eq 'ARRAY') {
         $info->{default_keys} = $def_info ;
-        $self->legacy($warn,"Use default_keys") ;
+        $self->show_legacy_issue($warn,"Use default_keys") ;
     }
     else {
         $info->{default_keys} = [ $def_info ] ;
-        $self->legacy($warn,"Use default_keys") ;
+        $self->show_legacy_issue($warn,"Use default_keys") ;
     }
     print "translate_id_default_info $elt_name output:\n",
       Data::Dumper->Dump([$info ] , [qw/new_info/ ] ) ,"\n"
@@ -1230,11 +1300,11 @@ sub translate_id_auto_create {
     if ($info->{type} eq 'hash') {
         $info->{auto_create_keys}
           = ref($ac_info) eq 'ARRAY' ? $ac_info : [ $ac_info ] ;
-        $self->legacy($warn,"Use auto_create_keys") ;
+        $self->show_legacy_issue($warn,"Use auto_create_keys") ;
     }
     elsif ($info->{type} eq 'list') {
         $info->{auto_create_ids} = $ac_info ;
-        $self->legacy($warn,"Use auto_create_ids") ;
+        $self->show_legacy_issue($warn,"Use auto_create_ids") ;
     }
     else {
         die "Unexpected element ($elt_name) type $info->{type} ",
@@ -1431,7 +1501,7 @@ sub translate_legacy_builtin {
     print Data::Dumper->Dump([$raw_model ] , ['builtin to translate' ] ) ,"\n"
         if $::debug;
 
-    $self->legacy("$config_class_name: parameter 'built_in' is deprecated "
+    $self->show_legacy_issue("$config_class_name: parameter 'built_in' is deprecated "
                   ."in favor of 'upstream_default'");
 
     $model -> {upstream_default} = $raw_builtin_default ;
@@ -1449,7 +1519,7 @@ sub translate_legacy_built_in_list {
     print Data::Dumper->Dump([$raw_model ] , ['built_in_list to translate' ] ) ,"\n"
         if $::debug;
 
-    $self->legacy("$config_class_name: parameter 'built_in_list' is deprecated "
+    $self->show_legacy_issue("$config_class_name: parameter 'built_in_list' is deprecated "
                   ."in favor of 'upstream_default_list'");
 
     $model -> {upstream_default_list} = $raw_builtin_default ;
@@ -1663,23 +1733,64 @@ do not put C<1;> at the end or C<load> will not work
 If a model name contain a C<::> (e.g C<Foo::Bar>), C<load> will look for
 a file named C<Foo/Bar.pl>.
 
-Returns a list containining the names of the loaded classes. For instance, if
+This method will also look in C<Foo/Bar.d> directory for additional model information. 
+Model snippet found there will be loaded with L<augment_config_class>.
+
+Returns a list containing the names of the loaded classes. For instance, if
 C<Foo/Bar.pl> contains a model for C<Foo::Bar> and C<Foo::Bar2>, C<load>
 will return C<( 'Foo::Bar' , 'Foo::Bar2' )>.
 
+
+
 =cut
 
-
+# load a model from file
 sub load {
     my $self = shift ;
-    my $load_model = shift ;
-    my $load_file = shift ;
+    my $load_model = shift ; # model name like Foo::Bar
+    my $load_file = shift ;  # model file (override model name), used for tests
 
-    my $load_path = $load_model . '.pl' ;
+    my $load_path = $load_model ;
     $load_path =~ s/::/\//g;
 
-    $load_file ||=  ($self->{model_dir} || 'Config/Model/models')
-                 . '/'. $load_path ;
+    $load_file ||=  $self->model_dir . '/' . $load_path  . '.pl';
+
+    my $model = $self->_do_model_file ($load_model,$load_file);
+
+    my @loaded ;
+    foreach my $config_class_info (@$model) {
+        my @data = ref $config_class_info eq 'HASH' ? %$config_class_info
+                 : ref $config_class_info eq 'ARRAY' ? @$config_class_info
+                 : croak "load $load_file: config_class_info is not a ref" ;
+        push @loaded, $self->create_config_class(@data) ;
+    }
+
+    # look for additional model information
+    my $snippet_dir =  $self->model_dir . '/' . $load_path  . '.d';
+    get_logger("Model::Loader")-> info("looking for snippet in $snippet_dir") ;
+    if (-d $snippet_dir) {
+        foreach my $snippet_file (glob ("$snippet_dir/*.pl")) {
+            get_logger("Model::Loader")-> info("Found snippet $snippet_file") ;
+            my $snippet_model = $self->_do_model_file ($load_model,$snippet_file);
+            foreach my $snippet_info (@$snippet_model) {
+                my @data = ref $snippet_info eq 'HASH'  ? %$snippet_info
+                         : ref $snippet_info eq 'ARRAY' ? @$snippet_info
+                         : croak "load $load_file: config_class_info is not a ref" ;
+                $self->augment_config_class(@data) ;
+            }
+        }
+    }
+
+    return @loaded
+}
+
+
+#
+# New subroutine "_do_model_file" extracted - Sun Nov 28 17:25:35 2010.
+#
+# $load_model is used only for error message
+sub _do_model_file {
+    my ($self,$load_model,$load_file) = @_ ;
 
     get_logger("Model::Loader")-> info("load model $load_file") ;
 
@@ -1692,27 +1803,59 @@ sub load {
         else {$err_msg = "couldn't run $load_file" ;}
     }
     elsif (ref($model) ne 'ARRAY') {
-        $err_msg = "Model file $load_file does not return an array ref" ;
+        $model = [ $model ];
     }
 
     Config::Model::Exception::ModelDeclaration
             -> throw (message => "model $load_model: $err_msg")
                 if $err_msg ;
 
-    my @loaded ;
-    foreach my $config_class_info (@$model) {
-        my @data = ref $config_class_info eq 'HASH' ? %$config_class_info
-                 : ref $config_class_info eq 'ARRAY' ? @$config_class_info
-                 : croak "load $load_file: config_class_info is not a ref" ;
-        push @loaded, $self->create_config_class(@data) ;
-    }
-
-    return @loaded
+    return $model;
 }
 
-# TBD: For a proper model plugin, scan directory <model_name>.d and
-# load in merge mode all pieces of model found there merge mode: model
-# data is added to main model before running create_config_class
+
+=head1 Model plugin
+
+TBD: For a proper model plugin, scan directory <model_name>.d and
+load in merge mode all pieces of model found there merge mode: model
+data is added to main model before running create_config_class
+
+=head2 augment_config_class (name => '...', ... )
+
+=cut
+
+sub augment_config_class {
+    my ($self,%augment_data) = @_ ;
+    # %args must contain existing class name to augment 
+
+    # plus other data to merge to raw model
+    my $config_class_name = delete $augment_data{name} ||
+        croak "augment_config_class: missing class name" ;
+    
+    # check config class parameters and fill %model
+    my ( $model_to_merge, $augment_copy) = $self->load_raw_model ($config_class_name, \%augment_data);
+    
+    my $orig_model = $self->get_model($config_class_name) ;
+    croak "unknown class to augment: $config_class_name" unless defined $orig_model ;
+    
+    $self->check_class_parameters($config_class_name, $model_to_merge, $augment_copy) ;
+
+    my $model = merge ($orig_model, $model_to_merge) ;
+    
+    # remove duplicates in element_list and accept_list while keeping order
+    foreach my $list_name (qw/element_list accept_list/) {
+        my %seen ;
+        my @newlist ;
+        foreach (@{$model->{$list_name}}) {
+            push @newlist, $_ unless $seen{$_} ;
+            $seen{$_}= 1;
+        }
+    
+        $model->{$list_name} = \@newlist;
+    }
+    
+    $self->models->{$config_class_name} = $model ;
+}
 
 =head1 Model query
 
@@ -1728,9 +1871,9 @@ sub get_model {
       || die "Model::get_model: missing config class name argument" ;
 
     $self->load($config_class_name)
-      unless defined $self->{model}{$config_class_name} ;
+      unless defined $self->model($config_class_name) ;
 
-    my $model = $self->{model}{$config_class_name} ||
+    my $model = $self->model($config_class_name) ||
       croak "get_model error: unknown config class name: $config_class_name";
 
     return dclone($model) ;
@@ -1751,9 +1894,9 @@ sub get_element_model {
       || die "Model::get_element_model: missing element name argument" ;
 
     $self->load($config_class_name)
-      unless defined $self->{model}{$config_class_name} ;
+      unless $self->model_defined($config_class_name) ;
 
-    my $model = $self->{model}{$config_class_name} ||
+    my $model = $self->model($config_class_name) ||
       croak "get_element_model error: unknown config class name: $config_class_name";
 
     my $element_m = $model->{element}{$element_name} ||
@@ -1770,12 +1913,12 @@ sub get_raw_model {
     my $config_class_name = shift ;
 
     $self->load($config_class_name)
-      unless defined $self->{raw_model}{$config_class_name} ;
+      unless defined $self->raw_model($config_class_name) ;
 
-    my $model = $self->{raw_model}{$config_class_name} ||
+    my $raw_model = $self->raw_model($config_class_name) ||
       croak "get_raw_model error: unknown config class name: $config_class_name";
 
-    return dclone($model) ;
+    return dclone($raw_model) ;
 }
 
 =head2 get_element_name( class => Foo, for => advanced )
@@ -1847,15 +1990,17 @@ sub get_element_property {
     my $class = $args{class} ||
       croak "get_element_property:: missing 'class' parameter";
 
+    my $model = $self->model($class) ;
     # must take into account 'accept' model parameter
-    if (not defined $self->{model}{$class}{element}{$prop} ) {
-        foreach my $acc ( @{$self->{model}{$class}{accept}} ) {
-            return $acc->{$prop} || $default_property{$prop}
-                if not defined $acc->{name_match} or $elt =~ /$acc->{name_match}/;
+    if (not defined $model->{element}{$prop} ) {
+        
+        foreach my $acc_re ( @{$model->{accept_list}} ) {
+            return $model->{accept}{$acc_re}{$prop} || $default_property{$prop}
+                if $elt =~ /^$acc_re$/;
         }
     }
 
-    return $self->{model}{$class}{element}{$elt}{$prop}
+    return $self->model($class)->{element}{$elt}{$prop}
         || $default_property{$prop} ;
 }
 
@@ -1871,7 +2016,7 @@ sub list_class_element {
     my $pad  =  shift || '' ;
 
     my $res = '';
-    foreach my $class_name (keys %{$self->{raw_model}}) {
+    foreach my $class_name ($self->raw_model_names) {
         $res .= $self->list_one_class_element($class_name) ;
     }
     return $res ;
@@ -1883,7 +2028,7 @@ sub list_one_class_element {
     my $pad  =  shift || '' ;
 
     my $res = $pad."Class: $class_name\n";
-    my $c_model = $self->{raw_model}{$class_name};
+    my $c_model = $self->raw_model($class_name);
     my $elts = $c_model->{element} ; # array ref
 
     my $include = $c_model->{include} ;
@@ -1914,6 +2059,26 @@ sub list_one_class_element {
 }
 
 =head1 Available models
+
+Returns an array of 3 hash refs:
+
+=over 
+
+=item *
+
+category (system or user or application) => application list. E.g. 
+
+ { system => [ 'popcon' , 'fstab'] }
+ 
+ =item *
+
+application => { model => 'model_name', ... }
+
+=item *
+
+applicaiton => model_name
+
+=back
 
 =cut
 
@@ -1949,6 +2114,11 @@ sub available_models {
     }
     return \%categories, \%appli_info, \%applications ;
 }
+
+no Moose ;
+__PACKAGE__->meta->make_immutable ;
+
+1;
 
 =head1 Error handling
 

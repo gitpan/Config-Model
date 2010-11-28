@@ -82,6 +82,7 @@ lib/Config/Model/system.d/popcon
 t/accept.t
 t/annotation.t
 t/array_id.t
+t/augment_class.t
 t/auto_load_model.t
 t/auto_read.t
 t/backend_fstab.t
@@ -101,6 +102,7 @@ t/include.t
 t/ini_backend.t
 t/instance.t
 t/load.t
+t/load_model_snippets.t
 t/model.t
 t/multi_warp_object.t
 t/multi_warp_value.t
