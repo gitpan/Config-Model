@@ -27,7 +27,7 @@
 
 package Config::Model::Value ;
 BEGIN {
-  $Config::Model::Value::VERSION = '1.223';
+  $Config::Model::Value::VERSION = '1.224';
 }
 use warnings ;
 use strict;
@@ -49,7 +49,7 @@ Config::Model::Value - Strongly typed configuration value
 
 =head1 VERSION
 
-version 1.223
+version 1.224
 
 =head1 SYNOPSIS
 
@@ -1286,7 +1286,7 @@ sub check_value {
             defined $self->{choice_hash}{$value} ;
     }
     elsif ($self->{value_type} eq 'boolean') {
-        push @error, "boolean error: $value' is not '1' or '0'" 
+        push @error, "boolean error: '$value' is not '1' or '0'" 
           unless $value =~ /^[01]$/ ;
     }
     elsif (   $self->{value_type} =~ /integer/ 
@@ -1850,7 +1850,7 @@ sub fetch_preset {
 }
 
 
-=head2 get( path , [ custom | preset | standard | default ])
+=head2 get( path => ..., mode => ... ,  check => ... )
 
 Get a value from a directory like path.
 
@@ -1858,7 +1858,8 @@ Get a value from a directory like path.
 
 sub get {
     my $self = shift ;
-    my $path = shift ;
+    my %args = @_ > 1 ? @_ : ( path => $_[0] ) ;
+    my $path = delete $args{path} ;
     if ($path) {
 	Config::Model::Exception::User
 	    -> throw (
@@ -1866,7 +1867,7 @@ sub get {
 		      message => "get() called with a value with non-empty path: '$path'"
 		     ) ;
     }
-    return $self->fetch(@_) ;
+    return $self->fetch(%args) ;
 }
 
 =head2 set( path , value )

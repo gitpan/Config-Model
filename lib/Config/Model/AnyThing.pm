@@ -27,7 +27,7 @@
 
 package Config::Model::AnyThing;
 BEGIN {
-  $Config::Model::AnyThing::VERSION = '1.223';
+  $Config::Model::AnyThing::VERSION = '1.224';
 }
 use Scalar::Util qw(weaken);
 use Carp;
@@ -39,7 +39,7 @@ Config::Model::AnyThing - Base class for configuration tree item
 
 =head1 VERSION
 
-version 1.223
+version 1.224
 
 =head1 SYNOPSIS
 
@@ -87,14 +87,14 @@ sub index_value {
     return $self->{index_value} ;
 }
 
-=head2 get_type()
+=head2 get_container_type()
 
 Returns the type (e.g. C<list> or C<hash> or C<leaf> or C<node> or
 C<warped_node>) of the element containing this object. 
 
 =cut 
 
-sub get_type {
+sub get_container_type {
     my $self = shift;
     my $p = $self->parent ;
     return defined $p ? $p->element_type($self->element_name)

@@ -9,7 +9,7 @@
 #
 package Config::Model;
 BEGIN {
-  $Config::Model::VERSION = '1.223';
+  $Config::Model::VERSION = '1.224';
 }
 use Moose ;
 use Moose::Util::TypeConstraints;
@@ -94,7 +94,7 @@ Config::Model - Create tools to validate, migrate and edit configuration files
 
 =head1 VERSION
 
-version 1.223
+version 1.224
 
 =head1 SYNOPSIS
 
@@ -207,11 +207,11 @@ will be made of 3 parts :
 
 
   GUI <--------> |---------------|
-                 | |---------|   |
+  CursesUI <---> | |---------|   |
                  | | Model   |   |
-  CursesUI <---> | |---------|   |<-----read-backend------- |-------------|
+  ShellUI <----> | |---------|   |<-----read-backend------- |-------------|
                  |               |----write-backend-------> | config file |
-  ShellUI <----> | Config::Model |                          |-------------|
+  FuseUI <-----> | Config::Model |                          |-------------|
                  |---------------|
 
 =over
@@ -340,6 +340,11 @@ Graphical with L<Config::Model::TkUI> (Perl/Tk interface).
 
 based on curses with L<Config::Model::CursesUI>. This interface can be
 handy if your X server is down.
+
+=item *
+
+Through a virtual file system where every configuration parameter is mapped to a file.
+(Linux only)
 
 =back
 
@@ -1816,9 +1821,47 @@ sub _do_model_file {
 
 =head1 Model plugin
 
-TBD: For a proper model plugin, scan directory <model_name>.d and
-load in merge mode all pieces of model found there merge mode: model
-data is added to main model before running create_config_class
+Config::Model can also use model plugins. Each model can be augmented by model snippets
+stored into directory C<< <model_name>.d >>. All files found there will be merged to existing model.
+
+For instance, this model:
+
+ {
+    name => "Master",
+    element => [
+	fs_vfstype => {
+            type => 'leaf',
+            value_type => 'enum',
+            choice => [ qw/ext2 ext3/ ],
+        },
+        fs_mntopts => {
+            type => 'warped_node',
+            follow => { 'f1' => '- fs_vfstype' },
+            rules => [
+                '$f1 eq \'ext2\'', { 'config_class_name' => 'Fstab::Ext2FsOpt' },
+                '$f1 eq \'ext3\'', { 'config_class_name' => 'Fstab::Ext3FsOpt' }, 
+            ],
+        }
+    ]
+ }
+
+can be augmented with:
+
+ {
+    name => "Fstab::Fsline",
+    element => [
+ 	fs_vfstype => { choice => [ qw/ext4/ ], },
+        fs_mntopts => {
+            rules => [
+                q!$f1 eq 'ext4'!, { 'config_class_name' => 'Fstab::Ext4FsOpt' }, 
+            ],
+        },
+    ]
+ } ;
+ 
+Then, the merged model will feature C<fs_vfstype> with choice C<ext2 ext4 ext4>. 
+Likewise, C<fs_mntopts> will feature rules for the 3 filesystems. 
+
 
 =head2 augment_config_class (name => '...', ... )
 

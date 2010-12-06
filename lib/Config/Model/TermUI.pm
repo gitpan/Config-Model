@@ -29,7 +29,7 @@
 
 package Config::Model::TermUI ;
 BEGIN {
-  $Config::Model::TermUI::VERSION = '1.223';
+  $Config::Model::TermUI::VERSION = '1.224';
 }
 
 use Carp;
@@ -47,7 +47,7 @@ Config::Model::TermUI - Provides Config::Model UI à la Term::ReadLine
 
 =head1 VERSION
 
-version 1.223
+version 1.224
 
 =head1 SYNOPSIS
 

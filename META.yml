@@ -5,6 +5,7 @@ author:
   - 'Krzysztof Tyszecki'
 build_requires:
   Module::Build: 0.34
+  Path::Class: 0
   Probe::Perl: 0
   Test::Command: 0
   Test::Exception: 0
@@ -19,6 +20,8 @@ meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
   version: 1.4
 name: Config-Model
+recommends:
+  Fuse: 0
 requires:
   Carp::Assert::More: 0
   Exception::Class: 0
@@ -26,6 +29,7 @@ requires:
   IO::File: 0
   Log::Log4perl: 1.11
   Moose: 0
+  MooseX::Singleton: 0
   MooseX::StrictConstructor: 0
   Parse::RecDescent: 1.90.0
   Scalar::Util: 0
@@ -35,4 +39,4 @@ resources:
   bugtracker: http://rt.cpan.org/NoAuth/Bugs.html?Dist=Config-Model
   homepage: http://config-model.wiki.sourceforge.net
   repository: http://config-model.hg.sourceforge.net:8000/hgroot/config-model/config-model
-version: 1.223
+version: 1.224

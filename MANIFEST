@@ -40,6 +40,7 @@ lib/Config/Model/Describe.pm
 lib/Config/Model/DumpAsData.pm
 lib/Config/Model/Dumper.pm
 lib/Config/Model/Exception.pm
+lib/Config/Model/FuseUI.pm
 lib/Config/Model/HashId.pm
 lib/Config/Model/IdElementReference.pm
 lib/Config/Model/Instance.pm
@@ -95,6 +96,7 @@ t/describe_node.t
 t/dump_as_data.t
 t/dump_load_model.pm
 t/dump_tree.t
+t/fuse_ui.t
 t/grab.t
 t/hash_id_of_node.t
 t/hash_id_of_values.t

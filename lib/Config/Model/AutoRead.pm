@@ -28,7 +28,7 @@
 
 package Config::Model::AutoRead ;
 BEGIN {
-  $Config::Model::AutoRead::VERSION = '1.223';
+  $Config::Model::AutoRead::VERSION = '1.224';
 }
 use Carp;
 use strict;
@@ -295,7 +295,7 @@ sub auto_read_init {
     if (not $read_done) {
         my $msg = "could not read config file with ";
         $msg .= $pref_backend ? "'$pref_backend'" : 'any' ;
-        $msg .= " backend";
+        $msg .= " backend ($!)";
 
         Config::Model::Exception::Model -> throw
             (
@@ -541,7 +541,7 @@ Config::Model::AutoRead - Load configuration node on demand
 
 =head1 VERSION
 
-version 1.223
+version 1.224
 
 =head1 SYNOPSIS
 

@@ -27,7 +27,7 @@
 
 package Config::Model::AnyId ;
 BEGIN {
-  $Config::Model::AnyId::VERSION = '1.223';
+  $Config::Model::AnyId::VERSION = '1.224';
 }
 use Config::Model::Exception ;
 use Scalar::Util qw(weaken) ;
@@ -54,7 +54,7 @@ Config::Model::AnyId - Base class for hash or list element
 
 =head1 VERSION
 
-version 1.223
+version 1.224
 
 =head1 SYNOPSIS
 
@@ -812,7 +812,7 @@ sub fetch_with_id {
     return ;
 }
 
-=head2 get( path,  [ custom | preset | standard | default ])
+=head2 get( path => ..., mode => ... ,  check => ... , get_obj => 1|0, autoadd => 1|0)
 
 Get a value from a directory like path.
 
@@ -820,12 +820,21 @@ Get a value from a directory like path.
 
 sub get {
     my $self = shift ;
-    my $path = shift ;
+    my %args = @_ > 1 ? @_ : ( path => $_[0] ) ;
+    my $path = delete $args{path} ;
+    my $autoadd = 1 ;
+    $autoadd = $args{autoadd} if defined $args{autoadd};
+    my $get_obj = delete $args{get_obj} || 0 ;
     $path =~ s!^/!! ;
     my ($item,$new_path) = split m!/!,$path,2 ;
-    my $obj = $self->fetch_with_id($item) ;
-    return $obj if ($obj->get_type ne 'leaf' and not defined $new_path) ;
-    return $obj->get($new_path,@_) ;
+
+    return unless ($self->exists($item) or $autoadd) ;
+
+    $logger->debug("get: path $path, item $item");
+    
+    my $obj = $self->fetch_with_id(index => $item, %args) ;
+    return $obj if (($get_obj or $obj->get_type ne 'leaf') and not defined $new_path) ;
+    return $obj->get(path => $new_path,get_obj => $get_obj, %args) ;
 }
 
 =head2 set( path, value )
@@ -961,6 +970,18 @@ sub get_all_indexes {
                               or defined $self->{default_with_init}
                               or defined $self->{follow_keys_from});
     return $self->_get_all_indexes ;
+}
+
+=head2 children 
+
+Like get_all_indexes. This method is
+polymorphic for all non-leaf objects of the configuration tree.
+
+=cut
+
+sub children {
+    my $self = shift ;
+    return $self->get_all_indexes ;
 }
 
 

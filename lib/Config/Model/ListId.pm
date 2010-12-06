@@ -27,7 +27,7 @@
 
 package Config::Model::ListId ;
 BEGIN {
-  $Config::Model::ListId::VERSION = '1.223';
+  $Config::Model::ListId::VERSION = '1.224';
 }
 use Config::Model::Exception ;
 use Scalar::Util qw(weaken) ;
@@ -46,7 +46,7 @@ Config::Model::ListId - Handle list element for configuration model
 
 =head1 VERSION
 
-version 1.223
+version 1.224
 
 =head1 SYNOPSIS
 
@@ -157,7 +157,7 @@ sub fetch_size {
 sub _get_all_indexes {
     my $self =shift ;
     my $data = $self->{data} ;
-    return (0 .. $#$data ) ;
+    return scalar @$data ? (0 .. $#$data ) : () ;
 }
 
 # fetch without any check 

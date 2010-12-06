@@ -52,6 +52,7 @@ my $build = Module::Build -> new
 
   'build_requires' => {
     'Module::Build' => '0.34',
+    'Path::Class' => '0',
     'Probe::Perl' => '0',
     'Test::Command' => '0',
     'Test::Exception' => '0',
@@ -61,6 +62,9 @@ my $build = Module::Build -> new
   'configure_requires' => {
     'Module::Build' => '0.34'
   },
+  'recommends' => {
+    'Fuse' => '0'
+  },
   'requires' => {
     'Carp::Assert::More' => '0',
     'Exception::Class' => '0',
@@ -68,6 +72,7 @@ my $build = Module::Build -> new
     'IO::File' => '0',
     'Log::Log4perl' => '1.11',
     'Moose' => '0',
+    'MooseX::Singleton' => '0',
     'MooseX::StrictConstructor' => '0',
     'Parse::RecDescent' => '1.90.0',
     'Scalar::Util' => '0',
