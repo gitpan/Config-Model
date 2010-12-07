@@ -27,7 +27,7 @@
 
 package Config::Model::Instance;
 BEGIN {
-  $Config::Model::Instance::VERSION = '1.224';
+  $Config::Model::Instance::VERSION = '1.225';
 }
 use Scalar::Util qw(weaken) ;
 use File::Path;
@@ -56,7 +56,7 @@ Config::Model::Instance - Instance of configuration tree
 
 =head1 VERSION
 
-version 1.224
+version 1.225
 
 =head1 SYNOPSIS
 

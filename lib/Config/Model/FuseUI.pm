@@ -9,7 +9,7 @@
 #
 package Config::Model::FuseUI ;
 BEGIN {
-  $Config::Model::FuseUI::VERSION = '1.224';
+  $Config::Model::FuseUI::VERSION = '1.225';
 }
 
 use Moose ;

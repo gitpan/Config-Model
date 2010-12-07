@@ -9,7 +9,7 @@
 #
 package Config::Model::Backend::Fstab ;
 BEGIN {
-  $Config::Model::Backend::Fstab::VERSION = '1.224';
+  $Config::Model::Backend::Fstab::VERSION = '1.225';
 }
 use Moose ;
 use Carp ;
@@ -183,7 +183,7 @@ Config::Model::Backend::ShellVar - Read and write config as a SHELLVAR data stru
 
 =head1 VERSION
 
-version 1.224
+version 1.225
 
 =head1 SYNOPSIS
 
