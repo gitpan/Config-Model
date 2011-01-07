@@ -1,7 +1,7 @@
 #
 # This file is part of Config-Model
 #
-# This software is Copyright (c) 2010 by Dominique Dumont, Krzysztof Tyszecki.
+# This software is Copyright (c) 2011 by Dominique Dumont, Krzysztof Tyszecki.
 #
 # This is free software, licensed under:
 #
@@ -27,7 +27,7 @@
 
 package Config::Model::ListId ;
 BEGIN {
-  $Config::Model::ListId::VERSION = '1.226';
+  $Config::Model::ListId::VERSION = '1.227';
 }
 use Config::Model::Exception ;
 use Scalar::Util qw(weaken) ;
@@ -46,7 +46,7 @@ Config::Model::ListId - Handle list element for configuration model
 
 =head1 VERSION
 
-version 1.226
+version 1.227
 
 =head1 SYNOPSIS
 
@@ -240,12 +240,10 @@ sub store_set {
         %args = @_; # note that $r was shifted out of @_
     }
 
-    my $check = $self->_check_check($args{check});
-    
     my $idx = 0 ;
     foreach (@v) { 
         if (defined $_) {
-            $self->fetch_with_id( $idx++ )->store( $_ , check => $check);
+            $self->fetch_with_id( $idx++ )->store(%args, value => $_);
         }
         else {
             $self->{data}[$idx] = undef ; # detruit l'objet pas bon!

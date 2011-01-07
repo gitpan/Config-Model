@@ -1,7 +1,7 @@
 #
 # This file is part of Config-Model
 #
-# This software is Copyright (c) 2010 by Dominique Dumont, Krzysztof Tyszecki.
+# This software is Copyright (c) 2011 by Dominique Dumont, Krzysztof Tyszecki.
 #
 # This is free software, licensed under:
 #
@@ -28,7 +28,7 @@
 
 package Config::Model::WarpedThing ;
 BEGIN {
-  $Config::Model::WarpedThing::VERSION = '1.226';
+  $Config::Model::WarpedThing::VERSION = '1.227';
 }
 use strict;
 use Scalar::Util qw(weaken) ;
@@ -51,7 +51,7 @@ Config::Model::WarpedThing - Base class for warped classes
 
 =head1 VERSION
 
-version 1.226
+version 1.227
 
 =head1 SYNOPSIS
 
@@ -266,6 +266,12 @@ sub submit_to_warp {
 			"\t$warper_name ($warper_path) location in tree is: '",
 			$warper->name,"'");
 
+        Config::Model::Exception::Model
+	    -> throw (
+		      object => $self,
+		      error => "warper $warper_name => '$warper_path' is not a leaf"
+		     ) 
+	      unless ref($warper)->isa('Config::Model::Value') ;
 
         # warp will register this value object in another value object
         # (the warper).  When the warper gets a new value, it will

@@ -1,7 +1,7 @@
 #
 # This file is part of Config-Model
 #
-# This software is Copyright (c) 2010 by Dominique Dumont, Krzysztof Tyszecki.
+# This software is Copyright (c) 2011 by Dominique Dumont, Krzysztof Tyszecki.
 #
 # This is free software, licensed under:
 #
@@ -36,7 +36,8 @@
                            {
                              'cargo' => {
                                           'value_type' => 'uniline',
-                                          'type' => 'leaf'
+                                          'type' => 'leaf',
+                                          class => 'Config::Model::Debian::Dependency',
                                         },
                              'type' => 'list'
                            },
@@ -91,9 +92,19 @@
                            'Description',
                            {
                              'value_type' => 'string',
+                             'warn_if_match' => { 
+                                 '\\n[\\-\\*]' => {
+                                     msg => 'lintian like possible-unindented-list-in-extended-description. i.e. "-" or "*" without leading white space',
+                                     fix => 's/\n([\-\*])/\n $1/g; $_ ;',
+                                 },
+                                 'Debian GNU/Linux' => {
+                                     msg => 'deprecated in favor of Debian GNU',
+                                     fix => 's!Debian GNU/Linux!Debian GNU!g;'
+                                 },
+                             },
                              'mandatory' => '1',
-                             'type' => 'leaf'
-                           }
+                             'type' => 'leaf',
+                            }
                          ]
           }
         ]

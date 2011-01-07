@@ -1,7 +1,7 @@
 #
 # This file is part of Config-Model
 #
-# This software is Copyright (c) 2010 by Dominique Dumont, Krzysztof Tyszecki.
+# This software is Copyright (c) 2011 by Dominique Dumont, Krzysztof Tyszecki.
 #
 # This is free software, licensed under:
 #
@@ -27,7 +27,7 @@
 
 package Config::Model::Value ;
 BEGIN {
-  $Config::Model::Value::VERSION = '1.226';
+  $Config::Model::Value::VERSION = '1.227';
 }
 use warnings ;
 use strict;
@@ -43,13 +43,15 @@ use base qw/Config::Model::WarpedThing/ ;
 
 my $logger = get_logger("Tree::Element::Value") ;
 
+our $nowarning = 0; # global variable to silence warnings. Only used for tests
+
 =head1 NAME
 
 Config::Model::Value - Strongly typed configuration value
 
 =head1 VERSION
 
-version 1.226
+version 1.227
 
 =head1 SYNOPSIS
 
@@ -478,24 +480,32 @@ C<uniline> values.
 
 =item warn_if_match
 
-Perl regular expression. A warning will be issued when the value match the 
-passed regular expression. Valid only for C<string> or
-C<uniline> values.
+Hash ref. Keys are made of Perl regular expression. The value can
+specify a warning message (leave empty or undefined for default warning
+message) and instructions to fix the value. A warning will be issued
+when the value match the passed regular expression. Valid only for
+C<string> or C<uniline> values. The fix instructions will be eval'ed
+when L<apply_fixes> is called. C<$_> will contain the value to fix.
+C<$_> will be stored as the new value once the instructions are done.
+
+
+In the example below, any value matching 'foo' will be converted in uppercase:
+
+  warn_if_match => { 'foo' => { fix =>'uc;' }},
 
 =item warn_unless_match
 
-Perl regular expression. A warning will be issued when the value does not match the 
-passed regular expression. Valid only for C<string> or
+Hash ref like above. A warning will be issued when the value does not
+match the passed regular expression. Valid only for C<string> or
 C<uniline> values.
 
 =item warn
 
 String. Issue a warning to user with the specified string any time a value is set or read.
 
-
 =cut
 
-sub setup_validation_regexp {
+sub setup_match_regexp {
     my ($self,$what,$ref) = @_ ;
 
     my $str = $self->{$what} = delete $ref->{$what} ;
@@ -523,6 +533,52 @@ sub setup_validation_regexp {
     }
 }
 
+sub check_validation_regexp {
+    my ($self,$what,$ref) = @_ ;
+
+    my $regexp_info =  delete $ref->{$what} ;
+    return unless defined $regexp_info ;
+
+    $self->{$what} = $regexp_info ;
+    
+    my $vt = $self->{value_type} ; 
+
+    if ($vt ne 'uniline' and $vt ne 'string') {
+	Config::Model::Exception::Model
+		-> throw (
+			  object => $self,
+			  error => "Can't use $what regexp with $vt, "
+			         . "expected 'uniline' or 'string'"
+			 ) ;
+    }
+
+    if (not ref $regexp_info and $what ne 'warn') {
+        warn $self->name,": depreceated $what style. Use a hash ref\n";
+    }
+
+    my $h = ref $regexp_info ? $regexp_info : { $regexp_info => '' } ;
+
+    # just check the regexp. values are checked later in &check_value
+    foreach my $regexp (keys %$h) {
+        $logger -> debug($self->name, " hash $what regexp with '$regexp'");
+        eval { qr/$regexp/ ;} ;
+
+        if ($@) {
+            Config::Model::Exception::Model -> throw (
+		object => $self,
+		error => "Unvalid $what regexp '$regexp': $@"
+            ) ;
+        }
+        
+        my $v = $h->{$regexp} ;
+        Config::Model::Exception::Model -> throw (
+	    object => $self,
+	    error => "value of $what regexp '$regexp' is not a hash ref but '$v'"
+        ) unless ref $v eq 'HASH' ;
+        
+    }
+}
+
 =item grammar
 
 Setup a L<Parse::RecDescent> grammar to perform validation.
@@ -543,8 +599,10 @@ will be changed to
   oper: 'and' | 'or'
   token: 'Apache' | 'CC-BY' | 'Perl'
 
-The rule is called with Value object and a string reference. So, in the actions you may need to define,
-you can call the value object as C<$arg[0]> and store error message in C<${$arg[1]}}>.
+The rule is called with Value object and a string reference. So, in the
+actions you may need to define, you can call the value object as
+C<$arg[0]>, store error message in C<${$arg[1]}}> and store warnings in
+C<${$arg[2]}}>.
 
 =cut
 
@@ -632,7 +690,7 @@ sub new {
     my $type = shift;
     my %args = @_ ;
 
-    my $self={} ;
+    my $self={ fixes => [] } ;
     bless $self,$type;
 
     $self->{mandatory} = $self->{allow_compute_override} = 0 ;
@@ -719,15 +777,16 @@ sub set_properties {
 
 
     map { $self->{$_} =  delete $args{$_} if defined $args{$_} }
-      qw/min max mandatory replace warn/;
+      qw/min max mandatory replace warn/ ;
 
     $self->set_help           ( \%args );
     $self->set_value_type     ( \%args );
     $self->set_default        ( \%args );
     $self->set_compute        ( \%args ) if defined $args{compute};
     $self->set_convert        ( \%args ) if defined $args{convert};
-    foreach (qw/match warn_if_match warn_unless_match/) {
-	$self->setup_validation_regexp ( $_ =>  \%args ) if defined $args{$_};
+    $self->setup_match_regexp ( match =>  \%args ) if defined $args{match};
+    foreach (qw/warn_if_match warn_unless_match/) {
+	$self->check_validation_regexp ( $_ =>  \%args ) if defined $args{$_};
     }
     $self->setup_grammar_check( \%args ) if defined $args{grammar};
 
@@ -1190,7 +1249,7 @@ context and a string in scalar context.
 sub warning_msg {
     my $self = shift ;
     return unless $self->{warning_list} ;
-    return wantarray ? @{$self->{warning_list}} : join("\n\t",@{ $self ->{warning_list}})
+    return wantarray ? @{$self->{warning_list}} : join("\n",@{ $self ->{warning_list}})
 }
 
 # construct an error message for enum types
@@ -1233,11 +1292,6 @@ When non null, check will not try to get extra
 information from the tree. This is required in some cases to avoid
 loops in check, get_info, get_warp_info, re-check ...
 
-=item silent
-
-Don't display value warning on STDOUT. User is expected to retrieve them witj
-L<warning_msg>.
-
 =back
 
 In scalar context, return 0 or 1.
@@ -1253,7 +1307,6 @@ sub check_value {
     my %args = @_ > 1 ? @_ : (value => $_[0]) ;
     my $value = $args{value} ;
     my $quiet = $args{quiet} || 0 ;
-    my $silent = $args{silent} || 0 ;
 
     my @error ;
     my @warn ;
@@ -1318,15 +1371,26 @@ sub check_value {
 		unless $value =~ $self->{match_regexp} ;
     }
 
-    foreach my $t (qw/warn_if warn_unless/) {
-	my $k = $t.'_match_regexp' ;
-	next unless defined $self->{$k} and defined $value ;
-	my $rxp = $self->{$k} ;
+    $self->{fixes} = [] ;
 
-	push @warn,"value '$value' should not match regexp $rxp"  
-	    if $t =~ /if/ and $value =~ $rxp ;
-	push @warn,"value '$value' should match regexp $rxp"  
-	    if $t =~ /unless/ and $value !~ $rxp;
+    foreach my $t (qw/warn_if_match warn_unless_match/) {
+        my $w_info = $self->{$t} ;
+
+        next unless defined $w_info and defined $value ;
+        my $h = ref $w_info ? $w_info : { $w_info => '' } ;
+
+        foreach my $rxp ( keys %$h ) {
+            my $msg = $h->{$rxp}{msg} ;
+            my $fix = $h->{$rxp}{fix} ;
+            if ($t =~ /if/ and $value =~ /$rxp/) {
+                push @warn, $msg || "value '$value' should not match regexp $rxp"  ;
+                push @{$self->{fixes}}, $fix if defined $fix ;
+            } 
+            if ($t =~ /unless/ and $value !~ /$rxp/) {
+                push @warn, $msg || "value '$value' should match regexp $rxp"  ;
+                push @{$self->{fixes}}, $fix if defined $fix ;
+            }
+        }
     }
     
     # unconditional warn
@@ -1334,25 +1398,66 @@ sub check_value {
 
     if (defined $self->{validation_parser} and defined $value) {
 	my $prd = $self->{validation_parser};
-	my $msg = '';
-	my $prd_check = $prd->check ( $value,1,$self, \$msg) ; 
+	my ($err_msg,$warn_msg) = ('','');
+	my $prd_check = $prd->check ( $value,1,$self, \$err_msg, \$warn_msg) ; 
 	my $prd_result = defined $prd_check ? 1 : 0; 
 	$logger->debug("grammar check on $value returned ", defined $prd_check ? $prd_check : '<undef>');
-	push @error,$msg || "value '$value' does not match grammar:\n" .$self->{grammar} 
+	push @error,$err_msg || "value '$value' does not match grammar:\n" .$self->{grammar} 
 		unless $prd_result ;
+        push @warn, $warn_msg if $warn_msg ;
     }
 
     $self->{error_list} = \@error ;
     $self->{warning_list} = \@warn ;
 
-    warn(map { "Warning in '".$self->location."': $_\n"} @warn) if @warn and not $silent;
-
     return wantarray ? @error : scalar @error ? 0 : 1 ;
+}
+
+=head2 has_fixes
+
+Returns the number of fixes that can be applied to the current value. 
+
+=cut
+
+sub has_fixes {
+    my $self = shift; 
+    return scalar @{$self->{fixes}} ;
+}
+
+=head2 apply_fixes
+
+Applies the fixes to suppress the current warnings.
+
+=cut
+
+sub apply_fixes {
+    my $self = shift ; 
+    my $count = 0;
+    while ( @{$self->{fixes} || [] } ) {
+        local $_ ;
+        $_ = $self->fetch(silent => 1) ;
+        eval ( $self->{fixes}[0] ) ;
+        if ($@) { 	
+            Config::Model::Exception::Model -> throw (
+                object => $self, 
+                message => "Eval of fix  $self->{fixes}[0] failed : $@" 
+            );
+        }
+        $self->store($_) ; # will update $self->{fixes} 
+        Config::Model::Exception::Model -> throw (
+            object => $self, 
+            message => "apply_fixes: too many tries to fix, bailing out\n"
+        ) if $count ++ > 50 ;
+    } ;
 }
 
 =head2 check( value  )
 
 Like L</check_value>. Also ensure that mandatory value are defined
+
+Will also disply warnings on STDTOUT unless C<silent> parameter is set to 1.
+In this case,user is expected to retrieve them with
+L<warning_msg>.
 
 =cut
 
@@ -1360,12 +1465,18 @@ sub check {
     my $self = shift ;
     my %args = @_ > 1 ? @_ : (value => $_[0]) ;
     my $value = $args{value} ;
+    my $silent = $args{silent} || 0 ;
 
     my @error = $self->check_value(%args) ;
 
     if (not defined $value and $self->{mandatory}) {
         push @error, "Mandatory value is not defined" ;
     }
+
+    my $warn = $self->{warning_list} ;
+    warn(join ('', map { "Warning in '".$self->location."' value '$value': $_\n"} @$warn)) 
+        if @$warn and not $nowarning and not $silent;
+
 
     $self->{error_list} = \@error ;
     return wantarray ? @error : not scalar @error ;
@@ -1719,7 +1830,7 @@ Do not check and return values even if bad
 =item silent
 
 When set to 1, warning are not displayed on STDOUT. User is expected to read warnings
-with L<warning_msg>.
+with L<warning_msg> method.
 
 =back
 

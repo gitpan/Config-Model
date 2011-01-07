@@ -1,7 +1,7 @@
 #
 # This file is part of Config-Model
 #
-# This software is Copyright (c) 2010 by Dominique Dumont, Krzysztof Tyszecki.
+# This software is Copyright (c) 2011 by Dominique Dumont, Krzysztof Tyszecki.
 #
 # This is free software, licensed under:
 #
@@ -10,7 +10,7 @@
 
 package Config::Model::Backend::Yaml ;
 BEGIN {
-  $Config::Model::Backend::Yaml::VERSION = '1.226';
+  $Config::Model::Backend::Yaml::VERSION = '1.227';
 }
 
 use Carp;
@@ -90,7 +90,7 @@ Config::Model::Backend::Yaml - Read and write config as a YAML data structure
 
 =head1 VERSION
 
-version 1.226
+version 1.227
 
 =head1 SYNOPSIS
 

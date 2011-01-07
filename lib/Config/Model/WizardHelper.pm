@@ -1,14 +1,14 @@
 #
 # This file is part of Config-Model
 #
-# This software is Copyright (c) 2010 by Dominique Dumont, Krzysztof Tyszecki.
+# This software is Copyright (c) 2011 by Dominique Dumont, Krzysztof Tyszecki.
 #
 # This is free software, licensed under:
 #
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
 
-#    Copyright (c) 2006-2009 Dominique Dumont.
+#    Copyright (c) 2006-2009,2011 Dominique Dumont.
 #
 #    This file is part of Config-Model.
 #
@@ -28,7 +28,7 @@
 
 package Config::Model::WizardHelper ;
 BEGIN {
-  $Config::Model::WizardHelper::VERSION = '1.226';
+  $Config::Model::WizardHelper::VERSION = '1.227';
 }
 use Carp;
 use strict;
@@ -45,7 +45,7 @@ Config::Model::WizardHelper - Helps to create wizard widget for config models
 
 =head1 VERSION
 
-version 1.226
+version 1.227
 
 =head1 SYNOPSIS
 
@@ -107,6 +107,10 @@ Here are the the parameters accepted by C<wizard_helper>:
 
 Whether to call back when an important element is found (default 1).
 
+=head2 call_back_on_warning
+
+Whether to call back when an item with warnings is found (default 0).
+
 =head2 experience
 
 Specifies the experience of the element scanned by the wizard (default
@@ -154,7 +158,7 @@ sub new {
 	  croak "WizardHelper->new: Missing $p parameter" ;
     }
 
-    foreach my $p (qw/call_back_on_important/) {
+    foreach my $p (qw/call_back_on_important call_back_on_warning/) {
 	$self->{$p} = delete $args{$p} if defined $args{$p} ;
     }
 
@@ -192,6 +196,10 @@ sub new {
 
     $self->{dispatch_cb}    = \%cb_hash ;
     $self->{user_scan_args} = \%user_scan_args ;
+    
+    if (%args) {
+        die "WizardHelper->new: unexpected parameters: ",join(' ', keys %args),"\n";
+    }
 
     # user call-back are *not* passed to ObjTreeScanner. They will be
     # called indirectly through wizard-helper own call-backs
@@ -219,7 +227,20 @@ when the scan is completely done.
 
 sub start {
     my $self = shift ;
+    $self->{bail_out} = 0 ;
     $self->{scanner}->scan_node(undef, $self->{root}) ;
+}
+
+=head2 bail_out
+
+When called, a variable is set so that all call_backs will return as soon as possible. Used to
+abort wizard.
+
+=cut
+
+sub bail_out {
+    my $self = shift ;
+    $self->{bail_out} = 1 ;
 }
 
 # internal. This call-back is passed to ObjTreeScanner. It will call
@@ -243,6 +264,7 @@ sub node_content_cb {
 		       "on element $element");
 
 	$self->{scanner}->scan_element($data_r,$node,$element) ;
+	return if $self->{bail_out} ;
     }
 }
 
@@ -279,6 +301,7 @@ sub hash_element_cb {
     while ($i >= 0 and $i < 2) {
 	if ($self->{call_back_on_important} and $i == 0 and $level eq 'important') {
 	    $cb->($self,$data_r,$node,$element,@keys) ;
+            return if $self->{bail_out} ; # may be modified in callback
 	    # recompute keys as they may have been modified during call-back
 	    @keys = $self->{scanner}->get_keys($node,$element) ;
 	}
@@ -320,6 +343,13 @@ sub leaf_cb {
 
     if ($self->{call_back_on_important} and $level eq 'important') {
 	$logger->info( "leaf_cb found important elt: '", $node->name,
+		       "' element $element", 
+		       defined $index ? ", index $index":'');
+	$user_leaf_cb->($self,$data_r,$node,$element,$index,$value_obj) ;
+    }
+
+    if ($self->{call_back_on_warning} and $value_obj->warning_msg) {
+	$logger->info( "leaf_cb found elt with warning: '", $node->name,
 		       "' element $element", 
 		       defined $index ? ", index $index":'');
 	$user_leaf_cb->($self,$data_r,$node,$element,$index,$value_obj) ;

@@ -1,7 +1,7 @@
 #
 # This file is part of Config-Model
 #
-# This software is Copyright (c) 2010 by Dominique Dumont, Krzysztof Tyszecki.
+# This software is Copyright (c) 2011 by Dominique Dumont, Krzysztof Tyszecki.
 #
 # This is free software, licensed under:
 #
@@ -28,7 +28,7 @@
 
 package Config::Model::Exception ;
 BEGIN {
-  $Config::Model::Exception::VERSION = '1.226';
+  $Config::Model::Exception::VERSION = '1.227';
 }
 use warnings ;
 use strict;
@@ -150,7 +150,7 @@ Config::Model::Exception::Internal->Trace(1);
 
 package Config::Model::Exception::Syntax ;
 BEGIN {
-  $Config::Model::Exception::Syntax::VERSION = '1.226';
+  $Config::Model::Exception::Syntax::VERSION = '1.227';
 }
 
 sub full_message {
@@ -166,7 +166,7 @@ sub full_message {
 
 package Config::Model::Exception::Any ;
 BEGIN {
-  $Config::Model::Exception::Any::VERSION = '1.226';
+  $Config::Model::Exception::Any::VERSION = '1.227';
 }
 
 sub full_message {
@@ -197,7 +197,7 @@ sub xpath_message {
 
 package Config::Model::Exception::LoadData ;
 BEGIN {
-  $Config::Model::Exception::LoadData::VERSION = '1.226';
+  $Config::Model::Exception::LoadData::VERSION = '1.227';
 }
 
 sub full_message {
@@ -217,7 +217,7 @@ sub full_message {
 
 package Config::Model::Exception::Model ;
 BEGIN {
-  $Config::Model::Exception::Model::VERSION = '1.226';
+  $Config::Model::Exception::Model::VERSION = '1.227';
 }
 
 sub full_message {
@@ -243,7 +243,7 @@ sub full_message {
 
 package Config::Model::Exception::Load ;
 BEGIN {
-  $Config::Model::Exception::Load::VERSION = '1.226';
+  $Config::Model::Exception::Load::VERSION = '1.227';
 }
 
 sub full_message {
@@ -261,7 +261,7 @@ sub full_message {
 
 package Config::Model::Exception::RestrictedElement ;
 BEGIN {
-  $Config::Model::Exception::RestrictedElement::VERSION = '1.226';
+  $Config::Model::Exception::RestrictedElement::VERSION = '1.227';
 }
 
 sub full_message {
@@ -281,7 +281,7 @@ sub full_message {
 
 package Config::Model::Exception::UnavailableElement ;
 BEGIN {
-  $Config::Model::Exception::UnavailableElement::VERSION = '1.226';
+  $Config::Model::Exception::UnavailableElement::VERSION = '1.227';
 }
 
 sub full_message {
@@ -304,7 +304,7 @@ sub full_message {
 
 package Config::Model::Exception::ObsoleteElement ;
 BEGIN {
-  $Config::Model::Exception::ObsoleteElement::VERSION = '1.226';
+  $Config::Model::Exception::ObsoleteElement::VERSION = '1.227';
 }
 
 sub full_message {
@@ -326,7 +326,7 @@ sub full_message {
 
 package Config::Model::Exception::UnknownElement ;
 BEGIN {
-  $Config::Model::Exception::UnknownElement::VERSION = '1.226';
+  $Config::Model::Exception::UnknownElement::VERSION = '1.227';
 }
 use Carp;
 
@@ -360,7 +360,7 @@ sub full_message {
         . " (configuration class '".$obj -> config_class_name ."')\n"
           . "\tExpected: '". join("','",@elements)."'\n" ;
 
-    my @match_keys = $obj->accept_regexp();
+    my @match_keys = $obj->can('accept_regexp') ? $obj->accept_regexp() : () ;
     if (@match_keys) {
       $msg .= "\tor an acceptable parameter matching '"
             . join("','",@match_keys)."'\n" ;
@@ -385,7 +385,7 @@ sub full_message {
 
 package Config::Model::Exception::UnknownId ;
 BEGIN {
-  $Config::Model::Exception::UnknownId::VERSION = '1.226';
+  $Config::Model::Exception::UnknownId::VERSION = '1.227';
 }
 
 sub full_message {
@@ -414,7 +414,7 @@ sub full_message {
 
 package Config::Model::Exception::WrongType ;
 BEGIN {
-  $Config::Model::Exception::WrongType::VERSION = '1.226';
+  $Config::Model::Exception::WrongType::VERSION = '1.227';
 }
 
 sub full_message {
@@ -438,7 +438,7 @@ sub full_message {
 
 package Config::Model::Exception::Xml ;
 BEGIN {
-  $Config::Model::Exception::Xml::VERSION = '1.226';
+  $Config::Model::Exception::Xml::VERSION = '1.227';
 }
 
 sub full_message {
@@ -466,7 +466,7 @@ Config::Model::Exception - Exception mechanism for configuration model
 
 =head1 VERSION
 
-version 1.226
+version 1.227
 
 =head1 SYNOPSIS
 

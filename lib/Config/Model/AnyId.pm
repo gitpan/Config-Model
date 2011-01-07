@@ -1,7 +1,7 @@
 #
 # This file is part of Config-Model
 #
-# This software is Copyright (c) 2010 by Dominique Dumont, Krzysztof Tyszecki.
+# This software is Copyright (c) 2011 by Dominique Dumont, Krzysztof Tyszecki.
 #
 # This is free software, licensed under:
 #
@@ -27,7 +27,7 @@
 
 package Config::Model::AnyId ;
 BEGIN {
-  $Config::Model::AnyId::VERSION = '1.226';
+  $Config::Model::AnyId::VERSION = '1.227';
 }
 use Config::Model::Exception ;
 use Scalar::Util qw(weaken) ;
@@ -54,7 +54,7 @@ Config::Model::AnyId - Base class for hash or list element
 
 =head1 VERSION
 
-version 1.226
+version 1.227
 
 =head1 SYNOPSIS
 
@@ -1008,8 +1008,8 @@ my %can_override_class
 #internal
 sub auto_vivify {
     my ($self,$idx) = @_ ;
-    my $class = $self->{cargo_class} ; # to override class in cargo
     my %cargo_args = %{$self->{cargo} || {}} ;
+    my $class = delete $cargo_args{class} ; # to override class in cargo
 
     my $cargo_type = delete $cargo_args{type} ;
 

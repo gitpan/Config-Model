@@ -1,7 +1,7 @@
 #
 # This file is part of Config-Model
 #
-# This software is Copyright (c) 2010 by Dominique Dumont, Krzysztof Tyszecki.
+# This software is Copyright (c) 2011 by Dominique Dumont, Krzysztof Tyszecki.
 #
 # This is free software, licensed under:
 #
@@ -27,7 +27,7 @@
 
 package Config::Model::ValueComputer ;
 BEGIN {
-  $Config::Model::ValueComputer::VERSION = '1.226';
+  $Config::Model::ValueComputer::VERSION = '1.227';
 }
 
 use warnings ;
@@ -45,7 +45,7 @@ Config::Model::ValueComputer - Provides configuration value computation
 
 =head1 VERSION
 
-version 1.226
+version 1.227
 
 =head1 SYNOPSIS
 

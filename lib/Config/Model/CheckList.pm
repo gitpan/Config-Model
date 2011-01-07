@@ -1,7 +1,7 @@
 #
 # This file is part of Config-Model
 #
-# This software is Copyright (c) 2010 by Dominique Dumont, Krzysztof Tyszecki.
+# This software is Copyright (c) 2011 by Dominique Dumont, Krzysztof Tyszecki.
 #
 # This is free software, licensed under:
 #
@@ -27,7 +27,7 @@
 
 package Config::Model::CheckList ;
 BEGIN {
-  $Config::Model::CheckList::VERSION = '1.226';
+  $Config::Model::CheckList::VERSION = '1.227';
 }
 use Config::Model::Exception ;
 use Config::Model::IdElementReference ;
@@ -47,7 +47,7 @@ Config::Model::CheckList - Handle check list element
 
 =head1 VERSION
 
-version 1.226
+version 1.227
 
 =head1 SYNOPSIS
 
@@ -1052,6 +1052,9 @@ sub move_down {
 	}
     }
 }
+
+# dummy to match Value call
+sub warning_msg { '' } 
 
 1;
 

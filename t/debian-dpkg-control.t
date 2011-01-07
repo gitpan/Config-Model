@@ -1,4 +1,22 @@
 # -*- cperl -*-
+BEGIN {
+    # dirty trick to create a Memoize cache so that test will use this instead
+    # of getting values through the internet
+    my $sep = chr(28);
+    no warnings 'once' ;
+    %Config::Model::Debian::Dependency::cache = (
+        'debhelper'.$sep.'7' => '',
+        'libcpan-meta-perl' . $sep . '2.101550' => '',
+        'libdist-zilla-perl' . $sep . '3'       => '',
+        'libfile-homedir-perl' . $sep . '0.81'  => 'lenny',
+        'libmoose-autobox-perl' . $sep . '0.09' => '',
+        'libmoose-perl' . $sep . '0.65'         => 'lenny',
+        'lsb-base' . $sep . '1.3-9ubuntu2'      => '',
+        'perl' . $sep . '5.10.1'                => 'lenny',
+        'xkb-data' . $sep . '1.4'               => 'lenny',
+    );
+}
+
 
 use ExtUtils::testlib;
 use Test::More tests => 26;
@@ -6,6 +24,7 @@ use Config::Model ;
 use Log::Log4perl qw(:easy) ;
 use File::Path ;
 use File::Copy ;
+use Config::Model::Value ;
 
 use warnings;
 
@@ -26,6 +45,7 @@ Log::Log4perl->easy_init($log ? $TRACE: $WARN);
 my $model = Config::Model -> new ( ) ;
 
 Config::Model::Exception::Any->Trace(1) if $arg =~ /e/;
+$Config::Model::Value::nowarning =  1 unless $trace ;
 
 ok(1,"compiled");
 
@@ -410,26 +430,26 @@ my $idx = 0 ;
 foreach my $t (@tests) {
    my $wr_dir = $wr_root.'/test-'.$idx ;
    mkpath($wr_dir."/debian/", { mode => 0755 }) ;
-   my $license_file = "$wr_dir/debian/control" ;
+   my $control_file = "$wr_dir/debian/control" ;
 
-   open(LIC,"> $license_file" ) || die "can't open $license_file: $!";
-   print LIC $t->{text} ;
-   close LIC ;
+   open(my $control_h,"> $control_file" ) || die "can't open $control_file: $!";
+   print $control_h $t->{text} ;
+   close $control_h ;
 
    my $inst = $model->instance (root_class_name   => 'Debian::Dpkg::Control',
                                 root_dir          => $wr_dir,
                                 instance_name => "deptest".$idx,
                                );  
-   ok($inst,"Read $license_file and created instance") ;
+   ok($inst,"Read $control_file and created instance") ;
 
-   my $lic = $inst -> config_root ;
+   my $control = $inst -> config_root ;
 
-   my $dump =  $lic->dump_tree ();
+   my $dump =  $control->dump_tree ();
    print $dump if $trace ;
    
    while (@{$t->{check}}) { 
      my ($path,$v) = splice @{$t->{check}},0,2 ;
-     is($lic->grab_value($path),$v,"check $path value");
+     is($control->grab_value($path),$v,"check $path value");
    }
    
    $inst->write_back ;

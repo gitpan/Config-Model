@@ -36,6 +36,7 @@ lib/Config/Model/Backend/ShellVar.pm
 lib/Config/Model/Backend/Yaml.pm
 lib/Config/Model/CheckList.pm
 lib/Config/Model/Cookbook/CreateModelFromDoc.pod
+lib/Config/Model/Debian/Dependency.pm
 lib/Config/Model/Describe.pm
 lib/Config/Model/DumpAsData.pm
 lib/Config/Model/Dumper.pm
@@ -90,6 +91,7 @@ t/backend_fstab.t
 t/big_model.pm
 t/check_list.t
 t/config-edit-command.t
+t/debian-dependency-check.t
 t/debian-dpkg-control.t
 t/debian-dpkg-copyright.t
 t/describe_node.t
