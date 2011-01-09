@@ -67,6 +67,7 @@ my $build = Module::Build -> new
   },
   'requires' => {
     'Carp::Assert::More' => '0',
+    'DB_File' => '0',
     'Exception::Class' => '0',
     'Hash::Merge' => '0.12',
     'IO::File' => '0',

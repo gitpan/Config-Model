@@ -24,6 +24,7 @@ recommends:
   Fuse: 0
 requires:
   Carp::Assert::More: 0
+  DB_File: 0
   Exception::Class: 0
   Hash::Merge: 0.12
   IO::File: 0
@@ -40,4 +41,4 @@ resources:
   bugtracker: http://rt.cpan.org/NoAuth/Bugs.html?Dist=Config-Model
   homepage: http://config-model.wiki.sourceforge.net
   repository: http://config-model.hg.sourceforge.net:8000/hgroot/config-model/config-model
-version: 1.227
+version: 1.228

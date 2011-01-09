@@ -21,13 +21,21 @@ BEGIN {
 }
 
 use ExtUtils::testlib;
-use Test::More tests => 19;
+use Test::More ;
 use Config::Model ;
 use Config::Model::Debian::Dependency ;
 use Log::Log4perl qw(:easy) ;
 use File::Path ;
 use File::Copy ;
 use Test::Warn ;
+
+eval { require AptPkg::Config ;} ;
+if ( $@ ) {
+    plan skip_all => "AptPkg::Config is not installed (not a Debian system ?)";
+}
+else {
+    plan tests => 19;
+}
 
 # available only in debian
 use AptPkg::Version ;

@@ -28,7 +28,7 @@
 
 package Config::Model::WarpedThing ;
 BEGIN {
-  $Config::Model::WarpedThing::VERSION = '1.227';
+  $Config::Model::WarpedThing::VERSION = '1.228';
 }
 use strict;
 use Scalar::Util qw(weaken) ;
@@ -51,7 +51,7 @@ Config::Model::WarpedThing - Base class for warped classes
 
 =head1 VERSION
 
-version 1.227
+version 1.228
 
 =head1 SYNOPSIS
 

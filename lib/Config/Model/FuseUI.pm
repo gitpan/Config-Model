@@ -9,7 +9,7 @@
 #
 package Config::Model::FuseUI ;
 BEGIN {
-  $Config::Model::FuseUI::VERSION = '1.227';
+  $Config::Model::FuseUI::VERSION = '1.228';
 }
 
 use Moose ;
@@ -260,7 +260,7 @@ Config::Model::FuseUI - Fuse virtual file interface for Config::Model
 
 =head1 VERSION
 
-version 1.227
+version 1.228
 
 =head1 SYNOPSIS
 
