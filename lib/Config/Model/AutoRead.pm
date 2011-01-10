@@ -28,7 +28,7 @@
 
 package Config::Model::AutoRead ;
 BEGIN {
-  $Config::Model::AutoRead::VERSION = '1.228';
+  $Config::Model::AutoRead::VERSION = '1.229';
 }
 use Carp;
 use strict;
@@ -541,7 +541,7 @@ Config::Model::AutoRead - Load configuration node on demand
 
 =head1 VERSION
 
-version 1.228
+version 1.229
 
 =head1 SYNOPSIS
 

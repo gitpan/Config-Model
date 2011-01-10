@@ -27,7 +27,7 @@
 
 package Config::Model::ObjTreeScanner ;
 BEGIN {
-  $Config::Model::ObjTreeScanner::VERSION = '1.228';
+  $Config::Model::ObjTreeScanner::VERSION = '1.229';
 }
 use strict ;
 use Config::Model::Exception ;
@@ -45,7 +45,7 @@ Config::Model::ObjTreeScanner - Scan config tree and perform call-backs
 
 =head1 VERSION
 
-version 1.228
+version 1.229
 
 =head1 SYNOPSIS
 
@@ -55,7 +55,7 @@ version 1.228
  my $root = ... ;
 
  # define leaf call back
- my disp_leaf = sub { 
+ my $disp_leaf = sub { 
       my ($scanner, $data_ref, $node,$element_name,$index, $leaf_object) = @_ ;
       $$data_ref .= "$element_name = ", $leaf_object->fetch ;
     } ;

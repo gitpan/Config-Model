@@ -27,7 +27,7 @@
 
 package Config::Model::Value ;
 BEGIN {
-  $Config::Model::Value::VERSION = '1.228';
+  $Config::Model::Value::VERSION = '1.229';
 }
 use warnings ;
 use strict;
@@ -51,7 +51,7 @@ Config::Model::Value - Strongly typed configuration value
 
 =head1 VERSION
 
-version 1.228
+version 1.229
 
 =head1 SYNOPSIS
 
@@ -650,6 +650,13 @@ replaced by C<foo_better>, you will need to declare:
 
   replace => { foo => 'foo_better' }
 
+The hash key can also be a regular expression for wider range replacement. 
+The regexp must match the whole value:
+
+  replace => ( 'foo.*' => 'better_foo' }
+  
+In this case, a value will be replaced by C<better_foo> if the C</^foo.*$/> regexp matches. 
+
 =item refer_to
 
 Specify a path to an id element used as a reference. See L<Value
@@ -1235,7 +1242,7 @@ sub get_help {
 # internal
 sub error_msg {
     my $self = shift ;
-    return unless $self->{errror_list} ;
+    return unless $self->{error_list} ;
     return wantarray ? @{$self->{error_list}} : join("\n\t",@{ $self ->{error_list}}) ;
 }
 
@@ -1455,7 +1462,7 @@ sub apply_fixes {
 
 Like L</check_value>. Also ensure that mandatory value are defined
 
-Will also disply warnings on STDTOUT unless C<silent> parameter is set to 1.
+Will also display warnings on STDTOUT unless C<silent> parameter is set to 1.
 In this case,user is expected to retrieve them with
 L<warning_msg>.
 
@@ -1500,10 +1507,11 @@ sub store {
              : @_ == 3 ? ( 'value' , @_ ) 
              : @_ ;
     my $check = $self->_check_check($args{check}) ;
+    my $silent = $args{silent} || 0 ;
 
     my ($ok,$value) = $self->pre_store(value => $args{value}, check => $check ) ;
 
-    $logger->debug("value store $value, ok '$ok', check $check") if $logger->is_debug;
+    $logger->debug("value store $value, ok '$ok', check is $check") if $logger->is_debug;
 
     # we let store the value even if wrong when check is disabled
     if ($ok or $check eq 'no') {
@@ -1514,7 +1522,12 @@ sub store {
 	    $self->{data} = $value ; # may be undef
 	}
     }
-    elsif ($check ne 'skip') {
+    elsif ($check eq 'skip') {
+        my $msg = $self->error_msg;
+        warn "Warning: skipping value $value because of the following errors:\n$msg\n\n"
+          if not $silent and $msg;
+    }
+    else {
         Config::Model::Exception::WrongValue 
 	    -> throw ( error => join("\n\t",@{$self->{error_list}}),
 		       object => $self) ;
@@ -1566,8 +1579,21 @@ sub pre_store {
     $value = $self->{convert_sub}($value) 
       if (defined $self->{convert_sub} and defined $value) ;
 
-    $value = $self->{replace}{$value} 
-      if defined $self->{replace} and defined $self->{replace}{$value} ;
+    if (defined $self->{replace}) {
+        if (defined $self->{replace}{$value}) {
+            $logger->debug("store replacing value $value with $self->{replace}{$value}") ;
+            $value = $self->{replace}{$value} ;
+        }
+        else {
+            foreach my $k (keys %{$self->{replace}}) {
+                if ( $value =~ /^$k$/ ) {
+                    $logger->debug("store replacing value $value (matched /$k/) with $self->{replace}{$k}") ;
+                    $value = $self->{replace}{$k} ;
+                    last;
+                }
+            }
+        }
+    }
 
     my $ok = $self->store_check($value) ;
 
@@ -1903,6 +1929,9 @@ sub fetch {
 	    return $value ;
 	}
 	elsif ($check eq 'skip') {
+	    my $msg = $self->error_msg ;
+	    warn "Warning: skipping value $value because of the following errors:\n$msg\n\n" 
+                if not $silent and $msg;
 	    return undef ;
 	}
 	

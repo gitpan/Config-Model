@@ -9,7 +9,7 @@
 #
 package Config::Model::Debian::Dependency ;
 BEGIN {
-  $Config::Model::Debian::Dependency::VERSION = '1.228';
+  $Config::Model::Debian::Dependency::VERSION = '1.229';
 }
 
 use strict ;
@@ -167,7 +167,7 @@ Config::Model::Debian::Dependency - Checks Debian dependency in control files
 
 =head1 VERSION
 
-version 1.228
+version 1.229
 
 =head1 SYNOPSIS
 

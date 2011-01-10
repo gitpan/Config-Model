@@ -27,7 +27,7 @@
 
 package Config::Model::Instance;
 BEGIN {
-  $Config::Model::Instance::VERSION = '1.228';
+  $Config::Model::Instance::VERSION = '1.229';
 }
 use Scalar::Util qw(weaken) ;
 use File::Path;
@@ -56,7 +56,7 @@ Config::Model::Instance - Instance of configuration tree
 
 =head1 VERSION
 
-version 1.228
+version 1.229
 
 =head1 SYNOPSIS
 
@@ -472,6 +472,27 @@ sub write_back {
 	    last if ($res and not $force_backend); 
 	}
     }
+}
+
+=head2 apply_fixes
+
+Scan the tree and apply fixes that are attached to warning specifications. 
+See C<warn_if_match> or C<warn_unless_match> in L<Config::Model::Value/>.
+
+=cut
+
+sub apply_fixes {
+    my $self = shift ;
+
+    # define leaf call back
+    my $fix_leaf = sub { 
+      my ($scanner, $data_ref, $node,$element_name,$index, $leaf_object) = @_ ;
+      $leaf_object->apply_fixes ;
+    } ;
+
+    my $scan = Config::Model::ObjTreeScanner-> new ( leaf_cb => $fix_leaf ) ;
+
+    $scan->scan_node(undef, $self->config_root) ;
 }
 
 sub push_no_value_check { carp "push_no_value_check is deprecated";}
