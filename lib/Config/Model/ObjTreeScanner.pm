@@ -7,7 +7,7 @@
 #
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
-#    Copyright (c) 2006-2010 Dominique Dumont.
+#    Copyright (c) 2006-2011 Dominique Dumont.
 #
 #    This file is part of Config-Model.
 #
@@ -27,7 +27,7 @@
 
 package Config::Model::ObjTreeScanner ;
 BEGIN {
-  $Config::Model::ObjTreeScanner::VERSION = '1.229';
+  $Config::Model::ObjTreeScanner::VERSION = '1.230';
 }
 use strict ;
 use Config::Model::Exception ;
@@ -45,19 +45,32 @@ Config::Model::ObjTreeScanner - Scan config tree and perform call-backs
 
 =head1 VERSION
 
-version 1.229
+version 1.230
 
 =head1 SYNOPSIS
 
  use Config::Model::ObjTreeScanner ;
 
  # define configuration tree object
- my $root = ... ;
+ my $model = Config::Model->new ;
+ $model ->create_config_class (
+    name => "MyClass",
+    element => [ 
+        [qw/foo bar baz/] => { 
+            type => 'leaf',
+            value_type => 'string'
+        },
+    ],
+ ) ;
+
+ my $inst = $model->instance(root_class_name => 'MyClass' );
+
+ my $root = $inst->config_root ;
 
  # define leaf call back
  my $disp_leaf = sub { 
       my ($scanner, $data_ref, $node,$element_name,$index, $leaf_object) = @_ ;
-      $$data_ref .= "$element_name = ", $leaf_object->fetch ;
+      $$data_ref .= "Called for $element_name value ",$leaf_object->fetch,"\n";
     } ;
 
  # simple scanner, (print all values with 'beginner' experience
@@ -67,9 +80,8 @@ version 1.229
   ) ;
 
  my $result = '';
-
  $scan->scan_node(\$result, $root) ;
- 
+ print $result ;
 
  # For a more complex scanner
 
@@ -79,26 +91,29 @@ version 1.229
    experience => 'master', # consider all values
 
    # node callback
-   node_content_cb               => \&disp_obj_elt ,
+   node_content_cb        => \&my_node_elt_cb ,
+
+   # node callback depending on configuration class
+   node_dispach_cb        => { MyClass => \&my_class_cb } ,
 
    # element callback
-   list_element_cb       => \&disp_hash    ,
-   check_list_element_cb => \&disp_hash    ,
-   hash_element_cb       => \&disp_hash    ,
-   node_element_cb       => \&disp_obj     ,
+   list_element_cb       => \&my_hash_cb ,
+   check_list_element_cb => \&my_hash_cb ,
+   hash_element_cb       => \&my_hash_cb ,
+   node_element_cb       => \&my_node_cb  ,
 
    # leaf callback
-   leaf_cb               => \&disp_leaf,
-   enum_value_cb         => \&disp_leaf,
-   integer_value_cb      => \&disp_leaf,
-   number_value_cb       => \&disp_leaf,
-   boolean_value_cb      => \&disp_leaf,
-   string_value_cb       => \&disp_leaf,
-   uniline_value_cb      => \&disp_leaf,
-   reference_value_cb    => \&disp_leaf,
+   leaf_cb               => \&my_leaf_cb,
+   enum_value_cb         => \&my_leaf_cb,
+   integer_value_cb      => \&my_leaf_cb,
+   number_value_cb       => \&my_leaf_cb,
+   boolean_value_cb      => \&my_leaf_cb,
+   string_value_cb       => \&my_leaf_cb,
+   uniline_value_cb      => \&my_leaf_cb,
+   reference_value_cb    => \&my_leaf_cb,
 
    # call-back when going up the tree
-   up_cb                 => sub {} ,
+   up_cb                 => \&my_up_cb ,
   ) ;
 
  $scan->scan_node(\$result, $root) ;
@@ -133,7 +148,7 @@ simple leaf or another node.
 
 To continue the exploration, these call-backs must also call the
 scanner. (i.e. perform another call-back). In other words the user's
-subroutine and the scanner plays a game of ping-pong until the tree is
+subroutine and the scanner play a game of ping-pong until the tree is
 completely explored.
 
 The scanner provides a set of default callback for the nodes. This
@@ -162,7 +177,7 @@ C<reference_value_cb>
 
 =item node callback:
 
-C<node_content_cb> 
+C<node_content_cb> , C<node_dispatch_cb>
 
 =item element callback:
 
@@ -172,13 +187,12 @@ C<node_element_cb>, C<node_content_cb>.
 
 =back
 
-The user may specify all of them by passing the sub ref to the
+The user may specify all of them by passing a sub ref to the
 constructor:
 
    $scan = Config::Model::ObjTreeScanner-> new
   (
-   # node callback
-   list_element_cb => sub ,
+   list_element_cb => sub { ... },
    ...
   )
 
@@ -324,7 +338,40 @@ Example:
      map {$scanner->scan_element($data_ref, $node,$_)} @element ;
   }
 
-=head2 Node element callback
+==head2 Dispatch node callback
+
+C<node_dispatch_cb>: Any callback specified in the hash will be called for 
+each instance of the specified configuration class.
+(this may include the  root node).
+
+For instance, if you have:
+
+  node_dispach_cb => {
+    ClassA => \&my_class_a_dispatch_cb,
+    ClassB => \&my_class_b_dispatch_cb,
+  }
+
+C<&my_class_a_dispatch_cb> will be called for each instance of C<ClassA> and 
+C<&my_class_b_dispatch_cb> will be called for each instance of C<ClassB>.
+
+They will be calle with the following parameters:
+
+ ($scanner, $data_ref,$node,@element_list)
+
+C<@element_list> contains all the element names of the node.
+
+Example:
+
+  sub my_class_a_dispatch_cb = { 
+     my ($scanner, $data_ref,$node,@element) = @_ ;
+
+     # custom code using $data_ref
+
+     # resume exploration
+     map {$scanner->scan_element($data_ref, $node,$_)} @element ;
+  }
+
+head2 Node element callback
 
 C<node_element_cb> is called for each node contained within a node
 (i.e not with root node). This node can be held by a plain element or
@@ -381,6 +428,12 @@ sub new {
         croak __PACKAGE__,"->new: missing $param parameter"
           unless defined $self->{$param} ;
     }
+
+    # this parameter is optional and does not need a fallback
+    $self->{node_dispatch_cb} = delete $args{node_dispatch_cb} || {} ;
+    
+    croak __PACKAGE__,"->new: node_dispatch_cb is not a hash ref" 
+	unless ref($self->{node_dispatch_cb}) eq 'HASH';
 
     croak __PACKAGE__,"->new: unexpected check: $self->{check}" 
 	unless $self->{check} =~ /yes|no|skip/;
@@ -445,7 +498,11 @@ sub create_fallback {
 
 =head2 scan_node ($data_r,$node)
 
-Explore the node and call C<node_element_cb> passing all element names.
+Explore the node and call either C<node_dispatch_cb> (if the node class 
+name matches the dispatch_node hash) B<or> (e.g. xor) C<node_element_cb> passing 
+all element names.
+
+After the first callback has returned, C<up_cb> will be called.
 
 =cut
 
@@ -467,11 +524,16 @@ sub scan_node {
 	return unless defined $node ;
     }
 
+    my $config_class = $node->config_class_name ;
+    my $node_dispatch_cb = $self->{node_dispatch_cb}{$config_class} ;
+    
+    my $actual_cb = $node_dispatch_cb || $self->{node_content_cb};
+    
     my @element_list= $node->get_element_name(for => $self->{experience}) ;
 
     # we could add here a "last element" call-back, but it's not
     # very useful if the last element is a hash.
-    $self->{node_content_cb}->($self, $data_r,$node,@element_list) ;
+    $actual_cb->($self, $data_r,$node,@element_list) ;
 
     $self->{up_cb}->($self, $data_r,$node) ;
 }

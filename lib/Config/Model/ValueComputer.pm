@@ -27,7 +27,7 @@
 
 package Config::Model::ValueComputer ;
 BEGIN {
-  $Config::Model::ValueComputer::VERSION = '1.229';
+  $Config::Model::ValueComputer::VERSION = '1.230';
 }
 
 use warnings ;
@@ -36,8 +36,11 @@ use Scalar::Util qw(weaken) ;
 use Carp ;
 use Parse::RecDescent ;
 use Data::Dumper () ;
+use Log::Log4perl qw(get_logger :levels);
 
 use vars qw($compute_grammar $compute_parser) ;
+
+my $logger = get_logger("ValueComputer") ;
 
 =head1 NAME
 
@@ -45,7 +48,7 @@ Config::Model::ValueComputer - Provides configuration value computation
 
 =head1 VERSION
 
-version 1.229
+version 1.230
 
 =head1 SYNOPSIS
 
@@ -306,6 +309,42 @@ compute parameter:
                }
    }
 
+=head2 Undefined variables
+
+You may need to compute value where one of the variables (i.e. other configuration
+parameter) is undefined. By default, any formula will yield an undefined value if one 
+variable is undefined.
+
+You may change this behavior with C<undef_is> parameter. Depending on your formula and whether C<use_eval> 
+is true or not, you may specify a "fallback" value that will be used in your formula.
+
+The most usefull will probably be: 
+
+ undef_is => "''", # for string values
+ undef_is => 0   , # for integers, boolean values
+
+Example:
+
+        Source => {
+            value_type   => 'string',
+            mandatory    => 1,
+            migrate_from => {
+                use_eval  => 1,
+                formula   => '$old || $older ;',
+                undef_is => "''",
+                variables => {
+                    older => '- Original-Source-Location',
+                    old   => '- Upstream-Source'
+                }
+            },
+            type => 'leaf',
+        },
+        [qw/Upstream-Source Original-Source-Location/] => {
+            value_type => 'string',
+            status     => 'deprecated',
+            type       => 'leaf'
+        }
+
 =cut
 
 # allow_override is intercepted and handled by Value object
@@ -315,10 +354,10 @@ sub new {
     my %args = @_ ;
     my $self= {} ;
 
-    if ($::debug) {
+    if ($logger->is_debug) {
 	my %show = %args ;
 	delete $show{value_object} ;
-	print Data::Dumper->Dump([\%show],['Computedvalue_new_args']) ;
+	$logger->debug(Data::Dumper->Dump([\%show],['Computed_value_new_args'])) ;
     }
 
     # value_object is mostly used for error messages
@@ -327,11 +366,9 @@ sub new {
 	  croak "Config::Model::ValueComputer:new undefined parameter $k";
     }
 
-    foreach my $k (qw/variables replace/) {
-	$self->{$k} = delete $args{$k} || {} ;
-    }
-
-    $self->{use_eval} = delete $args{use_eval} || 0 ;
+    map { $self->{$_} = delete $args{$_}  || {} ; } qw/variables replace/;
+    map { $self->{$_} = delete $args{$_} || 0   ; } qw/use_eval/ ;
+    map { $self->{$_} = delete $args{$_}        ; } qw/undef_is/ ;
 
     die "Config::Model::ValueComputer:new unexpected parameter: ",
       join(' ',keys %args) if %args ;
@@ -343,7 +380,7 @@ sub new {
     $compute_parser ||= Parse::RecDescent->new($compute_grammar) ;
 
     # must make a first pass at computation to subsitute index and
-    # slot values.  leaves $xxx outside of &index or &element untouched
+    # element values.  leaves $xxx outside of &index or &element untouched
     my $result_r = $compute_parser
       -> pre_compute
 	(
@@ -368,28 +405,30 @@ sub compute {
     my $check = $args{check} || 'yes' ;
 
     my $pre_formula = $self->{pre_formula};
-
+    $logger->debug("compute from pre_formula: $pre_formula");
     my $variables = $self->compute_variables(check => $check) ;
 
-    return unless defined $variables ;
+    die "internal error" unless defined $variables ;
 
     my $need_quote = 0;
     $need_quote = 1 if $self->{use_eval} and $self->{value_type} !~ /(integer|number|boolean)/;
 
+    $logger->debug("compute: calling parser with compute on pre_formula $pre_formula");
     my $formula_r = $compute_parser
       -> compute ($pre_formula, 1,$self->{value_object}, $variables, 
-		  $self->{replace},$check,$need_quote) ;
+		  $self->{replace},$check,$need_quote,$self->{undef_is}) ;
 
     my $formula = $$formula_r ;
 
     return unless defined $formula ;
 
-    print "compute $self->{value_type}: pre_formula $pre_formula\n",
-      "compute $self->{value_type}: rule to eval $formula\n" if $::debug;
+    $logger->debug("compute $self->{value_type}: pre_formula $pre_formula\n",
+      "compute $self->{value_type}: rule to eval $formula");
 
     my $result = $self->{computed_formula} = $formula ;
 
     if ($self->{use_eval} or $self->{value_type} =~ /(integer|number|boolean)/) {
+        $logger->debug("compute: evaluating '$formula'");
         $result = eval $formula ;
 	if ($@) {
 	    Config::Model::Exception::Formula
@@ -402,6 +441,8 @@ sub compute {
 	}
     }
 
+    $logger->debug("compute result is '$result'" );
+
     return $result ;
 }
 
@@ -409,7 +450,8 @@ sub compute_info {
     my $self = shift;
     my %args = @_ ;
     my $check = $args{check} || 'yes' ;
-
+    $logger->debug("compute_info called with $self->{formula}" );
+    
     my $orig_variables = $self->{variables} ;
     my $variables = $self->compute_variables ;
     my $str = "value is computed from '$self->{formula}'";
@@ -463,36 +505,39 @@ sub compute_variables {
     # a shallow copy should be enough as we don't allow
     # replace in replacement rules
     my %variables = %{$self->{variables}} ;
+    $logger->debug("compute_variables called on ", join (" ",%variables)) ;
 
     # apply a compute on all variables until no $var is left
     my $var_left = scalar (keys %variables) + 1 ;
 
     while ($var_left) {
         my $old_var_left= $var_left ;
-        my $did_something = 0 ;
         foreach my $key (keys %variables) {
             my $value = $variables{$key} ; # value may be undef
             next unless (defined $value and $value =~ /\$|&/) ;
             #next if ref($value); # skip replacement rules
-            print "key '$key', value '$value', left $var_left\n" 
-	      if $::debug;
-	    my $pre_res = $compute_parser
-	      -> pre_compute ($value, 1,$self->{value_object}, \%variables, $self->{replace},$check);
-            print "key '$key', pre res '$pre_res', left $var_left\n" 
-	      if $::debug;
-            my $res_r = $compute_parser
-	      -> compute ($pre_res, 1,$self->{value_object}, \%variables, $self->{replace},$check);
-	    my $res = $$res_r ;
-            #return undef unless defined $res ;
-            $variables{$key} = $res ;
+            $logger->debug("compute_variables: key '$key', value '$value', left $var_left)"); 
+	    my $pre_res_r = $compute_parser
+                -> pre_compute ($value, 1,$self->{value_object}, \%variables, $self->{replace},$check);
+            $logger->debug( "compute_variables: key '$key', pre res '$$pre_res_r', left $var_left\n");
+            $variables{$key} = $$pre_res_r ;
+	    $logger->debug("variable after pre_compute: ", join (" ",%variables)) if $logger->is_debug ;
+
+            if ($$pre_res_r =~ /\$/) { ;
+                # variables needs to be evaluated
+                my $res_ref = $compute_parser
+                    -> compute ($$pre_res_r, 1,$self->{value_object}, \%variables, $self->{replace},$check);
+                #return undef unless defined $res ;
+                $variables{$key} = $$res_ref ;
+                $logger->debug("variable after compute: ", join (" ",%variables))  if $logger->is_debug;
+            }
 	    {
 		no warnings "uninitialized" ;
-		print "\tresult '$res' left $var_left, did $did_something\n" 
-		  if $::debug;
+		$logger->debug( "compute_variables:\tresult '$variables{$key}' left $var_left");
 	    }
 	}
 
-        my @var_left =  grep {defined $variables{$_} && $variables{$_} =~ /\$/} 
+        my @var_left =  grep {defined $variables{$_} && $variables{$_} =~ /[\$&]/} 
 	  sort keys %variables;
 
         $var_left = @var_left ;
@@ -509,8 +554,208 @@ sub compute_variables {
     return \%variables ;
 }
 
-$compute_grammar = << 'END_OF_GRAMMAR' ;
+sub _pre_replace {
+    my ( $replace_h, $pre_value ) = @_;
 
+    my $result =
+      exists $replace_h->{$pre_value}
+      ? $replace_h->{$pre_value}
+      : '$replace{' . $pre_value . '}';
+    return \$result;
+}
+
+sub _replace {
+    my ( $replace_h, $value, $value_object ) = @_;
+
+    # print "value: replacement, value '$value'\n";
+    my $result;
+    if ( defined $value and $value =~ /\$/ ) {
+
+        # must keep original variable
+        $result = '$replace{' . $value . '}';
+    }
+    elsif ( defined $value ) {
+        Config::Model::Exception::Formula->throw(
+            object => $value_object,
+            error  => "Unknown replacement value for replace: " . "'$value'\n"
+        ) unless defined $replace_h->{$value};
+
+        $result = $replace_h->{$value};
+    }
+    return \$result;
+}
+
+sub _function_on_object {
+    my ( $object, $function, $return, $value_object, $variables_h, $replace_h,
+        $check, $need_quote )
+      = @_;
+
+    $logger->debug("_function_on_object: handling &$function(...) ");
+
+    # get now the object refered
+    my $fetch_str = $variables_h->{$object};
+    Config::Model::Exception::Formula->throw(
+        object => $value_object,
+        error  => "Item $object has no associated location string"
+    ) unless defined $fetch_str;
+
+    my $target =
+      eval { $value_object->grab( step => $fetch_str, check => $check ) };
+
+    if ($@) {
+        my $e = $@;
+        my $msg = $e ? $e->full_message : '';
+        Config::Model::Exception::Model->throw(
+            object => $value_object,
+            error  => "Compute function argument '$fetch_str':\n" . $msg
+        );
+    }
+
+    if ( $function eq 'element' ) {
+        my $result = $target->element_name;
+        Config::Model::Exception::Model->throw(
+            object => $value_object,
+            error  => "'",
+            $object->name, "' has no element name"
+        ) unless defined $result;
+        $return = \$result;
+    }
+    elsif ( $function eq 'index' ) {
+        my $result = $target->index_value;
+        Config::Model::Exception::Formula->throw(
+            object => $value_object,
+            error  => "'",
+            $object->name, "' has no index value"
+        ) unless defined $result;
+        $return = \$result;
+    }
+    else {
+        Config::Model::Exception::Formula->throw(
+            object => $value_object,
+            error  => "Unknown computation function &$function, "
+              . "expected &element(...) or &index(...)"
+        );
+    }
+
+    # print "\&foo(...) result = ",$$return," \n";
+
+    # make sure that result of function is quoted (avoid bareword errors)
+    my $vt = $value_object->value_type;
+    if ( $vt =~ /^integer|number|boolean$/ ) {
+        $$return = '"' . $$return . '"';
+    }
+
+    return $return;
+}
+
+sub _function_alone {
+    my ( $f_name, $return, $value_object, $variables_h, $replace_h, $check,
+        $need_quote )
+      = @_;
+
+    $logger->debug("_function_alone: handling $f_name"); 
+
+    my $method_name =
+        $f_name eq 'element' ? 'element_name'
+      : $f_name eq 'index'   ? 'index_value'
+      :                        undef;
+
+    Config::Model::Exception::Formula->throw(
+        object => $value_object,
+        error  => "Unknown computation function &$f_name, "
+          . "expected &element or &index"
+    ) unless defined $method_name;
+
+    my $result = $value_object->$method_name();
+
+    my $vt = $value_object->value_type;
+    if ( $vt =~ /^integer|number|boolean$/ ) {
+        $result = '"' . $result . '"';
+    }
+
+    $return = \$result;
+
+    Config::Model::Exception::Formula->throw(
+        object => $value_object,
+        error  => "Missing $f_name attribute (method '$method_name' on "
+          . ref($value_object) . ")\n"
+    ) unless defined $result;
+    return $return;
+}
+
+sub _compute {
+    my ( $value_ref, $return,
+        $value_object, $variables_h, $replace_h, $check, $need_quote, $undef_is )
+      = @_;
+
+    my @values = map { $$_ } @{$value_ref};
+
+    # print "compute return is '",join("','",@values),"'\n";
+
+    my $result = '';
+
+    # return undef if one value is undef
+    foreach my $v (@values) {
+        if ( defined $v or defined $undef_is) {
+            $result .= defined $v ? $v : $undef_is;
+        }
+        else {
+            $result = undef;
+            last;
+        }
+    }
+
+    return \$result;
+}
+
+sub _value_from_object {
+    my ( $name, $value_object, $variables_h, $replace_h, $check, $need_quote ) =
+      @_;
+
+    my $path = $variables_h->{$name};    # can be a ref for test purpose
+    my $my_res;
+
+    $logger->debug("_value_from_object: replace \$$name with path $path...") if $logger->is_debug;
+
+    if ( defined $path and $path =~ /[\$&]/ ) {
+        $logger->trace("_value_from_object: skip name $name path '$path'");
+        $my_res = "\$$name";             # restore name that contain '$var'
+    }
+    elsif ( defined $path ) {
+
+        $logger->trace("_value_from_object: fetching var object '$name' with '$path'");
+        
+        $my_res = eval { 
+            $value_object->grab_value( step => $path, check => $check ); 
+        };
+        
+        if ($@) {
+            my $e = $@;
+            my $msg = $e ? $e->full_message : '';
+            Config::Model::Exception::Model->throw(
+                object => $value_object,
+                error  => "Compute argument '$name', error with '$path':\n"
+                  . $msg
+            );
+        }
+
+        $logger->trace(
+            "_value_from_object: fetched var object '$name' with '$path', result '", 
+            defined $my_res ? $my_res : 'undef',"'"
+        );
+
+    }
+
+    # my_res stays undef if $path if not defined
+
+    # quote result if asked when calling compute
+    my $quote = $need_quote || 0;
+    $my_res = "'$my_res'" if $quote && $my_res;
+
+    return \$my_res;    # So I can return undef ... or a ref to undef
+}
+
+$compute_grammar = << 'END_OF_GRAMMAR' ;
 {
 
 # This grammar is compatible with Parse::RecDescent < 1.90 or >= 1.90
@@ -523,6 +768,8 @@ use warnings ;
 # that the parsing did not match), we will always return a scalar
 # reference to the actual returned value
 
+# @arg is value_object, $variables_h,  $replace_h, $check,$need_quote
+
 pre_compute: <skip:''> pre_value[@arg](s) { 
     # print "pre-compute on @{$item[-1]}\n";
     my $str = join ( '', map { $$_ } @{ $item[-1] } ) ;
@@ -531,106 +778,13 @@ pre_compute: <skip:''> pre_value[@arg](s) {
 
 pre_value: 
   <skip:''> '$replace' '{' /\s*/ pre_value[@arg] /\s*/ '}' {
-     # print "pre_value handling \$foo{ ... }\n";
-     my $pre_value = ${ $item{pre_value} } ;
-     my $result = exists $arg[2]->{$pre_value} ? $arg[2]->{$pre_value} 
-                :                               '$replace{'.$pre_value.'}';
-     $return = \$result ;
-     # print "\$foo{...} result = ",$$return," \n";
+    $return = Config::Model::ValueComputer::_pre_replace($arg[2], ${ $item{pre_value} } ) ;
   }
   | <skip:''> function '(' /\s*/ object /\s*/ ')' {
-     # print "pre_value handling &foo(...)\n";
- 
-     # get now the object refered
-     my $fetch_str = $arg[1]->{$item{object}} ;
-     Config::Model::Exception::Formula
-	 -> throw (
-		   object => $arg[0],
-		   error => "Item $item{object} has no associated location string"
-		  ) 
-         unless defined $fetch_str;
-
-     my $object = eval {$arg[0]->grab(step => $fetch_str, check => $arg[3]) };
-
-     if ($@) {
-	    my $e = $@ ;
-	    my $msg = $e ? $e->full_message : '' ;
-	    Config::Model::Exception::Model
-		-> throw (
-			  object => $arg[0],
-			  error => "Compute function argument '$fetch_str':\n"
-                                 . $msg
-			 ) ;
-     }
-
-     if ($item{function} eq 'element') {
-         my $result = $object->element_name ;
-	 Config::Model::Exception::Model
-	     -> throw (
-		       object => $arg[0],
-		       error => "'",$object->name,"' has no element name"
-		      ) 
-             unless defined $result ;
-         $return = \$result ;
-     }
-     elsif ($item{function} eq 'index') {
-	 my $result = $object->index_value ;
-	 Config::Model::Exception::Formula
-	     -> throw (
-		       object => $arg[0],
-		       error => "'",$object->name,"' has no index value"
-		      ) 
-             unless defined $result ;
-	 $return = \$result ;
-     }
-     else {
-	 Config::Model::Exception::Formula
-	     -> throw (
-		       object => $arg[0],
-		       error => "Unknown computation function &$item{function}, ".
-		       "expected &element(...) or &index(...)"
-		      );
-     }
-     # print "\&foo(...) result = ",$$return," \n";
-
-     my $vt = $arg[0]->value_type;
-     if ($vt =~ /^integer|number|boolean$/) {
-         $$return = '"'.$$return.'"';
-     }
-
-     $return ;
+    $return = Config::Model::ValueComputer::_function_on_object($item{object},$item{function},$return,@arg ) ;
   }
   | <skip:''> '&' /\w+/ func_param(?) {
-     # print "pre_value handling &foo()\n";
-     my $f_name = $item[3] ;
-     my $method_name = $f_name eq 'element' ? 'element_name' 
-                     : $f_name eq 'index'   ? 'index_value'  
-                     :                         undef         ;
-
-    Config::Model::Exception::Formula
-        -> throw (
-                  object => $arg[0],
-                  error => "Unknown computation function &$f_name, "
-                         . "expected &element or &index"
-                 )
-         unless defined $method_name;
-
-    my $result =  $arg[0]->$method_name(); 
-
-    my $vt = $arg[0]->value_type;
-    if ($vt =~ /^integer|number|boolean$/) {
-        $result = '"'.$result.'"';
-    }
-
-    $return = \$result ;
-
-    Config::Model::Exception::Formula
-        -> throw (
-                  object => $arg[0],
-                  error => "Missing $f_name attribute (method '$method_name' on "
-                         . ref($arg[0]) . ")\n"
-                 )
-	       unless defined $result ;
+    $return = Config::Model::ValueComputer::_function_alone($item[3],$return,@arg ) ;
   }
   |  <skip:''> /\$\d+/ {
      my $result = $item[-1] ;
@@ -651,89 +805,21 @@ pre_value:
 func_param: /\(\s*\)/
 
 compute:  <skip:''> value[@arg](s) { 
-     # if one value is undef, return undef;
-     my @values = map { $$_ } @{$item[-1]} ;
-     # print "compute return is '",join("','",@values),"'\n";
-
-     my $result = '';
-
-     # return undef if one value is undef
-     foreach my $v (@values) {
-	 if (defined $v) {
-             $result .= $v ;
-	 }
-	 else {
-	     $result = undef;
-	     last;
-	 }
-     } 
-
-     $return = \$result ;
-  }
+    # if one value is undef, return undef;
+    Config::Model::ValueComputer::_compute($item[-1],$return,@arg ) ;
+}
 
 value: 
   <skip:''> '$replace' '{' <commit> /\s*/ value[@arg] /\s*/ '}' {
-     my $value = ${ $item{value} } ;
-
-     # print "value: replacement, value '$value'\n";
-     my $result ;
-     if (defined $value and $value =~ /\$/) {
-         # must keep original variable
-         $result = '$replace{'.$value.'}';
-       }
-     elsif (defined $value)
-       {
-         Config::Model::Exception::Formula
-             -> throw (
-                       object => $arg[0],
-                        error => "Unknown replacement value for replace: "
-                               . "'$value'\n"
-                      )
-             unless  defined $arg[2]->{$value} ;
-
-	 $result = $arg[2]->{$value} ;
-       }
-     $return = \$result ;
-    }
+    $return = Config::Model::ValueComputer::_replace($arg[2], ${ $item{value} },@arg ) ;
+  }
   |  <skip:''> /\$\d+/ { 
      my $result = $item[-1] ;
      $return = \$result ;
   }
   | <skip:''> object <commit> {
-     my $name=$item{object} ;
-     my $path = $arg[1]->{$name} ; # can be a ref for test purpose
-     my $my_res ;
-     # print "value: replace \$$name with path $path...\n";
-
-     if (defined $path and $path =~ /\$/) {
-         # print "compute rule skip name $name path '$path'\n";
-         $my_res = "\$$name" ; # restore name that contain '$var'
-     }
-     elsif (defined $path) {
-         # print "fetching var object '$name' with '$path'\n";
-         $my_res = eval {$arg[0]->grab_value(step => $path, check => $arg[3]) ;} ;
-         if ($@) {
-	    my $e = $@ ;
-	    my $msg = $e ? $e->full_message : '' ;
-	    Config::Model::Exception::Model
-		-> throw (
-			  object => $arg[0],
-			  error => "Compute argument '$name', error with '$path':\n"
-                                 . $msg
-			 ) ;
-         }
-
-         # print "fetched var object '$name' with '$path', result '", defined $return ? $return : 'undef',"'\n";
-
-     }
-     # my_res stays undef if $path if not defined
-
-     # quote result if asked when calling compute
-     my $quote = $arg[4] || 0;
-     $my_res = "'$my_res'" if $quote && $my_res ;
-
-     $return = \$my_res ; # So I can return undef ... or a ref to undef
-    1 ;
+    $return = Config::Model::ValueComputer::_value_from_object($item{object},@arg ) ;
+    1;
   }
   |  <skip:''> /[^\$]*/ { 
      my $result = $item[-1] ;
@@ -747,6 +833,7 @@ function: <skip:''> '&' /\w+/
 END_OF_GRAMMAR
 
 1;
+
 
 __END__
 

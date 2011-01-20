@@ -27,7 +27,7 @@
 
 package Config::Model::Node;
 BEGIN {
-  $Config::Model::Node::VERSION = '1.229';
+  $Config::Model::Node::VERSION = '1.230';
 }
 use Carp ;
 use strict;
@@ -68,7 +68,7 @@ Config::Model::Node - Class for configuration tree node
 
 =head1 VERSION
 
-version 1.229
+version 1.230
 
 =head1 SYNOPSIS
 
@@ -749,15 +749,17 @@ sub find_element {
     my ($self,$name, %args ) = @_ ;
     croak "find_element: missing element name" unless defined $name ;
 
-    $self->accept_element($name);
-    return $name if defined $self->{model}{element}{$name} ;
-
-    # now look for a close element playing with cases;
+    # look for a close element playing with cases;
     if (defined $args{case} and $args{case} eq 'any') {
         foreach my $elt (keys %{$self->{model}{element}}) {
             return $elt if lc($elt) eq lc ($name) ;
         }
     }
+
+    # now look if the element can be accepted
+    $self->accept_element($name);
+    return $name if defined $self->{model}{element}{$name} ;
+
     return ;
 }
 

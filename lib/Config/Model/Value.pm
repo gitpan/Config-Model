@@ -27,7 +27,7 @@
 
 package Config::Model::Value ;
 BEGIN {
-  $Config::Model::Value::VERSION = '1.229';
+  $Config::Model::Value::VERSION = '1.230';
 }
 use warnings ;
 use strict;
@@ -51,7 +51,7 @@ Config::Model::Value - Strongly typed configuration value
 
 =head1 VERSION
 
-version 1.229
+version 1.230
 
 =head1 SYNOPSIS
 
@@ -366,6 +366,7 @@ sub set_migrate_from {
 	      variables    => $mig_ref->{variables} ,
 	      replace      => $mig_ref->{replace},
 	      use_eval     => $mig_ref->{use_eval},
+	      undef_is     => $mig_ref->{undef_is},
 	      value_object => $self ,
 	      value_type   => $self->{value_type}
 	     );

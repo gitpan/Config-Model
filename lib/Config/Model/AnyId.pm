@@ -7,7 +7,7 @@
 #
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
-#    Copyright (c) 2005-2010 Dominique Dumont.
+#    Copyright (c) 2005-2011 Dominique Dumont.
 #
 #    This file is part of Config-Model.
 #
@@ -27,7 +27,7 @@
 
 package Config::Model::AnyId ;
 BEGIN {
-  $Config::Model::AnyId::VERSION = '1.229';
+  $Config::Model::AnyId::VERSION = '1.230';
 }
 use Config::Model::Exception ;
 use Scalar::Util qw(weaken) ;
@@ -54,7 +54,7 @@ Config::Model::AnyId - Base class for hash or list element
 
 =head1 VERSION
 
-version 1.229
+version 1.230
 
 =head1 SYNOPSIS
 
@@ -226,6 +226,13 @@ To perform special set-up on children nodes you can also use
                            'bar' => 'Y=Av Z=Cv' }
 
 
+=item migrate_keys_from
+
+Specifies that the keys of the hash or list are copied from another hash or list in
+the configuration tree only when the hash is created. 
+
+   migrate_keys_from => '- another_hash_or_list'
+
 =item follow_keys_from
 
 Specifies that the keys of the hash follow the keys of another hash in
@@ -258,8 +265,8 @@ Keys must match the specified regular expression. For instance:
 When set, the default parameter (or set of parameters) are used as
 keys hashes and created automatically. (valid only for hash elements)
 
-Called with C<< auto_create => 'foo' >>, or 
-C<< auto_create => ['foo', 'bar'] >>.
+Called with C<< auto_create_keys => ['foo'] >>, or 
+C<< auto_create_keys => ['foo', 'bar'] >>.
 
 =item warn_if_key_match
 
@@ -272,7 +279,7 @@ Issue a warning unless the key matches the specified regular expression
 =item auto_create_ids
 
 Specifies the number of elements to create automatically. E.g.  C<<
-auto_create => 4 >> will initialize the list with 4 undef elements.
+auto_create_ids => 4 >> will initialize the list with 4 undef elements.
 (valid only for list elements)
 
 =item warp
@@ -344,9 +351,9 @@ auto created.
 For instance, if a tied hash is created with 
 C<< auto_create => [a,b,c] >>, the hash contains C<(a,b,c)>.
 
-Then if a warp is applied with C<< auto_create => [c,d,e] >>, the hash
+Then if a warp is applied with C<< auto_create_keys => [c,d,e] >>, the hash
 will contain C<(a,b,c,d,e)>. The items created by the first
-auto_create are not removed.
+auto_create_keys are not removed.
 
 =head2 Warp and max_nb
 
@@ -359,7 +366,8 @@ leads to a nb of items greater than the max_nb constraint.
 =cut
 
 my @common_params =  qw/min_index max_index max_nb default_with_init default_keys
-                        follow_keys_from auto_create_ids auto_create_keys
+                        follow_keys_from migrate_keys_from 
+                        auto_create_ids auto_create_keys
                         allow_keys allow_keys_from allow_keys_matching
                         warn_if_key_match warn_unless_key_match/ ;
 
@@ -555,11 +563,13 @@ sub get_cargo_info {
 # internal, does a grab with improved error mesage
 sub safe_typed_grab {
   my $self  = shift ;
-  my $param = shift ;
+  my %args = @_ ;
+  my $param = $args{param} || croak "safe_typed_grab: missing param" ;
 
   my $res = eval {
     $self->grab(step => $self->{$param},
                 type => $self->get_type,
+                check => $args{check} || 'yes' ,
                ) ;
   };
 
@@ -589,11 +599,17 @@ sub get_default_keys {
     my $self = shift ;
 
     if ($self->{follow_keys_from}) {
-        my $followed = $self->safe_typed_grab('follow_keys_from') ;
-        return [ $followed -> get_all_indexes ];
+        my $followed = $self->safe_typed_grab(param => 'follow_keys_from') ;
+        my @res = $followed -> get_all_indexes ;
+        return wantarray ? @res : \@res ;
     }
 
     my @res ;
+
+    if ($self->{migrate_keys_from}) {
+        my $followed = $self->safe_typed_grab(param => 'migrate_keys_from', check => 'no') ;
+        push @res , $followed -> get_all_indexes ;
+    }
 
     push @res , @{ $self->{default_keys} }
       if defined $self->{default_keys} ;
@@ -720,7 +736,7 @@ sub check {
 sub check_follow_keys_from {
     my ($self,$idx,$error) = @_ ; 
 
-    my $followed = $self->safe_typed_grab('follow_keys_from') ;
+    my $followed = $self->safe_typed_grab(param => 'follow_keys_from') ;
     return if $followed->exists($idx) ;
 
     push @$error, "key '$idx' does not exists in '".$followed->name 
@@ -751,7 +767,7 @@ sub check_allow_keys_matching {
 sub check_allow_keys_from {
     my ($self,$idx,$error) = @_ ; 
 
-    my $from = $self->safe_typed_grab('allow_keys_from');
+    my $from = $self->safe_typed_grab(param => 'allow_keys_from');
     my $ok = grep { $_ eq $idx } $from->get_all_indexes ;
 
     return if $ok ;
@@ -968,6 +984,7 @@ sub get_all_indexes {
     my $self = shift;
     $self->create_default if (   defined $self->{default_keys}
                               or defined $self->{default_with_init}
+                              or defined $self->{migrate_keys_from}
                               or defined $self->{follow_keys_from});
     return $self->_get_all_indexes ;
 }

@@ -28,7 +28,7 @@
 
 package Config::Model::AutoRead ;
 BEGIN {
-  $Config::Model::AutoRead::VERSION = '1.229';
+  $Config::Model::AutoRead::VERSION = '1.230';
 }
 use Carp;
 use strict;
@@ -471,7 +471,8 @@ sub close_file_to_write {
         $fh->seek(0,0) ; # go back to beginning of file
         $fh->print(@$data);
         $fh->close;
-        $error->rethrow ;
+        $error->rethrow if ref ($error);
+        die $error ;
     }
 
     $fh->close;
@@ -541,7 +542,7 @@ Config::Model::AutoRead - Load configuration node on demand
 
 =head1 VERSION
 
-version 1.229
+version 1.230
 
 =head1 SYNOPSIS
 

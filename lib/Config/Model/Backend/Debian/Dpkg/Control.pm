@@ -10,7 +10,7 @@
 
 package Config::Model::Backend::Debian::Dpkg::Control ;
 BEGIN {
-  $Config::Model::Backend::Debian::Dpkg::Control::VERSION = '1.229';
+  $Config::Model::Backend::Debian::Dpkg::Control::VERSION = '1.230';
 }
 
 use Moose ;
@@ -99,9 +99,13 @@ sub read_section {
         $logger->debug("$key value: $v");
         my $type = $node->element_type($key) ;
         my $elt_obj = $node->fetch_element($key) ;
+        $v =~ s/^\s*\n//;
+        chomp $v;
 
         if ($type eq 'list') {
             my @v = split /[\s\n]*,[\s\n]*/, $v ;
+            chomp @v ;
+            $logger->debug("list $key store set '".join("','",@v)."'");
             $elt_obj->store_set(@v) ;
         }
         elsif (my $found = $node->find_element($key, case => 'any')) { 
@@ -181,7 +185,7 @@ Config::Model::Backend::Debian::Dpkg::Control - Read and write Debian Dpkg contr
 
 =head1 VERSION
 
-version 1.229
+version 1.230
 
 =head1 SYNOPSIS
 

@@ -27,7 +27,7 @@
 
 package Config::Model::AnyThing;
 BEGIN {
-  $Config::Model::AnyThing::VERSION = '1.229';
+  $Config::Model::AnyThing::VERSION = '1.230';
 }
 use Scalar::Util qw(weaken);
 use Carp;
@@ -42,7 +42,7 @@ Config::Model::AnyThing - Base class for configuration tree item
 
 =head1 VERSION
 
-version 1.229
+version 1.230
 
 =head1 SYNOPSIS
 
@@ -355,7 +355,8 @@ sub grab {
     my @found = ($self) ;
 
   COMMAND:
-    while( my $cmd = shift @command) {
+    while ( @command ) {
+	my $cmd = shift @command ;
 	my $obj = $found[-1] ;
         $logger->debug( "grab: executing cmd '$cmd' on object '",$obj->name, "($obj)'");
 
