@@ -79,6 +79,7 @@ my $build = Module::Build -> new
     'Parse::RecDescent' => '1.90.0',
     'Scalar::Util' => '0',
     'Term::ReadLine' => '0',
+    'Text::Autoformat' => '0',
     'YAML::Any' => '0.303'
   },
 

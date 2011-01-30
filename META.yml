@@ -36,9 +36,10 @@ requires:
   Parse::RecDescent: 1.90.0
   Scalar::Util: 0
   Term::ReadLine: 0
+  Text::Autoformat: 0
   YAML::Any: 0.303
 resources:
   bugtracker: http://rt.cpan.org/NoAuth/Bugs.html?Dist=Config-Model
   homepage: http://config-model.wiki.sourceforge.net
   repository: http://config-model.hg.sourceforge.net:8000/hgroot/config-model/config-model
-version: 1.231
+version: 1.232
