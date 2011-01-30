@@ -27,7 +27,7 @@
 
 package Config::Model::ValueComputer ;
 BEGIN {
-  $Config::Model::ValueComputer::VERSION = '1.230';
+  $Config::Model::ValueComputer::VERSION = '1.231';
 }
 
 use warnings ;
@@ -48,7 +48,7 @@ Config::Model::ValueComputer - Provides configuration value computation
 
 =head1 VERSION
 
-version 1.230
+version 1.231
 
 =head1 SYNOPSIS
 
@@ -116,7 +116,7 @@ computation uses a formula and some other configuration values from
 the configuration tree.
 
 The computed value can be overridden, in other words, the computed
-value can be used as a defult value.
+value can be used as a default value.
 
 =head1 Computed value declaration
 
@@ -189,7 +189,7 @@ For instance, you could have this template string:
    'my element is &element, my index is &index' .
     'upper element is &element($up), upper index is &index($up)',
 
-If you need to perform more complex operations than substition, like
+If you need to perform more complex operations than substitution, like
 extraction with regular expressions, you can force an eval done by
 Perl with C<< use_eval => 1 >>. In this case, the result of the eval
 will be used as the computed value.
@@ -318,7 +318,7 @@ variable is undefined.
 You may change this behavior with C<undef_is> parameter. Depending on your formula and whether C<use_eval> 
 is true or not, you may specify a "fallback" value that will be used in your formula.
 
-The most usefull will probably be: 
+The most useful will probably be: 
 
  undef_is => "''", # for string values
  undef_is => 0   , # for integers, boolean values

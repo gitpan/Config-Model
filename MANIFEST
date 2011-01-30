@@ -32,6 +32,7 @@ lib/Config/Model/Backend/Debian/Dpkg/Copyright.pm
 lib/Config/Model/Backend/Debian/DpkgSyntax.pm
 lib/Config/Model/Backend/Fstab.pm
 lib/Config/Model/Backend/IniFile.pm
+lib/Config/Model/Backend/PlainFile.pm
 lib/Config/Model/Backend/ShellVar.pm
 lib/Config/Model/Backend/Yaml.pm
 lib/Config/Model/CheckList.pm
@@ -60,14 +61,17 @@ lib/Config/Model/ValueComputer.pm
 lib/Config/Model/WarpedNode.pm
 lib/Config/Model/WarpedThing.pm
 lib/Config/Model/WizardHelper.pm
+lib/Config/Model/application.d/dpkg
 lib/Config/Model/application.d/dpkg-control
 lib/Config/Model/application.d/dpkg-copyright
+lib/Config/Model/models/Debian/Dpkg.pl
 lib/Config/Model/models/Debian/Dpkg/Control.pl
 lib/Config/Model/models/Debian/Dpkg/Control/Binary.pl
 lib/Config/Model/models/Debian/Dpkg/Control/Source.pl
 lib/Config/Model/models/Debian/Dpkg/Copyright.pl
 lib/Config/Model/models/Debian/Dpkg/Copyright/Content.pl
 lib/Config/Model/models/Debian/Dpkg/Copyright/License.pl
+lib/Config/Model/models/Debian/Dpkg/Source.pl
 lib/Config/Model/models/Fstab.pl
 lib/Config/Model/models/Fstab/CommonOptions.pl
 lib/Config/Model/models/Fstab/Ext2FsOpt.pl
@@ -81,6 +85,7 @@ lib/Config/Model/models/Fstab/UsbFsOptions.pl
 lib/Config/Model/models/PopCon.pl
 lib/Config/Model/system.d/fstab
 lib/Config/Model/system.d/popcon
+patch
 t/accept.t
 t/annotation.t
 t/array_id.t
@@ -88,6 +93,7 @@ t/augment_class.t
 t/auto_load_model.t
 t/auto_read.t
 t/backend_fstab.t
+t/backend_plainfile.t
 t/big_model.pm
 t/check_list.t
 t/config-edit-command.t
@@ -129,6 +135,7 @@ t/obj_tree_scanner.t
 t/pod.t
 t/popcon_config.t
 t/recursive_warp_value.t
+t/release-pod-spell.t
 t/release-pod-syntax.t
 t/report.t
 t/search_element.t

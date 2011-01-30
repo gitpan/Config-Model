@@ -28,7 +28,7 @@
 
 package Config::Model::Dumper;
 BEGIN {
-  $Config::Model::Dumper::VERSION = '1.230';
+  $Config::Model::Dumper::VERSION = '1.231';
 }
 use Carp;
 use strict;
@@ -43,7 +43,7 @@ Config::Model::Dumper - Serialize data of config tree
 
 =head1 VERSION
 
-version 1.230
+version 1.231
 
 =head1 SYNOPSIS
 
@@ -75,7 +75,7 @@ version 1.230
 This module is used directly by L<Config::Model::Node> to serialize 
 configuration data in a compact (but readable) string.
 
-The serialisation can be done in standard mode where only customized
+The serialization can be done in standard mode where only customized
 values are dumped in the string. I.e. only data modified by the user
 are dumped.
 

@@ -27,7 +27,7 @@
 
 package Config::Model::Annotation;
 BEGIN {
-  $Config::Model::Annotation::VERSION = '1.230';
+  $Config::Model::Annotation::VERSION = '1.231';
 }
 
 use Moose ;
@@ -57,7 +57,7 @@ Config::Model::Annotation - Read and write configuration annotations
 
 =head1 VERSION
 
-version 1.230
+version 1.231
 
 =head1 SYNOPSIS
 

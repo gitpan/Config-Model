@@ -7,7 +7,7 @@
 #
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
-#    Copyright (c) 2010 Dominique Dumont.
+#    Copyright (c) 2011 Dominique Dumont.
 #
 #    This file is part of Config-Model.
 #
@@ -25,9 +25,9 @@
 #    along with Config-Model; if not, write to the Free Software
 #    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 
-package Config::Model::Backend::ShellVar ;
+package Config::Model::Backend::PlainFile ;
 BEGIN {
-  $Config::Model::Backend::ShellVar::VERSION = '1.231';
+  $Config::Model::Backend::PlainFile::VERSION = '1.231';
 }
 
 use Carp;
@@ -39,11 +39,13 @@ use Log::Log4perl qw(get_logger :levels);
 
 extends 'Config::Model::Backend::Any';
 
-my $logger = get_logger("Backend::ShellVar") ;
+my $logger = get_logger("Backend::PlainFile") ;
 
-sub suffix { return '.conf' ; }
+sub suffix { return '' ; }
 
-sub annotation { return 1 ;}
+sub annotation { return 0 ;}
+
+sub skip_open { 1;}
 
 sub read {
     my $self = shift ;
@@ -58,28 +60,25 @@ sub read {
     # io_handle  => $io           # IO::File object
     # check      => yes|no|skip
 
-    return 0 unless defined $args{io_handle} ; # no file to read
     my $check = $args{check} || 'yes' ;
+    my $dir = $args{config_dir} ;
+    my $node = $args{object} ;
+    $logger->debug("PlainFile read called on node", $node->name);
 
-    my @lines = $args{io_handle}->getlines ;
-    # try to get global comments (comments before a blank line)
-    $self->read_global_comments(\@lines,'#') ;
-
-    my @comments ;
-    foreach (@lines) {
-        next if /^##/ ;		  # remove comments added by Config::Model
-        chomp ;
-
-        my ($data,$comment) = split /\s*#\s?/ ;
-
-        push @comments, $comment        if defined $comment ;
-
-        if (defined $data and $data ) {
-            $data .= '#"'.join("\n",@comments).'"' if @comments ;
-            $logger->debug("Loading:$data\n");
-            $self->node->load(step => $data, check => $check) ;
-            @comments = () ;
-        }
+    # read data from leaf element from the node
+    foreach my $elt ($node->get_element_name(type => 'leaf') ) {
+        my $file = $args{root}.$dir.$elt ;
+        $logger->trace("Looking for plainfile $file");
+        next unless -e $file ;
+        
+        my $fh = new IO::File;
+        $fh->open($file) or die "Cannot open $file:$!" ;
+        $fh->binmode(":utf8");
+        my $v = join('',$fh->getlines) ;
+        my $leaf = $args{object}->fetch_element(name => $elt) ;
+        chomp $v unless $leaf->value_type eq 'string';
+        $leaf->store(value => $v, check => $args{check} ) ;
+        $fh->close;
     }
 
     return 1 ;
@@ -92,50 +91,31 @@ sub write {
     # args are:
     # object     => $obj,         # Config::Model::Node object 
     # root       => './my_test',  # fake root directory, userd for tests
-    # config_dir => /etc/foo',    # absolute path 
+    # config_dir => /etc/foo',    # absolute path read
     # file       => 'foo.conf',   # file name
     # file_path  => './my_test/etc/foo/foo.conf' 
     # io_handle  => $io           # IO::File object
     # check      => yes|no|skip
 
-    my $ioh = $args{io_handle} ;
+    my $check = $args{check} || 'yes' ;
+    my $dir = $args{config_dir} ;
+    mkpath($dir, { mode => 0755 } ) unless -d $dir ;
     my $node = $args{object} ;
+    $logger->debug("PlainFile write called on node ", $node->name);
 
-    croak "Undefined file handle to write" unless defined $ioh;
-
-    $ioh->print("## This file was written by Config::Model\n");
-    $ioh->print("## You may modify the content of this file. Configuration \n");
-    $ioh->print("## modifications will be preserved. Modifications in\n");
-    $ioh->print("## comments may be mangled.\n##\n");
-
-    # write global comment
-    my $global_note = $node->annotation ;
-    if ($global_note) {
-        map { $ioh->print("# $_\n") } split /\n/,$global_note ;
-        $ioh->print("\n") ;
-    }
-
-    # Using Config::Model::ObjTreeScanner would be overkill
-    foreach my $elt ($node->get_element_name) {
-        my $obj =  $node->fetch_element($elt) ;
-        my $v = $node->grab_value($elt) ;
-
-        # write some documentation in comments
-        my $help = $node->get_help(summary => $elt);
-        my $upstream_default = $obj -> fetch('upstream_default') ;
-        $help .=" ($upstream_default)" if defined $upstream_default;
-        $ioh->print("## $elt: $help\n") if $help;
-
-
-        # write annotation
-        my $note = $obj->annotation ;
-        if ($note) {
-            map { $ioh->print("# $_\n") } split /\n/,$note ;
-        }
-
-        # write value
-        $ioh->print(qq!$elt="$v"\n!) if defined $v ;
-        $ioh->print("\n") if defined $v or $help;
+    # write data from leaf element from the node
+    foreach my $elt ($node->get_element_name() ) {
+        my $file = $args{root}.$dir.$elt ;
+        $logger->trace("PlainFile write opening $file to write");
+        
+        my $fh = new IO::File;
+        $fh->open($file , '>') or die "Cannot open $file:$!" ;
+        $fh->binmode(":utf8");
+        my $leaf = $args{object}->fetch_element(name => $elt) ;
+        my $v = $leaf->fetch(check => $args{check} ) ;
+        $v .= "\n" unless $leaf->value_type eq 'string';
+        $fh->print($v) ;
+        $fh->close;
     }
 
     return 1;
@@ -150,7 +130,7 @@ __END__
 
 =head1 NAME
 
-Config::Model::Backend::ShellVar - Read and write config as a C<SHELLVAR> data structure
+Config::Model::Backend::PlainFile - Read and write config as plain file
 
 =head1 VERSION
 
@@ -162,10 +142,8 @@ version 1.231
   name => 'FooConfig',
 
   read_config  => [
-                    { backend => 'shellvar' , 
+                    { backend => 'plainfile' , 
                       config_dir => '/etc/foo',
-                      file  => 'foo.conf',      # optional
-                      auto_create => 1,         # optional
                     }
                   ],
 
@@ -176,8 +154,8 @@ version 1.231
 =head1 DESCRIPTION
 
 This module is used directly by L<Config::Model> to read or write the
-content of a configuration tree written with C<SHELLVAR> syntax in
-C<Config::Model> configuration tree.
+content of a configuration tree written in several files. In this case 
+each leaf element of the node is written in a plain file.
 
 Note that undefined values are skipped for list element. I.e. if a
 list element contains C<('a',undef,'b')>, the data structure will
@@ -186,7 +164,7 @@ contain C<'a','b'>.
 
 =head1 CONSTRUCTOR
 
-=head2 new ( node => $node_obj, name => 'shellvar' ) ;
+=head2 new ( node => $node_obj, name => 'plain_file' ) ;
 
 Inherited from L<Config::Model::Backend::Any>. The constructor will be
 called by L<Config::Model::AutoRead>.

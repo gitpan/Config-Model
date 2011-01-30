@@ -27,7 +27,7 @@
 
 package Config::Model::Node;
 BEGIN {
-  $Config::Model::Node::VERSION = '1.230';
+  $Config::Model::Node::VERSION = '1.231';
 }
 use Carp ;
 use strict;
@@ -68,7 +68,7 @@ Config::Model::Node - Class for configuration tree node
 
 =head1 VERSION
 
-version 1.230
+version 1.231
 
 =head1 SYNOPSIS
 
@@ -244,7 +244,7 @@ Example:
     },
   ]
 
-All C<element> parameters can be used in specifuing accepted parameters.
+All C<element> parameters can be used in specifying accepted parameters.
 
 =for html
 <p>For more information, see <a href="http://ddumont.wordpress.com/2010/05/19/improve-config-upgrade-ep-02-minimal-model-for-opensshs-sshd_config/">this blog<\a>.</p>
@@ -329,7 +329,7 @@ sub create_element {
 
 =item C<node>
 
-The element is a simple node of a tree instanciated from a 
+The element is a simple node of a tree instantiated from a 
 configuration class (declared with 
 L<Config::Model/"create_config_class( ... )">). 
 See L</"Node element">.
@@ -716,20 +716,26 @@ for my $datum (qw/config_model model config_class_name/) {
     } ;
 }
 
-=head2 has_element ( element_name )
+=head2 has_element ( name => element_name, [ type => searched_type ] )
 
 Returns 1 if the class model has the element declared or if the element 
-name is matched by the optional C<accept> parameter. 
+name is matched by the optional C<accept> parameter. If C<type> is specified, the 
+element name must also match the type.
 
 =cut
 
 # should I autovivify this element: NO
 sub has_element {
-    my ($self,$name) = @_ ;
+    my $self = shift ;
+    my %args = ( @_ > 1 ) ? @_ : ( name => shift ) ;
+    my $name = $args{name};
+    my $type = $args{type} ;
     croak "has_element: missing element name" unless defined $name ;
 
     $self->accept_element($name);
-    return defined $self->{model}{element}{$name} ? 1 : 0 ;
+    return 0 unless defined $self->{model}{element}{$name} ;
+    return 1 unless defined $type ;
+    return $self->{model}{element}{$name}{type} eq $type ? 1 : 0 ;
 }
 
 =head2 find_element ( element_name , [ case => any ])
@@ -837,9 +843,9 @@ See L<Config::Model::AnyThing/"location()">
 
 Return all elements names available for C<experience>.
 If no experience is specified, will return all
-slots available at 'master' level (I.e all elements).
+elements available at 'master' level (I.e all elements).
 
-Optional paremeters are:
+Optional parameters are:
 
 =over
 
@@ -1288,7 +1294,7 @@ sub is_element_available {
 =head2 accept_element( name )
 
 Checks and returns the appropriate model of an acceptable element 
-(be it explicetely declared, or part of an C<accept> declaration).
+(be it explicitly declared, or part of an C<accept> declaration).
 Returns undef if the element cannot be accepted.
 
 =cut
@@ -1430,7 +1436,7 @@ sub set {
     }
 }
 
-=head1 Serialisation
+=head1 Serialization
 
 =head2 load ( step => string [, experience => ... ] )
 
@@ -1610,7 +1616,7 @@ sub dump_tree {
 
 =head2 describe ( [ element => ... ] )
 
-Provides a decription of the node elements or of one element.
+Provides a description of the node elements or of one element.
 
 =cut
 
@@ -1711,8 +1717,6 @@ sub get_help {
 As configuration model are getting bigger, the load time of a tree
 gets longer. The L<Config::Model::AutoRead> class provides a way to
 load the configuration information only when needed.
-
-TBD
 
 =head1 AUTHOR
 

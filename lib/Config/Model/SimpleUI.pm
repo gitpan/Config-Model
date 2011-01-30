@@ -29,7 +29,7 @@
 
 package Config::Model::SimpleUI ;
 BEGIN {
-  $Config::Model::SimpleUI::VERSION = '1.230';
+  $Config::Model::SimpleUI::VERSION = '1.231';
 }
 
 use Carp;
@@ -43,7 +43,7 @@ Config::Model::SimpleUI - Simple interface for Config::Model
 
 =head1 VERSION
 
-version 1.230
+version 1.231
 
 =head1 SYNOPSIS
 
@@ -62,7 +62,7 @@ version 1.230
 
 =head1 DESCRIPTION
 
-This module provides a pure ascii user interface using STDIN and
+This module provides a pure ASCII user interface using STDIN and
 STDOUT.
 
 =head1 USER COMMAND SYNTAX

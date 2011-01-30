@@ -10,7 +10,7 @@
 
 package Config::Model::Backend::Debian::Dpkg::Control ;
 BEGIN {
-  $Config::Model::Backend::Debian::Dpkg::Control::VERSION = '1.230';
+  $Config::Model::Backend::Debian::Dpkg::Control::VERSION = '1.231';
 }
 
 use Moose ;
@@ -109,8 +109,14 @@ sub read_section {
             $elt_obj->store_set(@v) ;
         }
         elsif (my $found = $node->find_element($key, case => 'any')) { 
-            $logger->debug("found $key value: $v");
-            $node->fetch_element($found)->store(value => $v, check => $check ) ;
+            my @elt = ($found);
+            my @v = ($found eq 'Description') ? (split /\n/,$v,2) : ($v) ;
+            unshift @elt, 'Synopsis' if $found eq 'Description' ;
+            foreach (@elt) {
+                my $sub_v = shift @v ;
+                $logger->debug("storing $_  value: $sub_v");
+                $node->fetch_element($_)->store(value => $sub_v, check => $check ) ;
+            }
         }
         else {
             # try anyway to trigger an error message
@@ -155,6 +161,7 @@ sub package_spec {
     my ( $self, $node ) = @_ ;
 
     my @section ;
+    my $description_ref ;
     foreach my $elt ($node->get_element_name ) {
         my $type = $node->element_type($elt) ;
         my $elt_obj = $node->fetch_element($elt) ;
@@ -165,6 +172,14 @@ sub package_spec {
         elsif ($type eq 'list') {
             my @v = $elt_obj->fetch_all_values ;
             push @section, $elt , \@v if @v;
+        }
+        elsif ($elt eq 'Synopsis') {
+            my $v = $node->fetch_element_value($elt) ;
+            push @section, 'Description' , $v ; # mandatory field
+            $description_ref = \$section[$#section] ;
+        }
+        elsif ($elt eq 'Description') {
+            $$description_ref .= "\n".$node->fetch_element_value($elt) ; # mandatory field
         }
         else {
             my $v = $node->fetch_element_value($elt) ;
@@ -185,7 +200,7 @@ Config::Model::Backend::Debian::Dpkg::Control - Read and write Debian Dpkg contr
 
 =head1 VERSION
 
-version 1.230
+version 1.231
 
 =head1 SYNOPSIS
 
@@ -231,7 +246,7 @@ When a file is read,  C<read()> will return 1.
 =head2 write ( io_handle => ... )
 
 Of all parameters passed to this write call-back, only C<io_handle> is
-used. This parameter must be L<IO::File> object alwritey opened for
+used. This parameter must be L<IO::File> object already opened for
 write. 
 
 C<write()> will return 1.

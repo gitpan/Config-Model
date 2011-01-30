@@ -9,7 +9,7 @@
 #
 package Config::Model::Backend::Fstab ;
 BEGIN {
-  $Config::Model::Backend::Fstab::VERSION = '1.230';
+  $Config::Model::Backend::Fstab::VERSION = '1.231';
 }
 use Moose ;
 use Carp ;
@@ -183,7 +183,7 @@ Config::Model::Backend::Fstab - Read and write config from fstab file
 
 =head1 VERSION
 
-version 1.230
+version 1.231
 
 =head1 SYNOPSIS
 
@@ -204,7 +204,7 @@ version 1.230
 =head1 DESCRIPTION
 
 This module is used directly by L<Config::Model> to read or write the
-content of a configuration tree written with fstab syntax in
+content of a configuration tree written with C<fstab> syntax in
 C<Config::Model> configuration tree. Typically this backend will 
 be used to read and write C</etc/fstab>.
 
@@ -233,7 +233,7 @@ When a file is read,  C<read()> will return 1.
 =head2 write ( io_handle => ... )
 
 Of all parameters passed to this write call-back, only C<io_handle> is
-used. This parameter must be L<IO::File> object alwritey opened for
+used. This parameter must be L<IO::File> object already opened for
 write. 
 
 C<write()> will return 1.

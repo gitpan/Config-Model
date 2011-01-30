@@ -28,7 +28,7 @@
 
 package Config::Model::Exception ;
 BEGIN {
-  $Config::Model::Exception::VERSION = '1.230';
+  $Config::Model::Exception::VERSION = '1.231';
 }
 use warnings ;
 use strict;
@@ -150,7 +150,7 @@ Config::Model::Exception::Internal->Trace(1);
 
 package Config::Model::Exception::Syntax ;
 BEGIN {
-  $Config::Model::Exception::Syntax::VERSION = '1.230';
+  $Config::Model::Exception::Syntax::VERSION = '1.231';
 }
 
 sub full_message {
@@ -166,7 +166,7 @@ sub full_message {
 
 package Config::Model::Exception::Any ;
 BEGIN {
-  $Config::Model::Exception::Any::VERSION = '1.230';
+  $Config::Model::Exception::Any::VERSION = '1.231';
 }
 
 sub full_message {
@@ -197,7 +197,7 @@ sub xpath_message {
 
 package Config::Model::Exception::LoadData ;
 BEGIN {
-  $Config::Model::Exception::LoadData::VERSION = '1.230';
+  $Config::Model::Exception::LoadData::VERSION = '1.231';
 }
 
 sub full_message {
@@ -217,7 +217,7 @@ sub full_message {
 
 package Config::Model::Exception::Model ;
 BEGIN {
-  $Config::Model::Exception::Model::VERSION = '1.230';
+  $Config::Model::Exception::Model::VERSION = '1.231';
 }
 
 sub full_message {
@@ -243,7 +243,7 @@ sub full_message {
 
 package Config::Model::Exception::Load ;
 BEGIN {
-  $Config::Model::Exception::Load::VERSION = '1.230';
+  $Config::Model::Exception::Load::VERSION = '1.231';
 }
 
 sub full_message {
@@ -261,7 +261,7 @@ sub full_message {
 
 package Config::Model::Exception::RestrictedElement ;
 BEGIN {
-  $Config::Model::Exception::RestrictedElement::VERSION = '1.230';
+  $Config::Model::Exception::RestrictedElement::VERSION = '1.231';
 }
 
 sub full_message {
@@ -281,7 +281,7 @@ sub full_message {
 
 package Config::Model::Exception::UnavailableElement ;
 BEGIN {
-  $Config::Model::Exception::UnavailableElement::VERSION = '1.230';
+  $Config::Model::Exception::UnavailableElement::VERSION = '1.231';
 }
 
 sub full_message {
@@ -295,7 +295,7 @@ sub full_message {
     my $unavail = $obj->fetch_element(name => $element, experience => 'master',	
 				      check => 'no', accept_hidden => 1) ;
     $msg .= " '$element' in node '$location'.\n" ;
-    $msg .= "\tError occured when calling $function.\n" if defined $function ;
+    $msg .= "\tError occurred when calling $function.\n" if defined $function ;
     $msg .= "\t".$unavail->warp_error if $unavail->can('warp_error');
 
     $msg .= "\t".$self->info."\n" if defined $self->info ;
@@ -304,7 +304,7 @@ sub full_message {
 
 package Config::Model::Exception::ObsoleteElement ;
 BEGIN {
-  $Config::Model::Exception::ObsoleteElement::VERSION = '1.230';
+  $Config::Model::Exception::ObsoleteElement::VERSION = '1.231';
 }
 
 sub full_message {
@@ -326,7 +326,7 @@ sub full_message {
 
 package Config::Model::Exception::UnknownElement ;
 BEGIN {
-  $Config::Model::Exception::UnknownElement::VERSION = '1.230';
+  $Config::Model::Exception::UnknownElement::VERSION = '1.231';
 }
 use Carp;
 
@@ -385,7 +385,7 @@ sub full_message {
 
 package Config::Model::Exception::UnknownId ;
 BEGIN {
-  $Config::Model::Exception::UnknownId::VERSION = '1.230';
+  $Config::Model::Exception::UnknownId::VERSION = '1.231';
 }
 
 sub full_message {
@@ -414,7 +414,7 @@ sub full_message {
 
 package Config::Model::Exception::WrongType ;
 BEGIN {
-  $Config::Model::Exception::WrongType::VERSION = '1.230';
+  $Config::Model::Exception::WrongType::VERSION = '1.231';
 }
 
 sub full_message {
@@ -438,7 +438,7 @@ sub full_message {
 
 package Config::Model::Exception::Xml ;
 BEGIN {
-  $Config::Model::Exception::Xml::VERSION = '1.230';
+  $Config::Model::Exception::Xml::VERSION = '1.231';
 }
 
 sub full_message {
@@ -466,7 +466,7 @@ Config::Model::Exception - Exception mechanism for configuration model
 
 =head1 VERSION
 
-version 1.230
+version 1.231
 
 =head1 SYNOPSIS
 
@@ -491,7 +491,7 @@ You must read L<Exception::Class> before reading on.
 
 This module creates all the exception class used by L<Config::Model>.
 
-All expection class name begins with C<Config::Model::Exception::>
+All exception class name begins with C<Config::Model::Exception::>
 
 The exception classes are:
 
@@ -500,8 +500,8 @@ The exception classes are:
 =item C<Any>
 
 Base class. It accepts an C<object> argument. The user must pass the
-reference of the object where the exception occured. The object name
-(or xpath) will be used to generate the error message.
+reference of the object where the exception occurred. The object name
+will be used to generate the error message.
 
 =back
 
@@ -510,7 +510,7 @@ reference of the object where the exception occured. The object name
 =head1 How to get trace
 
 By default, most of the exceptions will not print out the stack
-trace. For debug purpose, you can force a strack trace.
+trace. For debug purpose, you can force a stack trace.
 
 For instance, if you want a stack trace for an "unknown element"
 error, you must add this line in your script:

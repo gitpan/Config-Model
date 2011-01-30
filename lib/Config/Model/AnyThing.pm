@@ -27,7 +27,7 @@
 
 package Config::Model::AnyThing;
 BEGIN {
-  $Config::Model::AnyThing::VERSION = '1.230';
+  $Config::Model::AnyThing::VERSION = '1.231';
 }
 use Scalar::Util qw(weaken);
 use Carp;
@@ -42,7 +42,7 @@ Config::Model::AnyThing - Base class for configuration tree item
 
 =head1 VERSION
 
-version 1.230
+version 1.231
 
 =head1 SYNOPSIS
 
@@ -221,26 +221,26 @@ Parameters are:
 
 =over
 
-=item step
+=item C<step>
 
 A string indicating the steps to follow in the tree to find the
 required item. (mandatory)
 
-=item strict
+=item C<strict>
 
 When set to 1, C<grab> will throw an exception if no object is found
 using the passed string. When set to 0, the object found at last will
 be returned. For instance, for the step C<good_step wrong_step>, only
 the object held by C<good_step> will be returned. (default is 1)
 
-=item type 
+=item C<type>
 
 Either C<node>, C<leaf>, C<hash> or C<list>. Returns only an object of
 requested type. Depending on C<strict> value, C<grab> will either
 throw an exception or return the last found object of requested type.
 (optional, default to C<undef>, which means any type of object)
 
-=item autoadd
+=item C<autoadd>
 
 When set to 1, C<hash> or C<list> configuration element are created
 when requested by the passed steps. (default is 1).
@@ -532,8 +532,7 @@ sub grab_root {
 
 #internal. Used by grab with '?xxx' steps
 sub grab_ancestor_with_element_named {
-    my $self = shift ;
-    my $search = shift ;
+    my ($self, $search, $type) = @_ ;
 
     my $obj = $self ;
 
@@ -543,7 +542,7 @@ sub grab_ancestor_with_element_named {
 
 	my $obj_element_name = $obj->element_name ;
 
-	if ($obj->isa('Config::Model::Node') && $obj->has_element($search)) {
+	if ($obj->isa('Config::Model::Node') and $obj->has_element(name => $search, type => $type) ) {
 	    # object contains the search element, we need to grab the
 	    # searched object (i.e. the '?foo' part is done
 	    return $obj ;

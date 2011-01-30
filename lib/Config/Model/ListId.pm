@@ -27,7 +27,7 @@
 
 package Config::Model::ListId ;
 BEGIN {
-  $Config::Model::ListId::VERSION = '1.230';
+  $Config::Model::ListId::VERSION = '1.231';
 }
 use Config::Model::Exception ;
 use Scalar::Util qw(weaken) ;
@@ -46,7 +46,7 @@ Config::Model::ListId - Handle list element for configuration model
 
 =head1 VERSION
 
-version 1.230
+version 1.231
 
 =head1 SYNOPSIS
 
@@ -140,7 +140,7 @@ sub get_type {
 
 =head2 fetch_size
 
-Returns the nb of elements of the list.
+Returns the number of elements of the list.
 
 =cut
 
@@ -323,7 +323,7 @@ sub push {
     map { $self->fetch_with_id( $idx++ )->store( $_ ) ; } @_ ;
 }
 
-=head2 swap ( ida, idb )
+=head2 swap ( C<ida> , C<idb> )
 
 Swap 2 elements within the array
 
@@ -349,7 +349,7 @@ sub swap {
 
 #die "check index number after wap";
 
-=head2 remove ( idx )
+=head2 remove ( C<idx> )
 
 Remove an element from the list. Equivalent to C<splice @list,$idx,1>
 

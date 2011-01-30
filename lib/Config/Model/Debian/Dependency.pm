@@ -9,7 +9,7 @@
 #
 package Config::Model::Debian::Dependency ;
 BEGIN {
-  $Config::Model::Debian::Dependency::VERSION = '1.230';
+  $Config::Model::Debian::Dependency::VERSION = '1.231';
 }
 
 use strict ;
@@ -64,7 +64,7 @@ END {
 }
 
 # Set up memoization, supplying expiring persistent hash for cache
-memoize 'has_older_version' , SCALAR_CACHE => [HASH => \%cache];
+memoize 'get_available_version' , SCALAR_CACHE => [HASH => \%cache];
 
 my $grammar = << 'EOG' ;
 
@@ -124,11 +124,22 @@ sub check_dep {
     return 1 if $pkg eq 'debhelper' ;
 
     # check if Debian has version older than required version
-    my $has_older = has_older_version($pkg,$vers) ;
-    # print "\t'$pkg'.\$sep.'$vers' => '$has_older',\n";
-    my $msg = "unnecessary versioned dependency: $oper $vers" ;
+    my @dist_version = split m/ /,  get_available_version($pkg) ;
+    #print "\t'$pkg' => '@dist_version',\n";
 
-    $logger->debug("check_dep on $pkg $oper $vers has_older is $has_older");
+    my @list ;
+    my $has_older = 0;
+    while (@dist_version) {
+        my ($d,$v) = splice @dist_version,0,2 ;
+        push @list, "$d -> $v;";
+        
+        if ($vs->compare($vers,$v) > 0 ) {
+            $has_older = 1 ;
+        }
+    }
+    my $msg = "unnecessary versioned dependency: $oper $vers. Debian has @list" ;
+
+    $logger->debug("check_dep on $pkg $oper $vers has_older is $has_older (@list)");
 
     if ($has_older) {
         return;
@@ -140,10 +151,10 @@ sub check_dep {
     }
 }
 
-sub has_older_version {
-    my ($pkg_name, $version) = @_ ;
+sub get_available_version {
+    my ($pkg_name) = @_ ;
 
-    $logger->debug("has_older_version called on $pkg_name, $version");
+    $logger->debug("has_older_version called on $pkg_name");
 
     print "Connecting to qa.debian.org to check $pkg_name versions. Please wait ...\n" ;
 
@@ -151,16 +162,12 @@ sub has_older_version {
     
     die "cannot get data for package $pkg_name. Check your proxy ?\n" unless defined $res ;
 
+    my @res ;
     foreach my $line (split /\n/, $res) {
         my ($name,$available_v,$dist,$type) = split /\s*\|\s*/, $line ;
-        next if $dist =~ /etch/ ;
-
-        # compare version with dpkg function
-        if ($vs->compare($version,$available_v) > 0 ) {
-            return $dist ;
-        }
+        push @res , $dist,  $available_v unless $dist =~ /etch/ ;
     }
-    return '';
+    return "@res" ;
 }
 1;
 
@@ -170,7 +177,7 @@ Config::Model::Debian::Dependency - Checks Debian dependency in control files
 
 =head1 VERSION
 
-version 1.230
+version 1.231
 
 =head1 SYNOPSIS
 

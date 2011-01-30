@@ -28,7 +28,7 @@
 
 package Config::Model::WarpedThing ;
 BEGIN {
-  $Config::Model::WarpedThing::VERSION = '1.230';
+  $Config::Model::WarpedThing::VERSION = '1.231';
 }
 use strict;
 use Scalar::Util qw(weaken) ;
@@ -51,7 +51,7 @@ Config::Model::WarpedThing - Base class for warped classes
 
 =head1 VERSION
 
-version 1.230
+version 1.231
 
 =head1 SYNOPSIS
 
@@ -73,7 +73,7 @@ WarpThing does not provide a constructor.
 Warping an object means that the properties of the object will be
 changed depending on the value of another object.
 
-The changed object is refered as the I<warped> object.
+The changed object is referred as the I<warped> object.
 
 The other object that holds the important value is referred as the
 I<warp master> or the I<warper> object.
@@ -157,7 +157,7 @@ In this case, you can use different boolean expression to save typing:
            '$m1 eq "B" && ( $m2 eq "C" or $m2 eq "D") ' => { <effect Y> },
           ]
 
-Note that the boolean expression will be sanitised and used in a Perl
+Note that the boolean expression will be sanitized and used in a Perl
 eval, so you can use most Perl syntax and regular expressions.
 
 =cut

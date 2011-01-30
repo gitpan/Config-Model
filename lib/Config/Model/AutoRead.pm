@@ -8,7 +8,7 @@
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
 #
-#    Copyright (c) 2005-2010 Dominique Dumont.
+#    Copyright (c) 2005-2011 Dominique Dumont.
 #
 #    This file is part of Config-Model.
 #
@@ -28,7 +28,7 @@
 
 package Config::Model::AutoRead ;
 BEGIN {
-  $Config::Model::AutoRead::VERSION = '1.230';
+  $Config::Model::AutoRead::VERSION = '1.231';
 }
 use Carp;
 use strict;
@@ -71,14 +71,19 @@ sub get_cfg_file_path {
         return;
     }
 
-    if ($args{file}) {
+    if (exists $args{file} and not $args{file}) {
+        $logger->trace("get_cfg_file_path: return because file explicitly set to undef or empty"); 
+        return;
+    }
+    
+    if (defined $args{file}) {
         my $res = $dir.$args{file} ;
         $logger->trace("get_cfg_file_path: returns $res"); 
         return $res ;
     }
 
     if (not defined $args{suffix}) {
-        $logger->trace("get_cfg_file_path: returns undef (no suffix, no file argurment)"); 
+        $logger->trace("get_cfg_file_path: returns undef (no suffix, no file argument)"); 
         return ;
     }
 
@@ -136,6 +141,7 @@ sub load_backend_class {
     my $backend = shift;
     my $function = shift ;
 
+    $logger->debug("load_backend_class: called with backend $backend, function $function");
     my %c ;
 
     my $k = "Config::Model::Backend::".ucfirst($backend) ;
@@ -149,13 +155,18 @@ sub load_backend_class {
     $c{$k} = $f ;
 
     foreach my $c (keys %c) { 
-        return $c if $c->can($function) ; # no need to load class  
+        if ($c->can($function)) {
+            # no need to load class  
+            $logger->debug("load_backend_class: $c is already loaded (can $function)");
+            return $c ;
+        } 
     }
 
         
     # look for file to load 
     my $class_to_load ;
     foreach my $c (keys %c) { 
+        $logger->debug("load_backend_class: looking to load class $c");
         foreach my $prefix (@INC) {
             my $realfilename = "$prefix/$c{$c}";
             $class_to_load = $c if -f $realfilename ;
@@ -371,21 +382,22 @@ sub auto_write_init {
             require $file.'.pm' unless $c->can($f) ;
 
             my $safe_self = $self ; # provide a closure
-            $wb = sub 
-              {  no strict 'refs';
-                 my $file_path ;
-                 $file_path = $self-> open_file_to_write($backend,$fh,@wr_args,@_) 
+            $wb = sub  {  
+                no strict 'refs';
+                my $file_path ;
+                $file_path = $self-> open_file_to_write($backend,$fh,@wr_args,@_) 
                     unless ($c->can('skip_open') and $c->skip_open) ;
-                 eval {
+                eval {
                     # override needed for "save as" button
                     &{$c.'::'.$f}(@wr_args,
                                   file_path => $file_path,
                                   conf_dir => $write_dir, # legacy FIXME
                                   object => $safe_self, 
                                   @_                      # override from user
-                                 ) ;
-                 };
-                 $self->close_file_to_write($@,$fh,$file_path) ;
+                                ) ;
+                };
+                $logger->warn("write backend $c".'::'."$f failed: $@") if $@;
+                $self->close_file_to_write($@,$fh,$file_path) ;
              };
             $self->{auto_write}{custom} = 1 ;
         }
@@ -398,6 +410,7 @@ sub auto_write_init {
                     $self->write_perl(@wr_args, file_path => $file_path,  @_) ;
                 };
                 $self->close_file_to_write($@,$fh,$file_path) ;
+                $logger->warn("write backend $backend failed: $@") if $@;
             } ;
             $self->{auto_write}{perl_file} = 1 ;
         }
@@ -409,6 +422,7 @@ sub auto_write_init {
                 eval {
                     $self->write_cds_file(@wr_args, file_path => $file_path, @_) ;
                 };
+                $logger->warn("write backend $backend failed: $@") if $@;
                 $self->close_file_to_write($@,$fh,$file_path) ;
             } ;
             $self->{auto_write}{cds_file} = 1 ;
@@ -418,29 +432,32 @@ sub auto_write_init {
 			my $c = load_backend_class ($backend, $f);
 
             my $safe_self = $self ; # provide a closure
-            $wb = sub 
-              {  no strict 'refs';
-                 my $backend_obj =  $self->{backend}{$backend}
-                                 || $c->new(node => $self, name => $backend) ;
-                 my $file_path ;
-                 my $suffix ;
-                 $suffix = $backend_obj->suffix if $backend_obj->can('suffix');
-                 $file_path = $self-> open_file_to_write($backend,$fh,
+            $wb = sub {
+                no strict 'refs';
+                my $backend_obj =  $self->{backend}{$backend}
+                                || $c->new(node => $self, name => $backend) ;
+                my $file_path ;
+                my $suffix ;
+                $suffix = $backend_obj->suffix if $backend_obj->can('suffix');
+                $file_path = $self-> open_file_to_write($backend,$fh,
                                                          suffix => $suffix,
                                                          @wr_args,@_) 
-                     unless ($c->can('skip_open') and $c->skip_open) ;
-                 eval {
+                    unless ($c->can('skip_open') and $c->skip_open) ;
+                eval {
                     # override needed for "save as" button
                     $backend_obj->$f( @wr_args, 
                                       file_path => $file_path,
                                       object => $safe_self, 
                                       @_                      # override from user
                                     ) ;
-                 } ;
-                 $self->close_file_to_write($@,$fh,$file_path) ;
+                } ;
+                $logger->warn("write backend $backend $c".'::'."$f failed: $@") if $@;
+                $self->close_file_to_write($@,$fh,$file_path) ;
              };
         }
 
+        # FIXME: enhance write back mechanism so that different backend *and* different nodse
+        # work as expected
         $instance->register_write_back($backend => $wb) ;
         $registered_backend ++ ;
     }
@@ -542,7 +559,7 @@ Config::Model::AutoRead - Load configuration node on demand
 
 =head1 VERSION
 
-version 1.230
+version 1.231
 
 =head1 SYNOPSIS
 
@@ -603,7 +620,7 @@ file. See L<Config::Model::Dumper>.
 
 =item ini_file
 
-Ini files (written with L<Config::Model::Backend::IniFile>. See limitations in 
+INI files (written with L<Config::Model::Backend::IniFile>. See limitations in 
 L</"Limitations depending on storage">.
 
 =item perl_file
@@ -740,7 +757,8 @@ directory can be hardcoded in the custom class.
 
 optional. This parameter may not apply if the configuration is stored
 in several files. By default, the instance name is used as
-configuration file name.
+configuration file name. If you want to completely handle file creation
+in your backend class, set to C<undef> or and empty string.
 
 =item function
 
@@ -750,7 +768,7 @@ See L</"read callback"> for details. (default is C<read>)
 =item auto_create
 
 By default, an exception is thrown if no read was
-successfull. This behavior can be overridden by specifying 
+successful. This behavior can be overridden by specifying 
 C<< auto_create => 1 >> in one of the backend specification. For instance:
 
     read_config  => [ { backend => 'cds_file', config_dir => '/etc/my_cfg/' } , 
@@ -815,7 +833,7 @@ The read backends will be tried in the specified order:
 
 =item *
 
-First the cds file whose name depend on the parameters used in model
+First the C<cds> file whose name depend on the parameters used in model
 creation and instance creation:
 C<< <model_config_dir>/<instance_name>.cds >>
 The syntax of the C<cds> file is described in  L<Config::Model::Dumper>.
@@ -845,7 +863,7 @@ When required by the user, all configuration information is written
 back using B<all> the write specifications. See
 L<Config::Model::Instance/write_back ( ... )> for details.
 
-The write class declared witn C<custom> backend must provide a call-back.
+The write class declared with C<custom> backend must provide a call-back.
 See L</"write callback"> for details.
 
 =head2 read write directory
@@ -868,7 +886,7 @@ Read callback function will be called with these parameters:
 
 The L<IO::File> object is undef if the file cannot be read.
 
-The callback must return 0 on failure and 1 on succesfull read.
+The callback must return 0 on failure and 1 on successful read.
 
 =head2 write callback
 
@@ -886,7 +904,7 @@ Write callback function will be called with these parameters:
 
 The L<IO::File> object is undef if the file cannot be written to.
 
-The callback must return 0 on failure and 1 on succesfull write.
+The callback must return 0 on failure and 1 on successful write.
 
 =head1 CAVEATS
 
@@ -897,13 +915,13 @@ parameter. C<write> should use this handle to write data in the target
 configuration file.
 
 If this behavior causes problem (e.g. with augeas backend), the
-solution is to:
+solution is either to:
 
 =over
 
 =item *
 
-Skip either C<file> or C<config_dir> parameter in the C<write_config>
+Set C<file> to undef or an empty string in the C<write_config>
 specification.
 
 =item *
@@ -928,7 +946,7 @@ You can choose also to read and write only customized files:
 
   read_config  => [{ backend => 'custom', class => 'Bar'}],
 
-Or to read and write only cds files :
+Or to read and write only C<cds> files :
 
   read_config  => [{ backend => 'cds_file'}] ,
 

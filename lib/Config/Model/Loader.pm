@@ -27,7 +27,7 @@
 
 package Config::Model::Loader;
 BEGIN {
-  $Config::Model::Loader::VERSION = '1.230';
+  $Config::Model::Loader::VERSION = '1.231';
 }
 use Carp;
 use strict;
@@ -44,7 +44,7 @@ Config::Model::Loader - Load serialized data into config tree
 
 =head1 VERSION
 
-version 1.230
+version 1.231
 
 =head1 SYNOPSIS
 
@@ -118,7 +118,7 @@ element with C<node> cargo_type)
 Go down using C<xxx> element and loop over the ids that match the regex.
 (For C<hash>)
 
-For instance, with OpenSsh model, you could do
+For instance, with C<OpenSsh> model, you could do
 
  Host=~/.*.debian.org/ user='foo-guest'
 

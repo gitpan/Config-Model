@@ -27,7 +27,7 @@
 
 package Config::Model::AnyId ;
 BEGIN {
-  $Config::Model::AnyId::VERSION = '1.230';
+  $Config::Model::AnyId::VERSION = '1.231';
 }
 use Config::Model::Exception ;
 use Scalar::Util qw(weaken) ;
@@ -54,7 +54,7 @@ Config::Model::AnyId - Base class for hash or list element
 
 =head1 VERSION
 
-version 1.230
+version 1.231
 
 =head1 SYNOPSIS
 
@@ -361,7 +361,7 @@ When a warp is applied, the items that do not fit the constraint
 (e.g. min_index, max_index) are removed.
 
 For the max_nb constraint, an exception will be raised if a warp 
-leads to a nb of items greater than the max_nb constraint.
+leads to a number of items greater than the max_nb constraint.
 
 =cut
 
@@ -793,12 +793,12 @@ sub check_warn_unless_key_match {
     push @$warn, "key '$idx' should match $re\n" unless $idx =~ /$re/;
 }
 
-=head1 Informations management
+=head1 Information management
 
 =head2 fetch_with_id ( index => $idx , [ check => 'no' ])
 
 Fetch the collected element held by the hash or list. Index check is 'yes' by default.
-Can be called with one parameter: idx.
+Can be called with one parameter which will be used as index.
 
 =cut
 
@@ -828,7 +828,7 @@ sub fetch_with_id {
     return ;
 }
 
-=head2 get( path => ..., mode => ... ,  check => ... , get_obj => 1|0, autoadd => 1|0)
+=head2 C<get( path => ..., mode => ... ,  check => ... , get_obj => 1|0, autoadd => 1|0)>
 
 Get a value from a directory like path.
 

@@ -1,0 +1,149 @@
+diff -r 6f10ede49461 config-model-core/ChangeLog
+--- a/config-model-core/ChangeLog	Fri Jan 21 16:58:43 2011 +0100
++++ b/config-model-core/ChangeLog	Tue Jan 25 18:01:55 2011 +0100
+@@ -1,3 +1,7 @@
++    * Application changes:
++        * Debian::Dependency: reworked to reduce calls to madison. Report available
++          versions when unnessary version issue is found.)
++
+ 2011-01-10 Dominique Dumont  <domi.dumont@free.fr> 1.230
+ 
+     * Application changes:
+diff -r 6f10ede49461 config-model-core/lib/Config/Model/Debian/Dependency.pm
+--- a/config-model-core/lib/Config/Model/Debian/Dependency.pm	Fri Jan 21 16:58:43 2011 +0100
++++ b/config-model-core/lib/Config/Model/Debian/Dependency.pm	Tue Jan 25 18:01:55 2011 +0100
+@@ -52,7 +52,7 @@
+ }
+ 
+ # Set up memoization, supplying expiring persistent hash for cache
+-memoize 'has_older_version' , SCALAR_CACHE => [HASH => \%cache];
++memoize 'get_available_version' , SCALAR_CACHE => [HASH => \%cache];
+ 
+ my $grammar = << 'EOG' ;
+ 
+@@ -112,11 +112,22 @@
+     return 1 if $pkg eq 'debhelper' ;
+ 
+     # check if Debian has version older than required version
+-    my $has_older = has_older_version($pkg,$vers) ;
+-    # print "\t'$pkg'.\$sep.'$vers' => '$has_older',\n";
+-    my $msg = "unnecessary versioned dependency: $oper $vers" ;
++    my @dist_version = split m/ /,  get_available_version($pkg) ;
++    #print "\t'$pkg' => '@dist_version',\n";
+ 
+-    $logger->debug("check_dep on $pkg $oper $vers has_older is $has_older");
++    my @list ;
++    my $has_older = 0;
++    while (@dist_version) {
++        my ($d,$v) = splice @dist_version,0,2 ;
++        push @list, "$d -> $v;";
++        
++        if ($vs->compare($vers,$v) > 0 ) {
++            $has_older = 1 ;
++        }
++    }
++    my $msg = "unnecessary versioned dependency: $oper $vers. Debian has @list" ;
++
++    $logger->debug("check_dep on $pkg $oper $vers has_older is $has_older (@list)");
+ 
+     if ($has_older) {
+         return;
+@@ -128,10 +139,10 @@
+     }
+ }
+ 
+-sub has_older_version {
+-    my ($pkg_name, $version) = @_ ;
++sub get_available_version {
++    my ($pkg_name) = @_ ;
+ 
+-    $logger->debug("has_older_version called on $pkg_name, $version");
++    $logger->debug("has_older_version called on $pkg_name");
+ 
+     print "Connecting to qa.debian.org to check $pkg_name versions. Please wait ...\n" ;
+ 
+@@ -139,16 +150,12 @@
+     
+     die "cannot get data for package $pkg_name. Check your proxy ?\n" unless defined $res ;
+ 
++    my @res ;
+     foreach my $line (split /\n/, $res) {
+         my ($name,$available_v,$dist,$type) = split /\s*\|\s*/, $line ;
+-        next if $dist =~ /etch/ ;
+-
+-        # compare version with dpkg function
+-        if ($vs->compare($version,$available_v) > 0 ) {
+-            return $dist ;
+-        }
++        push @res , $dist,  $available_v unless $dist =~ /etch/ ;
+     }
+-    return '';
++    return "@res" ;
+ }
+ 1;
+ 
+diff -r 6f10ede49461 config-model-core/t/debian-dependency-check.t
+--- a/config-model-core/t/debian-dependency-check.t	Fri Jan 21 16:58:43 2011 +0100
++++ b/config-model-core/t/debian-dependency-check.t	Tue Jan 25 18:01:55 2011 +0100
+@@ -1,22 +1,12 @@
+ # -*- cperl -*-
+ 
+ BEGIN {
+-
+     # dirty trick to create a Memoize cache so that test will use this instead
+     # of getting values through the internet
+     no warnings 'once';
+     my $sep = chr(28);
+     %Config::Model::Debian::Dependency::cache = (
+-        'debhelper' . $sep . '7'                => '',
+-        'libcpan-meta-perl' . $sep . '2.101550' => '',
+-        'libdist-zilla-perl' . $sep . '3'       => '',
+-        'libfile-homedir-perl' . $sep . '0.81'  => 'lenny',
+-        'libmoose-autobox-perl' . $sep . '0.09' => '',
+-        'libmoose-perl' . $sep . '0.65'         => 'lenny',
+-        'perl' . $sep . '5.10'                  => '',
+-        'perl' . $sep . '5.10.1'                => 'lenny',
+-        'perl' . $sep . '5.28.1'                => 'lenny',
+-        'perl' . $sep . '5.6.0'                 => '',
++        'perl' => 'lenny 5.10.0-19lenny3 squeeze 5.10.1-17 sid 5.10.1-17 experimental 5.12.0-2 experimental 5.12.2-2',
+     );
+ }
+ 
+@@ -34,7 +24,7 @@
+     plan skip_all => "AptPkg::Config is not installed (not a Debian system ?)";
+ }
+ else {
+-    plan tests => 19;
++    plan tests => 21;
+ }
+ 
+ use warnings;
+@@ -121,7 +111,7 @@
+ is($msg,undef,"check perl (>= 5.28.1) dependency: has older version");
+ 
+ $msg = $perl_dep->check_dep('perl','>=','5.6.0') ;
+-is($msg,"unnecessary versioned dependency: >= 5.6.0","check perl (>= 5.6.0) dependency: no older version");
++like($msg,qr/^unnecessary versioned dependency/,"check perl (>= 5.6.0) dependency: no older version");
+ 
+ # check parser and grammer
+ my $parser = $perl_dep->dep_parser ;
+@@ -136,7 +126,8 @@
+ qr/unnecessary versioned/,"check perl (>= 5.6.0) store: no older version warning" ;
+ 
+ my @msgs = $perl_dep->warning_msg ;
+-is_deeply(\@msgs,["unnecessary versioned dependency: >= 5.6.0"],"check store with old version");
++is(scalar @msgs,1,"check nb of warning with store with old version");
++like($msgs[0],qr/unnecessary versioned dependency/,"check store with old version");
+ 
+ # test fixes
+ is($perl_dep->has_fixes,1, "test presence of fixes");
+@@ -156,7 +147,8 @@
+ 
+ is($bdi_val,"perl (>= 5.10) | libmodule-build-perl","check B-D-I dependency value from config tree");
+ my $msgs = $perl_bdi->warning_msg ;
+-is($msgs,"lenny has perl 5.10 which includes libmodule-build-perl\nunnecessary versioned dependency: >= 5.10","check store with old version");
++like($msgs,qr/lenny has perl 5.10/,"check store with old version: trap perl | libmodule");
++like($msgs,qr/unnecessary versioned dependency/,"check store with old version: trap version");
+ 
+ # test fixes
+ is($perl_bdi->has_fixes,2, "test presence of fixes");

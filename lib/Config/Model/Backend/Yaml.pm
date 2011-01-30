@@ -10,7 +10,7 @@
 
 package Config::Model::Backend::Yaml ;
 BEGIN {
-  $Config::Model::Backend::Yaml::VERSION = '1.230';
+  $Config::Model::Backend::Yaml::VERSION = '1.231';
 }
 
 use Carp;
@@ -90,7 +90,7 @@ Config::Model::Backend::Yaml - Read and write config as a YAML data structure
 
 =head1 VERSION
 
-version 1.230
+version 1.231
 
 =head1 SYNOPSIS
 
@@ -140,7 +140,7 @@ When a file is read,  C<read()> will return 1.
 =head2 write ( io_handle => ... )
 
 Of all parameters passed to this write call-back, only C<io_handle> is
-used. This parameter must be L<IO::File> object alwritey opened for
+used. This parameter must be L<IO::File> object already opened for
 write. 
 
 C<write()> will return 1.

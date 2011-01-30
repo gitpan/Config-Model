@@ -28,7 +28,7 @@
 
 package Config::Model::Describe;
 BEGIN {
-  $Config::Model::Describe::VERSION = '1.230';
+  $Config::Model::Describe::VERSION = '1.231';
 }
 use Carp;
 use strict;
@@ -44,7 +44,7 @@ Config::Model::Describe - Provide a description of a node element
 
 =head1 VERSION
 
-version 1.230
+version 1.231
 
 =head1 SYNOPSIS
 
@@ -73,7 +73,7 @@ This module is used directly by L<Config::Model::Node> to describe
 a node element. This module returns a human readable string that 
 shows the content of a configuration node.
 
-For instance (as showns by C<fstab> example:
+For instance (as shown by C<fstab> example:
 
  name         value        type         comment
  fs_spec      [undef]      string       mandatory

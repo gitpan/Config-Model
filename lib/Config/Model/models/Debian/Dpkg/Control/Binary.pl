@@ -13,7 +13,7 @@
             'element' => [
                            'Architecture',
                            {
-                             'value_type' => 'uniline',
+                             'value_type' => 'string',
                              'mandatory' => '1',
                              'type' => 'leaf'
                            },
@@ -36,8 +36,8 @@
                            {
                              'cargo' => {
                                           'value_type' => 'uniline',
-                                          'type' => 'leaf',
-                                          class => 'Config::Model::Debian::Dependency',
+                                          'class' => 'Config::Model::Debian::Dependency',
+                                          'type' => 'leaf'
                                         },
                              'type' => 'list'
                            },
@@ -49,7 +49,7 @@
                                         },
                              'type' => 'list'
                            },
-                           'Breaks',
+                           'Suggests',
                            {
                              'cargo' => {
                                           'value_type' => 'uniline',
@@ -57,7 +57,21 @@
                                         },
                              'type' => 'list'
                            },
-                           'Replaces',
+                           'Enhances',
+                           {
+                             'value_type' => 'uniline',
+                             'type' => 'leaf'
+                           },
+                           'Pre-Depends',
+                           {
+                             'cargo' => {
+                                          'value_type' => 'uniline',
+                                          'class' => 'Config::Model::Debian::Dependency',
+                                          'type' => 'leaf'
+                                        },
+                             'type' => 'list'
+                           },
+                           'Breaks',
                            {
                              'cargo' => {
                                           'value_type' => 'uniline',
@@ -81,7 +95,7 @@
                                         },
                              'type' => 'list'
                            },
-                           'Suggests',
+                           'Replaces',
                            {
                              'cargo' => {
                                           'value_type' => 'uniline',
@@ -89,22 +103,51 @@
                                         },
                              'type' => 'list'
                            },
+                           'Synopsis',
+                           {
+                             'value_type' => 'uniline',
+                             'warn_if_match' => {
+                                                  '^[A-Z]' => {
+                                                                'msg' => 'short description should start with a small letter',
+                                                                'fix' => '$_ = lcfirst($_) ;'
+                                                              },
+                                                  '.{80,}' => {
+                                                              'msg' => 'Synopsis is too long. '
+                                                            }
+                                                },
+                             'mandatory' => '1',
+                             'type' => 'leaf'
+                           },
                            'Description',
                            {
                              'value_type' => 'string',
-                             'warn_if_match' => { 
-                                 '\\n[\\-\\*]' => {
-                                     msg => 'lintian like possible-unindented-list-in-extended-description. i.e. "-" or "*" without leading white space',
-                                     fix => 's/\n([\-\*])/\n $1/g; $_ ;',
-                                 },
-                                 'Debian GNU/Linux' => {
-                                     msg => 'deprecated in favor of Debian GNU',
-                                     fix => 's!Debian GNU/Linux!Debian GNU!g;'
-                                 },
-                             },
+                             'warn_if_match' => {
+                                                  'Debian GNU/Linux' => {
+                                                                          'msg' => 'deprecated in favor of Debian GNU',
+                                                                          'fix' => 's!Debian GNU/Linux!Debian GNU!g;'
+                                                                        },
+                                                  '[^\\n]{80,}' => {
+                                                                     'msg' => 'Line too long in description',
+                                                                     'fix' => 'eval { require Text::Autoformat   ; } ;
+if ($@) { CORE::warn "cannot fix without Text::Autoformat"}
+else {
+        import Text::Autoformat ;
+        $_ = autoformat($_) ;
+	chomp;
+}'
+                                                                   },
+                                                  '\\n[\\-\\*]' => {
+                                                                     'msg' => 'lintian like possible-unindented-list-in-extended-description. i.e. "-" or "*" without leading white space',
+                                                                     'fix' => 's/\\n([\\-\\*])/\\n $1/g; $_ ;'
+                                                                   },
+                                                  '^\\s*\\n' => {
+                                                              'msg' => 'Description must not start with an empty line',
+                                                              'fix' => 's/[\\s\\s]+// ;'
+                                                            }
+                                                },
                              'mandatory' => '1',
-                             'type' => 'leaf',
-                            }
+                             'type' => 'leaf'
+                           }
                          ]
           }
         ]

@@ -28,7 +28,7 @@
 
 package Config::Model::IdElementReference ;
 BEGIN {
-  $Config::Model::IdElementReference::VERSION = '1.230';
+  $Config::Model::IdElementReference::VERSION = '1.231';
 }
 
 use warnings ;
@@ -46,7 +46,7 @@ Config::Model::IdElementReference - Refer to id element(s) and extract keys
 
 =head1 VERSION
 
-version 1.230
+version 1.231
 
 =head1 SYNOPSIS
 
@@ -89,7 +89,7 @@ L<Config::Model::HashId> or the content of a L<Config::Model::ListId>
 object.
 
 This class is also used by L<Config::Model::CheckList> to define the
-cheklist items from the keys of another hash (or content of a list).
+checklist items from the keys of another hash (or content of a list).
 
 =head1 CONSTRUCTOR
 

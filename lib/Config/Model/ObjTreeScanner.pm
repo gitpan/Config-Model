@@ -27,7 +27,7 @@
 
 package Config::Model::ObjTreeScanner ;
 BEGIN {
-  $Config::Model::ObjTreeScanner::VERSION = '1.230';
+  $Config::Model::ObjTreeScanner::VERSION = '1.231';
 }
 use strict ;
 use Config::Model::Exception ;
@@ -45,7 +45,7 @@ Config::Model::ObjTreeScanner - Scan config tree and perform call-backs
 
 =head1 VERSION
 
-version 1.230
+version 1.231
 
 =head1 SYNOPSIS
 
@@ -354,7 +354,7 @@ For instance, if you have:
 C<&my_class_a_dispatch_cb> will be called for each instance of C<ClassA> and 
 C<&my_class_b_dispatch_cb> will be called for each instance of C<ClassB>.
 
-They will be calle with the following parameters:
+They will be called with the following parameters:
 
  ($scanner, $data_ref,$node,@element_list)
 
@@ -654,7 +654,7 @@ sub scan_list {
 =head2 get_keys ($node, $element_name)
 
 Returns an list containing the sorted keys of a hash element or returns
-an list containning (0.. last_index) of an list element.
+an list containing (0.. last_index) of an list element.
 
 Throws an exception if element is not an list or a hash element.
 
