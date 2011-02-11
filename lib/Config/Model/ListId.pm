@@ -27,7 +27,7 @@
 
 package Config::Model::ListId ;
 BEGIN {
-  $Config::Model::ListId::VERSION = '1.232';
+  $Config::Model::ListId::VERSION = '1.233';
 }
 use Config::Model::Exception ;
 use Scalar::Util qw(weaken) ;
@@ -46,24 +46,11 @@ Config::Model::ListId - Handle list element for configuration model
 
 =head1 VERSION
 
-version 1.232
+version 1.233
 
 =head1 SYNOPSIS
 
- $model ->create_config_class 
-  (
-   ...
-   element 
-   => [ 
-       bounded_list 
-       => { type => 'list',
-            max_index => 123, 
-            max_nb => 2 ,
-            cargo_type => 'leaf',
-            cargo_args => {value_type => 'string'},
-          },
-      ]
-  ) ;
+See L<Config::Model::AnyId/SYNOPSIS>
 
 =head1 DESCRIPTION
 
@@ -309,9 +296,9 @@ sub move {
     }
 }
 
-=head2 push( value )
+=head2 push( value1, [ value2 ... ] )
 
-push some value at the end of the list.
+push some values at the end of the list.
 
 =cut
 
@@ -319,8 +306,51 @@ push some value at the end of the list.
 sub push {
     my $self = shift ;
     my $idx   = scalar @{$self->{data}};
-
     map { $self->fetch_with_id( $idx++ )->store( $_ ) ; } @_ ;
+}
+
+=head2 push_x ( values => [ v1','v2', ...] , [ ... ] )
+
+Like push with extended options. Options are:
+
+=over 4
+
+=item check 
+
+C<yes>, C<no> or C<skip>
+
+=item annotation
+
+list ref of annotation to store with the list values
+
+=back
+
+Example:
+
+ $elt->push (
+    values => [ v1','v2' ] , 
+    annotation => [ 'v1 comment', 'v2 comment' ],
+    check => ''skip'
+ );
+
+=cut
+
+# list only methods
+sub push_x {
+    my $self = shift ;
+    my %args = @_ ;
+    my $check = $args{check} || 'yes'; 
+    my $idx   = scalar @{$self->{data}};
+    my @v = @{$args{values}}  ;
+    my @a = @{$args{annotation} || [] } ;
+    
+    while (@v) {
+        my $val = shift @v ;
+        my $a   = shift @a ;
+        my $obj = $self->fetch_with_id( $idx++ );
+        $obj->store( $val ) ;
+        $obj->annotation($a) if $a ;
+    }
 }
 
 =head2 swap ( C<ida> , C<idb> )
@@ -410,12 +440,11 @@ the first element of the list.
 sub load_data {
     my $self = shift ;
     my $raw_data = shift ;
-    my $raw_annot = shift ;
+    my $check = shift ;
 
-    my ($data,$annot) 
-        = map {   ref($_) eq 'ARRAY' ? $_ 
-                : defined $_         ? [ $_ ] 
-                :                  	undef; } ($raw_data,$raw_annot);
+    my $data = ref($raw_data) eq 'ARRAY' ? $raw_data 
+             : defined $raw_data         ? [ $raw_data ] 
+             :                             undef; 
 
     $self->clear ;
 
@@ -423,24 +452,9 @@ sub load_data {
     $logger->info("ListId load_data (",$self->location,") will load idx ",
         "0..$#$data");
     foreach my $item (@$data ) {
-        my $obj = $self->fetch_with_id($idx) ;
-        my @args = ($item);
-        CORE::push (@args,$annot->[$idx]) if defined $annot ;
-        $idx++ ;
-        $obj -> load_data(@args) ;
-    }
-
-    return unless defined $annot ;
-    $idx = 0;
-    $logger->info("ListId load_data (",$self->location,") will load annotation idx ",
-          "0..$#$annot") ;
-    foreach my $item (@$annot ) {
         my $obj = $self->fetch_with_id($idx++) ;
-        $obj -> annotation($item) if $item ; # do not store undef
-    }
-
-    
-    
+        $obj -> load_data($item, $check) ;
+    }   
 }
 
 1;

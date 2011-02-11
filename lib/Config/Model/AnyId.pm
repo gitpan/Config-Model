@@ -27,7 +27,7 @@
 
 package Config::Model::AnyId ;
 BEGIN {
-  $Config::Model::AnyId::VERSION = '1.232';
+  $Config::Model::AnyId::VERSION = '1.233';
 }
 use Config::Model::Exception ;
 use Scalar::Util qw(weaken) ;
@@ -54,44 +54,83 @@ Config::Model::AnyId - Base class for hash or list element
 
 =head1 VERSION
 
-version 1.232
+version 1.233
 
 =head1 SYNOPSIS
 
- $model ->create_config_class 
-  (
-   ...
-   element 
-   => [ 
-       bounded_hash 
-       => { type => 'hash',                 # hash id
-            index_type  => 'integer',
+ use Config::Model;
+ use Log::Log4perl qw(:easy);
+ Log::Log4perl->easy_init($WARN);
+
+ # define configuration tree object
+ my $model = Config::Model->new;
+ $model->create_config_class(
+    name    => "Foo",
+    element => [
+        [qw/foo bar/] => {
+            type       => 'leaf',
+            value_type => 'string'
+        },
+    ]
+ );
+
+ $model->create_config_class(
+    name    => "MyClass",
+    element => [
+        plain_hash => {
+            type       => 'hash',
+            index_type => 'string',
+            cargo      => {
+                type       => 'leaf',
+                value_type => 'string',
+            },
+        },
+        bounded_hash => {
+            type       => 'hash',      # hash id
+            index_type => 'integer',
 
             # hash boundaries
-            min_index => 1, max_index => 123, max_nb => 2 ,
+            min_index => 1, max_index => 123, max_nb => 2,
 
             # specify cargo held by hash
-            cargo => { type => 'leaf',
-                       value_type => 'string'
-                     },
-          },
-      bounded_list 
-       => { type => 'list',                 # list id
+            cargo => {
+                type       => 'leaf',
+                value_type => 'string'
+            },
+        },
+        bounded_list => {
+            type => 'list',    # list id
 
-            max_index => 123, 
-            cargo => { type => 'leaf',
-                       value_type => 'string'
-                     },
-          },
-      hash_of_nodes 
-      => { type => 'hash',                 # hash id
-           index_type  => 'integer',
-           cargo => { type => 'node',
-                      config_class_name => 'Foo'
-                    },
-         },
-      ]
-  ) ;
+            max_index => 123,
+            cargo     => {
+                type       => 'leaf',
+                value_type => 'string'
+            },
+        },
+        hash_of_nodes => {
+            type       => 'hash',     # hash id
+            index_type => 'string',
+            cargo      => {
+                type              => 'node',
+                config_class_name => 'Foo'
+            },
+        },
+    ],
+ );
+
+ my $inst = $model->instance( root_class_name => 'MyClass' );
+
+ my $root = $inst->config_root;
+
+ # put data
+ my $step = 'plain_hash:foo=boo bounded_list=foo,bar,baz
+   bounded_hash:3=foo bounded_hash:30=baz 
+   hash_of_nodes:"foo node" foo="in foo node" -
+   hash_of_nodes:"bar node" bar="in bar node" ';
+ $root->load( step => $step );
+
+ # dump resulting tree
+ print $root->dump_tree;
 
 =head1 DESCRIPTION
 

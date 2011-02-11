@@ -1,10 +1,7 @@
 # -*- cperl -*-
-# $Author$
-# $Date$
-# $Revision$
 
 use ExtUtils::testlib;
-use Test::More tests => 29;
+use Test::More tests => 37;
 use Config::Model;
 
 use warnings;
@@ -175,4 +172,27 @@ foreach my $test ( @tries ) {
     my $dump = $obj->dump_as_data();
     is_deeply($dump, $expect, "check data dump for '$path'") ; 
 }
+
+# test dump of annotations as pod
+my %notes = 
+    map { ( $_ => $_ ? "$_ annotation" : "root annotation") ;}
+    ( '','olist' , 'olist:0' , 'olist:0 DX' , 'hash_a' , 'std_id:ab' , 'my_check_list' );
+foreach (keys %notes) {
+    $root->grab($_)->annotation($notes{$_}) ;
+}
+
+print $root->dump_tree if $trace ;
+
+my $pod_notes = $root->dump_annotations_as_pod ;
+
+print $pod_notes if $trace ;
+
+foreach (values %notes) {
+    like ($pod_notes, qr/$_/, "found note $_ in pod notes");
+}
+
+$root2->load_pod_annotation($pod_notes) ;
+my $pod_notes2 = $root2->dump_annotations_as_pod ;
+
+is($pod_notes2,$pod_notes,"check 2nd pod notes" );
 

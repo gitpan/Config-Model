@@ -11,7 +11,7 @@
 # 
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 # 
-#    Copyright (c) 2010 Dominique Dumont, Krzysztof Tyszecki.
+#    Copyright (c) 2010-2011 Dominique Dumont, Krzysztof Tyszecki.
 #
 #    This file is part of Config-Model.
 #
@@ -31,7 +31,7 @@
 
 package Config::Model::Backend::IniFile ;
 BEGIN {
-  $Config::Model::Backend::IniFile::VERSION = '1.232';
+  $Config::Model::Backend::IniFile::VERSION = '1.233';
 }
 
 use Carp;
@@ -51,91 +51,97 @@ sub suffix { return '.ini' ; }
 sub annotation { return 1 ;}
 
 sub read {
-    my $self = shift ;
-    my %args = @_ ;
+    my $self = shift;
+    my %args = @_;
 
     # args is:
-    # object     => $obj,         # Config::Model::Node object 
+    # object     => $obj,         # Config::Model::Node object
     # root       => './my_test',  # fake root directory, userd for tests
-    # config_dir => /etc/foo',    # absolute path 
+    # config_dir => /etc/foo',    # absolute path
     # file       => 'foo.conf',   # file name
-    # file_path  => './my_test/etc/foo/foo.conf' 
+    # file_path  => './my_test/etc/foo/foo.conf'
     # io_handle  => $io           # IO::File object
     # check      => yes|no|skip
 
-    return 0 unless defined $args{io_handle} ; # no file to read
+    return 0 unless defined $args{io_handle};    # no file to read
 
-
-    my %data ;
-    my %annot ;
     # try to get global comments (comments before a blank line)
-    my @global_comments ;
+    my @global_comments;
     my @comments;
-    my $global_zone = 1 ;
+    my $global_zone = 1;
 
     my $section;
 
-    #Get the 'right' ref
-    my $r = \%data;
-    my $a = \%annot;
-    my $delimiter = $args{comment_delimiter} || '#' ;
+    my $delimiter  = $args{comment_delimiter}   || '#';
+    my $hash_class = $args{store_class_in_hash} || '';
+    my $check      = $args{check}               || 'yes';
+    my $obj        = $self->node;
 
     #FIXME: Is it possible to store the comments with their location
     #in the file?  It would be nice if comments that are after values
     #in input file, would be written in the same way in the output
     #file.  Also, comments at the end of file are being ignored now.
-    foreach ($args{io_handle}->getlines) {
-        next if /^$delimiter$delimiter/ ;		  # remove comments added by Config::Model
-        chomp ;
+    foreach ( $args{io_handle}->getlines ) {
+        next
+          if /^$delimiter$delimiter/;   # remove comments added by Config::Model
+        chomp;
 
-        my ($vdata,$comment) = split /\s*$delimiter\s?/ ;
+        my ( $vdata, $comment ) = split /\s*$delimiter\s?/;
 
         push @global_comments, $comment if defined $comment and $global_zone;
-        push @comments, $comment        if (defined $comment and not $global_zone);
+        push @comments, $comment if ( defined $comment and not $global_zone );
 
-        if ($global_zone and /^\s*$/ and @global_comments) {
-            $annot{__} = "@global_comments" ;
-            $logger->debug("Setting global comment (elt '__') with '@global_comments'") ;
-            $global_zone = 0 ;
+        if ( $global_zone and /^\s*$/ and @global_comments ) {
+            $logger->debug("Setting global comment with '@global_comments'");
+            $self->node->annotation(@global_comments);
+            $global_zone = 0;
         }
 
         # stop global comment at first blank line
-        $global_zone = 0 if /^\s*$/ ;
+        $global_zone = 0 if /^\s*$/;
 
-        if (defined $vdata and $vdata ) {
+        if ( defined $vdata and $vdata ) {
+            $vdata =~ s/^\s+//g;
+            $vdata =~ s/\s+$//g;
+
             # Update section name
-            if($vdata =~ /\[(.*)\]/){
+            if ( $vdata =~ /\[(.*)\]/ ) {
                 $section = $1;
-                $r = $data {$section} = {};
-                $a = $annot{$section} = {};
-                $a->{__} = "@comments" if @comments ;
-                @comments = ();
-                next;
+                my $prefix = $hash_class ? "$hash_class:" : '';
+                $obj = $self->node->grab(
+                    step  => $prefix . $section,
+                    check => $check
+                );
+                $obj->annotation(@comments) if scalar @comments;
             }
+            else {
+                my ( $name, $val ) = split( /\s*=\s*/, $vdata );
 
-            my ($name,$val) = split(/\s*=\s*/, $vdata);
+                my $elt = $obj->fetch_element( name => $name, check => $check );
 
-            if (defined $r->{$name}){
-                map {$_->{$name} = [$_->{$name}] if ref($_->{$name}) ne 'ARRAY';} ( $r,$a ) ;
-                
-                push @{$r->{$name}}, $val;
-                push @{$a->{$name}}, join("\n",@comments) if scalar @comments;
-                @comments = ();
+                if ( $elt->get_type eq 'list' ) {
+                    my $idx = $elt->fetch_size ;
+                    my $list_val = $elt->fetch_with_id($idx);
+                    $list_val -> store( $val, check => $check );
+                    $list_val -> annotation(@comments) if @comments ;
+                }
+                elsif ( $elt->element_type eq 'leaf' ) {
+                    $elt->store( value => $val, check => $check );
+                    $elt->annotation(@comments) if scalar @comments;
+                }
+                else {
+                    Config::Model::Exception::ModelDeclaration->throw(
+                        error =>
+                          "element $elt must be list or leaf for INI files",
+                        object => $obj
+                    );
+                }
             }
-            else{
-                $r->{$name} = $val;
-                # no need to store empty comments
-                $a->{$name} = join("\n",@comments) if scalar @comments;
-                @comments = ();
-            }
+            @comments = ();
         }
     }
 
-    # use Data::Dumper; print Dumper(\%annot) ;
-
-    $self->node->load_data(\%data,\%annot, $args{check} || 'yes' );
-
-    return 1 ;
+    return 1;
 }
 
 
@@ -178,7 +184,7 @@ sub _write {
     # first write list and element, then classes
     foreach my $elt ($node->get_element_name) {
         my $type = $node->element_type($elt) ;
-        next if $type eq 'node' ;
+        next if $type eq 'node' or $type eq 'hash';
         
         my $obj =  $node->fetch_element($elt) ;
 
@@ -207,18 +213,27 @@ sub _write {
 
     foreach my $elt ($node->get_element_name) {
         my $type = $node->element_type($elt) ;
-        next unless $type eq 'node' ;
+        next unless $type eq 'node' or $type eq 'hash';
         my $obj =  $node->fetch_element($elt) ;
 
         my $note = $obj->annotation;
         
-        map { $ioh->print("$delimiter $_\n") } $note if $note;
-
-        $ioh->print("[$elt]\n");
-        my %na = %args;
-        $na{object} = $obj;
-        $self->_write(%na);
-    }
+        if ($type eq 'hash') {
+            foreach my $key ($obj->get_all_indexes) {
+                my $hash_obj = $obj->fetch_with_id($key) ;
+                my $note = $hash_obj->annotation;
+                $ioh->print("$delimiter $note\n") if $note;
+                $ioh->print("[$key]\n");
+                $self->_write(%args, object => $hash_obj);
+            }
+        }
+        else {
+            my $note = $obj->annotation;
+            $ioh->print("$delimiter $note\n") if $note;
+            $ioh->print("[$elt]\n");
+            $self->_write(%args, object => $obj);
+        }
+    }   
 
     return 1;
 }
@@ -233,25 +248,69 @@ Config::Model::Backend::IniFile - Read and write config as a INI file
 
 =head1 VERSION
 
-version 1.232
+version 1.233
 
 =head1 SYNOPSIS
 
-  # model declaration
-  name => 'FooConfig',
+ use Config::Model;
+ use Log::Log4perl qw(:easy);
+ Log::Log4perl->easy_init($WARN);
 
-  read_config  => [
-                    { backend => 'IniFile',
-                      config_dir => '/etc/foo',
-                      file  => 'foo.conf',      # optional
-                      auto_create => 1,         # optional
-                      comment_delimiter => ';', # optional, default is '#'
-                    }
-                  ],
+ my $model = Config::Model->new;
+ $model->create_config_class (
+    name    => "IniClass",
+    element => [ 
+        [qw/foo bar/] => {
+            type => 'list',
+            cargo => {qw/type leaf value_type string/}
+        } 
+    ]
+ );
 
-   element => ...
-  ) ;
+ # model for free INI class name and constrained class parameters
+ $model->create_config_class(
+    name => "MyClass",
 
+    element => [
+        'ini_class' => {
+            type   => 'hash',
+	    index_type => 'string',
+	    cargo => { 
+		type => 'node',
+		config_class_name => 'IniClass' 
+		},
+	    },
+    ],
+
+   read_config  => [
+        { 
+            backend => 'IniFile',
+            config_dir => '/tmp',
+            file  => 'foo.conf',
+            store_class_in_hash => 'ini_class',
+            auto_create => 1,
+        }
+    ],
+ );
+
+ my $inst = $model->instance(root_class_name => 'MyClass' );
+ my $root = $inst->config_root ;
+
+ $root->load('ini_class:ONE foo=FOO1 bar=BAR1 - 
+              ini_class:TWO foo=FOO2' );
+
+ $inst->write_back ;
+
+Now C</tmp/foo.conf> will contain:
+
+ ## file written by Config::Model
+ [ONE]
+ foo=FOO1
+
+ bar=BAR1
+
+ [TWO]
+ foo=FOO2
 
 =head1 DESCRIPTION
 
@@ -267,6 +326,12 @@ Note that undefined values are skipped for list element. I.e. if a
 list element contains C<('a',undef,'b')>, the data structure will
 contain C<'a','b'>.
 
+=head1 Comments
+
+This backend tries to read and write comments from configuration file. The
+comments are stored as annotation within the configuration tree. Bear in mind
+that comments extraction is based on best estimation as to which parameter the 
+comment may apply. Wrong estimations are possible.
 
 =head1 CONSTRUCTOR
 

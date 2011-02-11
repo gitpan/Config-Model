@@ -27,7 +27,7 @@
 
 package Config::Model::HashId ;
 BEGIN {
-  $Config::Model::HashId::VERSION = '1.232';
+  $Config::Model::HashId::VERSION = '1.233';
 }
 use Config::Model::Exception ;
 use Scalar::Util qw(weaken) ;
@@ -47,26 +47,11 @@ Config::Model::HashId - Handle hash element for configuration model
 
 =head1 VERSION
 
-version 1.232
+version 1.233
 
 =head1 SYNOPSIS
 
- $model ->create_config_class 
-  (
-   ...
-   element 
-   => [ 
-       bounded_hash 
-       => { type => 'hash',
-            index_type  => 'integer',
-            min_index => 1, 
-            max_index => 123, 
-            max_nb => 2 ,
-            cargo_type => 'leaf',
-            cargo_args => {value_type => 'string'},
-          },
-      ]
-  ) ;
+See L<Config::Model::AnyId/SYNOPSIS>
 
 =head1 DESCRIPTION
 
@@ -466,7 +451,7 @@ sub move_down {
     }
 }
 
-=head2 load_data ( hash_ref | array_ref , [ note hash ref ] )
+=head2 load_data ( hash_ref | array_ref )
 
 Load check_list as a hash ref for standard hash. 
 
@@ -484,16 +469,10 @@ or
 sub load_data {
     my $self = shift ;
     my $data = shift ;
-    my $note = shift || {} ;
-
-    my %annot ;
 
     if (ref ($data) eq 'HASH') {
         my @load_keys ;
         my $from = ''; ;
-        if (defined $data->{__}) {
-            $self->annotation(delete $data->{__}) ;
-        }
 
         if ($self->{ordered} and defined $data->{__order}) {
             @load_keys = @{ delete $data->{__order} };
@@ -507,12 +486,6 @@ sub load_data {
 
         @load_keys = sort keys %$data unless @load_keys;
 
-        foreach (@load_keys) {
-            my ($k,$c) = split /#\s*/;
-            $annot{$k} = $c if $c;
-            $_ = $k ;
-        }
-
         $logger->info("HashId load_data (".$self->location.
                       ") will load idx @load_keys from hash ref".$from);
         foreach my $elt (@load_keys) {
@@ -525,8 +498,7 @@ sub load_data {
                       .") will load idx 0..$#$data from array ref") ;
         my $idx = 0 ;
         while ( $idx < @$data ) {
-                        my ($elt,$c) = split /#\s*/,$data->[$idx++];
-                        $annot{$elt} = $c if defined $c and $c;
+            my $elt = $data->[$idx++];
             my $obj = $self->fetch_with_id($elt) ;
             $obj -> load_data($data->[$idx++]) ;
         }
@@ -540,10 +512,6 @@ sub load_data {
                       message => "load_data called with non $expected ref arg",
                       wrong_data => $data ,
                      ) ;
-    }
-
-    foreach my $elt (keys %annot) {
-       $self->fetch_with_id($elt)->annotation($annot{$elt}) ;
     }
 }
 

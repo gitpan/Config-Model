@@ -28,7 +28,7 @@
 
 package Config::Model::AutoRead ;
 BEGIN {
-  $Config::Model::AutoRead::VERSION = '1.232';
+  $Config::Model::AutoRead::VERSION = '1.233';
 }
 use Carp;
 use strict;
@@ -306,7 +306,7 @@ sub auto_read_init {
     if (not $read_done) {
         my $msg = "could not read config file with ";
         $msg .= $pref_backend ? "'$pref_backend'" : 'any' ;
-        $msg .= " backend ($!)";
+        $msg .= " backend";
 
         Config::Model::Exception::Model -> throw
             (
@@ -315,7 +315,7 @@ sub auto_read_init {
              object => $self,
             ) unless $auto_create ;
 
-        $logger->warn("Warning: $msg");
+        $logger->warn("Warning: node '".$self->name."' $msg");
     }
 
 }
@@ -335,7 +335,6 @@ sub auto_write_init {
 
     # root override is passed by the instance
     my $root_dir = $instance -> write_root_dir || '';
-    my $registered_backend = 0;
 
     my @array = ref $wrlist eq 'ARRAY' ? @$wrlist : ($wrlist) ;
 
@@ -363,7 +362,7 @@ sub auto_write_init {
         my $fh ;
         $fh = new IO::File ; # opened in write callback
 
-        $logger->debug("init: registering write cb ($backend) for ",$self->name);
+        $logger->debug("auto_write_init creating write cb ($backend) for ",$self->name);
 
         my @wr_args = (%$write,                  # model data
                        auto_create => $auto_create,
@@ -385,9 +384,10 @@ sub auto_write_init {
             $wb = sub  {  
                 no strict 'refs';
                 my $file_path ;
+                $logger->debug("write cb ($backend) called for ",$self->name);
                 $file_path = $self-> open_file_to_write($backend,$fh,@wr_args,@_) 
                     unless ($c->can('skip_open') and $c->skip_open) ;
-                eval {
+                my $res = eval {
                     # override needed for "save as" button
                     &{$c.'::'.$f}(@wr_args,
                                   file_path => $file_path,
@@ -398,32 +398,37 @@ sub auto_write_init {
                 };
                 $logger->warn("write backend $c".'::'."$f failed: $@") if $@;
                 $self->close_file_to_write($@,$fh,$file_path) ;
+                return defined $res ? $res : $@ ? 0 : 1 ;
              };
             $self->{auto_write}{custom} = 1 ;
         }
         elsif ($backend eq 'perl_file') {
             $wb = sub {
+                $logger->debug("write cb ($backend) called for ",$self->name);
                 my $file_path 
                     = $self-> open_file_to_write($backend,$fh,
                                                 suffix => '.pl',@wr_args,@_) ;
-                eval {
+                my $res = eval {
                     $self->write_perl(@wr_args, file_path => $file_path,  @_) ;
                 };
                 $self->close_file_to_write($@,$fh,$file_path) ;
                 $logger->warn("write backend $backend failed: $@") if $@;
+                return defined $res ? $res : $@ ? 0 : 1 ;
             } ;
             $self->{auto_write}{perl_file} = 1 ;
         }
         elsif ($backend eq 'cds_file') {
             $wb = sub {
+                $logger->debug("write cb ($backend) called for ",$self->name);
                 my $file_path 
                    = $self-> open_file_to_write($backend,$fh,
                                                 suffix => '.cds',@wr_args,@_) ;
-                eval {
+                my $res = eval {
                     $self->write_cds_file(@wr_args, file_path => $file_path, @_) ;
                 };
                 $logger->warn("write backend $backend failed: $@") if $@;
                 $self->close_file_to_write($@,$fh,$file_path) ;
+                return defined $res ? $res : $@ ? 0 : 1 ;
             } ;
             $self->{auto_write}{cds_file} = 1 ;
         }
@@ -434,6 +439,7 @@ sub auto_write_init {
             my $safe_self = $self ; # provide a closure
             $wb = sub {
                 no strict 'refs';
+                $logger->debug("write cb ($backend) called for ",$self->name);
                 my $backend_obj =  $self->{backend}{$backend}
                                 || $c->new(node => $self, name => $backend) ;
                 my $file_path ;
@@ -443,7 +449,7 @@ sub auto_write_init {
                                                          suffix => $suffix,
                                                          @wr_args,@_) 
                     unless ($c->can('skip_open') and $c->skip_open) ;
-                eval {
+                my $res = eval {
                     # override needed for "save as" button
                     $backend_obj->$f( @wr_args, 
                                       file_path => $file_path,
@@ -453,14 +459,66 @@ sub auto_write_init {
                 } ;
                 $logger->warn("write backend $backend $c".'::'."$f failed: $@") if $@;
                 $self->close_file_to_write($@,$fh,$file_path) ;
+                return defined $res ? $res : $@ ? 0 : 1 ;
              };
         }
 
         # FIXME: enhance write back mechanism so that different backend *and* different nodse
         # work as expected
-        $instance->register_write_back($backend => $wb) ;
-        $registered_backend ++ ;
+        $logger->debug("registering write $backend in node ".$self->name);
+        push @{$self->{write_back}}, [$backend, $wb] ;
+        $instance->register_write_back($self->location) ;
     }
+}
+
+=head2 write_back ( ... )
+
+Try to run all subroutines registered by L<auto_write_init> 
+write the configuration information until one succeeds (returns
+true).
+
+You can specify here a pseudo root directory or another config
+directory to write configuration data back with C<root> and
+C<config_dir> parameters. This will override the model specifications.
+
+You can force to use a backend by specifying C<< backend => xxx >>. 
+For instance, C<< backend => 'augeas' >> or C<< backend => 'custom' >>.
+
+You can force to use all backend to write the files by specifying 
+C<< backend => 'all' >>.
+
+C<write_back> will croak if no write call-back are known for this node.
+
+=cut
+
+sub write_back {
+    my $self = shift ;
+    my %args = @_ ; 
+
+    my $force_backend = delete $args{backend} || '' ;
+
+    croak "write_back: no subs registered in node", $self->location,". cannot save data\n" 
+        unless @{$self->{write_back}} ;
+
+    my @backends = @{$self->{write_back}} ;
+    $logger->debug("write_back called on node '",$self->name, "' for " , scalar @backends, " backends");
+
+
+    my $dir = $args{config_dir} ;
+    mkpath($dir,0,0755) if $dir and not -d $dir ;
+
+    foreach my $wb_info (@backends) {
+	my ($backend,$wb) = @$wb_info ;
+	if (not $force_backend 
+	    or  $force_backend eq $backend 
+	    or  $force_backend eq 'all' ) {
+	    # exit when write is successfull
+	    my $res = $wb->(%args) ; 
+	    $logger->info("write_back called with $backend backend, result is ", defined $res ? $res : '<undef>' );
+	    last if ($res and not $force_backend); 
+	}
+    }
+    $logger->debug("write_back on node '",$self->name, "' done");
 }
 
 sub open_file_to_write {
@@ -559,34 +617,68 @@ Config::Model::AutoRead - Load configuration node on demand
 
 =head1 VERSION
 
-version 1.232
+version 1.233
 
 =head1 SYNOPSIS
 
-  # top level config file name matches instance name
-  $model->create_config_class 
-  (
-   name => 'OneAutoReadConfigClass',
+ # Use AutoRead to write data in perl data file
+ use Config::Model;
+ use Log::Log4perl qw(:easy);
+ Log::Log4perl->easy_init($WARN);
 
-   read_config  => [ { backend => 'cds_file' , config_dir => '/etc/cfg_dir'},
-                     { backend => 'custom' , 
-                       class => 'ProcessRead' ,
-                       config_dir => '/etc/foo', # optional
-                       file  => 'foo.conf',      # optional
-                       auto_create => 1,         # optional
-                     }
-                   ],
-   # if omitted, write_config will be written using read_config specifications
-   # write_config can be array of hash ref to write several syntaxes
-   write_config => { backend => 'cds_file', config_dir => '/etc/cfg_dir' } ,
+ # define configuration tree object
+ my $model = Config::Model->new;
+ $model->create_config_class(
+    name    => "Foo",
+    element => [
+        [qw/foo bar/] => {
+            type       => 'leaf',
+            value_type => 'string'
+        },
+    ]
+ ); 
 
+ $model->create_config_class(
+    name => "MyClass",
 
-   element => ...
-  ) ;
+    # read_config spec is used by Config::Model::AutoRead
+    read_config => [
+        {
+            backend     => 'perl_file',
+            config_dir  => '/tmp/',
+            file        => 'my_class.pl',
+            auto_create => 1,
+        },
+    ],
+    
+    element => [
+        [qw/foo bar/] => {
+            type       => 'leaf',
+            value_type => 'string'
+        },
+        hash_of_nodes => {
+            type       => 'hash',     # hash id
+            index_type => 'string',
+            cargo      => {
+                type              => 'node',
+                config_class_name => 'Foo'
+            },
+        },
+    ],
+ );
 
-  # config data will be written in /etc/my_config_dir/foo.cds
-  # according to the instance name
-  my $instance = $model->instance(instance_name => 'foo') ;
+ my $inst = $model->instance( root_class_name => 'MyClass' );
+
+ my $root = $inst->config_root;
+
+ # put data
+ my $step = 'foo=FOO hash_of_nodes:fr foo=bonjour -
+   hash_of_nodes:en foo=hello ';
+ $root->load( step => $step );
+
+ $inst->write_back;
+
+ # now look at file /tmp/my_class.pl
 
 =head1 DESCRIPTION
 

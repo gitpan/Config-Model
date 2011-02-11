@@ -27,7 +27,7 @@
 
 package Config::Model::Instance;
 BEGIN {
-  $Config::Model::Instance::VERSION = '1.232';
+  $Config::Model::Instance::VERSION = '1.233';
 }
 use Scalar::Util qw(weaken) ;
 use File::Path;
@@ -38,7 +38,7 @@ use Config::Model::Exception ;
 use Config::Model::Node ;
 use Config::Model::Loader;
 use Config::Model::Searcher;
-use Config::Model::WizardHelper;
+use Config::Model::Iterator;
 
 use strict ;
 use Carp;
@@ -56,15 +56,41 @@ Config::Model::Instance - Instance of configuration tree
 
 =head1 VERSION
 
-version 1.232
+version 1.233
 
 =head1 SYNOPSIS
 
- my $model = Config::Model->new() ;
- $model ->create_config_class ( ... ) ;
+ use Config::Model;
+ use Log::Log4perl qw(:easy);
+ use File::Path ;
+ Log::Log4perl->easy_init($WARN);
 
- my $inst = $model->instance (root_class_name => 'SomeRootClass', 
-                              instance_name    => 'some_name');
+ # setup a dummy popcon conf file
+ my $wr_dir = '/tmp/etc/';
+ my $conf_file = "$wr_dir/popularity-contest.conf" ;
+
+ unless (-d $wr_dir) {
+     mkpath($wr_dir, { mode => 0755 }) 
+       || die "can't mkpath $wr_dir: $!";
+ }
+ open(my $conf,"> $conf_file" ) || die "can't open $conf_file: $!";
+ $conf->print( qq!MY_HOSTID="aaaaaaaaaaaaaaaaaaaa"\n!,
+   qq!PARTICIPATE="yes"\n!,
+   qq!USEHTTP="yes" # always http\n!,
+   qq!DAY="6"\n!);
+ $conf->close ;
+
+ my $model = Config::Model->new;
+
+ # PopCon model is provided. Create a new Config::Model::Instance object
+ my $inst = $model->instance (root_class_name   => 'PopCon',
+                              root_dir          => '/tmp',
+                             );
+ my $root = $inst -> config_root ;
+
+ print $root->describe;
+
+
 
 =head1 DESCRIPTION
 
@@ -339,25 +365,35 @@ sub search_element {
 
 =head2 wizard_helper ( ... )
 
-This method returns a L<Config::Model::WizardHelper> object. See
-L<Config::Model::WizardHelper> for details on how to create a wizard
-widget with this object.
-
-wizard_helper arguments are explained in  L<Config::Model::WizardHelper>
-L<constructor arguments|Config::Model::WizardHelper/"Creating a wizard helper">.
+Deprecated. Call L</iterator> instead.
 
 =cut
 
 sub wizard_helper {
+    carp __PACKAGE__,"::wizard_helper helped is deprecated. Call iterator instead" ;
+    goto &iterator ;
+}
+
+=head2 iterator 
+
+This method returns a L<Config::Model::Iterator> object. See
+L<Config::Model::Iterator> for details.
+
+Arguments are explained in  L<Config::Model::Iterator>
+L<constructor arguments|Config::Model::Iterator/"Creating an iterator">.
+
+=cut
+
+sub iterator {
     my $self = shift ;
     my @args = @_ ;
 
     my $tree_root = $self->config_root ;
 
-    return Config::Model::WizardHelper->new ( root => $tree_root, @args) ;
+    return Config::Model::Iterator->new ( root => $tree_root, @args) ;
 }
 
-
+=head2 
 
 =head1 Auto read and write feature
 
@@ -411,19 +447,18 @@ sub write_root_dir {
     return $self -> {root_dir} ;
 }
 
-=head2 register_write_back ( backend_name, sub_ref )
+=head2 register_write_back ( node_location )
 
-Register a sub ref (with the backend name) that will be called with
+Register a node path that will be called back with
 C<write_back> method.
 
 =cut
 
 sub register_write_back {
-    my ($self,$backend,$wb) = @_ ;
+    my ($self,$node_path) = @_ ;
+    $logger->debug("register_write_back: instance '$self->{name}' registers node '$node_path'") ;
 
-    croak "register_write_back: parameter is not a code ref"
-      unless ref($wb) eq 'CODE' ;
-    push @{$self->{write_back}}, [$backend, $wb] ;
+    push @{$self->{write_back}}, $node_path ;
 }
 
 =head2 write_back ( ... )
@@ -461,22 +496,13 @@ sub write_back {
      }
       keys %args;
 
-    croak "write_back: no subs registered. cannot save data\n" 
+    croak "write_back: no subs registered in instance $self->{name}. cannot save data\n" 
       unless @{$self->{write_back}} ;
 
-    my $dir = $args{config_dir} ;
-    mkpath($dir,0,0755) if $dir and not -d $dir ;
-
-    foreach my $wb_info (@{$self->{write_back}}) {
-	my ($backend,$wb) = @$wb_info ;
-	if (not $force_backend 
-	    or  $force_backend eq $backend 
-	    or  $force_backend eq 'all' ) {
-	    # exit when write is successfull
-	    my $res = $wb->(%args) ; 
-	    $logger->info("write_back called with $backend backend, result is ", defined $res ? $res : '<undef>' );
-	    last if ($res and not $force_backend); 
-	}
+    foreach my $path (@{$self->{write_back}}) {
+	$logger->info("write_back called on node $path");
+        my $node = $self->config_root->grab(step => $path, type => 'node');
+        $node->write_back(%args, backend => $force_backend);
     }
 }
 

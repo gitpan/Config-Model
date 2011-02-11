@@ -10,7 +10,7 @@
 
 package Config::Model::Backend::Debian::Dpkg::Control ;
 BEGIN {
-  $Config::Model::Backend::Debian::Dpkg::Control::VERSION = '1.232';
+  $Config::Model::Backend::Debian::Dpkg::Control::VERSION = '1.233';
 }
 
 use Moose ;
@@ -200,31 +200,18 @@ Config::Model::Backend::Debian::Dpkg::Control - Read and write Debian Dpkg contr
 
 =head1 VERSION
 
-version 1.232
+version 1.233
 
 =head1 SYNOPSIS
 
-  # model declaration
-  name => 'FooConfig',
-
-  read_config  => [
-                    { backend => 'Debian::Dpkg::Control' , 
-                      config_dir => 'debian',
-                      file  => 'control',      # optional
-                      auto_create => 1,         # optional
-                    }
-                  ],
-
-   element => ...
-  ) ;
-
+No synopsis. This class is dedicated to configuration class C<Debian::Dpkg::Control>
 
 =head1 DESCRIPTION
 
 This module is used directly by L<Config::Model> to read or write the
-content of a configuration tree written with Debian Dpkg syntax in
-C<Config::Model> configuration tree. This syntax is used to specify 
-license information in Debian source package format.
+content of Debian C<control> file.
+
+All C<control> files keyword are read in a case-insensitive manner.
 
 =head1 CONSTRUCTOR
 

@@ -27,7 +27,7 @@
 
 package Config::Model::AnyThing;
 BEGIN {
-  $Config::Model::AnyThing::VERSION = '1.232';
+  $Config::Model::AnyThing::VERSION = '1.233';
 }
 use Scalar::Util qw(weaken);
 use Carp;
@@ -42,12 +42,11 @@ Config::Model::AnyThing - Base class for configuration tree item
 
 =head1 VERSION
 
-version 1.232
+version 1.233
 
 =head1 SYNOPSIS
 
- package Config::Model::Node ;
- use base qw/Config::Model::AnyThing/ ;
+ # internal class
 
 =head1 DESCRIPTION
 
@@ -209,6 +208,40 @@ sub annotation {
     my $self = shift ;
     $self->{annotation} = join("\n", grep (defined $_,@_)) if @_;
     return $self->{annotation} ;
+}
+
+=head2 load_pod_annotation ( pod_string )
+
+Load annotations in configuration tree from a pod document. The pod must
+be in the form:
+
+ =over
+ 
+ =item path
+ 
+ Annotation tested
+ 
+ =back
+ 
+=cut
+
+sub load_pod_annotation {
+    my $self = shift ;
+    my $pod = shift ;
+    
+    # could use Pod::POM, but it's overkill... for now
+    my $obj ;
+    foreach (split /\n+/ , $pod ) {
+        if (s/=item//) {
+            $obj = $self->grab(step => "! $_") ; # FIXME the '!' is dangerous if the pod was not generated from a root node ....
+        }
+        elsif (/=(over|back)/) {
+            # nothing 
+        }
+        else {
+            $obj->annotation($_) ;
+        }
+    }
 }
 
 =head1 Information management
@@ -477,28 +510,28 @@ sub grab {
 
 =head2 grab_value(...)
 
-Like L</grab(...)>, but will return the value of a leaf object, not
+Like L</grab(...)>, but will return the value of a leaf or check_list object, not
 just the leaf object.
 
 Will raise an exception if following the steps ends on anything but a
-leaf.
+leaf or a check_list.
 
 =cut
 
 sub grab_value {
     my $self = shift ;
-    my @args = scalar @_ == 1 ? ( step => $_[0], type => 'leaf')
-      : ( @_ , type => 'leaf') ;
-
+    my @args = scalar @_ == 1 ? ( step => $_[0] ) : @_ ;
+    
     my $obj = $self->grab(@args) ;
 
     Config::Model::Exception::User
 	-> throw (
 		  object => $self,
-		  message => "grab_value: cannot get value of non-leaf "
+		  message => "grab_value: cannot get value of non-leaf or check_list "
 		  ."item with '".join("' '",@_)."'"
 		 ) 
-	  unless ref $obj && $obj->isa("Config::Model::Value");
+	  unless ref $obj and ( $obj->isa("Config::Model::Value") or 
+            $obj->isa("Config::Model::CheckList"));
 
     return $obj->fetch ;
 }

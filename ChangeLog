@@ -1,3 +1,20 @@
+2011-02-11 Dominique Dumont  <domi.dumont@free.fr> 1.233
+    
+    * Application changes:
+        * dpkg control source model: Added DM-Upload-Allowed and all Vcs-* tags defined 
+        in Debian reference guide (Peter Pentchev)
+          (Fix RT 65575)
+        
+    * Framework changes:
+        * Backend Ini file: Fixed comment handling
+        * All modules: Improved synopsis. You can now save them in a file and 
+          have a working program
+        * Remove crappy handling of comments in load_data methods. 
+        * DumpAsData: Write annotations as pod in method dump_annotations_as_pod
+        * Anything: load_pod_annoation load annotations from a pod document 
+        * Instance write back: now correctly call all write_back when several
+          nodes in model needs to be called back
+
 2011-01-30 Dominique Dumont  <domi.dumont@free.fr> 1.232
 
     * Added missing Text::Autoformat dependency

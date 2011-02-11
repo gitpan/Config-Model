@@ -10,7 +10,7 @@
 
 package Config::Model::Backend::Debian::Dpkg::Copyright ;
 BEGIN {
-  $Config::Model::Backend::Debian::Dpkg::Copyright::VERSION = '1.232';
+  $Config::Model::Backend::Debian::Dpkg::Copyright::VERSION = '1.233';
 }
 
 use Moose ;
@@ -304,24 +304,11 @@ Config::Model::Backend::Debian::Dpkg::Copyright - Read and write Debian Dpkg Lic
 
 =head1 VERSION
 
-version 1.232
+version 1.233
 
 =head1 SYNOPSIS
 
-  # model declaration
-  name => 'FooConfig',
-
-  read_config  => [
-                    { backend => 'Debian::Dpkg::Copyright' , 
-                      config_dir => 'debian',
-                      file  => 'copyright',      # optional
-                      auto_create => 1,         # optional
-                    }
-                  ],
-
-   element => ...
-  ) ;
-
+No synopsis. This class is dedicated to configuration class C<Debian::Dpkg::Copyright>
 
 =head1 DESCRIPTION
 

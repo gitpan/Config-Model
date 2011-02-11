@@ -7,7 +7,7 @@ use Test::More;
 use Test::Exception ;
 use Config::Model;
 
-BEGIN { plan tests => 68; }
+BEGIN { plan tests => 71; }
 
 use strict;
 
@@ -127,11 +127,16 @@ is($b->max_index,123,'check list max boundary') ;
 
 $b->push('toto','titi') ;
 is($b->fetch_with_id(2)->fetch, 'bar', "check last item of table") ;
-is($b->fetch_with_id(3)->fetch, 'toto',"check pushed item") ;
-is($b->fetch_with_id(4)->fetch, 'titi',"check pushed item") ;
+is($b->fetch_with_id(3)->fetch, 'toto',"check pushed toto item") ;
+is($b->fetch_with_id(4)->fetch, 'titi',"check pushed titi item") ;
+
+$b->push_x(values => ['toto','titi'], check => 'no', annotation => ['toto comment']) ;
+is($b->fetch_with_id(5)->fetch, 'toto',"check pushed toto item with push_x") ;
+is($b->fetch_with_id(5)->annotation, 'toto comment',"check pushed toto annotation with push_x") ;
+is($b->fetch_with_id(6)->fetch, 'titi',"check pushed titi item with push_x") ;
 
 my @all = $b->fetch_all_values ;
-is_deeply(\@all,[qw/baz bar toto titi/],"check fetch_all_values") ;
+is_deeply(\@all,[qw/baz bar toto titi toto titi/],"check fetch_all_values") ;
 
 my $lac = $root->fetch_element('list_with_auto_created_id');
 is_deeply([$lac->get_all_indexes],[0 .. 3],"check list_with_auto_created_id") ;

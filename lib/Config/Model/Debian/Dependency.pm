@@ -9,7 +9,7 @@
 #
 package Config::Model::Debian::Dependency ;
 BEGIN {
-  $Config::Model::Debian::Dependency::VERSION = '1.232';
+  $Config::Model::Debian::Dependency::VERSION = '1.233';
 }
 
 use strict ;
@@ -173,23 +173,44 @@ sub get_available_version {
 
 =head1 NAME
 
-Config::Model::Debian::Dependency - Checks Debian dependency in control files
+Config::Model::Debian::Dependency - Checks Debian dependency declarations
 
 =head1 VERSION
 
-version 1.232
+version 1.233
 
 =head1 SYNOPSIS
 
-    # in a model (this could also be applied to a simple leaf element): 
-    Depends => {
-        'type' => 'list',
-        'cargo' => {
-            'value_type' => 'uniline',
+ use Config::Model ;
+ use Log::Log4perl qw(:easy) ;
+ use Data::Dumper ;
+
+ Log::Log4perl->easy_init($WARN);
+
+ # define configuration tree object
+ my $model = Config::Model->new ;
+ $model ->create_config_class (
+    name => "MyClass",
+    element => [ 
+        Depends => {
             'type'       => 'leaf',
+            'value_type' => 'uniline',
             class => 'Config::Model::Debian::Dependency',
         },
-    },
+    ],
+ ) ;
+
+ my $inst = $model->instance(root_class_name => 'MyClass' );
+
+ my $root = $inst->config_root ;
+
+ $root->load( 'Depends="libc6 ( >= 1.0 )"') ;
+ # Connecting to qa.debian.org to check libc6 versions. Please wait ...
+ # Warning in 'Depends' value 'libc6 ( >= 1.0 )': unnecessary
+ # versioned dependency: >= 1.0. Debian has lenny-security ->
+ # 2.7-18lenny6; lenny -> 2.7-18lenny7; squeeze-security ->
+ # 2.11.2-6+squeeze1; squeeze -> 2.11.2-10; wheezy -> 2.11.2-10; sid
+ # -> 2.11.2-10; sid -> 2.11.2-11;
 
 =head1 DESCRIPTION
 
@@ -226,12 +247,10 @@ Dominique Dumont, ddumont [AT] cpan [DOT] org
 =head1 SEE ALSO
 
 L<Config::Model>,
-L<Config::Model::Instance>,
-L<Config::Model::Node>,
-L<Config::Model::WarpedNode>,
-L<Config::Model::HashId>,
-L<Config::Model::ListId>,
-L<Config::Model::CheckList>,
-L<Config::Model::Value>
+L<Config::Model::Value>,
+L<Memoize>,
+L<Memoize::Expire>
+
+
 
 =cut

@@ -10,7 +10,7 @@
 
 package Config::Model::Backend::Yaml ;
 BEGIN {
-  $Config::Model::Backend::Yaml::VERSION = '1.232';
+  $Config::Model::Backend::Yaml::VERSION = '1.233';
 }
 
 use Carp;
@@ -52,7 +52,7 @@ sub read {
       || croak "No data found in YAML file $args{file_path}";
 
     # load perl data in tree
-    $self->{node}->load_data($perl_data, undef, $args{check} || 'yes' ) ;
+    $self->{node}->load_data($perl_data, $args{check} || 'yes' ) ;
     return 1 ;
 }
 
@@ -90,24 +90,61 @@ Config::Model::Backend::Yaml - Read and write config as a YAML data structure
 
 =head1 VERSION
 
-version 1.232
+version 1.233
 
 =head1 SYNOPSIS
 
-  # model declaration
-  name => 'FooConfig',
+ use Config::Model ;
+ use Log::Log4perl qw(:easy) ;
+ use Data::Dumper ;
 
+ Log::Log4perl->easy_init($WARN);
+
+ # define configuration tree object
+ my $model = Config::Model->new ;
+ $model ->create_config_class (
+    name => "MyClass",
+    element => [ 
+        [qw/foo bar/] => { 
+            type => 'leaf',
+            value_type => 'string'
+        },
+        baz => { 
+            type => 'hash',
+            index_type => 'string' ,
+            cargo => {
+                type => 'leaf',
+                value_type => 'string',
+            },
+        },
+    ],
   read_config  => [
                     { backend => 'yaml' , 
-                      config_dir => '/etc/foo',
-                      file  => 'foo.conf',      # optional
-                      auto_create => 1,         # optional
+                      config_dir => '/tmp',
+                      file  => 'foo.yml',
+                      auto_create => 1,
                     }
                   ],
+ ) ;
 
-   element => ...
-  ) ;
+ my $inst = $model->instance(root_class_name => 'MyClass' );
 
+ my $root = $inst->config_root ;
+
+ my $step = 'foo=yada bar="bla bla" baz:en=hello
+             baz:fr=bonjour baz:hr="dobar dan"';
+ $root->load( step => $step ) ;
+ $inst->write_back ;
+
+Now, C</tmp/foo.yml> contains:
+
+ ---
+ bar: bla bla
+ baz:
+   en: hello
+   fr: bonjour
+   hr: dobar dan
+ foo: yada
 
 =head1 DESCRIPTION
 

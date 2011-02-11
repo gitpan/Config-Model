@@ -8,7 +8,7 @@
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
 
-#    Copyright (c) 2006-2007 Dominique Dumont.
+#    Copyright (c) 2006-2011 Dominique Dumont.
 #
 #    This file is part of Config-Model.
 #
@@ -28,7 +28,7 @@
 
 package Config::Model::Report;
 BEGIN {
-  $Config::Model::Report::VERSION = '1.232';
+  $Config::Model::Report::VERSION = '1.233';
 }
 use Carp;
 use strict;
@@ -45,32 +45,82 @@ Config::Model::Report - Reports data from config tree
 
 =head1 VERSION
 
-version 1.232
+version 1.233
 
 =head1 SYNOPSIS
 
- use Config::Model ;
+ use Config::Model;
+ use Log::Log4perl qw(:easy);
+ Log::Log4perl->easy_init($WARN);
 
- # create your config model
- my $model = Config::Model -> new ;
- $model->create_config_class( ... ) ;
+ # define configuration tree object
+ my $model = Config::Model->new;
+ $model->create_config_class(
+    name    => "Foo",
+    element => [
+        [qw/foo bar/] => {
+            type       => 'leaf',
+            value_type => 'string'
+        },
+    ],
+    description => [
+        foo => 'some foo explanation',
+        bar => 'some bar explanation',
+    ]
+ );
 
- # create instance
- my $inst = $model->instance (root_class_name => 'FooBar', 
-			      instance_name => 'test1');
+ $model->create_config_class(
+    name => "MyClass",
 
- # create root of config
- my $root = $inst -> config_root ;
+    element => [
 
- # put some data in config tree
- my $step = 'std_id:ab X=Bv - std_id:bc X=Av - a_string="toto tata"';
- $root->walk( step => $step ) ;
+        [qw/foo bar/] => {
+            type       => 'leaf',
+            value_type => 'string'
+        },
+        my_enum => {
+            type       => 'leaf',
+            value_type => 'enum',
+            choice     => [qw/A B C/],
+            help       => {
+                A => 'first letter',
+                B => 'second letter',
+                C => 'third letter',
+            },
+            description => 'some letters',
+        },
+        hash_of_nodes => {
+            type       => 'hash',     # hash id
+            index_type => 'string',
+            cargo      => {
+                type              => 'node',
+                config_class_name => 'Foo'
+            },
+        },
+    ],
+ );
 
- # report only customized data (audit mode)
- print $root->audit;
+ my $inst = $model->instance(root_class_name => 'MyClass' );
 
- # report all data including default values
+ my $root = $inst->config_root ;
+
+ # put data
+ my $step = 'foo=FOO my_enum=B hash_of_nodes:fr foo=bonjour -
+   hash_of_nodes:en foo=hello ';
+ $root->load( step => $step );
+
  print $root->report ;
+ #  foo = FOO
+ # 
+ #  my_enum = B
+ #         DESCRIPTION: some letters
+ #         SELECTED: second letter
+ # 
+ # hash_of_nodes:en foo = hello
+ #         DESCRIPTION: some foo explanation
+ # 
+ # hash_of_nodes:fr foo = bonjour
+ #         DESCRIPTION: some foo explanation
 
 =head1 DESCRIPTION
 
