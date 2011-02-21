@@ -27,7 +27,7 @@
 
 package Config::Model::AnyThing;
 BEGIN {
-  $Config::Model::AnyThing::VERSION = '1.233';
+  $Config::Model::AnyThing::VERSION = '1.234';
 }
 use Scalar::Util qw(weaken);
 use Carp;
@@ -42,7 +42,7 @@ Config::Model::AnyThing - Base class for configuration tree item
 
 =head1 VERSION
 
-version 1.233
+version 1.234
 
 =head1 SYNOPSIS
 
@@ -197,7 +197,8 @@ the configuration file and restored the next time the command is run.
 
 =head2 annotation( [ note1, [ note2 , ... ] ] )
 
-Without argument, return a string containing the object's annotation.
+Without argument, return a string containing the object's annotation (or 
+an empty string).
 
 With several arguments, join the arguments with "\n", store the annotations 
 and return the resulting string.
@@ -206,8 +207,9 @@ and return the resulting string.
 
 sub annotation {
     my $self = shift ;
-    $self->{annotation} = join("\n", grep (defined $_,@_)) if @_;
-    return $self->{annotation} ;
+    $self->{annotation} = join("\n", grep (defined $_,@_)) 
+        if @_ and not $self->instance->preset;
+    return $self->{annotation} || '';
 }
 
 =head2 load_pod_annotation ( pod_string )
@@ -297,6 +299,11 @@ Go up one node
 =item !
 
 Go to the root node.
+
+=item !Foo
+
+Go up the configuration tree until the C<Foo> configuration class is found. Raise an exception if 
+no C<Foo> class when root node is reached.
 
 =item xxx
 
@@ -394,9 +401,14 @@ sub grab {
         $logger->debug( "grab: executing cmd '$cmd' on object '",$obj->name, "($obj)'");
 
         if ($cmd eq '!') { 
-            push @found, $obj->grab_root ;
+            push @found, $obj->grab_root();
             next ;
           }
+          
+        if ($cmd =~ /^!([\w:]*)/) { 
+            push @found, $obj->grab_ancestor($1) ;
+            next ;
+        }
 
         if ($cmd =~ /^\?(\w+)/) {
 	    push @found, $obj->grab_ancestor_with_element_named($1) ;
@@ -558,9 +570,26 @@ Returns the root of the configuration tree.
 =cut
 
 sub grab_root {
-    my $self = shift ;
-    return defined $self->{parent} ? $self->{parent}->grab_root 
+    my $self = shift;
+    return defined $self->{parent} ? $self->{parent}->grab_root
       : $self ;
+}
+
+=head2 grab_ancestor( Foo )
+
+Go up the configuration tree until the C<Foo> configuration class is found. Returns 
+the found node or undef.
+
+=cut
+
+sub grab_ancestor {
+    my $self = shift ;
+    my $class = shift || die "grab_ancestor: missing ancestor class" ;
+    
+    return $self if $self->get_type eq 'node' and $self->config_class_name eq $class ;
+	
+    return $self->{parent}->grab_ancestor ($class) if defined $self->{parent} ;
+    return ;
 }
 
 #internal. Used by grab with '?xxx' steps

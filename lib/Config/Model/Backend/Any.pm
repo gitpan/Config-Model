@@ -7,7 +7,6 @@
 #
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
-
 #    Copyright (c) 2010 Dominique Dumont.
 #
 #    This file is part of Config-Model.
@@ -28,7 +27,7 @@
 
 package Config::Model::Backend::Any ;
 BEGIN {
-  $Config::Model::Backend::Any::VERSION = '1.233';
+  $Config::Model::Backend::Any::VERSION = '1.234';
 }
 
 use Carp;
@@ -75,6 +74,16 @@ sub read_global_comments {
 
     while (defined ( $_ = shift @$lines ) ) {
         next if /^$cc$cc/ ; # remove comments added by Config::Model
+        unshift @$lines,$_;
+        last;
+    }
+    while (defined ( $_ = shift @$lines ) ) {
+        next if /^\s*$/ ; # remove empty lines
+        unshift @$lines,$_;
+        last;
+    }
+
+    while (defined ( $_ = shift @$lines ) ) {
         chomp ;
 
         my ($data,$comment) = split /\s*$cc\s?/ ;
@@ -93,6 +102,71 @@ sub read_global_comments {
     }
 }
 
+sub associates_comments_with_data {
+    my $self = shift ;
+    my $lines = shift ;
+    my $cc = shift ; # comment character
+
+    my @result ;
+    my @comments ;
+    foreach (@$lines) {
+        next if /^$cc$cc/ ;		  # remove comments added by Config::Model
+        chomp ;
+
+        my ($data,$comment) = split /\s*$cc\s?/ ;
+        push @comments, $comment        if defined $comment ;
+
+        next unless defined $data ;
+        $data =~ s/^\s+//g;
+        $data =~ s/\s+$//g;
+
+        if ($data) {
+            my $note = '';
+            $note = join("\n",@comments) if @comments ;
+            $logger->debug("associates_comments_with_data: '$note' with '$data'");
+            push @result, [  $data , $note ] ;
+            @comments = () ;
+        }
+    }
+    
+    return wantarray ? @result : \@result ;
+   
+}
+
+sub write_global_comment {
+    my ($self,$ioh,$cc) = @_ ;
+
+    my $res = "$cc$cc This file was written by Config::Model\n"
+            . "$cc$cc You may modify the content of this file. Configuration \n"
+            . "$cc$cc modifications will be preserved. Modifications in\n"
+            . "$cc$cc comments may be mangled.\n\n" ;
+
+    # write global comment
+    my $global_note = $self->node->annotation ;
+    if ($global_note) {
+        map { $res .= "$cc $_\n" } split /\n/,$global_note ;
+        $res .= "\n" ;
+    }
+
+    $ioh->print ($res) if defined $ioh ;
+    return $res ;
+}
+
+sub write_data_and_comments {
+    my ($self,$ioh,$cc, @data_and_comments) = @_ ;
+
+    my $res  = '' ;
+    while (@data_and_comments) {
+        my ($d,$c) = splice @data_and_comments,0,2;
+        if ($c) {
+            map { $res .= "$cc $_\n" } split /\n/,$c ;
+        }
+        $res .= "$d\n" if defined $d;
+    }
+    $ioh->print ($res) if defined $ioh ;
+    return $res ;
+}
+
 no Moose ;
 __PACKAGE__->meta->make_immutable ;
 
@@ -106,7 +180,7 @@ Config::Model::Backend::Any - Virtual class for other backends
 
 =head1 VERSION
 
-version 1.233
+version 1.234
 
 =head1 SYNOPSIS
 
@@ -206,6 +280,34 @@ Whether the backend supports to read and write annotation. Default is
 Read the global comments (i.e. the first block of comments until the first blank or non comment line) and
 store them as root node annotation. The first parameter (C<lines>)
  is an array ref containing file lines.
+
+=head2 associates_comments_with_data ( lines , comment_char)
+
+This method will extract comments from the passed lines and associate 
+them with actual data found in the file lines. Data is associated with 
+comments preceding or on the same line as the data. Returns a list of
+[ data, comment ] .
+
+Example:
+
+  # Foo comments
+  foo= 1
+  Baz = 0 # Baz comments
+
+will return 
+
+  ( [  'foo= 1', 'Foo comments'  ] , [ 'Baz = 0' , 'Baz comments' ] )
+
+=head2 write_global_comments( io_handle , comment_char)
+
+Write global comments from configuration root annotation into the io_handle (if defined).
+Returns the string written to the io_handle.
+
+=head2 write_data_and_comments( io_handle , comment_char , data1, comment1, data2, comment2 ...)
+
+Write data and comments in the C<io_handle> (if defined). Comments are written before the data.
+Returns the string written to the io_handle. If a data is undef, the comment will be written on its own
+line.
 
 =head1 AUTHOR
 

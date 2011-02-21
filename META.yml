@@ -14,7 +14,7 @@ build_requires:
 configure_requires:
   Module::Build: 0.34
 dynamic_config: 0
-generated_by: 'Dist::Zilla version 4.200001, CPAN::Meta::Converter version 2.102400'
+generated_by: 'Dist::Zilla version 4.200003, CPAN::Meta::Converter version 2.102400'
 license: lgpl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
@@ -42,4 +42,4 @@ resources:
   bugtracker: http://rt.cpan.org/NoAuth/Bugs.html?Dist=Config-Model
   homepage: http://config-model.wiki.sourceforge.net
   repository: http://config-model.hg.sourceforge.net:8000/hgroot/config-model/config-model
-version: 1.233
+version: 1.234

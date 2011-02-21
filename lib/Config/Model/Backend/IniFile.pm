@@ -31,7 +31,7 @@
 
 package Config::Model::Backend::IniFile ;
 BEGIN {
-  $Config::Model::Backend::IniFile::VERSION = '1.233';
+  $Config::Model::Backend::IniFile::VERSION = '1.234';
 }
 
 use Carp;
@@ -65,11 +65,6 @@ sub read {
 
     return 0 unless defined $args{io_handle};    # no file to read
 
-    # try to get global comments (comments before a blank line)
-    my @global_comments;
-    my @comments;
-    my $global_zone = 1;
-
     my $section;
 
     my $delimiter  = $args{comment_delimiter}   || '#';
@@ -81,63 +76,46 @@ sub read {
     #in the file?  It would be nice if comments that are after values
     #in input file, would be written in the same way in the output
     #file.  Also, comments at the end of file are being ignored now.
-    foreach ( $args{io_handle}->getlines ) {
-        next
-          if /^$delimiter$delimiter/;   # remove comments added by Config::Model
-        chomp;
 
-        my ( $vdata, $comment ) = split /\s*$delimiter\s?/;
+    my @lines = $args{io_handle}->getlines ;
+    # try to get global comments (comments before a blank line)
+    $self->read_global_comments(\@lines,$delimiter) ;
 
-        push @global_comments, $comment if defined $comment and $global_zone;
-        push @comments, $comment if ( defined $comment and not $global_zone );
+    my @assoc = $self->associates_comments_with_data( \@lines, $delimiter ) ;
+    foreach my $item (@assoc) {
+        my ($vdata,$comment) = @$item;
 
-        if ( $global_zone and /^\s*$/ and @global_comments ) {
-            $logger->debug("Setting global comment with '@global_comments'");
-            $self->node->annotation(@global_comments);
-            $global_zone = 0;
+        # Update section name
+        if ( $vdata =~ /\[(.*)\]/ ) {
+            $section = $1;
+            my $prefix = $hash_class ? "$hash_class:" : '';
+            $obj = $self->node->grab(
+                step  => $prefix . $section,
+                check => $check
+            );
+            $obj->annotation($comment) if $comment;
         }
+        else {
+            my ( $name, $val ) = split( /\s*=\s*/, $vdata );
 
-        # stop global comment at first blank line
-        $global_zone = 0 if /^\s*$/;
+            my $elt = $obj->fetch_element( name => $name, check => $check );
 
-        if ( defined $vdata and $vdata ) {
-            $vdata =~ s/^\s+//g;
-            $vdata =~ s/\s+$//g;
-
-            # Update section name
-            if ( $vdata =~ /\[(.*)\]/ ) {
-                $section = $1;
-                my $prefix = $hash_class ? "$hash_class:" : '';
-                $obj = $self->node->grab(
-                    step  => $prefix . $section,
-                    check => $check
-                );
-                $obj->annotation(@comments) if scalar @comments;
+            if ( $elt->get_type eq 'list' ) {
+                my $idx = $elt->fetch_size ;
+                my $list_val = $elt->fetch_with_id($idx);
+                $list_val -> store( $val, check => $check );
+                $list_val -> annotation($comment) if $comment ;
+            }
+            elsif ( $elt->get_type eq 'leaf' ) {
+                $elt->store( value => $val, check => $check );
+                $elt->annotation($comment) if scalar $comment;
             }
             else {
-                my ( $name, $val ) = split( /\s*=\s*/, $vdata );
-
-                my $elt = $obj->fetch_element( name => $name, check => $check );
-
-                if ( $elt->get_type eq 'list' ) {
-                    my $idx = $elt->fetch_size ;
-                    my $list_val = $elt->fetch_with_id($idx);
-                    $list_val -> store( $val, check => $check );
-                    $list_val -> annotation(@comments) if @comments ;
-                }
-                elsif ( $elt->element_type eq 'leaf' ) {
-                    $elt->store( value => $val, check => $check );
-                    $elt->annotation(@comments) if scalar @comments;
-                }
-                else {
-                    Config::Model::Exception::ModelDeclaration->throw(
-                        error =>
-                          "element $elt must be list or leaf for INI files",
-                        object => $obj
-                    );
-                }
+                Config::Model::Exception::ModelDeclaration->throw(
+                    error => "element $elt must be list or leaf for INI files",
+                    object => $obj
+                );
             }
-            @comments = ();
         }
     }
 
@@ -164,9 +142,7 @@ sub write {
 
     croak "Undefined file handle to write" unless defined $ioh;
     
-    $ioh->print($delimiter x 2 ." file written by Config::Model\n");
-    my $global_comment = $node->annotation ;
-    $ioh->print("$delimiter $global_comment\n\n") if $global_comment ;
+    $self->write_global_comment($ioh,$delimiter) ;
 
     $self->_write(@_) ;
 }
@@ -175,9 +151,9 @@ sub _write {
     my $self = shift;
     my %args = @_ ;
 
-    my $ioh = $args{io_handle} ;
     my $node = $args{object} ;
     my $delimiter = $args{comment_delimiter} || '#' ;
+    my $ioh = $args{io_handle} ;
 
     # Using Config::Model::ObjTreeScanner would be overkill
     
@@ -188,26 +164,22 @@ sub _write {
         
         my $obj =  $node->fetch_element($elt) ;
 
-        my $note = $obj->annotation;
-        map { $ioh->print("$delimiter $_\n") } $note if $note;
+        my $obj_note = $obj->annotation;
 
         if ($node->element_type($elt) eq 'list'){
             foreach my $item ($obj->fetch_all('custom')) {
-                my $note = $item->annotation;
+                my $note = $item->annotation ;
                 my $v = $item->fetch ;
-                $ioh->print("$delimiter $note\n") if $note ;
-                $ioh->print("$elt=$v\n") ;
-                $ioh->print("\n");
+                next unless defined $v ;
+                $self->write_data_and_comments($ioh,$delimiter,"$elt=$v",$obj_note.$note) ;
             }
         }
         else {
             my $v_obj = $node->grab($elt) ;
             my $note = $v_obj->annotation;
-            $ioh->print("$delimiter $note\n") if $note ;
             my $v = $v_obj->fetch ;
-            # write value
-            $ioh->print("$elt=$v\n") if defined $v ;
-            $ioh->print("\n");
+            $self->write_data_and_comments($ioh,$delimiter,"$elt=$v",$obj_note.$note) 
+                if defined $v;
         }
     }
 
@@ -216,22 +188,21 @@ sub _write {
         next unless $type eq 'node' or $type eq 'hash';
         my $obj =  $node->fetch_element($elt) ;
 
-        my $note = $obj->annotation;
+        my $obj_note = $obj->annotation ;
         
         if ($type eq 'hash') {
             foreach my $key ($obj->get_all_indexes) {
                 my $hash_obj = $obj->fetch_with_id($key) ;
                 my $note = $hash_obj->annotation;
-                $ioh->print("$delimiter $note\n") if $note;
-                $ioh->print("[$key]\n");
+                $self->write_data_and_comments($ioh,$delimiter,"[$key]",$obj_note.$note) ;
                 $self->_write(%args, object => $hash_obj);
+                $ioh->print("\n");
             }
         }
         else {
-            my $note = $obj->annotation;
-            $ioh->print("$delimiter $note\n") if $note;
-            $ioh->print("[$elt]\n");
+            $self->write_data_and_comments($ioh,$delimiter,"[$elt]",$obj_note) ;
             $self->_write(%args, object => $obj);
+            $ioh->print("\n");
         }
     }   
 
@@ -248,7 +219,7 @@ Config::Model::Backend::IniFile - Read and write config as a INI file
 
 =head1 VERSION
 
-version 1.233
+version 1.234
 
 =head1 SYNOPSIS
 

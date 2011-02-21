@@ -9,7 +9,7 @@
 #
 package Config::Model::Backend::Fstab ;
 BEGIN {
-  $Config::Model::Backend::Fstab::VERSION = '1.233';
+  $Config::Model::Backend::Fstab::VERSION = '1.234';
 }
 use Moose ;
 use Carp ;
@@ -23,13 +23,12 @@ sub suffix { return '' ; }
 
 sub annotation { return 1 ;}
 
-my %opt_r_translate 
-  = (
-     ro => 'rw=0',
-     rw => 'rw=1',
-     bsddf => 'statfs_behavior=bsddf',
-     minixdf => 'statfs_behavior=minixdf',
-    ) ;
+my %opt_r_translate = (
+    ro => 'rw=0',
+    rw => 'rw=1',
+    bsddf => 'statfs_behavior=bsddf',
+    minixdf => 'statfs_behavior=minixdf',
+) ;
 
 sub read {
     my $self = shift ;
@@ -51,54 +50,45 @@ sub read {
     # try to get global comments (comments before a blank line)
     $self->read_global_comments(\@lines,'#') ;
 
-    my @comments ;
-    foreach (@lines) {
-        next if /^##/ ;		  # remove comments added by Config::Model
-        chomp ;
-        s/\s+$//;
+    my @assoc = $self->associates_comments_with_data( \@lines, '#' );
+    foreach my $item (@assoc) {
+        my ( $data, $comment ) = @$item;
+        $logger->trace("fstab read data '$data' comment '$comment'");
 
-        my ($data,$comment) = split /\s*#\s?/ ;
+        my ( $device, $mount_point, $type, $options, $dump, $pass ) =
+          split /\s+/, $data;
 
-        push @comments, $comment        if defined $comment ;
-        $logger->debug("Fstab: line $. '$_'\n");
+        my $swap_idx = 0;
+        my $label = $device =~ /LABEL=(\w+)$/ ? $1
+          : $type eq 'swap' ? "swap-" . $swap_idx++
+          :                   $mount_point;
 
-        if (defined $data and $data ) {
-            my ($device,$mount_point,$type,$options, $dump, $pass) = split /\s+/,$data ;
+        my $fs_obj = $self->node->fetch_element('fs')->fetch_with_id($label);
 
-            my $swap_idx = 0;
-            my $label = $device =~ /LABEL=(\w+)$/  ? $1 
-                      : $type eq 'swap'            ? "swap-".$swap_idx++ 
-                      :                              $mount_point; 
-
-            my $fs_obj = $self->node->fetch_element('fs')->fetch_with_id($label) ;
-
-            if (@comments) {
-                $logger->debug("Annotation: @comments\n");
-                $fs_obj->annotation(@comments);
-            }
-
-            my $load_line = "fs_vfstype=$type fs_spec=$device fs_file=$mount_point "
-                          . "fs_freq=$dump fs_passno=$pass" ;
-            $logger->debug("Loading:$load_line\n");
-            $fs_obj->load(step => $load_line, check => $check) ;
-
-            # now load fs options
-            $logger->trace("fs_type $type options is $options");
-            my @options = split /,/,$options ;
-            map {
-                $_ = $opt_r_translate{$_} if defined $opt_r_translate{$_};
-                s/no(.*)/$1=0/ ;
-                $_ .= '=1' unless /=/ ;
-            } @options ;
-            
-            $logger->debug("Loading:@options");
-            $fs_obj->fetch_element('fs_mntopts')->load (step => "@options", check => $check) ;
-
-            @comments = () ;
+        if ($comment) {
+            $logger->debug("Annotation: $comment\n");
+            $fs_obj->annotation($comment);
         }
-    }
 
-    return 1 ;
+        my $load_line = "fs_vfstype=$type fs_spec=$device fs_file=$mount_point "
+          . "fs_freq=$dump fs_passno=$pass";
+        $logger->debug("Loading:$load_line\n");
+        $fs_obj->load( step => $load_line, check => $check );
+
+        # now load fs options
+        $logger->trace("fs_type $type options is $options");
+        my @options = split /,/, $options;
+        map {
+            $_ = $opt_r_translate{$_} if defined $opt_r_translate{$_};
+            s/no(.*)/$1=0/;
+            $_ .= '=1' unless /=/;
+        } @options;
+
+        $logger->debug("Loading:@options");
+        $fs_obj->fetch_element('fs_mntopts')
+          ->load( step => "@options", check => $check );
+    }
+    return 1;
 }
 
 sub write {
@@ -119,32 +109,17 @@ sub write {
 
     croak "Undefined file handle to write" unless defined $ioh;
 
-    $ioh->print("## This file was written by Config::Model\n");
-    $ioh->print("## You may modify the content of this file. Configuration \n");
-    $ioh->print("## modifications will be preserved. Modifications in\n");
-    $ioh->print("## comments may be mangled.\n##\n");
-
-    # write global comment
-    my $global_note = $node->annotation ;
-    if ($global_note) {
-        map { $ioh->print("# $_\n") } split /\n/,$global_note ;
-        $ioh->print("\n") ;
-    }
+    $self->write_global_comment($ioh,'#') ;
 
     # Using Config::Model::ObjTreeScanner would be overkill
     foreach my $line_obj ($node->fetch_element('fs')->fetch_all ) {
-        # write line annotation
-        my $note = $line_obj->annotation ;
-        if ($note) {
-            map { $ioh->print("\n# $_") } split /\n/,$note ;
-            $ioh->print("\n");
-        }
-
-        $ioh->printf("%-30s %-25s %-6s %-10s %d %d\n",
+        my $d = sprintf("%-30s %-25s %-6s %-10s %d %d\n",
                      map ($line_obj->fetch_element_value($_), qw/fs_spec fs_file fs_vfstype/),
                      $self->option_string($line_obj->fetch_element('fs_mntopts')) ,
                      map ($line_obj->fetch_element_value($_) , qw/fs_freq fs_passno/),
                     );
+        $self->write_data_and_comments($ioh,'#',$d, $line_obj->annotation) ;
+        
     }
 
     return 1;
@@ -183,7 +158,7 @@ Config::Model::Backend::Fstab - Read and write config from fstab file
 
 =head1 VERSION
 
-version 1.233
+version 1.234
 
 =head1 SYNOPSIS
 

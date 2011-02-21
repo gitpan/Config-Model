@@ -31,6 +31,9 @@
                 }
             },
 
+            [qw/baz/] => {
+                qw/type leaf value_type uniline/,
+            },
             [qw/class1 class2/] => {
                 type              => 'node',
                 config_class_name => 'IniTest::Class'
@@ -59,6 +62,9 @@
                 }
             },
 
+            [qw/baz/] => {
+                qw/type leaf value_type uniline/,
+            },
             [qw/class1 class2/] => {
                 type              => 'node',
                 config_class_name => 'IniTest::Class'
@@ -114,6 +120,9 @@
             [qw/foo bar/] => {
                 'type' => 'list',
                 cargo  => {qw/type leaf value_type uniline/},
+            },
+            [qw/baz/] => {
+                qw/type leaf value_type uniline/,
             },
             'any_ini_class' => {
                 type       => 'hash',

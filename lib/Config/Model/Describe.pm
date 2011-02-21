@@ -28,7 +28,7 @@
 
 package Config::Model::Describe;
 BEGIN {
-  $Config::Model::Describe::VERSION = '1.233';
+  $Config::Model::Describe::VERSION = '1.234';
 }
 use Carp;
 use strict;
@@ -44,7 +44,7 @@ Config::Model::Describe - Provide a description of a node element
 
 =head1 VERSION
 
-version 1.233
+version 1.234
 
 =head1 SYNOPSIS
 

@@ -27,7 +27,7 @@
 
 package Config::Model::Backend::ShellVar ;
 BEGIN {
-  $Config::Model::Backend::ShellVar::VERSION = '1.233';
+  $Config::Model::Backend::ShellVar::VERSION = '1.234';
 }
 
 use Carp;
@@ -65,21 +65,13 @@ sub read {
     # try to get global comments (comments before a blank line)
     $self->read_global_comments(\@lines,'#') ;
 
-    my @comments ;
-    foreach (@lines) {
-        next if /^##/ ;		  # remove comments added by Config::Model
-        chomp ;
-
-        my ($data,$comment) = split /\s*#\s?/ ;
-
-        push @comments, $comment        if defined $comment ;
-
-        if (defined $data and $data ) {
-            $data .= '#"'.join("\n",@comments).'"' if @comments ;
-            $logger->debug("Loading:$data\n");
-            $self->node->load(step => $data, check => $check) ;
-            @comments = () ;
-        }
+    my @assoc = $self->associates_comments_with_data( \@lines, '#' ) ;
+    foreach my $item (@assoc) {
+        my ($data,$c) = @$item;
+        my $load = qq!$data! ;
+        $load .= qq!#"$c"! if $c ;
+        $logger->debug("Loading:$load\n");
+        $self->node->load(step => $load, check => $check) ;
     }
 
     return 1 ;
@@ -103,39 +95,16 @@ sub write {
 
     croak "Undefined file handle to write" unless defined $ioh;
 
-    $ioh->print("## This file was written by Config::Model\n");
-    $ioh->print("## You may modify the content of this file. Configuration \n");
-    $ioh->print("## modifications will be preserved. Modifications in\n");
-    $ioh->print("## comments may be mangled.\n##\n");
-
-    # write global comment
-    my $global_note = $node->annotation ;
-    if ($global_note) {
-        map { $ioh->print("# $_\n") } split /\n/,$global_note ;
-        $ioh->print("\n") ;
-    }
+    $self->write_global_comment($ioh,'#') ;
 
     # Using Config::Model::ObjTreeScanner would be overkill
     foreach my $elt ($node->get_element_name) {
         my $obj =  $node->fetch_element($elt) ;
         my $v = $node->grab_value($elt) ;
 
-        # write some documentation in comments
-        my $help = $node->get_help(summary => $elt);
-        my $upstream_default = $obj -> fetch('upstream_default') ;
-        $help .=" ($upstream_default)" if defined $upstream_default;
-        $ioh->print("## $elt: $help\n") if $help;
+        next unless defined $v ;
 
-
-        # write annotation
-        my $note = $obj->annotation ;
-        if ($note) {
-            map { $ioh->print("# $_\n") } split /\n/,$note ;
-        }
-
-        # write value
-        $ioh->print(qq!$elt="$v"\n!) if defined $v ;
-        $ioh->print("\n") if defined $v or $help;
+        $self->write_data_and_comments($ioh,'#',qq!$elt="$v"!, $obj->annotation) ;
     }
 
     return 1;
@@ -154,7 +123,7 @@ Config::Model::Backend::ShellVar - Read and write config as a C<SHELLVAR> data s
 
 =head1 VERSION
 
-version 1.233
+version 1.234
 
 =head1 SYNOPSIS
 

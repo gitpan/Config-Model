@@ -28,7 +28,7 @@
 
 package Config::Model::DumpAsData;
 BEGIN {
-  $Config::Model::DumpAsData::VERSION = '1.233';
+  $Config::Model::DumpAsData::VERSION = '1.234';
 }
 use Carp;
 use strict;
@@ -43,7 +43,7 @@ Config::Model::DumpAsData - Dump configuration content as a perl data structure
 
 =head1 VERSION
 
-version 1.233
+version 1.234
 
 =head1 SYNOPSIS
 

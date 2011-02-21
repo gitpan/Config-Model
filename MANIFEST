@@ -92,6 +92,7 @@ t/augment_class.t
 t/auto_load_model.t
 t/auto_read.t
 t/backend_fstab.t
+t/backend_ini.t
 t/backend_multiple.t
 t/backend_plainfile.t
 t/big_model.pm
@@ -122,7 +123,6 @@ t/grab.t
 t/hash_id_of_node.t
 t/hash_id_of_values.t
 t/include.t
-t/ini_backend.t
 t/instance.t
 t/iterator.t
 t/load.t
