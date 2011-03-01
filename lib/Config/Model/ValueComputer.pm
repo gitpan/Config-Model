@@ -27,7 +27,7 @@
 
 package Config::Model::ValueComputer ;
 BEGIN {
-  $Config::Model::ValueComputer::VERSION = '1.234';
+  $Config::Model::ValueComputer::VERSION = '1.235';
 }
 
 use warnings ;
@@ -48,7 +48,7 @@ Config::Model::ValueComputer - Provides configuration value computation
 
 =head1 VERSION
 
-version 1.234
+version 1.235
 
 =head1 SYNOPSIS
 
@@ -159,6 +159,10 @@ The element name of the current object: C<&element> or C<&element()>.
 =item *
 
 The element name of another object: C<&element($other)>
+
+=item* 
+
+The full location (path) of the current object: C<&location> or C<&location()>.
 
 =back
 
@@ -636,6 +640,7 @@ sub _function_alone {
     my $method_name =
         $f_name eq 'element' ? 'element_name'
       : $f_name eq 'index'   ? 'index_value'
+      : $f_name eq 'location' ? 'location'
       :                        undef;
 
     Config::Model::Exception::Formula->throw(

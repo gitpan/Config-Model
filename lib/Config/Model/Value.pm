@@ -27,7 +27,7 @@
 
 package Config::Model::Value ;
 BEGIN {
-  $Config::Model::Value::VERSION = '1.234';
+  $Config::Model::Value::VERSION = '1.235';
 }
 use warnings ;
 use strict;
@@ -51,7 +51,7 @@ Config::Model::Value - Strongly typed configuration value
 
 =head1 VERSION
 
-version 1.234
+version 1.235
 
 =head1 SYNOPSIS
 
@@ -1254,7 +1254,12 @@ sub get_help {
     return ;
 }
 
-# internal
+=head2 error_msg 
+
+Returns the error messages of this object (if any)
+
+=cut
+
 sub error_msg {
     my $self = shift ;
     return unless $self->{error_list} ;
@@ -1491,7 +1496,7 @@ sub check {
 
     my @error = $self->check_value(%args) ;
 
-    if (not defined $value and $self->{mandatory}) {
+    if ((not defined $value or length($value) == 0 ) and $self->{mandatory}) {
         push @error, "Mandatory value is not defined" ;
     }
 
@@ -1937,9 +1942,10 @@ sub fetch {
 		" parameter, not $mode" ;
     }
 
+    my $ok = $self->check(value => $value, silent => $silent) ;
+
     if (defined $value) {
 	# check validity (all modes)
-	my $ok = $self->check(value => $value, silent => $silent) ;
 	if ($ok or $check eq 'no') {
 	    return $value ;
 	}

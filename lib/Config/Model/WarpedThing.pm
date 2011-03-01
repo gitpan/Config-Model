@@ -28,12 +28,11 @@
 
 package Config::Model::WarpedThing ;
 BEGIN {
-  $Config::Model::WarpedThing::VERSION = '1.234';
+  $Config::Model::WarpedThing::VERSION = '1.235';
 }
 use strict;
 use Scalar::Util qw(weaken) ;
 use Data::Dumper ;
-use Config::Model::ValueComputer ;
 use Config::Model::Exception ;
 use Log::Log4perl qw(get_logger :levels);
 use Carp;
@@ -51,7 +50,7 @@ Config::Model::WarpedThing - Base class for warped classes
 
 =head1 VERSION
 
-version 1.234
+version 1.235
 
 =head1 SYNOPSIS
 
@@ -160,6 +159,9 @@ In this case, you can use different boolean expression to save typing:
 Note that the boolean expression will be sanitized and used in a Perl
 eval, so you can use most Perl syntax and regular expressions.
 
+Function (like C<&foo>) will be called like C<< $self->foo >> before evaluation\
+of the boolean expression.
+
 =cut
 
 sub check_warp_args {
@@ -239,7 +241,7 @@ sub submit_to_warp {
 
     $self->{warper_object} = {} unless defined $self->{warper_object} ;
 
-    my $follow = $info->{follow} ;
+    my $follow = $info->{follow} || {};
 
     # now, follow is only { w1 => 'warp1', w2 => 'warp2'}
     my @warper_paths = values %$follow ;
@@ -259,6 +261,8 @@ sub submit_to_warp {
 
     foreach my $warper_name (keys %$follow) {
 	my $warper_path = $follow -> {$warper_name} ;
+        $logger->debug( ref($self),' ',$self->name," following $warper_name");
+
 	my $warper = $self->get_warper_object($warper_path,1);
 
         $logger->debug( ref($self),' ',$self->name,
@@ -406,6 +410,8 @@ sub compute_bool {
     $logger ->debug("compute_bool: data:\n", 
 		    Data::Dumper->Dump([$warp_value_set],['data']));
 
+    $expr =~ s/&(\w+)/\$self->$1/g;
+
     my @init_code ;
     foreach my $warper_name (keys %$warp_value_set) {
 	my $v = $warp_value_set->{$warper_name} ;
@@ -493,16 +499,16 @@ sub get_master_object {
 
     $grab_non_available = 0 unless defined $grab_non_available ;
 
-    $logger->debug("Retrieving master object from '", $self->name, 
-		   "' with path '$master_path'");
-
     Config::Model::Exception::Internal
 	-> throw (
 		  object => $self,
 		  error => "get_master_object: parameter must be a string ".
 		  "or an array ref"
 		 )
-	  unless ref $master_path eq 'ARRAY' || not ref $master_path ;
+	  unless defined $master_path and (ref $master_path eq 'ARRAY' or not ref $master_path) ;
+
+    $logger->debug("Retrieving master object from '", $self->name, 
+		   "' with path '$master_path'");
 
     my $master 
       = eval {$self->grab(step => $master_path, 

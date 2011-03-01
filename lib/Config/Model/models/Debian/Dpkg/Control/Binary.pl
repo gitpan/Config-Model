@@ -112,8 +112,8 @@
                                                                 'fix' => '$_ = lcfirst($_) ;'
                                                               },
                                                   '.{60,}' => {
-                                                              'msg' => 'Synopsis is too long. '
-                                                            }
+                                                                'msg' => 'Synopsis is too long. '
+                                                              }
                                                 },
                              'mandatory' => '1',
                              'type' => 'leaf'

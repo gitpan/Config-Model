@@ -10,7 +10,7 @@
 
 package Config::Model::Backend::Debian::Dpkg::Control ;
 BEGIN {
-  $Config::Model::Backend::Debian::Dpkg::Control::VERSION = '1.234';
+  $Config::Model::Backend::Debian::Dpkg::Control::VERSION = '1.235';
 }
 
 use Moose ;
@@ -50,13 +50,14 @@ sub read {
     my $c = $self -> parse_dpkg_file ($args{io_handle}) ;
     
     my $root = $args{object} ;
+    my $check = $args{check} ;
     my $file;
     
     $logger->debug("Reading control source info");
 
     # first section is source package, following sections are binary package
-    my $node = $root->fetch_element('source') ;
-    $self->read_section ($node, shift @$c);
+    my $node = $root->fetch_element(name => 'source', check => $check) ;
+    $self->read_section ($node, shift @$c, $check);
 
     $logger->debug("Reading binary package names");
     # we assume that package name is the first item in the section data
@@ -98,7 +99,7 @@ sub read_section {
         $logger->info("reading key '$key' from control file (for node " .$node->location.")");
         $logger->debug("$key value: $v");
         my $type = $node->element_type($key) ;
-        my $elt_obj = $node->fetch_element($key) ;
+        my $elt_obj = $node->fetch_element(name => $key, check => $check ) ;
         $v =~ s/^\s*\n//;
         chomp $v;
 
@@ -106,7 +107,7 @@ sub read_section {
             my @v = split /[\s\n]*,[\s\n]*/, $v ;
             chomp @v ;
             $logger->debug("list $key store set '".join("','",@v)."'");
-            $elt_obj->store_set(@v) ;
+            $elt_obj->store_set(\@v, check => $check) ;
         }
         elsif (my $found = $node->find_element($key, case => 'any')) { 
             my @elt = ($found);
@@ -200,7 +201,7 @@ Config::Model::Backend::Debian::Dpkg::Control - Read and write Debian Dpkg contr
 
 =head1 VERSION
 
-version 1.234
+version 1.235
 
 =head1 SYNOPSIS
 

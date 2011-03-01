@@ -6,7 +6,7 @@ Config::Model::Manual::ModelCreationAdvanced - Creating a model with advanced fe
 
 =head1 VERSION
 
-version 1.234
+version 1.235
 
 =head1 Introduction
 

@@ -9,7 +9,7 @@
 #
 package Config::Model;
 BEGIN {
-  $Config::Model::VERSION = '1.234';
+  $Config::Model::VERSION = '1.235';
 }
 use Moose ;
 use Moose::Util::TypeConstraints;
@@ -94,7 +94,7 @@ Config::Model - Create tools to validate, migrate and edit configuration files
 
 =head1 VERSION
 
-version 1.234
+version 1.235
 
 =head1 SYNOPSIS
 
@@ -399,7 +399,7 @@ L<Config::Model::Cookbook::CreateModelFromDoc>
 
 =item *
 
-L<Config::Model::Manual::ModelCreationIntroductionAdvanced>
+L<Config::Model::Manual::ModelCreationAdvanced>
 
 =back
 
@@ -1445,9 +1445,12 @@ sub translate_follow_arg {
         map { $follow->{'f' . $idx++ } = $_ } @$raw_follow ;
         return $follow ;
     }
-    else {
+    elsif (defined $raw_follow) {
         # follow is a simple string
         return { f1 => $raw_follow } ;
+    }
+    else {
+        return {} ;
     }
 }
 
@@ -1456,6 +1459,7 @@ sub translate_rules_arg {
         $raw_rules) = @_ ;
 
     my $multi_follow =  @$warper_items > 1 ? 1 : 0;
+    my $follow = @$warper_items ;
 
     # $rules is either:
     # { f1 => { ... } }  (  may be [ f1 => { ... } ] ?? )
@@ -1468,7 +1472,7 @@ sub translate_rules_arg {
         # transform the simple hash { foo => { ...} }
         # into array ref [ '$f1 eq foo' => { ... } ]
         my $h = $raw_rules ;
-        @rules = map { ( "\$f1 eq '$_'" , $h->{$_} ) } keys %$h ;
+        @rules = $follow ? map { ( "\$f1 eq '$_'" , $h->{$_} ) } keys %$h : keys %$h;
     }
     elsif (ref($raw_rules) eq 'ARRAY') {
         if ( $multi_follow ) {
@@ -1484,7 +1488,7 @@ sub translate_rules_arg {
             for (my $r_idx = 0; $r_idx < $#raw_rules; $r_idx  += 2) {
                 my $key_set = $raw_rules[$r_idx] ;
                 my @keys = ref($key_set) ? @$key_set : ($key_set) ;
-                my @bool_expr = map { /\$/ ? $_ : "\$f1 eq '$_'" } @keys ;
+                my @bool_expr = $follow ? map { /\$/ ? $_ : "\$f1 eq '$_'" } @keys : @keys ;
                 push @rules , join ( ' or ', @bool_expr),  $raw_rules[$r_idx+1] ;
             }
         }
@@ -2358,7 +2362,7 @@ L<Config::Model::TermUI>
 
 =item *
 
-L<Config::Model::WizardHelper>
+L<Config::Model::Iterator>
 
 =item *
 

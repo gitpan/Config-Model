@@ -27,7 +27,7 @@
 
 package Config::Model::AnyThing;
 BEGIN {
-  $Config::Model::AnyThing::VERSION = '1.234';
+  $Config::Model::AnyThing::VERSION = '1.235';
 }
 use Scalar::Util qw(weaken);
 use Carp;
@@ -42,7 +42,7 @@ Config::Model::AnyThing - Base class for configuration tree item
 
 =head1 VERSION
 
-version 1.234
+version 1.235
 
 =head1 SYNOPSIS
 
@@ -491,6 +491,16 @@ sub grab {
 			 id => $arg,
 			 function => 'grab'
 			)  if $strict;
+	    last ;
+	}
+
+        if (defined $action and not $next_obj->isa('Config::Model::AnyId')) {
+            Config::Model::Exception::Model
+		->throw (
+			 object => $obj,
+			 message => "Cannot apply command '$cmd' on non hash or non list item".
+			 " (full command is '@saved'). item is '".$next_obj->name."'"
+			) ;
 	    last ;
 	}
 

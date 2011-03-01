@@ -28,7 +28,7 @@
 
 package Config::Model::Iterator ;
 BEGIN {
-  $Config::Model::Iterator::VERSION = '1.234';
+  $Config::Model::Iterator::VERSION = '1.235';
 }
 use Carp;
 use strict;
@@ -45,7 +45,7 @@ Config::Model::Iterator - Iterates forward or backward a configuration tree
 
 =head1 VERSION
 
-version 1.234
+version 1.235
 
 =head1 SYNOPSIS
 
@@ -120,7 +120,13 @@ values)
 
 =item *
 
-A configuration item has a C<important> level. See 
+A configuration item contains warnings and the constructor's argument
+C<call_back_on_warning> was set.
+
+=item *
+
+A configuration item has a C<important> level and the constructor's argument
+C<call_back_on_important> was set.. See 
 L<level parameter|Config::Model::Node/"Configuration class declaration"> 
 for details.
 
@@ -151,7 +157,7 @@ Here are the the parameters accepted by C<iterator>:
 
 =head2 call_back_on_important
 
-Whether to call back when an important element is found (default 1).
+Whether to call back when an important element is found (default 0).
 
 =head2 call_back_on_warning
 
@@ -195,7 +201,7 @@ sub new {
     my %args = @_ ;
 
     my $self = {
-		call_back_on_important => 1 ,
+		call_back_on_important => 0,
 		forward                => 1 ,
 	       } ;
 

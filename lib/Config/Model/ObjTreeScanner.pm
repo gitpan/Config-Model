@@ -27,7 +27,7 @@
 
 package Config::Model::ObjTreeScanner ;
 BEGIN {
-  $Config::Model::ObjTreeScanner::VERSION = '1.234';
+  $Config::Model::ObjTreeScanner::VERSION = '1.235';
 }
 use strict ;
 use Config::Model::Exception ;
@@ -45,7 +45,7 @@ Config::Model::ObjTreeScanner - Scan config tree and perform call-backs
 
 =head1 VERSION
 
-version 1.234
+version 1.235
 
 =head1 SYNOPSIS
 
@@ -207,6 +207,10 @@ Set the privilege level used for the scan (default 'beginner').
 =item auto_vivify 
 
 Whether to create the configuration items while scan (default is 1).
+
+=item check 
+
+C<yes>, C<no> or C<skip>.
 
 =back
 
@@ -515,7 +519,10 @@ sub scan_node {
     
     my $actual_cb = $node_dispatch_cb || $self->{node_content_cb};
     
-    my @element_list= $node->get_element_name(for => $self->{experience}) ;
+    my @element_list= $node->get_element_name(
+        for => $self->{experience}, 
+        check => $self->{check}
+    ) ;
 
     # we could add here a "last element" call-back, but it's not
     # very useful if the last element is a hash.
@@ -555,14 +562,15 @@ sub scan_element {
     }
     elsif ($element_type eq 'check_list') {
         #print "type list\n";
-	my $cl_elt = $node->fetch_element($element_name) ;
+	my $cl_elt = $node->fetch_element(name => $element_name, check => $self->{check}) ;
         $self->{check_list_element_cb}->($self, $data_r,$node,$element_name, undef, $cl_elt);
     }
     elsif ($element_type eq 'node') {
         #print "type object\n";
 	# avoid auto-vivification
 	my $next_obj = ($autov or $node->is_element_defined($element_name))
-	             ? $node->fetch_element($element_name) : undef ;
+	             ? $node->fetch_element(name => $element_name, check => $self->{check}) 
+	             : undef ;
 
         # if obj element, cb
         $self->{node_element_cb}-> ($self, $data_r, $node,
@@ -571,12 +579,13 @@ sub scan_element {
     elsif ($element_type eq 'warped_node') {
         #print "type warped\n";
 	my $next_obj = ($autov or $node->is_element_defined($element_name))
-	             ? $node->fetch_element($element_name) : undef ;
+	             ? $node->fetch_element(name => $element_name, check => $self->{check}) 
+	             : undef ;
         $self->{node_element_cb}-> ($self, $data_r,$node,
 				    $element_name, undef, $next_obj) ;
     }
     elsif ($element_type eq 'leaf') {
-	my $next_obj = $node->fetch_element($element_name) ;
+	my $next_obj = $node->fetch_element(name => $element_name, check => $self->{check});
 	my $type = $next_obj->value_type ;
 	return unless $type;
 	my $cb_name = $type.'_value_cb' ;
@@ -603,7 +612,7 @@ sub scan_hash {
     assert_like($node->element_type($element_name), qr/(hash|list)/);
 
     #print "scan_hash ",$node->name," element $element_name key $key ";
-    my $item = $node -> fetch_element($element_name) ;
+    my $item = $node -> fetch_element(name => $element_name, check => $self->{check}) ;
 
 
     my $cargo_type = $item->cargo_type($element_name);
@@ -650,7 +659,7 @@ sub get_keys {
     my ($self,$node,$element_name) = @_ ;
 
     my $element_type = $node->element_type($element_name);
-    my $item = $node->fetch_element($element_name) ;
+    my $item = $node->fetch_element(name => $element_name, check => $self->{check}) ;
 
     return $item->get_all_indexes 
       if    $element_type eq 'hash' 

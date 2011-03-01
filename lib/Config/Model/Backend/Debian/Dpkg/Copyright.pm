@@ -10,7 +10,7 @@
 
 package Config::Model::Backend::Debian::Dpkg::Copyright ;
 BEGIN {
-  $Config::Model::Backend::Debian::Dpkg::Copyright::VERSION = '1.234';
+  $Config::Model::Backend::Debian::Dpkg::Copyright::VERSION = '1.235';
 }
 
 use Moose ;
@@ -113,12 +113,12 @@ sub read {
                 $file = $root->fetch_element('Files')->fetch_with_id(index => $v, check => $check) ;
                 $object = $file ;
             }
-            elsif ($key =~ /licence/i) {
-                $logger->warn("Found UK spelling for $key: $v. $key will be converted to License");
-                _store_file_license ($file->fetch_element('License'), $v ,$check);
-            }
-            elsif ($key =~ /license/i) {
-                _store_file_license ($file->fetch_element('License'), $v ,$check);
+            elsif ($key =~ /licen[sc]e/i) {
+                $logger->warn("Found UK spelling for $key: $v. $key will be converted to License")
+                    if $key =~ /license/ ;
+                my $lic_node = defined $file ? $file->fetch_element('License') 
+                             :                 $root->fetch_element('Global-License') ;
+                _store_file_license ($lic_node, $v ,$check);
             }
             elsif (my $found = $object->find_element($key, case => 'any')) { 
                 my $target = $object->fetch_element($found) ;
@@ -139,7 +139,7 @@ sub read {
 
 sub _store_line_based_list {
     my ($object,$v,$check) = @_ ;
-    my @v = split /\s*\n\s*/,$v ;
+    my @v = grep {length($_) } split /\s*\n\s*/,$v ;
     $logger->debug("_store_line_based_list with check $check on ".$object->name." = ('".join("','",@v),"')");
     $object->store_set(\@v, check => $check);
 }
@@ -164,6 +164,7 @@ sub _store_file_license {
     my ($lic_object, $v, $check) = @_ ;
 
     chomp $v ;
+    $logger->debug("_store_file_license check $check called on ".$lic_object->name." = $v");
     my ( $lic_line, $lic_text ) = split /\n/, $v, 2 ;
     $lic_line =~ s/\s+$//;
 
@@ -253,7 +254,7 @@ sub write {
         $lic_text .= " with $exception exception" if defined $exception;
         my $full_lic_text = $node->fetch_element_value('full_license');
         $lic_text .= "\n" . $full_lic_text if defined $full_lic_text;
-        push @{$data_ref->{one}}, License => $lic_text;
+        push @{$data_ref->{one}}, License => $lic_text if defined $lic_text;
     };
 
     my $file_cb = sub {
@@ -304,7 +305,7 @@ Config::Model::Backend::Debian::Dpkg::Copyright - Read and write Debian Dpkg Lic
 
 =head1 VERSION
 
-version 1.234
+version 1.235
 
 =head1 SYNOPSIS
 

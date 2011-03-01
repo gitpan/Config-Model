@@ -27,7 +27,7 @@
 
 package Config::Model::AnyId ;
 BEGIN {
-  $Config::Model::AnyId::VERSION = '1.234';
+  $Config::Model::AnyId::VERSION = '1.235';
 }
 use Config::Model::Exception ;
 use Scalar::Util qw(weaken) ;
@@ -54,7 +54,7 @@ Config::Model::AnyId - Base class for hash or list element
 
 =head1 VERSION
 
-version 1.234
+version 1.235
 
 =head1 SYNOPSIS
 
@@ -1230,6 +1230,19 @@ sub warning_msg {
     my ($self,$idx) = @_ ;
     return unless scalar %{$self->{warning_hash}};
     return defined $idx ? $self->{warning_hash}{$idx} : $self->{warning_hash} ;
+}
+
+
+=head2 error_msg 
+
+Returns the error messages of this object (if any)
+
+=cut
+
+sub error_msg {
+    my $self = shift ;
+    return unless $self->{error} ;
+    return wantarray ? @{$self->{error}} : join("\n\t",@{ $self ->{error}}) ;
 }
 
 1;
