@@ -28,7 +28,7 @@
 
 package Config::Model::DumpAsData;
 BEGIN {
-  $Config::Model::DumpAsData::VERSION = '1.235';
+  $Config::Model::DumpAsData::VERSION = '1.236';
 }
 use Carp;
 use strict;
@@ -43,7 +43,7 @@ Config::Model::DumpAsData - Dump configuration content as a perl data structure
 
 =head1 VERSION
 
-version 1.235
+version 1.236
 
 =head1 SYNOPSIS
 
@@ -301,6 +301,32 @@ sub dump_as_data {
     return $result ;
 }
 
+=head1 Methods
+
+=head2 dump_annotations_as_pod(...)
+
+Return a string formatted in pod (See L<perlpod>) with the annotations.
+
+Parameters are:
+
+=over
+
+=item node
+
+Reference to a L<Config::Model::Node> object. Mandatory
+
+=item experience
+
+master, advanced or beginner
+
+=item check_list
+
+Yes, no or skip
+
+=back
+
+=cut 
+
 sub dump_annotations_as_pod {
     my $self = shift ;
 
@@ -345,7 +371,7 @@ sub dump_annotations_as_pod {
 	$node_path .= ' ' if $node_path ;
 	foreach (@element) { 
 	    $$data_ref .= $annotation_to_pod->(
-                $node->fetch_element($_),
+                $node->fetch_element(name => $_, check => 'no'),
                 $node_path.$_
             );
 	    $scanner->scan_element($data_ref, $node,$_) ;
@@ -369,10 +395,11 @@ sub dump_annotations_as_pod {
     my $view_scanner = Config::Model::ObjTreeScanner->new(@scan_args);
 
     my $obj_type = $dump_node->get_type ;
-    my $result = "=over\n\n" ;
+    my $result = '' ;
 
     my $a = $dump_node->annotation ;
-    $result .= "=item\n\n$a\n\n" if $a ;
+    my $l = $dump_node->location ;
+    $result .= "=item $l\n\n$a\n\n" if $a ;
 
     if ($obj_type =~ /node/) {
 	$view_scanner->scan_node(\$result ,$dump_node);
@@ -381,7 +408,8 @@ sub dump_annotations_as_pod {
 	croak "dump_annotations_as_pod: unexpected type: $obj_type";
     }
 
-    return $result."=back\n\n" ;
+    return '' unless $result ;
+    return "=head1 Annotations\n\n=over\n\n".$result."=back\n\n" ;
 }
 
 1;

@@ -4,6 +4,7 @@ author:
   - 'Dominique Dumont'
   - 'Krzysztof Tyszecki'
 build_requires:
+  File::Slurp: 0
   Module::Build: 0.34
   Path::Class: 0
   Probe::Perl: 0
@@ -14,7 +15,7 @@ build_requires:
 configure_requires:
   Module::Build: 0.34
 dynamic_config: 0
-generated_by: 'Dist::Zilla version 4.200003, CPAN::Meta::Converter version 2.102400'
+generated_by: 'Dist::Zilla version 4.200004, CPAN::Meta::Converter version 2.110580'
 license: lgpl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
@@ -23,17 +24,18 @@ name: Config-Model
 recommends:
   Fuse: 0
 requires:
+  Any::Moose: 0
   Carp::Assert::More: 0
   DB_File: 0
   Exception::Class: 0
+  File::HomeDir: 0
   Hash::Merge: 0.12
   IO::File: 0
   LWP::Simple: 0
   Log::Log4perl: 1.11
-  Moose: 0
-  MooseX::Singleton: 0
-  MooseX::StrictConstructor: 0
+  MouseX::StrictConstructor: 0
   Parse::RecDescent: 1.90.0
+  Pod::POM: 0
   Scalar::Util: 0
   Term::ReadLine: 0
   Text::Autoformat: 0
@@ -42,4 +44,4 @@ resources:
   bugtracker: http://rt.cpan.org/NoAuth/Bugs.html?Dist=Config-Model
   homepage: http://config-model.wiki.sourceforge.net
   repository: http://config-model.hg.sourceforge.net:8000/hgroot/config-model/config-model
-version: 1.235
+version: 1.236

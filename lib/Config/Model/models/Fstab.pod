@@ -1,0 +1,59 @@
+=head1 NAME
+
+Config::Model::models::Fstab - Configuration class Fstab
+
+=head1 VERSION
+
+version 1.236
+
+=head1 DESCRIPTION
+
+Configuration classes used by L<Config::Model>
+
+static information about the filesystems. fstab contains descriptive information about the various file systems. 
+
+
+=head1 Elements
+
+=head2 C<fs>
+
+Each "fs" element contain the information about one filesystem. Each filesystem is referred in this model by a label constructed by the fstab parser. This label cannot be stored in the fstab file, so if you create a new file system, the label you will choose may not be stored and will be re-created by the fstab parserOptional. Type hash of node.
+
+=head1 SEE ALSO
+
+=over
+
+=item L<config-edit>
+
+=item L<Config::Model::models::Fstab::FsLine>
+
+=back
+
+=head1 AUTHOR
+
+=over
+
+=item ARRAY(0x22e0388)
+
+
+=back
+
+=head1 COPYRIGHT
+
+=over
+
+=item ARRAY(0x230ac28)
+
+
+=back
+
+=head1 LICENSE
+
+=over
+
+=item LGPL2
+
+
+=back
+
+=cut

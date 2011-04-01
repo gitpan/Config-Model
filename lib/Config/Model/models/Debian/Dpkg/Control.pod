@@ -1,0 +1,62 @@
+=head1 NAME
+
+Config::Model::models::Debian::Dpkg::Control - Configuration class Debian::Dpkg::Control
+
+=head1 VERSION
+
+version 1.236
+
+=head1 DESCRIPTION
+
+Configuration classes used by L<Config::Model>
+
+=head1 Elements
+
+=head2 C<source>
+
+Optional. Type node.
+
+=head2 C<binary>
+
+Optional. Type hash of node.
+
+=head1 SEE ALSO
+
+=over
+
+=item L<config-edit>
+
+=item L<Config::Model::models::Debian::Dpkg::Control::Binary>
+
+=item L<Config::Model::models::Debian::Dpkg::Control::Source>
+
+=back
+
+=head1 AUTHOR
+
+=over
+
+=item ARRAY(0x22cbda8)
+
+
+=back
+
+=head1 COPYRIGHT
+
+=over
+
+=item ARRAY(0x22cbfd0)
+
+
+=back
+
+=head1 LICENSE
+
+=over
+
+=item LGPL2
+
+
+=back
+
+=cut

@@ -28,7 +28,7 @@
 
 package Config::Model::AutoRead ;
 BEGIN {
-  $Config::Model::AutoRead::VERSION = '1.235';
+  $Config::Model::AutoRead::VERSION = '1.236';
 }
 use Carp;
 use strict;
@@ -36,6 +36,7 @@ use warnings FATAL => qw/all/;
 use Config::Model::Exception ;
 use Data::Dumper ;
 use File::Path ;
+use File::HomeDir ;
 use IO::File ;
 use UNIVERSAL ;
 use Storable qw/dclone/ ;
@@ -59,6 +60,11 @@ sub get_cfg_file_path {
         ) unless $args{config_dir};
 
     my $dir = $args{root}.$args{config_dir} ;
+    if ($dir =~ /~/) { 
+        my $home = File::HomeDir->my_data; # Works also on Windows
+        $dir =~ s/^~/$home/;
+    }
+    
     $dir .= '/' unless $dir =~ m!/$! ;
     if (not -d $dir and $w and $args{auto_create}) {
         $logger->info("get_cfg_file_path: auto_write create directory $dir" );
@@ -621,7 +627,7 @@ Config::Model::AutoRead - Load configuration node on demand
 
 =head1 VERSION
 
-version 1.235
+version 1.236
 
 =head1 SYNOPSIS
 
@@ -847,7 +853,9 @@ Specify the class that contain the read method
 =item config_dir
 
 Specify configuration directory. This parameter is optional as the
-directory can be hardcoded in the custom class.
+directory can be hardcoded in the custom class. C<config_dir> beginning
+with 'C<~>' will be munged so C<~> is replaced by C<< File::HomeDir->my_data >>.
+See L<File::HomeDir> for details.
 
 =item file
 

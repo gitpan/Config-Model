@@ -27,7 +27,7 @@
 
 package Config::Model::ValueComputer ;
 BEGIN {
-  $Config::Model::ValueComputer::VERSION = '1.235';
+  $Config::Model::ValueComputer::VERSION = '1.236';
 }
 
 use warnings ;
@@ -48,7 +48,7 @@ Config::Model::ValueComputer - Provides configuration value computation
 
 =head1 VERSION
 
-version 1.235
+version 1.236
 
 =head1 SYNOPSIS
 
@@ -457,14 +457,17 @@ sub compute_info {
 		  my $obj = eval { $self->{value_object} ->grab($u_val) };
 		  if ($@) {
 		    my $e = $@ ;
-		    my $msg = $e ? $e->full_message : '' ;
+		    my $msg = ref($e) ? $e->full_message : $e  ;
 		    Config::Model::Exception::Model
 			-> throw (
 				  object => $self,
 				  error => "Compute variable:\n". $msg
 				 ) ;
 		  }
-		  $val = $obj->get_type eq 'node' ? '<node>' : $obj->fetch(check => $check) ;
+		  $val = $obj->get_type eq 'node' ? '<node>' 
+                       : $obj->get_type eq 'hash' ? '<hash>' 
+                       : $obj->get_type eq 'list' ? '<list>' 
+                       :                             $obj->fetch(check => $check) ;
 		}
 		$str.= "\n\t\t'$k' from path '$orig_variables->{$k}' is ";
 		$str.= defined $val ? "'$val'" : 'undef' ;
@@ -515,7 +518,7 @@ sub compute_variables {
             }
 	    {
 		no warnings "uninitialized" ;
-		$logger->debug( "compute_variables:\tresult '$variables{$key}' left $var_left");
+		$logger->debug( "compute_variables:\tresult '$variables{$key}' left '$var_left'");
 	    }
 	}
 
@@ -695,7 +698,11 @@ sub _value_from_object {
     my ( $name, $value_object, $variables_h, $replace_h, $check, $need_quote ) =
       @_;
 
-    my $path = $variables_h->{$name};    # can be a ref for test purpose
+    $logger->warn("Warning: No variable definition found for \$$name") 
+        unless exists $variables_h->{$name};
+
+    # $path can be a ref for test purpose, or can be undef if path is computed from another value
+    my $path = $variables_h->{$name};
     my $my_res;
 
     $logger->debug("_value_from_object: replace \$$name with path $path...") if $logger->is_debug;
@@ -726,7 +733,6 @@ sub _value_from_object {
             "_value_from_object: fetched var object '$name' with '$path', result '", 
             defined $my_res ? $my_res : 'undef',"'"
         );
-
     }
 
     # my_res stays undef if $path if not defined

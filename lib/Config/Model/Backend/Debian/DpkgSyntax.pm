@@ -9,10 +9,10 @@
 #
 package Config::Model::Backend::Debian::DpkgSyntax ;
 BEGIN {
-  $Config::Model::Backend::Debian::DpkgSyntax::VERSION = '1.235';
+  $Config::Model::Backend::Debian::DpkgSyntax::VERSION = '1.236';
 }
 
-use Moose::Role ;
+use Any::Moose '::Role' ;
 
 use Carp;
 use Config::Model::Exception ;
@@ -145,7 +145,7 @@ Config::Model::Backend::Debian::DpkgSyntax - Role to read and write files with D
 
 =head1 VERSION
 
-version 1.235
+version 1.236
 
 =head1 SYNOPSIS
 
@@ -153,7 +153,7 @@ version 1.235
  use Log::Log4perl qw(:easy);
  Log::Log4perl->easy_init($WARN);
  
- use Moose ;
+ use Any::Moose ;
  with 'Config::Model::Backend::Debian::DpkgSyntax';
  
  package main ;

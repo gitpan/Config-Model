@@ -7,7 +7,7 @@
 #
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
-#    Copyright (c) 2005-2010 Dominique Dumont.
+#    Copyright (c) 2005-2011 Dominique Dumont.
 #
 #    This file is part of Config-Model.
 #
@@ -27,7 +27,7 @@
 
 package Config::Model::Instance;
 BEGIN {
-  $Config::Model::Instance::VERSION = '1.235';
+  $Config::Model::Instance::VERSION = '1.236';
 }
 use Scalar::Util qw(weaken) ;
 use File::Path;
@@ -37,7 +37,7 @@ use Config::Model::Annotation;
 use Config::Model::Exception ;
 use Config::Model::Node ;
 use Config::Model::Loader;
-use Config::Model::Searcher;
+use Config::Model::SearchElement;
 use Config::Model::Iterator;
 
 use strict ;
@@ -56,7 +56,7 @@ Config::Model::Instance - Instance of configuration tree
 
 =head1 VERSION
 
-version 1.235
+version 1.236
 
 =head1 SYNOPSIS
 

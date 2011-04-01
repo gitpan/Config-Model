@@ -27,7 +27,7 @@
 
 package Config::Model::Value ;
 BEGIN {
-  $Config::Model::Value::VERSION = '1.235';
+  $Config::Model::Value::VERSION = '1.236';
 }
 use warnings ;
 use strict;
@@ -51,7 +51,7 @@ Config::Model::Value - Strongly typed configuration value
 
 =head1 VERSION
 
-version 1.235
+version 1.236
 
 =head1 SYNOPSIS
 
@@ -670,7 +670,14 @@ The regexp must match the whole value:
 
   replace => ( 'foo.*' => 'better_foo' }
   
-In this case, a value will be replaced by C<better_foo> if the C</^foo.*$/> regexp matches. 
+In this case, a value will be replaced by C<better_foo> if the 
+C</^foo.*$/> regexp matches. 
+
+=item replace_follow
+
+Path specifying a hash of value element in the configuration tree. The 
+hash if used in a way similar to the C<replace> parameter. In this case, the 
+replacement is not coded in the model but specified by the configuration.
 
 =item refer_to
 
@@ -704,7 +711,7 @@ my @warp_accessible_params =  qw/min max mandatory default
 
 my @accessible_params =  (@warp_accessible_params, 
 			  qw/index_value element_name value_type
-			     refer_to computed_refer_to/ ) ;
+			     refer_to computed_refer_to replace_follow/ ) ;
 
 my @allowed_warp_params = (@warp_accessible_params, qw/level experience help/);
 
@@ -799,7 +806,7 @@ sub set_properties {
 
 
     map { $self->{$_} =  delete $args{$_} if defined $args{$_} }
-      qw/min max mandatory replace warn/ ;
+      qw/min max mandatory replace warn replace_follow/ ;
 
     $self->set_help           ( \%args );
     $self->set_value_type     ( \%args );
@@ -1614,7 +1621,7 @@ sub pre_store {
             }
         }
     }
-
+    
     my $ok = $self->store_check($value) ;
 
     if (     $ok 
@@ -1761,7 +1768,8 @@ sub _pre_fetch {
 	$std_value = undef ;
     }
     elsif ($e = Exception::Class->caught()) {
-	$e->rethrow;
+	$e->rethrow if ref($e);
+        die $e ;
     } 
 
     return $std_value ;
@@ -1940,6 +1948,15 @@ sub fetch {
 	croak "fetch: expected ", not scalar
 	    join (' or ',keys %accept_mode),
 		" parameter, not $mode" ;
+    }
+
+    if (defined $self->{replace_follow} and defined $value) {
+        my $rep = $self->grab_value(
+            step => $self->{replace_follow}.qq!:"$value"!,
+            mode => 'loose',
+            autoadd => 0,
+        );                
+        $value = $rep if defined $rep ;
     }
 
     my $ok = $self->check(value => $value, silent => $silent) ;

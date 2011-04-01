@@ -9,9 +9,9 @@
 #
 package Config::Model::Backend::Fstab ;
 BEGIN {
-  $Config::Model::Backend::Fstab::VERSION = '1.235';
+  $Config::Model::Backend::Fstab::VERSION = '1.236';
 }
-use Moose ;
+use Any::Moose ;
 use Carp ;
 use Log::Log4perl qw(get_logger :levels);
  
@@ -158,7 +158,7 @@ Config::Model::Backend::Fstab - Read and write config from fstab file
 
 =head1 VERSION
 
-version 1.235
+version 1.236
 
 =head1 SYNOPSIS
 

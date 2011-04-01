@@ -28,7 +28,7 @@
 
 package Config::Model::WarpedThing ;
 BEGIN {
-  $Config::Model::WarpedThing::VERSION = '1.235';
+  $Config::Model::WarpedThing::VERSION = '1.236';
 }
 use strict;
 use Scalar::Util qw(weaken) ;
@@ -50,7 +50,7 @@ Config::Model::WarpedThing - Base class for warped classes
 
 =head1 VERSION
 
-version 1.235
+version 1.236
 
 =head1 SYNOPSIS
 
@@ -263,6 +263,8 @@ sub submit_to_warp {
 	my $warper_path = $follow -> {$warper_name} ;
         $logger->debug( ref($self),' ',$self->name," following $warper_name");
 
+        # BIG FIXME: warper can itself be warped out (part of a warped out node).
+        # not just 'not available'.
 	my $warper = $self->get_warper_object($warper_path,1);
 
         $logger->debug( ref($self),' ',$self->name,

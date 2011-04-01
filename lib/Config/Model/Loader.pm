@@ -27,7 +27,7 @@
 
 package Config::Model::Loader;
 BEGIN {
-  $Config::Model::Loader::VERSION = '1.235';
+  $Config::Model::Loader::VERSION = '1.236';
 }
 use Carp;
 use strict;
@@ -44,7 +44,7 @@ Config::Model::Loader - Load serialized data into config tree
 
 =head1 VERSION
 
-version 1.235
+version 1.236
 
 =head1 SYNOPSIS
 
@@ -652,7 +652,7 @@ sub _load_hash {
     if ($action eq '=~') {
 	my @keys = $element->get_all_indexes;
 	my $ret ;
-	$logger->debug("_load_hash: looping with regex $id");
+	$logger->debug("_load_hash: looping with regex $id on keys @keys");
 	$id =~ s!^/!!;
 	$id =~ s!/$!! ;
 	my @saved_cmd = @$cmdref ;
@@ -677,7 +677,7 @@ sub _load_hash {
 			     ) ;
 	    }
 
-	    if ($ret eq 'error' or $ret eq 'done') { return $ret; }
+	    if ($ret eq 'error' or $ret eq 'root') { return $ret; }
 	}
 	return $ret ;
     }

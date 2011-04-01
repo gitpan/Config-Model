@@ -1,0 +1,70 @@
+=head1 NAME
+
+Config::Model::models::Debian::Dpkg::Meta - Configuration class Debian::Dpkg::Meta
+
+=head1 VERSION
+
+version 1.236
+
+=head1 DESCRIPTION
+
+Configuration classes used by L<Config::Model>
+
+This class contains parameters to tune the behavior of the Dpkg model. For instance, user can specify rules to update e-mail addresses.
+
+=head1 Elements
+
+=head2 C<email-updates>
+
+Specify old email as key. The value is the new e-mail address that will be substitutedOptional. Type hash of uniline.
+
+=head2 C<dependency-filter>
+
+Specifies the dependency filter to be used. The release specified mentions the most recent release to be filtered out. Older release will also be filtered.
+
+For instance, if the dependency filter is 'lenny', all 'lenny' and 'etch' dependencies are filtered out.Optional. Type enum. choice: 'etch', 'lenny', 'squeeze', 'wheezy'.
+
+=head2 C<package-dependency-filter>
+
+Dependency filter tuned by package. Use this to override the main dependency-filter value.Optional. Type hash of enum.
+
+=head2 C<group-dependency-filter>
+
+Dependency filter tuned by Maintainer field. Use this to override the main dependency-filter value.Optional. Type hash of enum.
+
+=head1 SEE ALSO
+
+=over
+
+=item L<config-edit>
+
+=back
+
+=head1 AUTHOR
+
+=over
+
+=item ARRAY(0x22bb810)
+
+
+=back
+
+=head1 COPYRIGHT
+
+=over
+
+=item ARRAY(0x22cbe98)
+
+
+=back
+
+=head1 LICENSE
+
+=over
+
+=item LGPL2
+
+
+=back
+
+=cut

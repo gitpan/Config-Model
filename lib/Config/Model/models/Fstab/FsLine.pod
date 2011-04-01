@@ -1,0 +1,76 @@
+=head1 NAME
+
+Config::Model::models::Fstab::FsLine - Configuration class Fstab::FsLine
+
+=head1 VERSION
+
+version 1.236
+
+=head1 DESCRIPTION
+
+Configuration classes used by L<Config::Model>
+
+data of one /etc/fstab line
+
+=head1 Elements
+
+=head2 C<fs_spec>
+
+block special device or remote filesystem to be mountedMandatory. Type uniline.
+
+=head2 C<fs_file>
+
+mount point for the filesystemMandatory. Type uniline.
+
+=head2 C<fs_vfstype>
+
+file system typeMandatory. Type enum. choice: 'auto', 'davfs', 'ext2', 'ext3', 'ext4', 'swap', 'proc', 'iso9660', 'vfat', 'usbfs', 'ignore', 'nfs', 'nfs4', 'none', 'ignore', 'debugfs'.
+
+=head2 C<fs_mntopts>
+
+mount options associated with the filesystemOptional. Type warped_node.
+
+=head2 C<fs_freq>
+
+Specifies if the file system needs to be dumpedOptional. Type boolean. default: '0'.
+
+=head2 C<fs_passno>
+
+used by the fsck(8) program to determine the order in which filesystem checks are done at reboot timeOptional. Type integer. default: '0'.
+
+=head1 SEE ALSO
+
+=over
+
+=item L<config-edit>
+
+=back
+
+=head1 AUTHOR
+
+=over
+
+=item ARRAY(0x23129e8)
+
+
+=back
+
+=head1 COPYRIGHT
+
+=over
+
+=item ARRAY(0x2312670)
+
+
+=back
+
+=head1 LICENSE
+
+=over
+
+=item LGPL2
+
+
+=back
+
+=cut

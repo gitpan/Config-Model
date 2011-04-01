@@ -27,7 +27,7 @@
 
 package Config::Model::Node;
 BEGIN {
-  $Config::Model::Node::VERSION = '1.235';
+  $Config::Model::Node::VERSION = '1.236';
 }
 use Carp ;
 use strict;
@@ -68,7 +68,7 @@ Config::Model::Node - Class for configuration tree node
 
 =head1 VERSION
 
-version 1.235
+version 1.236
 
 =head1 SYNOPSIS
 
@@ -614,7 +614,7 @@ sub new {
     my $caller = shift;
     my $type = ref($caller) || $caller ;
 
-    my $self         = {};
+    my $self         = { initialized => 0 };
     bless $self, $type;
 
     my @mandatory_parameters = qw/config_class_name instance/;
@@ -641,7 +641,9 @@ sub new {
     $self->{index_value} = delete $args{index_value} ;
     my $skip_read = delete $args{skip_read} ;
     my $check = $self->_check_check(delete $args{check}) ;
-
+    
+    $self->{auto_read} = { skip => delete $args{skip_read}, check => $check };
+    
     my @left = keys %args ;
     croak "Node->new: unexpected parameter: @left" if @left ;
 
@@ -658,11 +660,22 @@ sub new {
         
     $self->check_properties ;
 
-    if (defined $model->{read_config} and not $skip_read) {
+    return $self ;
+}
+
+sub init {
+    my $self = shift ;
+
+    return if $self->{initialized} ;
+    $self->{initialized} = 1 ; # avoid recursions
+
+    my $model = $self->{model} ;
+    my $ar = $self->{auto_read} ;
+    my $check = $ar->{check} ;
+    if (defined $model->{read_config} and not $ar->{skip_read} ) {
+        $ar->{done} = 1 ;
         # setup auto_read, read_config_dir is obsolete
-        $self->auto_read_init($model->{read_config}, $check,
-                              $model->{read_config_dir}
-                              );
+        $self->auto_read_init($model->{read_config}, $check, $model->{read_config_dir} );
     }
 
     # use read_config data if write_config is missing
@@ -674,8 +687,6 @@ sub new {
         $self->auto_write_init($model->{write_config},
                                $model->{write_config_dir});
     }
-
-    return $self ;
 }
 
 =head1 Introspection methods
@@ -797,8 +808,8 @@ sub find_element {
 Returns an object dedicated to search an element in the configuration
 model (respecting privilege level).
 
-This method returns a L<Config::Model::Searcher> object. See
-L<Config::Model::Searcher> for details on how to handle a search.
+This method returns a L<Config::Model::SearchElement> object. See
+L<Config::Model::SearchElement> for details on how to handle a search.
 
 This method is inherited from L<Config::Model::AnyThing>.
 
@@ -913,6 +924,8 @@ sub get_element_name {
       join (' or ', @experience_list) 
         unless defined $experience_index{$for} ;
 
+    $self->init ;
+
     my $for_idx = $experience_index{$for} ;
 
     my @result ;
@@ -963,23 +976,25 @@ sub children {
     return $self-> get_element_name ;
 }
 
-=head2 next_element ( element_name, [ experience_index ] )
+=head2 next_element ( ... )
 
 This method provides a way to iterate through the elements of a node.
+Mandatory parameter is C<name>. Optional parameters are C<experience>
+and C<status>.
 
 Returns the next element name for a given experience (default
-C<master>).  Returns undef if no next element is available.
+C<master>) and status (default C<normal>).
+Returns undef if no next element is available.
 
 =cut
 
 sub next_element {
     my $self      = shift;
-    my $element   = shift;
-    my $min_experience = shift;
-    my $find_previous = shift || 0 ;
+    my %args = @_ ;
+    my $element   = $args{name} ;
 
     my @elements = @{$self->{model}{element_list}} ;
-    @elements = reverse @elements if $find_previous ;
+    @elements = reverse @elements if $args{reverse} ;
 
     # if element is empty, start from first element
     my $found_elt = (defined $element and $element) ? 0 : 1 ;
@@ -988,9 +1003,10 @@ sub next_element {
         if ($found_elt) {
             return $name 
               if $self->is_element_available(name => $name, 
-                                             experience => $min_experience);
+                                             experience => $args{experience},
+                                             status => $args{status});
         }
-        $found_elt = 1 if $element eq $name ;
+        $found_elt = 1 if defined $element and $element eq $name ;
     }
 
     croak "next_element: element $element is unknown. Expected @elements" 
@@ -998,7 +1014,7 @@ sub next_element {
     return;
 }
 
-=head2 previous_element ( element_name, [ experience_index ] )
+=head2 previous_element ( name => element_name, [ experience => min_experience ] )
 
 This method provides a way to iterate through the elements of a node.
 
@@ -1009,9 +1025,7 @@ C<master>).  Returns undef if no previous element is available.
 
 sub previous_element {
     my $self      = shift;
-    my $element   = shift;
-    my $min_experience = shift;
-    $self->next_element($element,$min_experience,1) ;
+    $self->next_element(@_, reverse => 1) ;
 }
 
 =head2 get_element_property ( element => ..., property => ... )
@@ -1141,6 +1155,8 @@ sub fetch_element {
         carp "fetch_element: 'intermediate' is deprecated in favor of 'beginner'";
         $user = 'beginner' ;
     }
+
+    $self->init($check);
 
     my $model = $self->{model} ;
 
@@ -1278,13 +1294,14 @@ As a syntactic sugar, this method can be called with only one parameter:
 
 sub is_element_available {
     my $self = shift;
-    my ($elt_name, $user_experience) = (undef, 'beginner');
+    my ($elt_name, $user_experience,$status) = (undef, 'beginner','deprecated');
     if (@_ == 1) {
         $elt_name = shift ;
     } else {
         my %args = @_ ;
         $elt_name = $args{name} ;
         $user_experience = $args{experience} if defined $args{experience} ;
+        $status = $args{status} if defined $args{status} ;
         if (defined $args{permission}) {
             $user_experience = $args{permission};
             carp "is_element_available: permission is deprecated" ;
@@ -1302,6 +1319,11 @@ sub is_element_available {
     my $element_level = $self->get_element_property(property => 'level',
                                                     element => $elt_name) ;
     return 0 if $element_level eq 'hidden' ;
+
+    my $element_status = $self->get_element_property(property => 'status',
+                                                    element => $elt_name) ;
+
+    return 0 unless ($element_status eq 'standard' or $element_status eq $status) ;
 
     my $element_exp = $self->get_element_property(property => 'experience',
                                                   element => $elt_name) ;
@@ -1596,6 +1618,7 @@ passed to C<load>.
 
 sub dump_tree {
     my $self = shift ;
+    $self->init ;
     my $dumper = Config::Model::Dumper->new ;
     $dumper->dump_tree(node => $self, @_) ;
 }
@@ -1609,6 +1632,7 @@ string.  See L<Config::Model::Dumper/dump_annotations_as_pod> for parameter deta
 
 sub dump_annotations_as_pod {
     my $self = shift ;
+    $self->init ;
     my $dumper = Config::Model::DumpAsData->new ;
     $dumper->dump_annotations_as_pod(node => $self, @_) ;
 }
@@ -1622,6 +1646,7 @@ Provides a description of the node elements or of one element.
 
 sub describe {
     my $self = shift ;
+    $self->init ;
 
     my $descriptor = Config::Model::Describe->new ;
     $descriptor->describe(node => $self, @_) ;
@@ -1636,6 +1661,7 @@ node.
 
 sub report {
     my $self = shift ;
+    $self->init ;
     my $reporter = Config::Model::Report->new ;
     $reporter->report(node => $self) ;
 }
@@ -1650,6 +1676,7 @@ value.
 
 sub audit {
     my $self = shift ;
+    $self->init ;
     my $reporter = Config::Model::Report->new ;
     $reporter->report(node => $self, audit => 1) ;
 }

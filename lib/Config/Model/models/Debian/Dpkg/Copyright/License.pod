@@ -1,0 +1,66 @@
+=head1 NAME
+
+Config::Model::models::Debian::Dpkg::Copyright::License - Configuration class Debian::Dpkg::Copyright::License
+
+=head1 VERSION
+
+version 1.236
+
+=head1 DESCRIPTION
+
+Configuration classes used by L<Config::Model>
+
+=head1 Elements
+
+=head2 C<short_name>
+
+abbreviated name for the license. If empty, it is given the default value 'other'. Only one license per file can use this default value; if there is more than one license present in the package without a standard short name, an arbitrary short name may be assigned for these licenses. These arbitrary names are only guaranteed to be unique within a single copyright file.
+
+The name given must match a License described in License element in root node
+Optional. Type uniline.
+
+=head2 C<exception>
+
+License exceptionOptional. Type enum. choice: 'Font', 'OpenSSL'.
+
+=head2 C<full_license>
+
+if left blank here, the file must include a stand-alone License section matching each license short name listed on the first line (see the Standalone License Section section). Otherwise, this field should either include the full text of the license(s) or include a pointer to the license file under /usr/share/common-licenses. This field should include all text needed in order to fulfill both Debian Policy requirement for including a copy of the software distribution license, and any license requirements to include warranty disclaimers or other notices with the binary package.
+Optional. Type string.
+
+=head1 SEE ALSO
+
+=over
+
+=item L<config-edit>
+
+=back
+
+=head1 AUTHOR
+
+=over
+
+=item ARRAY(0x22e2ab0)
+
+
+=back
+
+=head1 COPYRIGHT
+
+=over
+
+=item ARRAY(0x22e2bb8)
+
+
+=back
+
+=head1 LICENSE
+
+=over
+
+=item LGPL2
+
+
+=back
+
+=cut

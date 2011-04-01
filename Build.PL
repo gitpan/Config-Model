@@ -7,7 +7,7 @@
 #
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
-#    Copyright (c) 2005-2010 Dominique Dumont.
+#    Copyright (c) 2005-2011 Dominique Dumont.
 #
 #    This file is part of Config-Model.
 #
@@ -28,29 +28,48 @@
 
 use Module::Build;
 
-use warnings FATAL => qw(all) ;
-use strict ;
+use warnings FATAL => qw(all);
+use strict;
+use File::Slurp qw/slurp/;
+use Config::Model ; # to generate doc
+use Log::Log4perl qw(:easy) ;
+
+Log::Log4perl->easy_init($WARN);
 
 require 5.008;
 
 print "\nIf you want to use the TermUI interface, you should install\n",
   "Term::ReadLine::Perl or Term::ReadLine::Gnu\n\n";
 
-my @version_info = @ARGV ? (dist_version => $ARGV[0]) : () ;
+my @version_info = @ARGV ? ( dist_version => $ARGV[0] ) : ();
 
-my %model_files = map { ($_, $_ ) } glob("lib/Config/Model/*.d/*") ;
+my %appli_files = map { ( $_, $_ ) } glob("lib/Config/Model/*.d/*");
 
-my $build = Module::Build -> new
-  (
-   module_name    => 'Config::Model',
-   @version_info,
-   license        => 'lgpl',
-   script_files   => [ 'config-edit' ],
-   model_files => \%model_files ,
-   dist_abstract  => 'Describe, edit and validate configuration data',
-   dist_author    => 'Dominique Dumont (ddumont at cpan dot org)',
+my $model = Config::Model -> new(model_dir => "lib/Config/Model/models") ;
+
+my @generated_pods ;
+# map {
+    # if (not $model->model_exists($_)) {
+        # print "Generating doc for model $_\n";
+        # $model->load($_) ;
+        # $model->generate_doc ($_,'lib') ;
+    # }
+  # }
+  # map { /model\s*=\s*([\w:-]+)/; $1; }
+  # grep { /^\s*model/; }
+  #map  { slurp($_); } glob("lib/Config/Model/*.d/*");
+
+my $build = Module::Build->new(
+    module_name => 'Config::Model',
+    @version_info,
+    license       => 'lgpl',
+    script_files  => ['config-edit'],
+    appli_files   => \%appli_files,
+    dist_abstract => 'Describe, edit and validate configuration data',
+    dist_author   => 'Dominique Dumont (ddumont at cpan dot org)',
 
   'build_requires' => {
+    'File::Slurp' => '0',
     'Module::Build' => '0.34',
     'Path::Class' => '0',
     'Probe::Perl' => '0',
@@ -66,17 +85,18 @@ my $build = Module::Build -> new
     'Fuse' => '0'
   },
   'requires' => {
+    'Any::Moose' => '0',
     'Carp::Assert::More' => '0',
     'DB_File' => '0',
     'Exception::Class' => '0',
+    'File::HomeDir' => '0',
     'Hash::Merge' => '0.12',
     'IO::File' => '0',
     'LWP::Simple' => '0',
     'Log::Log4perl' => '1.11',
-    'Moose' => '0',
-    'MooseX::Singleton' => '0',
-    'MooseX::StrictConstructor' => '0',
+    'MouseX::StrictConstructor' => '0',
     'Parse::RecDescent' => '1.90.0',
+    'Pod::POM' => '0',
     'Scalar::Util' => '0',
     'Term::ReadLine' => '0',
     'Text::Autoformat' => '0',
@@ -84,18 +104,21 @@ my $build = Module::Build -> new
   },
 
     meta_merge => {
-                  resources => {
-                    homepage => 'http://config-model.wiki.sourceforge.net',
-                    MailingList => 'https://lists.sourceforge.net/lists/listinfo/config-model-users',
-                    repository => 'http://config-model.hg.sourceforge.net:8000/hgroot/config-model/config-model',
-                  },
-  },
-   # cleanup required by t/auto_read.t
-   # PreGrammar.pm is created by t/value_computer.t
-   add_to_cleanup => [qw/PreGrammar.pm wr_root r_root/],
-  );
+        resources => {
+            homepage => 'http://config-model.wiki.sourceforge.net',
+            MailingList =>
+              'https://lists.sourceforge.net/lists/listinfo/config-model-users',
+            repository =>
+              'http://config-model.hg.sourceforge.net:8000/hgroot/config-model/config-model',
+        },
+    },
+
+    # cleanup required by t/auto_read.t
+    # PreGrammar.pm is created by t/value_computer.t
+    add_to_cleanup => [qw/PreGrammar.pm wr_root r_root/, @generated_pods],
+);
 
 $build->add_build_element('pl');
-$build->add_build_element('model');
+$build->add_build_element('appli');
 
 $build->create_build_script;

@@ -26,9 +26,9 @@
 #    along with Config-Model; if not, write to the Free Software
 #    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 
-package Config::Model::Searcher;
+package Config::Model::SearchElement;
 BEGIN {
-  $Config::Model::Searcher::VERSION = '1.235';
+  $Config::Model::SearchElement::VERSION = '1.236';
 }
 use Log::Log4perl qw(get_logger :levels);
 use Carp;
@@ -42,11 +42,11 @@ my $logger = get_logger("Model::Searcher") ;
 
 =head1 NAME
 
-Config::Model::Searcher - Search an element in a configuration model
+Config::Model::SearchElement - Search an element in a configuration model
 
 =head1 VERSION
 
-version 1.235
+version 1.236
 
 =head1 SYNOPSIS
 
@@ -138,7 +138,7 @@ version 1.235
 =head1 DESCRIPTION
 
 This modules provides a way to search for a configuration element in a
-configuration tree. 
+configuration tree by exploring the configuration model. 
 
 For instance, suppose that you have a xorg.conf model and you know
 that you need to tune the C<MergedXinerama> parameter, but you don't

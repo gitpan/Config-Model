@@ -28,7 +28,7 @@
 
 package Config::Model::Exception ;
 BEGIN {
-  $Config::Model::Exception::VERSION = '1.235';
+  $Config::Model::Exception::VERSION = '1.236';
 }
 use warnings ;
 use strict;
@@ -44,7 +44,7 @@ use Exception::Class
 
    'Config::Model::Exception::Any' 
    => { description => 'config error' ,
-	fields      =>  'object' ,
+	fields      =>  [qw/object info/] ,
       },
 
    'Config::Model::Exception::User' 
@@ -99,6 +99,11 @@ use Exception::Class
 	fields      => [qw/object min_experience element function where info/],
       },
 
+   'Config::Model::Exception::AncestorClass' 
+   => { isa         => 'Config::Model::Exception::User',
+	description => 'unknown ancestor class',
+      },
+
    'Config::Model::Exception::UnknownId' 
    => { isa         => 'Config::Model::Exception::User',
 	description => 'unknown identifier',
@@ -150,7 +155,7 @@ Config::Model::Exception::Internal->Trace(1);
 
 package Config::Model::Exception::Syntax ;
 BEGIN {
-  $Config::Model::Exception::Syntax::VERSION = '1.235';
+  $Config::Model::Exception::Syntax::VERSION = '1.236';
 }
 
 sub full_message {
@@ -166,7 +171,7 @@ sub full_message {
 
 package Config::Model::Exception::Any ;
 BEGIN {
-  $Config::Model::Exception::Any::VERSION = '1.235';
+  $Config::Model::Exception::Any::VERSION = '1.236';
 }
 
 sub full_message {
@@ -178,6 +183,7 @@ sub full_message {
     $msg .= "'$location' " if $location ;
     $msg .= "has a ".$self->description ;
     $msg .= ":\n\t". $self->message."\n";
+    $msg .=  $self->info."\n" if defined $self->info;
 
     return $msg;
 }
@@ -197,7 +203,7 @@ sub xpath_message {
 
 package Config::Model::Exception::LoadData ;
 BEGIN {
-  $Config::Model::Exception::LoadData::VERSION = '1.235';
+  $Config::Model::Exception::LoadData::VERSION = '1.236';
 }
 
 sub full_message {
@@ -217,7 +223,7 @@ sub full_message {
 
 package Config::Model::Exception::Model ;
 BEGIN {
-  $Config::Model::Exception::Model::VERSION = '1.235';
+  $Config::Model::Exception::Model::VERSION = '1.236';
 }
 
 sub full_message {
@@ -243,7 +249,7 @@ sub full_message {
 
 package Config::Model::Exception::Load ;
 BEGIN {
-  $Config::Model::Exception::Load::VERSION = '1.235';
+  $Config::Model::Exception::Load::VERSION = '1.236';
 }
 
 sub full_message {
@@ -261,7 +267,7 @@ sub full_message {
 
 package Config::Model::Exception::RestrictedElement ;
 BEGIN {
-  $Config::Model::Exception::RestrictedElement::VERSION = '1.235';
+  $Config::Model::Exception::RestrictedElement::VERSION = '1.236';
 }
 
 sub full_message {
@@ -281,7 +287,7 @@ sub full_message {
 
 package Config::Model::Exception::UnavailableElement ;
 BEGIN {
-  $Config::Model::Exception::UnavailableElement::VERSION = '1.235';
+  $Config::Model::Exception::UnavailableElement::VERSION = '1.236';
 }
 
 sub full_message {
@@ -304,7 +310,7 @@ sub full_message {
 
 package Config::Model::Exception::ObsoleteElement ;
 BEGIN {
-  $Config::Model::Exception::ObsoleteElement::VERSION = '1.235';
+  $Config::Model::Exception::ObsoleteElement::VERSION = '1.236';
 }
 
 sub full_message {
@@ -326,7 +332,7 @@ sub full_message {
 
 package Config::Model::Exception::UnknownElement ;
 BEGIN {
-  $Config::Model::Exception::UnknownElement::VERSION = '1.235';
+  $Config::Model::Exception::UnknownElement::VERSION = '1.236';
 }
 use Carp;
 
@@ -385,7 +391,7 @@ sub full_message {
 
 package Config::Model::Exception::UnknownId ;
 BEGIN {
-  $Config::Model::Exception::UnknownId::VERSION = '1.235';
+  $Config::Model::Exception::UnknownId::VERSION = '1.236';
 }
 
 sub full_message {
@@ -414,7 +420,7 @@ sub full_message {
 
 package Config::Model::Exception::WrongType ;
 BEGIN {
-  $Config::Model::Exception::WrongType::VERSION = '1.235';
+  $Config::Model::Exception::WrongType::VERSION = '1.236';
 }
 
 sub full_message {
@@ -438,7 +444,7 @@ sub full_message {
 
 package Config::Model::Exception::Xml ;
 BEGIN {
-  $Config::Model::Exception::Xml::VERSION = '1.235';
+  $Config::Model::Exception::Xml::VERSION = '1.236';
 }
 
 sub full_message {
@@ -466,7 +472,7 @@ Config::Model::Exception - Exception mechanism for configuration model
 
 =head1 VERSION
 
-version 1.235
+version 1.236
 
 =head1 SYNOPSIS
 

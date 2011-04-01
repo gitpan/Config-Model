@@ -1,7 +1,50 @@
+TODO: 
+  - FStab: force fs_freq and fs_passno to be 0 with bind mounted fs
+    (require re-work of warp mechanism)
+  - remove warp registration mechanism (was premature optimisation)
+
+2011-04-01 Dominique Dumont  <domi.dumont@free.fr> 1.236
+    
+    * Application changes:
+        * dpkg control dependency: 
+          - Dependency filtering mechanism now use dpkg meta 
+            package_dependency_filter value (i.e. a user parameter).
+            Debian_perl package will be filtered on lenny by default
+            Filter mechanism can be overriden in a package by package basis
+            See Debian::Dpkg::Meta config class for details. 
+          - Warn if a package is unknown.
+          - Accepts version specified with dpkg variables.
+        * dpkg control and copyright: warn if dh-make-perl boilerplate is found
+	* dpkg control: added Package-Type parameter (Peter Pentchev)
+	* Dpkg meta: new class to enable user to customize dpkg editor. 
+          (email-updates and dependency-filter). Content of meta is saved in
+          ~/.dpkg-meta.yml
+        * Dpkg control: change e-mail address based on content of meta 
+          email-updates
+
+    * Framework changes:
+	* Value: added replace_follow parameter to specify automatic
+	  replacement based on a hash somewhere in the configuration
+	  tree (used by dpkg e-mail update)
+	* Extracted initialisation of reader and writer from new() and moved in 
+	  init() method to avoid deep recursion on startup.
+	* Use Any::Moose instead of plain Moose
+	* Removed dependency on MooseX::Singleton
+	* Model: added author, copyright, license fields. This data is not used by
+	  Config::Model, but can be used in the user interface or to generate config
+	  class doc
+	* AnyThing: Fix parsing of multi line annotations. Now use Pod::POM 
+	  to load annocation from Pod document
+	* dist.ini: Depends on Pod::POM
+	* Model.pm: added generate_doc method
+	* config-edit: new -gen-pod option to generate pod document from config class
+	* HashId: fix default_with_init to be able to auto-create leaf values 
+	  specified in the model
+
 2011-03-01 Dominique Dumont  <domi.dumont@free.fr> 1.235
     
     * Application changes:
-        * dpkg control source model: Encourage Standard-Version 3.9.11
+        * dpkg control source model: Encourage Standard-Version 3.9.1
         * dpkg control dependency: only versions older than old-stable (i.e. 
           not found on madison) will trigger a warning
         * dpkg copyright: Handle license in header (Closes Debian #614776)
@@ -13,10 +56,6 @@
         * Value: mandatory values also require non-empty strings
         * config-edit: Force to load all sub-models (i.e. control, copyright) of
         a top-model (err.. dpkg) when run with option -ui none
-
-    TODO:
-    - make warp skip warp master if they cannot be found with !SomeClass
-    - Auto test of synopsises
 
 2011-02-21 Dominique Dumont  <domi.dumont@free.fr> 1.234
     

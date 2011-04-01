@@ -29,7 +29,7 @@
 
 package Config::Model::TermUI ;
 BEGIN {
-  $Config::Model::TermUI::VERSION = '1.235';
+  $Config::Model::TermUI::VERSION = '1.236';
 }
 
 use Carp;
@@ -47,7 +47,7 @@ Config::Model::TermUI - Provides Config::Model UI à la Term::ReadLine
 
 =head1 VERSION
 
-version 1.235
+version 1.236
 
 =head1 SYNOPSIS
 
@@ -204,7 +204,7 @@ my $cd_completion_sub = sub {
 	# grab in tolerant mode
 	#print "Grabbing $cmd\n";
 	eval {$new_item = $self->{current_node} 
-		-> grab(step => $cmd, strict => 1, autoadd => 0); };
+		-> grab(step => $cmd, mode => 'strict', autoadd => 0); };
 	chop $cmd ;
     }
 

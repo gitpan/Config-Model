@@ -27,9 +27,10 @@
 
 package Config::Model::AnyThing;
 BEGIN {
-  $Config::Model::AnyThing::VERSION = '1.235';
+  $Config::Model::AnyThing::VERSION = '1.236';
 }
 use Scalar::Util qw(weaken);
+use Pod::POM ;
 use Carp;
 use strict;
 use Log::Log4perl qw(get_logger :levels);
@@ -42,7 +43,7 @@ Config::Model::AnyThing - Base class for configuration tree item
 
 =head1 VERSION
 
-version 1.235
+version 1.236
 
 =head1 SYNOPSIS
 
@@ -221,7 +222,7 @@ be in the form:
  
  =item path
  
- Annotation tested
+ Annotation text
  
  =back
  
@@ -231,17 +232,21 @@ sub load_pod_annotation {
     my $self = shift ;
     my $pod = shift ;
     
-    # could use Pod::POM, but it's overkill... for now
-    my $obj ;
-    foreach (split /\n+/ , $pod ) {
-        if (s/=item//) {
-            $obj = $self->grab(step => "! $_") ; # FIXME the '!' is dangerous if the pod was not generated from a root node ....
-        }
-        elsif (/=(over|back)/) {
-            # nothing 
-        }
-        else {
-            $obj->annotation($_) ;
+    my $parser = Pod::POM->new();
+    my $pom = $parser->parse_text($pod) 
+        || croak $parser->error();
+    my $sections = $pom->head1();
+
+    foreach my $s ( @$sections ) {
+        next unless $s->title eq 'Annotations' ;
+        
+        foreach my $item ( $s->over->[0]->item ) {
+            my $path = $item->title.''; # force string representation. Not understood why...
+            $path =~ s/^[\s\*]+//; 
+            my $note = $item->text.'' ;
+            $note =~ s/\s+$//;
+            $logger->debug("load_pod_annotation: '$path' -> '$note'");
+            $self->grab(step => $path )-> annotation($note) ;
         }
     }
 }
@@ -261,12 +266,13 @@ Parameters are:
 A string indicating the steps to follow in the tree to find the
 required item. (mandatory)
 
-=item C<strict>
+=item C<mode>
 
-When set to 1, C<grab> will throw an exception if no object is found
-using the passed string. When set to 0, the object found at last will
+When set to C<strict>, C<grab> will throw an exception if no object is found
+using the passed string. When set to C<adaptative>, the object found at last will
 be returned. For instance, for the step C<good_step wrong_step>, only
-the object held by C<good_step> will be returned. (default is 1)
+the object held by C<good_step> will be returned. When set to C<loose>, grab 
+will return undef in case of problem. (default is C<strict>)
 
 =item C<type>
 
@@ -278,7 +284,7 @@ throw an exception or return the last found object of requested type.
 =item C<autoadd>
 
 When set to 1, C<hash> or C<list> configuration element are created
-when requested by the passed steps. (default is 1).
+when requested by the passed steps. (default is 1). 
 
 =item grab_non_available
 
@@ -303,7 +309,7 @@ Go to the root node.
 =item !Foo
 
 Go up the configuration tree until the C<Foo> configuration class is found. Raise an exception if 
-no C<Foo> class when root node is reached.
+no C<Foo> class is found when root node is reached.
 
 =item xxx
 
@@ -338,31 +344,35 @@ considered when going up the tree.
 
 sub grab {
     my $self = shift ;
-    my ($step,$strict,$autoadd, $type, $grab_non_available,$check)
-      = (undef, 1, 1, undef, 0, 'yes' ) ;
-    if ( @_ > 1 ) {
-	my %args = @_;
-	$step    = $args{step};
-	$strict  = $args{strict}  if defined $args{strict};
-	$autoadd = $args{autoadd} if defined $args{autoadd};
-	$grab_non_available = $args{grab_non_available} 
-	  if defined $args{grab_non_available};
-	$type    = $args{type} ; # node, leaf or undef
-	$check = $self->_check_check($args{check}) ;
-    }
-    elsif (@_ == 1) {
-	$step = shift ;
-    }
-    else {
-	confess "grab: no step passed";
+    my ($step,$mode,$autoadd, $type, $grab_non_available,$check)
+      = (undef, 'strict', 1, undef, 0, 'yes' ) ;
+
+    my %args = @_ > 1 ? @_ : (step => $_[0] );
+
+    $step    = delete $args{step};
+    $mode    = delete $args{mode}  if defined $args{mode};
+    $autoadd = delete $args{autoadd} if defined $args{autoadd};
+    $grab_non_available = delete $args{grab_non_available} 
+	if defined $args{grab_non_available};
+    $type    = delete $args{type} ; # node, leaf or undef
+    $check = $self->_check_check(delete $args{check}) ;
+
+    if (defined $args{strict}) {
+        carp "grab: deprecated parameter 'strict'. Use mode";
+        $mode = delete $args{strict} ? 'strict' : 'adaptative' ;
     }
 
-    Config::Model::Exception::Internal
-	->throw (
-		 error => "grab: step parameter must be a string ".
+    Config::Model::Exception::User -> throw (
+	object => $self,
+	message => "grab: unexpected parameter: ".join(' ',keys %args)
+    ) 
+    if %args;
+
+    Config::Model::Exception::Internal ->throw (
+        error => "grab: step parameter must be a string ".
 		 "or an array ref"
-		) 
-	  unless ref $step eq 'ARRAY' || not ref $step ;
+    ) 
+    unless ref $step eq 'ARRAY' || not ref $step ;
 
     # accept commands, grep remove empty items left by spurious spaces
     my $huge_string = ref $step ? join (' ', @$step) : $step ;
@@ -406,8 +416,19 @@ sub grab {
           }
           
         if ($cmd =~ /^!([\w:]*)/) { 
-            push @found, $obj->grab_ancestor($1) ;
-            next ;
+            my $ancestor = $obj->grab_ancestor($1) ;
+            if (defined $ancestor) {
+                push @found, $ancestor ;
+                next ;
+            }
+            else {
+                Config::Model::Exception::AncestorClass -> throw (
+                    object => $obj,
+                    info => "grab called from '".$self->name.
+                    "' with steps '@saved' looking for class $1"
+		) if $mode eq 'strict' ;
+                return ;
+            }
         }
 
         if ($cmd =~ /^\?(\w+)/) {
@@ -424,7 +445,7 @@ sub grab {
               } 
             else {
                 $logger->debug("grab: ",$obj->name," has no parent");
-                return $strict ? undef : $obj ;
+                return $mode eq 'adaptative' ? $obj : undef ;
               }
           }
 
@@ -459,7 +480,7 @@ sub grab {
 			 function => 'grab',
 			 info => "grab called from '".$self->name.
 			 "' with steps '@saved'"
-			) if $strict ;
+			) unless $mode eq 'adaptative' ;
 	    last ;
 	}
 
@@ -473,7 +494,7 @@ sub grab {
 			 function => 'grab',
 			 info => "grab called from '".$self->name.
 			 "' with steps '@saved'"
-			) if $strict;
+			) unless $mode eq 'adaptative';
 	   last ;
 	}
 
@@ -484,13 +505,14 @@ sub grab {
         if (defined $action and $autoadd == 0
 	    and not $next_obj->exists($arg)) 
 	  {
+            return undef if $mode eq 'loose' ;
             Config::Model::Exception::UnknownId
 		->throw (
 			 object => $obj->fetch_element($name),
 			 element => $name,
 			 id => $arg,
 			 function => 'grab'
-			)  if $strict;
+			)  unless $mode eq 'adaptative';
 	    last ;
 	}
 
@@ -520,7 +542,7 @@ sub grab {
 			 got_type => $found[-1] -> get_type,
 			 expected_type => $type,
 			 info   => "requested with step '$step'"
-			) if $strict ;
+			) if $mode ne 'adaptative';
 	    pop @found;
 	}
     }
@@ -542,20 +564,28 @@ leaf or a check_list.
 
 sub grab_value {
     my $self = shift ;
-    my @args = scalar @_ == 1 ? ( step => $_[0] ) : @_ ;
+    my %args = scalar @_ == 1 ? ( step => $_[0] ) : @_ ;
     
-    my $obj = $self->grab(@args) ;
+    my $obj = $self->grab(%args) ;
+    # Pb: may return a node. add another option to grab ?? 
+    # to get undef value when needed?
 
-    Config::Model::Exception::User
-	-> throw (
+    return if ($args{mode} and $args{mode} eq 'loose' and not defined $obj);
+
+    Config::Model::Exception::User -> throw (
 		  object => $self,
 		  message => "grab_value: cannot get value of non-leaf or check_list "
-		  ."item with '".join("' '",@_)."'"
+		  ."item with '".join("' '",@_)."'. item is $obj"
 		 ) 
 	  unless ref $obj and ( $obj->isa("Config::Model::Value") or 
             $obj->isa("Config::Model::CheckList"));
 
-    return $obj->fetch ;
+    my $value = $obj->fetch;
+    if ($logger->is_debug) {
+        my $str = defined $value ? $value : '<undef>' ;
+        $logger->debug("grab_value: returning value $str of object '",$obj->name);
+    }
+    return $value ;
 }
 
 =head2 grab_annotation(...)
@@ -640,7 +670,7 @@ sub grab_ancestor_with_element_named {
 Returns an object dedicated to search an element in the configuration
 model (respecting privilege level).
 
-This method returns a L<Config::Model::Searcher> object. See
+This method returns a L<Config::Model::SearchElement> object. See
 L<Config::Model::Searcher> for details on how to handle a search.
 
 =cut
@@ -650,7 +680,7 @@ sub searcher {
     my %args = @_ ;
 
     my $model = $self->instance->config_model ;
-    return Config::Model::Searcher
+    return Config::Model::SearchElement
       -> new(model => $model, node => $self, %args ) ;
 }
 

@@ -9,7 +9,7 @@
 #
 package Config::Model::Debian::Dependency ;
 BEGIN {
-  $Config::Model::Debian::Dependency::VERSION = '1.235';
+  $Config::Model::Debian::Dependency::VERSION = '1.236';
 }
 
 use strict ;
@@ -26,6 +26,9 @@ use Log::Log4perl qw(get_logger :levels);
 use AptPkg::Config '$_config';
 use AptPkg::System '$_system';
 use AptPkg::Version;
+
+use vars qw/$test_filter/ ;
+$test_filter = ''; # reserved for tests
 
 my $logger = get_logger("Tree::Element::Value::Dependency") ;
 
@@ -75,17 +78,19 @@ depend: pkg_dep | variable
 
 variable: /\${[\w:\-]+}/
 
-pkg_dep: pkg_name dep_version arch_restriction(?) 
-    {
-       $arg[0]->check_dep( $item{pkg_name}, @{$item{dep_version}} ) ;
-    } 
- | pkg_name arch_restriction(?) {  $return = 1 ; }
+pkg_dep: pkg_name dep_version arch_restriction(?) {
+    $arg[0]->check_dep( $item{pkg_name}, @{$item{dep_version}} ) ;
+   } 
+ | pkg_name arch_restriction(?) {              
+    $arg[0]->check_pkg_name($item{pkg_name}) ;
+    $return = 1 ; 
+   }
 
 arch_restriction: '[' arch(s) ']'
 dep_version: '(' oper version ')' { $return = [ $item{oper}, $item{version} ] ;} 
-pkg_name: /[\w\-\.]+/
+pkg_name: /[\w\-\.]+/ 
 oper: '<<' | '<=' | '=' | '>=' | '>>'
-version: /[\w\.\-~:]+/
+version: variable | /[\w\.\-~:+]+/
 eofile: /^\Z/
 arch: not(?) /[\w-]+/
 not: '!'
@@ -99,20 +104,25 @@ sub dep_parser {
     return $parser ;
 }
 
+# this method may recurse bad:
+# check_dep -> meta filter -> control maintainer -> create control class
+# autoread started -> read all fileds -> read dependency -> check_dep ...
+
 sub check_value {
     my $self = shift ;
     my %args = @_ > 1 ? @_ : (value => $_[0]) ;
     my $value = $args{value} ;
     my $quiet = $args{quiet} || 0 ;
     my $silent = $args{silent} || 0 ;
-
     
     my @error = $self->SUPER::check_value(%args) ;
     
-    $logger->debug("check_value '$value'");
-    my $prd_check = dep_parser->check_depend ( $value,1,$self) ; 
+    if (defined $value) {
+        $logger->debug("check_value '$value'");
+        my $prd_check = dep_parser->check_depend ( $value,1,$self) ; 
     
-    push @error,"dependency '$value' does not match grammar" unless defined $prd_check ;
+        push @error,"dependency '$value' does not match grammar" unless defined $prd_check ;
+    }
 
     # value is one dependency, something like "perl ( >= 1.508 )"
     # or exim | mail-transport-agent or gnumach-dev [hurd-i386]
@@ -125,23 +135,71 @@ sub check_value {
     return wantarray ? @error : scalar @error ? 0 : 1 ;
 }
 
-sub check_dep {
-    my ($self,$pkg,$oper,$vers) = @_ ;
-    $logger->debug("parser calls check_dep with $pkg $oper $vers");
-    return 1 unless defined $oper and $oper =~ />/ ;
+my @deb_releases = qw/etch lenny squeeze wheezy/;
 
-    # special case to keep lintian happy
-    return 1 if $pkg eq 'debhelper' ;
+my %deb_release_h ;
+while (@deb_releases) {
+    my $k = pop @deb_releases ;
+    my $regexp = join('|',@deb_releases,$k);
+    $deb_release_h{$k} = qr/$regexp/;
+}
+
+# called in Parse::RecDescent grammar
+sub check_pkg_name {
+    my ($self,$pkg) = @_ ;
+    $logger->debug("check_pkg_name: called with $pkg");
 
     # check if Debian has version older than required version
     my @dist_version = split m/ /,  get_available_version($pkg) ;
     # print "\t'$pkg' => '@dist_version',\n";
 
+    # if no pkg was found
+    if (@dist_version == 0) {
+        $logger->debug("check_pkg_name: unknown package $pkg") ;
+        push @{$self->{warning_list}} , "package $pkg is unknown. Check for typos." ;
+        return ();
+    }
+    return @dist_version ;
+}
+
+# called in Parse::RecDescent grammar
+sub check_dep {
+    my ($self,$pkg,$oper,$vers) = @_ ;
+    $logger->debug("check_dep: called with $pkg $oper $vers");
+
+    # special case to keep lintian happy
+    return 1 if $pkg eq 'debhelper' ;
+
+    # check if Debian has version older than required version
+    my @dist_version = $self->check_pkg_name($pkg) ;
+
+    return 1 unless @dist_version ; # no older for unknow packages
+
+    return 1 unless defined $oper and $oper =~ />/ ;
+
+    return 1 if $vers =~ /^\$/ ; # a dpkg variable
+
+    my $p = $self->parent;
+    my $self_pkg_name = $p->has_element('Source') ? $p->fetch_element_value('Source') 
+                      :                             $p->index_value ;
+        
+    my $filter = $test_filter || $self->grab_value(
+        step => qq{!Debian::Dpkg meta package-dependency-filter:"$self_pkg_name"},
+        mode => 'loose',
+    ) || '';
+    $logger->debug("check_dep: using filter $filter") if defined $filter;
+    my $regexp = $deb_release_h{$filter} ;
+
+    $logger->debug("check_dep: using regexp $regexp") if defined $regexp;
+    
     my @list ;
     my $has_older = 0;
     while (@dist_version) {
         my ($d,$v) = splice @dist_version,0,2 ;
-        push @list, "$d -> $v;";
+ 
+        next if defined $regexp and $d =~ $regexp ;
+
+        push @list, "$d -> $v;" ;
         
         if ($vs->compare($vers,$v) > 0 ) {
             $has_older = 1 ;
@@ -184,7 +242,7 @@ Config::Model::Debian::Dependency - Checks Debian dependency declarations
 
 =head1 VERSION
 
-version 1.235
+version 1.236
 
 =head1 SYNOPSIS
 
