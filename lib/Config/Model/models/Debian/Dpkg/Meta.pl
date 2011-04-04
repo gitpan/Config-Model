@@ -13,6 +13,7 @@
     'read_config' => [
       {
         'auto_create' => '1',
+        'full_dump' => '0',
         'file' => '.dpkg-meta.yml',
         'backend' => 'Yaml',
         'config_dir' => '~/'

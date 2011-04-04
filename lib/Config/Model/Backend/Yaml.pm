@@ -10,7 +10,7 @@
 
 package Config::Model::Backend::Yaml ;
 BEGIN {
-  $Config::Model::Backend::Yaml::VERSION = '1.236';
+  $Config::Model::Backend::Yaml::VERSION = '1.237';
 }
 
 use Carp;
@@ -72,7 +72,7 @@ sub write {
     croak "Undefined file handle to write"
       unless defined $args{io_handle} ;
 
-    my $perl_data = $self->{node}->dump_as_data() ;
+    my $perl_data = $self->{node}->dump_as_data(full_dump => $args{full_dump}) ;
     my $yaml = Dump $perl_data ;
 
     $args{io_handle} -> print ($yaml) ;
@@ -90,7 +90,7 @@ Config::Model::Backend::Yaml - Read and write config as a YAML data structure
 
 =head1 VERSION
 
-version 1.236
+version 1.237
 
 =head1 SYNOPSIS
 

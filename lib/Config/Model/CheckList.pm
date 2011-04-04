@@ -27,7 +27,7 @@
 
 package Config::Model::CheckList ;
 BEGIN {
-  $Config::Model::CheckList::VERSION = '1.236';
+  $Config::Model::CheckList::VERSION = '1.237';
 }
 use Config::Model::Exception ;
 use Config::Model::IdElementReference ;
@@ -35,6 +35,7 @@ use warnings ;
 use Carp;
 use strict;
 use Log::Log4perl qw(get_logger :levels);
+use Storable qw/dclone/;
 
 use base qw/Config::Model::WarpedThing/ ;
 
@@ -47,7 +48,7 @@ Config::Model::CheckList - Handle check list element
 
 =head1 VERSION
 
-version 1.236
+version 1.237
 
 =head1 SYNOPSIS
 
@@ -151,7 +152,7 @@ sub new {
 	$self->submit_to_refer_to() ;
     }
 
-    $self->{backup}  = \%args ;
+    $self->{backup}  = dclone (\%args) ;
 
     $self->set_properties() ; # set will use backup data
 

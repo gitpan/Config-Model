@@ -4,7 +4,7 @@ Config::Model::models::Debian::Dpkg - Configuration class Debian::Dpkg
 
 =head1 VERSION
 
-version 1.236
+version 1.237
 
 =head1 DESCRIPTION
 
@@ -16,19 +16,19 @@ Model of Debian source package files (e.g control, copyright...)
 
 =head2 C<meta>
 
-Specify meta parameters that will tune the behavior of this dpkg modelOptional. Type node.
+Specify meta parameters that will tune the behavior of this dpkg model Optional. Type node.
 
 =head2 C<control>
 
-Package control file. Specifies the most vital (and version-independent) information about the source package and about the binary packages it creates.Optional. Type node.
+Package control file. Specifies the most vital (and version-independent) information about the source package and about the binary packages it creates. Optional. Type node.
 
 =head2 C<copyright>
 
-copyright and license information of all files contained in this packageOptional. Type node.
+copyright and license information of all files contained in this package Optional. Type node.
 
 =head2 C<source>
 
-Optional. Type node.
+ Optional. Type node.
 
 =head1 SEE ALSO
 
@@ -50,7 +50,7 @@ Optional. Type node.
 
 =over
 
-=item ARRAY(0x22b6b98)
+=item Dominique Dumont
 
 
 =back
@@ -59,7 +59,7 @@ Optional. Type node.
 
 =over
 
-=item ARRAY(0x22b6c28)
+=item 2010,2011 Dominique Dumont
 
 
 =back

@@ -4,7 +4,7 @@ Config::Model::models::Debian::Dpkg::Control::Binary - Configuration class Debia
 
 =head1 VERSION
 
-version 1.236
+version 1.237
 
 =head1 DESCRIPTION
 
@@ -14,67 +14,67 @@ Configuration classes used by L<Config::Model>
 
 =head2 C<Architecture>
 
-Mandatory. Type string.
+ Mandatory. Type string.
 
 =head2 C<Section>
 
-Optional. Type uniline.
+ Optional. Type uniline.
 
 =head2 C<Priority>
 
-Optional. Type uniline.
+ Optional. Type uniline.
 
 =head2 C<Essential>
 
-Optional. Type boolean.
+ Optional. Type boolean.
 
 =head2 C<Depends>
 
-Optional. Type list of uniline.
+ Optional. Type list of uniline.
 
 =head2 C<Recommends>
 
-Optional. Type list of uniline.
+ Optional. Type list of uniline.
 
 =head2 C<Suggests>
 
-Optional. Type list of uniline.
+ Optional. Type list of uniline.
 
 =head2 C<Enhances>
 
-Optional. Type list of uniline.
+ Optional. Type list of uniline.
 
 =head2 C<Pre-Depends>
 
-Optional. Type list of uniline.
+ Optional. Type list of uniline.
 
 =head2 C<Breaks>
 
-Optional. Type list of uniline.
+ Optional. Type list of uniline.
 
 =head2 C<Conflicts>
 
-Optional. Type list of uniline.
+ Optional. Type list of uniline.
 
 =head2 C<Provides>
 
-Optional. Type list of uniline.
+ Optional. Type list of uniline.
 
 =head2 C<Replaces>
 
-Optional. Type list of uniline.
+ Optional. Type list of uniline.
 
 =head2 C<Package-Type>
 
-If this field is present, the package is not a regular Debian package, but either a udeb generated for the Debian installer or a tdeb containing translated debconf strings.Optional. Type enum. choice: 'tdeb', 'udeb'.
+If this field is present, the package is not a regular Debian package, but either a udeb generated for the Debian installer or a tdeb containing translated debconf strings. Optional. Type enum. choice: 'tdeb', 'udeb'.
 
 =head2 C<Synopsis>
 
-Mandatory. Type uniline.
+ Mandatory. Type uniline.
 
 =head2 C<Description>
 
-Mandatory. Type string.
+ Mandatory. Type string.
 
 =head1 SEE ALSO
 
@@ -88,7 +88,7 @@ Mandatory. Type string.
 
 =over
 
-=item ARRAY(0x22cd9a0)
+=item Dominique Dumont
 
 
 =back
@@ -97,7 +97,7 @@ Mandatory. Type string.
 
 =over
 
-=item ARRAY(0x22bbeb8)
+=item 2010,2011 Dominique Dumont
 
 
 =back

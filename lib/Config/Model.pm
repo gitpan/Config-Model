@@ -9,7 +9,7 @@
 #
 package Config::Model;
 BEGIN {
-  $Config::Model::VERSION = '1.236';
+  $Config::Model::VERSION = '1.237';
 }
 use Any::Moose ;
 use Any::Moose '::Util::TypeConstraints';
@@ -95,7 +95,7 @@ Config::Model - Create tools to validate, migrate and edit configuration files
 
 =head1 VERSION
 
-version 1.236
+version 1.237
 
 =head1 SYNOPSIS
 
@@ -2007,7 +2007,7 @@ sub get_model_doc {
         foreach my $what (qw/author copyright license/) {
             next unless @{ $legalese{$what} || [] };
             push @end, "=head1 " . uc($what), '', '=over', '',
-              ( map { ( "=item $_", '' ); } @{ $legalese{$what} } ),
+              ( map { ( "=item $_", '' ); } map {ref $_ ? @$_ : $_ } @{ $legalese{$what} } ),
               '', '=back', '';
         }
 
@@ -2034,8 +2034,8 @@ sub get_element_description {
     $of = " of " . ( $cargo_vt or $cargo_type ) if defined $cargo_type;
 
     my $desc = $elt_info->{description} || '';
-    $desc .= $elt_info->{mandatory} ? 'Mandatory' : 'Optional' ;
-    $desc .= ". Type ". ($vt || $type) . $of.'.';
+    $desc .= $elt_info->{mandatory} ? ' Mandatory.' : ' Optional.' ;
+    $desc .= " Type ". ($vt || $type) . $of.'.';
     foreach (qw/choice default upstream_default/) {
         my $item = $elt_info->{$_} ;
         next unless defined $item ;

@@ -4,7 +4,7 @@ Config::Model::models::Debian::Dpkg::Control - Configuration class Debian::Dpkg:
 
 =head1 VERSION
 
-version 1.236
+version 1.237
 
 =head1 DESCRIPTION
 
@@ -14,11 +14,11 @@ Configuration classes used by L<Config::Model>
 
 =head2 C<source>
 
-Optional. Type node.
+ Optional. Type node.
 
 =head2 C<binary>
 
-Optional. Type hash of node.
+ Optional. Type hash of node.
 
 =head1 SEE ALSO
 
@@ -36,7 +36,7 @@ Optional. Type hash of node.
 
 =over
 
-=item ARRAY(0x22cbda8)
+=item Dominique Dumont
 
 
 =back
@@ -45,7 +45,7 @@ Optional. Type hash of node.
 
 =over
 
-=item ARRAY(0x22cbfd0)
+=item 2010,2011 Dominique Dumont
 
 
 =back

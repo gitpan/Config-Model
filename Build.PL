@@ -94,6 +94,7 @@ my $build = Module::Build->new(
     'IO::File' => '0',
     'LWP::Simple' => '0',
     'Log::Log4perl' => '1.11',
+    'MouseX::NativeTraits' => '0',
     'MouseX::StrictConstructor' => '0',
     'Parse::RecDescent' => '1.90.0',
     'Pod::POM' => '0',

@@ -4,7 +4,7 @@ Config::Model::models::Fstab - Configuration class Fstab
 
 =head1 VERSION
 
-version 1.236
+version 1.237
 
 =head1 DESCRIPTION
 
@@ -17,7 +17,7 @@ static information about the filesystems. fstab contains descriptive information
 
 =head2 C<fs>
 
-Each "fs" element contain the information about one filesystem. Each filesystem is referred in this model by a label constructed by the fstab parser. This label cannot be stored in the fstab file, so if you create a new file system, the label you will choose may not be stored and will be re-created by the fstab parserOptional. Type hash of node.
+Each "fs" element contain the information about one filesystem. Each filesystem is referred in this model by a label constructed by the fstab parser. This label cannot be stored in the fstab file, so if you create a new file system, the label you will choose may not be stored and will be re-created by the fstab parser Optional. Type hash of node.
 
 =head1 SEE ALSO
 
@@ -33,7 +33,7 @@ Each "fs" element contain the information about one filesystem. Each filesystem 
 
 =over
 
-=item ARRAY(0x22e0388)
+=item Dominique Dumont
 
 
 =back
@@ -42,7 +42,7 @@ Each "fs" element contain the information about one filesystem. Each filesystem 
 
 =over
 
-=item ARRAY(0x230ac28)
+=item 2010,2011 Dominique Dumont
 
 
 =back

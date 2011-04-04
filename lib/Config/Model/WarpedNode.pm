@@ -28,7 +28,7 @@
 
 package Config::Model::WarpedNode ;
 BEGIN {
-  $Config::Model::WarpedNode::VERSION = '1.236';
+  $Config::Model::WarpedNode::VERSION = '1.237';
 }
 
 use Carp qw(cluck croak);
@@ -40,6 +40,7 @@ use base qw/Config::Model::WarpedThing/ ;
 use Config::Model::Exception ;
 use Data::Dumper ();
 use Log::Log4perl qw(get_logger :levels);
+use Storable qw/dclone/;
 
 my $logger = get_logger("Tree::Node::Warped") ;
 
@@ -50,7 +51,7 @@ Config::Model::WarpedNode - Node that change config class properties
 
 =head1 VERSION
 
-version 1.236
+version 1.237
 
 =head1 SYNOPSIS
 
@@ -224,7 +225,7 @@ sub new {
     $self->{index_value}  =  delete $args{index_value} ;
     $self->{id_owner}     =  delete $args{id_owner} ;
 
-    $self->{backup} = \%args ;
+    $self->{backup} = dclone (\%args) ;
 
     # WarpedNode will register this object in a Value object (the
     # warper).  When the warper gets a new value, it will modify the

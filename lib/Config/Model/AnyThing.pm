@@ -27,7 +27,7 @@
 
 package Config::Model::AnyThing;
 BEGIN {
-  $Config::Model::AnyThing::VERSION = '1.236';
+  $Config::Model::AnyThing::VERSION = '1.237';
 }
 use Scalar::Util qw(weaken);
 use Pod::POM ;
@@ -43,7 +43,7 @@ Config::Model::AnyThing - Base class for configuration tree item
 
 =head1 VERSION
 
-version 1.236
+version 1.237
 
 =head1 SYNOPSIS
 

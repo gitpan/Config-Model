@@ -27,7 +27,7 @@
 
 package Config::Model::Value ;
 BEGIN {
-  $Config::Model::Value::VERSION = '1.236';
+  $Config::Model::Value::VERSION = '1.237';
 }
 use warnings ;
 use strict;
@@ -38,6 +38,7 @@ use Config::Model::ValueComputer ;
 use Config::Model::IdElementReference ;
 use Log::Log4perl qw(get_logger :levels);
 use Carp ;
+use Storable qw/dclone/;
 
 use base qw/Config::Model::WarpedThing/ ;
 
@@ -51,7 +52,7 @@ Config::Model::Value - Strongly typed configuration value
 
 =head1 VERSION
 
-version 1.236
+version 1.237
 
 =head1 SYNOPSIS
 
@@ -757,7 +758,7 @@ sub new {
 
     my $warp_info = delete $args{warp} ;
 
-    $self->{backup}  = \%args ;
+    $self->{backup}  = dclone (\%args) ;
 
     $self->set_properties() ; # set will use backup data
 
@@ -1580,7 +1581,7 @@ sub pre_store {
     if (defined $self->{compute} 
 	and not $self->{allow_compute_override}) {
 	my $msg = 'assignment to a computed value is forbidden unless '
-	  .'compute -> allow_override is set.' ;
+	  .'compute -> allow_override is set.';
 	Config::Model::Exception::Model
 	    -> throw (object => $self, message => $msg) 
 	      if $check eq 'yes';

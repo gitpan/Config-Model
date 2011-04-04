@@ -27,7 +27,7 @@
 
 package Config::Model::AnyId ;
 BEGIN {
-  $Config::Model::AnyId::VERSION = '1.236';
+  $Config::Model::AnyId::VERSION = '1.237';
 }
 use Config::Model::Exception ;
 use Scalar::Util qw(weaken) ;
@@ -35,6 +35,7 @@ use warnings ;
 use Carp;
 use strict;
 use Log::Log4perl qw(get_logger :levels);
+use Storable qw/dclone/;
 
 use base qw/Config::Model::WarpedThing/;
 
@@ -54,7 +55,7 @@ Config::Model::AnyId - Base class for hash or list element
 
 =head1 VERSION
 
-version 1.236
+version 1.237
 
 =head1 SYNOPSIS
 
@@ -701,7 +702,7 @@ sub handle_args {
     map { $self->{$_} =  delete $args{$_} if defined $args{$_} }
          qw/index_class index_type morph ordered/;
 
-    %{$self->{backup}}  = %args ;
+    $self->{backup}  = dclone (\%args) ;
 
     $self->set_properties(%args) if defined $self->{index_type} ;
 

@@ -45,6 +45,7 @@ MAILTO
 MTA
 MTA's
 Mtn
+OpenSSL
 PopCon
 Pre
 SUBMITURLS
@@ -68,8 +69,10 @@ cpan
 ctrl
 cvs
 darcs
+davfs
 ddumont
 debconf
+debugfs
 debian
 dep
 dfsg
@@ -86,6 +89,7 @@ http
 indep
 inet
 ini
+iso
 json
 krzysztof
 lan
@@ -94,10 +98,12 @@ lgpl
 listid
 mailfrom
 mtn
+nfs
 nextkey
 objtreescanner
 openssh
 pts
+proc
 redhat
 redhat's
 scriplets
@@ -108,8 +114,11 @@ tyszecki
 udeb
 ui
 uncheck
+uniline
 uploaders
+usbfs
 vcs
+vfat
 vcss
 warper
 warpthing
