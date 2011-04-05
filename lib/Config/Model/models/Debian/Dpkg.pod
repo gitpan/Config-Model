@@ -4,7 +4,7 @@ Config::Model::models::Debian::Dpkg - Configuration class Debian::Dpkg
 
 =head1 VERSION
 
-version 1.237
+version 1.238
 
 =head1 DESCRIPTION
 
@@ -16,33 +16,43 @@ Model of Debian source package files (e.g control, copyright...)
 
 =head2 C<meta>
 
-Specify meta parameters that will tune the behavior of this dpkg model Optional. Type node.
+Specify meta parameters that will tune the behavior of this dpkg model. I<< Optional. Type node.  >>
 
 =head2 C<control>
 
-Package control file. Specifies the most vital (and version-independent) information about the source package and about the binary packages it creates. Optional. Type node.
+Package control file. Specifies the most vital (and version-independent) information about the source package and about the binary packages it creates. I<< Optional. Type node.  >>
 
 =head2 C<copyright>
 
-copyright and license information of all files contained in this package Optional. Type node.
+copyright and license information of all files contained in this package. I<< Optional. Type node.  >>
 
 =head2 C<source>
 
- Optional. Type node.
+I<< Optional. Type node.  >>
 
 =head1 SEE ALSO
 
 =over
 
-=item L<config-edit>
+=item *
 
-=item L<Config::Model::models::Debian::Dpkg::Control>
+L<config-edit>
 
-=item L<Config::Model::models::Debian::Dpkg::Copyright>
+=item *
 
-=item L<Config::Model::models::Debian::Dpkg::Meta>
+L<Config::Model::models::Debian::Dpkg::Control>
 
-=item L<Config::Model::models::Debian::Dpkg::Source>
+=item *
+
+L<Config::Model::models::Debian::Dpkg::Copyright>
+
+=item *
+
+L<Config::Model::models::Debian::Dpkg::Meta>
+
+=item *
+
+L<Config::Model::models::Debian::Dpkg::Source>
 
 =back
 

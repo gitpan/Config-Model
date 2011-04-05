@@ -4,7 +4,7 @@ Config::Model::models::Fstab::FsLine - Configuration class Fstab::FsLine
 
 =head1 VERSION
 
-version 1.237
+version 1.238
 
 =head1 DESCRIPTION
 
@@ -16,33 +16,35 @@ data of one /etc/fstab line
 
 =head2 C<fs_spec>
 
-block special device or remote filesystem to be mounted Mandatory. Type uniline.
+block special device or remote filesystem to be mounted. I<< Mandatory. Type uniline.  >>
 
 =head2 C<fs_file>
 
-mount point for the filesystem Mandatory. Type uniline.
+mount point for the filesystem. I<< Mandatory. Type uniline.  >>
 
 =head2 C<fs_vfstype>
 
-file system type Mandatory. Type enum. choice: 'auto', 'davfs', 'ext2', 'ext3', 'ext4', 'swap', 'proc', 'iso9660', 'vfat', 'usbfs', 'ignore', 'nfs', 'nfs4', 'none', 'ignore', 'debugfs'.
+file system type. I<< Mandatory. Type enum. choice: 'auto', 'davfs', 'ext2', 'ext3', 'ext4', 'swap', 'proc', 'iso9660', 'vfat', 'usbfs', 'ignore', 'nfs', 'nfs4', 'none', 'ignore', 'debugfs'.  >>
 
 =head2 C<fs_mntopts>
 
-mount options associated with the filesystem Optional. Type warped_node.
+mount options associated with the filesystem. I<< Optional. Type warped_node.  >>
 
 =head2 C<fs_freq>
 
-Specifies if the file system needs to be dumped Optional. Type boolean. default: '0'.
+Specifies if the file system needs to be dumped. I<< Optional. Type boolean. default: '0'.  >>
 
 =head2 C<fs_passno>
 
-used by the fsck(8) program to determine the order in which filesystem checks are done at reboot time Optional. Type integer. default: '0'.
+used by the fsck(8) program to determine the order in which filesystem checks are done at reboot time. I<< Optional. Type integer. default: '0'.  >>
 
 =head1 SEE ALSO
 
 =over
 
-=item L<config-edit>
+=item *
+
+L<config-edit>
 
 =back
 

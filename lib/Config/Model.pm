@@ -9,7 +9,7 @@
 #
 package Config::Model;
 BEGIN {
-  $Config::Model::VERSION = '1.237';
+  $Config::Model::VERSION = '1.238';
 }
 use Any::Moose ;
 use Any::Moose '::Util::TypeConstraints';
@@ -95,7 +95,7 @@ Config::Model - Create tools to validate, migrate and edit configuration files
 
 =head1 VERSION
 
-version 1.237
+version 1.238
 
 =head1 SYNOPSIS
 
@@ -2012,8 +2012,8 @@ sub get_model_doc {
         }
 
         my @see_also =  (
-            "=head1 SEE ALSO",'',"=over",'',"=item L<config-edit>",'',
-            ( map { ( "=item L<Config::Model::models::$_>",'') ; } sort keys %see_also ),
+            "=head1 SEE ALSO",'',"=over",'',"=item *",'',"L<config-edit>",'',
+            ( map { ( "=item *",'',"L<Config::Model::models::$_>",'') ; } sort keys %see_also ),
             "=back",'') ;
 
         $result{$full_name} = join( "\n", @pod, @elt, @see_also, @end,'=cut','' ) . "\n";
@@ -2034,15 +2034,22 @@ sub get_element_description {
     $of = " of " . ( $cargo_vt or $cargo_type ) if defined $cargo_type;
 
     my $desc = $elt_info->{description} || '';
-    $desc .= $elt_info->{mandatory} ? ' Mandatory.' : ' Optional.' ;
-    $desc .= " Type ". ($vt || $type) . $of.'.';
+    if ($desc) {
+        $desc .= '.' unless $desc =~ /\.$/ ;
+        $desc .= ' ' unless $desc =~ /\s$/ ;
+    }
+    
+    my $info = $elt_info->{mandatory} ? 'Mandatory. ' : 'Optional. ' ;
+
+    $info .= "Type ". ($vt || $type) . $of.'. ';
+    
     foreach (qw/choice default upstream_default/) {
         my $item = $elt_info->{$_} ;
         next unless defined $item ;
         my @list = ref($item) ? @$item : ($item) ;
-        $desc .= " $_: '". join("', '",@list)."'." ;
+        $info .= "$_: '". join("', '",@list)."'. " ;
     } 
-    return $desc ;
+    return $desc."I<< $info >>" ;
 }
 
 =head2 generate_doc ( top_class_name , [ directory ] )
