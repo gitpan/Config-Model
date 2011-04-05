@@ -27,7 +27,7 @@
 
 package Config::Model::Backend::PlainFile ;
 BEGIN {
-  $Config::Model::Backend::PlainFile::VERSION = '1.238';
+  $Config::Model::Backend::PlainFile::VERSION = '1.240';
 }
 
 use Carp;
@@ -121,7 +121,7 @@ sub write {
     return 1;
 }
 
-no Moose ;
+no Any::Moose ;
 __PACKAGE__->meta->make_immutable ;
 
 1;
@@ -134,7 +134,7 @@ Config::Model::Backend::PlainFile - Read and write config as plain file
 
 =head1 VERSION
 
-version 1.238
+version 1.240
 
 =head1 SYNOPSIS
 

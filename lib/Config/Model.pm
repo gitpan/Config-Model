@@ -9,7 +9,7 @@
 #
 package Config::Model;
 BEGIN {
-  $Config::Model::VERSION = '1.238';
+  $Config::Model::VERSION = '1.240';
 }
 use Any::Moose ;
 use Any::Moose '::Util::TypeConstraints';
@@ -95,7 +95,7 @@ Config::Model - Create tools to validate, migrate and edit configuration files
 
 =head1 VERSION
 
-version 1.238
+version 1.240
 
 =head1 SYNOPSIS
 
@@ -2331,7 +2331,7 @@ sub available_models {
     return \%categories, \%appli_info, \%applications ;
 }
 
-no Moose ;
+no Any::Moose ;
 __PACKAGE__->meta->make_immutable ;
 
 1;

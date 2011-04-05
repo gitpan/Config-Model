@@ -4,7 +4,7 @@ Config::Model::models::Debian::Dpkg::Source - Configuration class Debian::Dpkg::
 
 =head1 VERSION
 
-version 1.238
+version 1.240
 
 =head1 DESCRIPTION
 

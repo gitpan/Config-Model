@@ -27,7 +27,7 @@
 
 package Config::Model::Backend::ShellVar ;
 BEGIN {
-  $Config::Model::Backend::ShellVar::VERSION = '1.238';
+  $Config::Model::Backend::ShellVar::VERSION = '1.240';
 }
 
 use Carp;
@@ -110,7 +110,7 @@ sub write {
     return 1;
 }
 
-no Moose ;
+no Any::Moose ;
 __PACKAGE__->meta->make_immutable ;
 
 1;
@@ -123,7 +123,7 @@ Config::Model::Backend::ShellVar - Read and write config as a C<SHELLVAR> data s
 
 =head1 VERSION
 
-version 1.238
+version 1.240
 
 =head1 SYNOPSIS
 

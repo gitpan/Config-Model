@@ -27,7 +27,7 @@
 
 package Config::Model::Annotation;
 BEGIN {
-  $Config::Model::Annotation::VERSION = '1.238';
+  $Config::Model::Annotation::VERSION = '1.240';
 }
 
 use Any::Moose ;
@@ -57,7 +57,7 @@ Config::Model::Annotation - Read and write configuration annotations
 
 =head1 VERSION
 
-version 1.238
+version 1.240
 
 =head1 SYNOPSIS
 
@@ -293,7 +293,7 @@ sub load {
     }
 }
 
-no Moose ;
+no Any::Moose ;
 
 __PACKAGE__ -> meta->make_immutable;
 

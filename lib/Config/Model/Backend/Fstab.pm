@@ -9,7 +9,7 @@
 #
 package Config::Model::Backend::Fstab ;
 BEGIN {
-  $Config::Model::Backend::Fstab::VERSION = '1.238';
+  $Config::Model::Backend::Fstab::VERSION = '1.240';
 }
 use Any::Moose ;
 use Carp ;
@@ -145,7 +145,7 @@ sub option_string {
     return join',',@options ;
 }
 
-no Moose ;
+no Any::Moose ;
 __PACKAGE__->meta->make_immutable ;
 
 1;
@@ -158,7 +158,7 @@ Config::Model::Backend::Fstab - Read and write config from fstab file
 
 =head1 VERSION
 
-version 1.238
+version 1.240
 
 =head1 SYNOPSIS
 
