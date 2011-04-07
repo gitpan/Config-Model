@@ -27,7 +27,7 @@
 
 package Config::Model::AnyThing;
 BEGIN {
-  $Config::Model::AnyThing::VERSION = '1.240';
+  $Config::Model::AnyThing::VERSION = '1.241';
 }
 use Scalar::Util qw(weaken);
 use Pod::POM ;
@@ -43,7 +43,7 @@ Config::Model::AnyThing - Base class for configuration tree item
 
 =head1 VERSION
 
-version 1.240
+version 1.241
 
 =head1 SYNOPSIS
 
@@ -431,7 +431,7 @@ sub grab {
             }
         }
 
-        if ($cmd =~ /^\?(\w+)/) {
+        if ($cmd =~ /^\?(\w[\w-]*)/) {
 	    push @found, $obj->grab_ancestor_with_element_named($1) ;
 	    $cmd =~ s/^\?// ; #remove the go up part
 	    unshift @command, $cmd ;
@@ -460,7 +460,7 @@ sub grab {
 	}
 
         my ($name, $action, $arg) 
-	  = ($cmd =~ /([\-\w]+)(?:(:)((?:"[^\"]*")|(?:[\w:\/\.\-\+]+)))?/);
+	  = ($cmd =~ /(\w[\-\w]*)(?:(:)((?:"[^\"]*")|(?:[\w:\/\.\-\+]+)))?/);
 
 	if (defined $arg and $arg =~ /^"/ and $arg =~ /"$/) {
 	    $arg =~ s/^"// ; # remove leading quote

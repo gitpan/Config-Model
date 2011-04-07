@@ -9,6 +9,7 @@ build_requires:
   Path::Class: 0
   Probe::Perl: 0
   Test::Command: 0.08
+  Test::Differences: 0
   Test::Exception: 0
   Test::More: 0
   Test::Warn: 0.11
@@ -45,4 +46,4 @@ resources:
   bugtracker: http://rt.cpan.org/NoAuth/Bugs.html?Dist=Config-Model
   homepage: http://config-model.wiki.sourceforge.net
   repository: http://config-model.hg.sourceforge.net:8000/hgroot/config-model/config-model
-version: 1.240
+version: 1.241

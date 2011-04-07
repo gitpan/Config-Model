@@ -9,7 +9,7 @@
 #
 package Config::Model;
 BEGIN {
-  $Config::Model::VERSION = '1.240';
+  $Config::Model::VERSION = '1.241';
 }
 use Any::Moose ;
 use Any::Moose '::Util::TypeConstraints';
@@ -95,7 +95,7 @@ Config::Model - Create tools to validate, migrate and edit configuration files
 
 =head1 VERSION
 
-version 1.240
+version 1.241
 
 =head1 SYNOPSIS
 
@@ -1987,7 +1987,9 @@ sub get_model_doc {
         my @elt = ( "=head1 Elements", '' );
         foreach my $elt_name ( @{ $c_model->{element_list} } ) {
             my $elt_info = $c_model->{element}{$elt_name};
-            push @elt, "=head2 C<$elt_name>", '';
+            my $summary = $elt_info->{summary} || '';
+            $summary &&= " - $summary" ;
+            push @elt, "=head2 $elt_name$summary", '';
             push @elt, $self->get_element_description($elt_info) , '' ;
 
             foreach ($elt_info,$elt_info->{cargo}) { 
@@ -2049,7 +2051,24 @@ sub get_element_description {
         my @list = ref($item) ? @$item : ($item) ;
         $info .= "$_: '". join("', '",@list)."'. " ;
     } 
-    return $desc."I<< $info >>" ;
+    
+    my $elt_help = $self->get_element_value_help ($elt_info) ;
+    
+    return $desc."I<< $info >>" .$elt_help;
+}
+
+sub get_element_value_help {
+    my ( $self, $elt_info ) = @_;
+
+    my $help = $elt_info->{help} ;
+    return '' unless defined $help ;
+    
+    my $help_text = "\n\nHere are some explanations on the possible values:\n\n=over\n\n" ;
+    foreach my $v (sort keys %$help) {
+        $help_text .= "=item $v\n\n$help->{$v}\n\n" ;
+    }
+    
+    return $help_text."=back\n\n" ;
 }
 
 =head2 generate_doc ( top_class_name , [ directory ] )

@@ -4,7 +4,7 @@ Config::Model::models::Debian::Dpkg::Control::Binary - Configuration class Debia
 
 =head1 VERSION
 
-version 1.240
+version 1.241
 
 =head1 DESCRIPTION
 
@@ -12,67 +12,67 @@ Configuration classes used by L<Config::Model>
 
 =head1 Elements
 
-=head2 C<Architecture>
+=head2 Architecture
 
 I<< Mandatory. Type string.  >>
 
-=head2 C<Section>
+=head2 Section
 
 I<< Optional. Type uniline.  >>
 
-=head2 C<Priority>
+=head2 Priority
 
 I<< Optional. Type uniline.  >>
 
-=head2 C<Essential>
+=head2 Essential
 
 I<< Optional. Type boolean.  >>
 
-=head2 C<Depends>
+=head2 Depends
 
 I<< Optional. Type list of uniline.  >>
 
-=head2 C<Recommends>
+=head2 Recommends
 
 I<< Optional. Type list of uniline.  >>
 
-=head2 C<Suggests>
+=head2 Suggests
 
 I<< Optional. Type list of uniline.  >>
 
-=head2 C<Enhances>
+=head2 Enhances
 
 I<< Optional. Type list of uniline.  >>
 
-=head2 C<Pre-Depends>
+=head2 Pre-Depends
 
 I<< Optional. Type list of uniline.  >>
 
-=head2 C<Breaks>
+=head2 Breaks
 
 I<< Optional. Type list of uniline.  >>
 
-=head2 C<Conflicts>
+=head2 Conflicts
 
 I<< Optional. Type list of uniline.  >>
 
-=head2 C<Provides>
+=head2 Provides
 
 I<< Optional. Type list of uniline.  >>
 
-=head2 C<Replaces>
+=head2 Replaces
 
 I<< Optional. Type list of uniline.  >>
 
-=head2 C<Package-Type>
+=head2 Package-Type - The type of the package, if not a regular Debian one
 
 If this field is present, the package is not a regular Debian package, but either a udeb generated for the Debian installer or a tdeb containing translated debconf strings. I<< Optional. Type enum. choice: 'tdeb', 'udeb'.  >>
 
-=head2 C<Synopsis>
+=head2 Synopsis
 
 I<< Mandatory. Type uniline.  >>
 
-=head2 C<Description>
+=head2 Description
 
 I<< Mandatory. Type string.  >>
 

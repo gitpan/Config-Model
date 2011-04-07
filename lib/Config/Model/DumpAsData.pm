@@ -28,7 +28,7 @@
 
 package Config::Model::DumpAsData;
 BEGIN {
-  $Config::Model::DumpAsData::VERSION = '1.240';
+  $Config::Model::DumpAsData::VERSION = '1.241';
 }
 use Carp;
 use strict;
@@ -43,7 +43,7 @@ Config::Model::DumpAsData - Dump configuration content as a perl data structure
 
 =head1 VERSION
 
-version 1.240
+version 1.241
 
 =head1 SYNOPSIS
 
@@ -211,8 +211,8 @@ sub dump_as_data {
 	    my $v ;
 	    $scanner->scan_hash(\$v,$node,$element_name,$_);
 	    # create the key even if $v is undef 
-	    $h{$_} = $v ;
-	    ( $_ , $v ) ;
+	    $h{$_} = $v if defined $v;
+	    defined $v ? ( $_ , $v ) : ();
 	} @keys ;
 
 	my $ordered_hash = $node->fetch_element($element_name)->ordered ;

@@ -27,7 +27,7 @@
 
 package Config::Model::Loader;
 BEGIN {
-  $Config::Model::Loader::VERSION = '1.240';
+  $Config::Model::Loader::VERSION = '1.241';
 }
 use Carp;
 use strict;
@@ -44,7 +44,7 @@ Config::Model::Loader - Load serialized data into config tree
 
 =head1 VERSION
 
-version 1.240
+version 1.241
 
 =head1 SYNOPSIS
 
@@ -347,7 +347,7 @@ sub _split_cmd {
       (
        $cmd =~
        m!^
-	 (\w+)? # element name can be alone
+	 (\w[\w-]*)? # element name can be alone
 	 (?:
             (:|=~|~)       # action
             ( /[^/]+/      # regexp
