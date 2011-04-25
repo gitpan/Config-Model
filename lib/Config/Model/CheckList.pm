@@ -27,7 +27,7 @@
 
 package Config::Model::CheckList ;
 BEGIN {
-  $Config::Model::CheckList::VERSION = '1.241';
+  $Config::Model::CheckList::VERSION = '1.242';
 }
 use Config::Model::Exception ;
 use Config::Model::IdElementReference ;
@@ -48,7 +48,7 @@ Config::Model::CheckList - Handle check list element
 
 =head1 VERSION
 
-version 1.241
+version 1.242
 
 =head1 SYNOPSIS
 

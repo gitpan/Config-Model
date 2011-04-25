@@ -77,6 +77,7 @@ contrib
 cpan
 ctrl
 cvs
+cvsignore
 darcs
 davfs
 ddumont

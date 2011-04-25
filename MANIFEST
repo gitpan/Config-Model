@@ -82,6 +82,8 @@ lib/Config/Model/models/Debian/Dpkg/Meta.pl
 lib/Config/Model/models/Debian/Dpkg/Meta.pod
 lib/Config/Model/models/Debian/Dpkg/Source.pl
 lib/Config/Model/models/Debian/Dpkg/Source.pod
+lib/Config/Model/models/Debian/Dpkg/Source/Options.pl
+lib/Config/Model/models/Debian/Dpkg/Source/Options.pod
 lib/Config/Model/models/Fstab.pl
 lib/Config/Model/models/Fstab.pod
 lib/Config/Model/models/Fstab/CommonOptions.pl
@@ -128,6 +130,7 @@ t/copyright-examples/t9
 t/debian-dependency-check.t
 t/debian-dpkg-control.t
 t/debian-dpkg-copyright.t
+t/debian-dpkg.t
 t/describe_node.t
 t/dump_as_data.t
 t/dump_load_model.pm

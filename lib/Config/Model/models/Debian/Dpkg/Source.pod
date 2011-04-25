@@ -4,7 +4,7 @@ Config::Model::models::Debian::Dpkg::Source - Configuration class Debian::Dpkg::
 
 =head1 VERSION
 
-version 1.241
+version 1.242
 
 =head1 DESCRIPTION
 
@@ -58,6 +58,10 @@ A source package in this format contains at least an original tarball (.orig.tar
 
 
 
+=head2 options
+
+Source options as described in L<dpkgc-source>. I<< Optional. Type node.  >>
+
 =head1 SEE ALSO
 
 =over
@@ -65,6 +69,10 @@ A source package in this format contains at least an original tarball (.orig.tar
 =item *
 
 L<config-edit>
+
+=item *
+
+L<Config::Model::models::Debian::Dpkg::Source::Options>
 
 =back
 

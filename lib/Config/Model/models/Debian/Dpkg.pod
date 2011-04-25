@@ -4,7 +4,7 @@ Config::Model::models::Debian::Dpkg - Configuration class Debian::Dpkg
 
 =head1 VERSION
 
-version 1.241
+version 1.242
 
 =head1 DESCRIPTION
 
@@ -29,6 +29,16 @@ copyright and license information of all files contained in this package. I<< Op
 =head2 source
 
 I<< Optional. Type node.  >>
+
+=head2 clean - list of files to clean
+
+list of files to remove when dh_clean is run. Files names can include wild cards. For instance:
+ build.log
+ Makefile.in
+ */Makefile.in
+ */*/Makefile.in
+
+ . I<< Optional. Type list of uniline.  >>
 
 =head1 SEE ALSO
 

@@ -27,7 +27,7 @@
 
 package Config::Model::Value ;
 BEGIN {
-  $Config::Model::Value::VERSION = '1.241';
+  $Config::Model::Value::VERSION = '1.242';
 }
 use warnings ;
 use strict;
@@ -52,7 +52,7 @@ Config::Model::Value - Strongly typed configuration value
 
 =head1 VERSION
 
-version 1.241
+version 1.242
 
 =head1 SYNOPSIS
 
@@ -1468,9 +1468,13 @@ Applies the fixes to suppress the current warnings.
 sub apply_fixes {
     my $self = shift ; 
     my $count = 0;
+    $logger->debug( $self->location.": apply_fixes called on ". @{$self->{fixes} || [] }.
+        " fixable problems" ) ;
+        
     while ( @{$self->{fixes} || [] } ) {
         local $_ ;
         $_ = $self->fetch(silent => 1) ;
+        $logger->debug($self->location.": Applying fix '$self->{fixes}[0]'" );
         eval ( $self->{fixes}[0] ) ;
         if ($@) { 	
             Config::Model::Exception::Model -> throw (
@@ -1960,7 +1964,12 @@ sub fetch {
         $value = $rep if defined $rep ;
     }
 
-    my $ok = $self->check(value => $value, silent => $silent) ;
+    # check and subsequent storage of fixes instruction must be done only
+    # in user or custom mode. (because fixes are cleaned up during check and using
+    # mode may not trigger the warnings. Hence confusion afterwards
+    my $ok = 1 ;
+    $ok = $self->check(value => $value, silent => $silent) 
+        if $mode eq '' or $mode eq 'custom' ;
 
     if (defined $value) {
 	# check validity (all modes)

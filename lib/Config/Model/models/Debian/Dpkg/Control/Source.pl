@@ -106,9 +106,24 @@ The archive area and section for each package should be specified in the package
         },
         'type' => 'list'
       },
+      'Build-Conflicts',
+      {
+        'cargo' => {
+          'value_type' => 'uniline',
+          'warn_if_match' => {
+            'perl.*\\|\\s*libmodule-build-perl' => {
+              'msg' => 'lenny has perl 5.10 which includes libmodule-build-perl',
+              'fix' => '$_ = "perl" ;'
+            }
+          },
+          'type' => 'leaf'
+        },
+        'type' => 'list'
+      },
       'Standards-Version',
       {
         'value_type' => 'uniline',
+        'summary' => 'Debian policy version number this package complies to',
         'warn_unless_match' => {
           '3\\.9\\.1' => {
             'msg' => 'Current standard version is 3.9.1',
@@ -117,7 +132,8 @@ The archive area and section for each package should be specified in the package
         },
         'match' => '\\d+\\.\\d+\\.\\d+(\\.\\d+)?',
         'default' => '3.9.1',
-        'type' => 'leaf'
+        'type' => 'leaf',
+        'description' => 'This field indicates the debian policy version number this package complies to'
       },
       'Vcs-Browser',
       {
