@@ -7,7 +7,7 @@
 #
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
-#    Copyright (c) 2005-2010 Dominique Dumont.
+#    Copyright (c) 2005-2011 Dominique Dumont.
 #
 #    This file is part of Config-Model.
 #
@@ -27,17 +27,18 @@
 
 package Config::Model::CheckList ;
 BEGIN {
-  $Config::Model::CheckList::VERSION = '1.242';
+  $Config::Model::CheckList::VERSION = '1.243';
 }
 use Config::Model::Exception ;
 use Config::Model::IdElementReference ;
+use Config::Model::Warper ;
 use warnings ;
 use Carp;
 use strict;
 use Log::Log4perl qw(get_logger :levels);
 use Storable qw/dclone/;
 
-use base qw/Config::Model::WarpedThing/ ;
+use base qw/Config::Model::AnyThing/ ;
 
 
 my $logger = get_logger("Tree::Element::CheckList") ;
@@ -48,7 +49,7 @@ Config::Model::CheckList - Handle check list element
 
 =head1 VERSION
 
-version 1.242
+version 1.243
 
 =head1 SYNOPSIS
 
@@ -157,10 +158,12 @@ sub new {
     $self->set_properties() ; # set will use backup data
 
     if (defined $warp_info) {
-	$self->check_warp_args( \@allowed_warp_params, $warp_info) ;
+        $self->{warper} = Config::Model::Warper->new (
+            warped_object => $self,
+            %$warp_info ,
+            allowed => \@allowed_warp_params
+        ) ;
     }
-
-    $self->submit_to_warp($self->{warp}) if $self->{warp} ;
 
     $self->cl_init ;
 
@@ -321,7 +324,8 @@ sub set_properties {
     # merge data passed to the constructor with data passed to set
     my %args = (%{$self->{backup}},@_ );
 
-    $self->set_owner_element_property ( \%args );
+    # these are handled by Node or Warper
+    map { delete $args{$_} } qw/level experience/ ;
 
     $self->{ordered} = delete $args{ordered} || 0 ;
 
@@ -478,9 +482,18 @@ sub submit_to_refer_to {
 	  -> new ( computed_refer_to => $self->{computed_refer_to} ,
 		   config_elt => $self,
 		 ) ;
+        my $var = $self->{computed_refer_to}{variables} ;
+
 	# refer_to registration is done for all element that are used as
 	# variable for complex reference (ie '- $foo' , {foo => '- bar'} )
-	$self->register_in_other_value($self->{computed_refer_to}{variables}) ;
+        foreach my $path (values %$var) {
+            # is ref during test case
+            #print "path is '$path'\n";
+            next if $path =~ /\$/ ; # next if path also contain a variable
+            my $master = $self->grab($path);
+            next unless $master->can('register_dependency');
+            $master->register_dependency($self) ;
+        }
     }
     else {
 	croak "checklist submit_to_refer_to: undefined refer_to or computed_refer_to" ;

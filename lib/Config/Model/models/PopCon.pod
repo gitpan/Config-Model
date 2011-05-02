@@ -4,7 +4,7 @@ Config::Model::models::PopCon - Configuration class PopCon
 
 =head1 VERSION
 
-version 1.242
+version 1.243
 
 =head1 DESCRIPTION
 
@@ -36,7 +36,7 @@ enables http reporting. Set this to 'yes' to enable it. I<< Optional. Type enum.
 
 =head2 HTTP_PROXY
 
-Allows to specify an HTTP proxy server, the syntax is "http://proxy:port". This overrides the environment variable http_proxy. I<< Optional. Type uniline.  >>
+Allows one to specify an HTTP proxy server, the syntax is "http://proxy:port". This overrides the environment variable http_proxy. I<< Optional. Type uniline.  >>
 
 =head2 MY_HOSTID
 

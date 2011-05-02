@@ -4,7 +4,7 @@ Config::Model::models::Debian::Dpkg::Control::Source - Configuration class Debia
 
 =head1 VERSION
 
-version 1.242
+version 1.243
 
 =head1 DESCRIPTION
 
@@ -80,7 +80,7 @@ I<< Optional. Type list of uniline.  >>
 
 =head2 Standards-Version - Debian policy version number this package complies to
 
-This field indicates the debian policy version number this package complies to. I<< Optional. Type uniline. default: '3.9.1'.  >>
+This field indicates the debian policy version number this package complies to. I<< Optional. Type uniline. default: '3.9.2'.  >>
 
 =head2 Vcs-Browser - web-browsable URL of the VCS repository
 
@@ -143,6 +143,18 @@ If this field is present, then any Debian Maintainers listed in the Maintainer o
 =head2 Homepage
 
 I<< Optional. Type uniline.  >>
+
+=head2 XS-Python-Version
+
+I<< Optional. Type uniline.  >>
+
+=head2 X-Python-Version - supported versions of Python 
+
+This field specifies the versions of Python (not versions of Python 3) supported by the source package.  When not specified, they default to all currently supported Python (or Python 3) versions. For more detail, See L<python policy|http://www.debian.org/doc/packaging-manuals/python-policy/ch-module_packages.html#s-specifying_versions>. I<< Optional. Type uniline. upstream_default: 'all'.  >>
+
+=head2 X-Python3-Version - supported versions of Python3 
+
+This field specifies the versions of Python 3 supported by the package. For more detail, See L<python policy|http://www.debian.org/doc/packaging-manuals/python-policy/ch-module_packages.html#s-specifying_versions>. I<< Optional. Type uniline.  >>
 
 =head1 SEE ALSO
 

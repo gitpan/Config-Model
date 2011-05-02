@@ -24,7 +24,11 @@ use File::Path ;
 use File::Copy ;
 use Test::Warn ;
 
-if ( -r '/etc/debian_version' ) {
+eval { require AptPkg::Config ;} ;
+if ( $@ ) {
+    plan skip_all => "AptPkg::Config is not installed";
+}
+elsif ( -r '/etc/debian_version' ) {
     plan tests => 24;
 }
 else {
@@ -64,7 +68,7 @@ Build-Depends: debhelper
 Build-Depends-Indep: libcpan-meta-perl, perl (>= 5.10) | libmodule-build-perl,
 Maintainer: Debian Perl Group <pkg-perl-maintainers@lists.alioth.debian.org>
 Uploaders: Dominique Dumont <dominique.dumont@hp.com>
-Standards-Version: 3.9.1
+Standards-Version: 3.9.2
 Homepage: http://search.cpan.org/dist/Dist-Zilla-Plugins-CJM/
 
 Package: libdist-zilla-plugins-cjm-perl

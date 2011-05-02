@@ -5,6 +5,7 @@ MANIFEST
 MANIFEST.SKIP
 META.yml
 MODELS
+MYMETA.json
 README
 TODO
 config-edit
@@ -60,7 +61,7 @@ lib/Config/Model/TermUI.pm
 lib/Config/Model/Value.pm
 lib/Config/Model/ValueComputer.pm
 lib/Config/Model/WarpedNode.pm
-lib/Config/Model/WarpedThing.pm
+lib/Config/Model/Warper.pm
 lib/Config/Model/application.d/dpkg
 lib/Config/Model/application.d/dpkg-control
 lib/Config/Model/application.d/dpkg-copyright
@@ -119,6 +120,7 @@ t/copyright-examples/t1
 t/copyright-examples/t10
 t/copyright-examples/t11
 t/copyright-examples/t12
+t/copyright-examples/t13
 t/copyright-examples/t2
 t/copyright-examples/t3
 t/copyright-examples/t4
@@ -169,5 +171,6 @@ t/value_refer_to.t
 t/value_simple_warp.t
 t/warped_id.t
 t/warped_node.t
+t/warped_node_collateral.t
 t/warped_value.t
 t/yaml_backend.t

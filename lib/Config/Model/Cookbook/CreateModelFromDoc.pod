@@ -6,7 +6,7 @@ Config::Model::Cookbook::CreateModelFromDoc - Create a configuration model from 
 
 =head1 VERSION
 
-version 1.242
+version 1.243
 
 =head1 Introduction
 
@@ -192,7 +192,7 @@ keep paragraph formatting in the help.
         
       HTTP_PROXY:
         description: >
-         allows to specify an HTTP proxy server, the syntax is 
+         allows one to specify an HTTP proxy server, the syntax is 
          "http://proxy:port". This overrides the environment variable 
          http_proxy.
         

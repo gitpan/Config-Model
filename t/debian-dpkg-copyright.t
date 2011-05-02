@@ -13,8 +13,12 @@ use warnings;
 
 use strict;
 
-if ( -r '/etc/debian_version' ) {
-    plan tests => 163;
+eval { require AptPkg::Config ;} ;
+if ( $@ ) {
+    plan skip_all => "AptPkg::Config is not installed";
+}
+elsif ( -r '/etc/debian_version' ) {
+    plan tests => 172;
 }
 else {
     plan skip_all => "Not a Debian system";
@@ -189,6 +193,9 @@ my @tests = (
         errors =>  [ 
             qr/not declared/ => 'License:Expat="Expat license foobar"',
         ],
+    },
+
+    { # t13 Debian bug #624305
    }
 );
 

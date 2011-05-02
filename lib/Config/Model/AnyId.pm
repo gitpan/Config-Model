@@ -27,9 +27,10 @@
 
 package Config::Model::AnyId ;
 BEGIN {
-  $Config::Model::AnyId::VERSION = '1.242';
+  $Config::Model::AnyId::VERSION = '1.243';
 }
 use Config::Model::Exception ;
+use Config::Model::Warper ;
 use Scalar::Util qw(weaken) ;
 use warnings ;
 use Carp;
@@ -37,7 +38,7 @@ use strict;
 use Log::Log4perl qw(get_logger :levels);
 use Storable qw/dclone/;
 
-use base qw/Config::Model::WarpedThing/;
+use base qw/Config::Model::AnyThing/;
 
 my $logger = get_logger("Tree::Element::Id") ;
 
@@ -55,7 +56,7 @@ Config::Model::AnyId - Base class for hash or list element
 
 =head1 VERSION
 
-version 1.242
+version 1.243
 
 =head1 SYNOPSIS
 
@@ -429,6 +430,9 @@ sub set_properties {
 
     my %args = (%{$self->{backup}},@_) ;
 
+    # these are handled by Node or Warper
+    map { delete $args{$_} } qw/level experience/ ;
+
     $logger->debug($self->name," set_properties called with @_");
 
     map { $self->{$_} =  delete $args{$_} if defined $args{$_} }
@@ -478,10 +482,10 @@ sub set_properties {
         $self->auto_create_elements ;
     }
 
-    $self->{current} = { level      => $args{level} ,
-                         experience => $args{experience}
-                       } ;
-    $self->SUPER::set_parent_element_property(\%args) ;
+    # $self->{current} = { level      => $args{level} ,
+                         # experience => $args{experience}
+                       # } ;
+    #$self->SUPER::set_parent_element_property(\%args) ;
 
     Config::Model::Exception::Model
         ->throw (
@@ -490,29 +494,29 @@ sub set_properties {
                 ) if scalar keys %args ;
 }
 
-# this method will overide setting comings from a value (or maybe a
-# warped node) with warped settings coming from this warped id. Only
-# level hidden is forwarded no matter what
-sub set_parent_element_property {
-    my $self = shift;
-    my $arg_ref = shift ;
-
-    my $cur = $self->{current} ;
-
-    # override if necessary
-    $arg_ref->{experience} = $cur->{experience} 
-      if defined $cur->{experience} ;
-
-    if (    defined $cur->{level} 
-        and ( not defined $arg_ref->{level} 
-              or $arg_ref->{level} ne 'hidden'
-            )
-       ) {
-        $arg_ref->{level} = $cur->{level} ;
-    }
-
-    $self->SUPER::set_parent_element_property($arg_ref) ;
-}
+# # this method will overide setting comings from a value (or maybe a
+# # warped node) with warped settings coming from this warped id. Only
+# # level hidden is forwarded no matter what
+# sub set_parent_element_property {
+    # my $self = shift;
+    # my $arg_ref = shift ;
+# 
+    # my $cur = $self->{current} ;
+# 
+    # # override if necessary
+    # $arg_ref->{experience} = $cur->{experience} 
+      # if defined $cur->{experience} ;
+# 
+    # if (    defined $cur->{level} 
+        # and ( not defined $arg_ref->{level} 
+              # or $arg_ref->{level} ne 'hidden'
+            # )
+       # ) {
+        # $arg_ref->{level} = $cur->{level} ;
+    # }
+# 
+    # $self->SUPER::set_parent_element_property($arg_ref) ;
+# }
 
 =head1 Introspection methods
 
@@ -707,10 +711,12 @@ sub handle_args {
     $self->set_properties(%args) if defined $self->{index_type} ;
 
     if (defined $warp_info) {
-        $self->check_warp_args( \@allowed_warp_params, $warp_info) ;
+        $self->{warper} = Config::Model::Warper->new (
+            warped_object => $self,
+            %$warp_info ,
+            allowed => \@allowed_warp_params
+        ) ;
     }
-
-    $self->submit_to_warp($self->{warp}) if $self->{warp} ;
 
     return $self ;
 }

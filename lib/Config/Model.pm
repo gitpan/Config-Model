@@ -9,7 +9,7 @@
 #
 package Config::Model;
 BEGIN {
-  $Config::Model::VERSION = '1.242';
+  $Config::Model::VERSION = '1.243';
 }
 use Any::Moose ;
 use Any::Moose '::Util::TypeConstraints';
@@ -95,7 +95,7 @@ Config::Model - Create tools to validate, migrate and edit configuration files
 
 =head1 VERSION
 
-version 1.242
+version 1.243
 
 =head1 SYNOPSIS
 
@@ -2213,7 +2213,25 @@ sub get_element_with_experience {
     return @result ;
 }
 
-#internal
+=head2 get_element_property
+
+Returns the property of an element from the model.
+
+Parameters are:
+
+=over 
+
+=item class 
+
+=item element 
+
+=item property
+
+=back 
+
+=cut
+
+
 sub get_element_property {
     my $self = shift ;
     my %args = @_ ;
@@ -2443,23 +2461,23 @@ L<Config::Model::Node> <- L<Config::Model::AutoRead> <- L<Config::Model::AnyThin
 
 =item *
 
-L<Config::Model::HashId> <- L<Config::Model::AnyId> <- L<Config::Model::WarpedThing> <- L<Config::Model::AnyThing>
+L<Config::Model::HashId> <- L<Config::Model::AnyId> <- L<Config::Model::AnyThing>
 
 =item *
 
-L<Config::Model::ListId> <- L<Config::Model::AnyId> <- L<Config::Model::WarpedThing> <- L<Config::Model::AnyThing>
+L<Config::Model::ListId> <- L<Config::Model::AnyId> <- L<Config::Model::AnyThing>
 
 =item *
 
-L<Config::Model::Value> <- L<Config::Model::WarpedThing> <- L<Config::Model::AnyThing>
+L<Config::Model::Value> <- L<Config::Model::AnyThing>
 
 =item *
 
-L<Config::Model::CheckList> <- L<Config::Model::WarpedThing> <- L<Config::Model::AnyThing>
+L<Config::Model::CheckList> <- L<Config::Model::AnyThing>
 
 =item *
 
-L<Config::Model::WarpedNode> <- L<Config::Model::WarpedThing> <- L<Config::Model::AnyThing>
+L<Config::Model::WarpedNode> <- L<Config::Model::AnyThing>
 
 
 =back
@@ -2474,7 +2492,15 @@ L<config-edit>
 
 =item *
 
+L<Config::Model::Backend::Fstab> <- L<Config::Model::Backend::Any>
+
+=item *
+
 L<Config::Model::Backend::IniFile> <- L<Config::Model::Backend::Any>
+
+=item *
+
+L<Config::Model::Backend::PlainFile> <- L<Config::Model::Backend::Any>
 
 =item *
 
@@ -2545,6 +2571,10 @@ L<Config::Model::AutoRead>
 =item *
 
 L<Config::Model::ValueComputer>
+
+=item *
+
+L<Config::Model::Warper>
 
 =back
 

@@ -28,7 +28,7 @@
 
 package Config::Model::Exception ;
 BEGIN {
-  $Config::Model::Exception::VERSION = '1.242';
+  $Config::Model::Exception::VERSION = '1.243';
 }
 use warnings ;
 use strict;
@@ -155,7 +155,7 @@ Config::Model::Exception::Internal->Trace(1);
 
 package Config::Model::Exception::Syntax ;
 BEGIN {
-  $Config::Model::Exception::Syntax::VERSION = '1.242';
+  $Config::Model::Exception::Syntax::VERSION = '1.243';
 }
 
 sub full_message {
@@ -171,7 +171,7 @@ sub full_message {
 
 package Config::Model::Exception::Any ;
 BEGIN {
-  $Config::Model::Exception::Any::VERSION = '1.242';
+  $Config::Model::Exception::Any::VERSION = '1.243';
 }
 
 sub full_message {
@@ -203,7 +203,7 @@ sub xpath_message {
 
 package Config::Model::Exception::LoadData ;
 BEGIN {
-  $Config::Model::Exception::LoadData::VERSION = '1.242';
+  $Config::Model::Exception::LoadData::VERSION = '1.243';
 }
 
 sub full_message {
@@ -223,7 +223,7 @@ sub full_message {
 
 package Config::Model::Exception::Model ;
 BEGIN {
-  $Config::Model::Exception::Model::VERSION = '1.242';
+  $Config::Model::Exception::Model::VERSION = '1.243';
 }
 
 sub full_message {
@@ -249,7 +249,7 @@ sub full_message {
 
 package Config::Model::Exception::Load ;
 BEGIN {
-  $Config::Model::Exception::Load::VERSION = '1.242';
+  $Config::Model::Exception::Load::VERSION = '1.243';
 }
 
 sub full_message {
@@ -267,7 +267,7 @@ sub full_message {
 
 package Config::Model::Exception::RestrictedElement ;
 BEGIN {
-  $Config::Model::Exception::RestrictedElement::VERSION = '1.242';
+  $Config::Model::Exception::RestrictedElement::VERSION = '1.243';
 }
 
 sub full_message {
@@ -287,7 +287,7 @@ sub full_message {
 
 package Config::Model::Exception::UnavailableElement ;
 BEGIN {
-  $Config::Model::Exception::UnavailableElement::VERSION = '1.242';
+  $Config::Model::Exception::UnavailableElement::VERSION = '1.243';
 }
 
 sub full_message {
@@ -310,7 +310,7 @@ sub full_message {
 
 package Config::Model::Exception::ObsoleteElement ;
 BEGIN {
-  $Config::Model::Exception::ObsoleteElement::VERSION = '1.242';
+  $Config::Model::Exception::ObsoleteElement::VERSION = '1.243';
 }
 
 sub full_message {
@@ -332,7 +332,7 @@ sub full_message {
 
 package Config::Model::Exception::UnknownElement ;
 BEGIN {
-  $Config::Model::Exception::UnknownElement::VERSION = '1.242';
+  $Config::Model::Exception::UnknownElement::VERSION = '1.243';
 }
 use Carp;
 
@@ -347,10 +347,16 @@ sub full_message {
 	  || $obj->isa('Config::Model::WarpedNode');
 
     my $min_experience = $self->min_experience || 'master' ;
+    my $class_name = $obj -> config_class_name ;
+    
+    # class_name is undef if the warped_node is warped out
+    
     # TBD use model instead of node
-    my @elements = $obj -> config_model 
-      -> get_element_name(class => $obj -> config_class_name,
-			  for => $min_experience) ;
+    my @elements ;
+    @elements = $obj -> config_model -> get_element_name(
+        class => $class_name,
+	for => $min_experience
+    ) if defined $class_name ;
 
     my $msg = '';
     $msg .= "In ". $self->where .": " if 
@@ -361,10 +367,14 @@ sub full_message {
 
     $msg = "object '".$obj->name."' error: " unless $msg ;
 
-    $msg .=
-      $self->description. " '". $self->element. "'"
-        . " (configuration class '".$obj -> config_class_name ."')\n"
-          . "\tExpected: '". join("','",@elements)."'\n" ;
+    $msg .= $self->description. " '". $self->element. "'" ;
+    if (@elements) {
+        $msg .= " (configuration class '".$class_name ."')\n"
+              . "\tExpected: '". join("','",@elements)."'\n" ;
+    }
+    else {
+        $msg .= " (node is warped out)\n";
+    }
 
     my @match_keys = $obj->can('accept_regexp') ? $obj->accept_regexp() : () ;
     if (@match_keys) {
@@ -391,7 +401,7 @@ sub full_message {
 
 package Config::Model::Exception::UnknownId ;
 BEGIN {
-  $Config::Model::Exception::UnknownId::VERSION = '1.242';
+  $Config::Model::Exception::UnknownId::VERSION = '1.243';
 }
 
 sub full_message {
@@ -420,7 +430,7 @@ sub full_message {
 
 package Config::Model::Exception::WrongType ;
 BEGIN {
-  $Config::Model::Exception::WrongType::VERSION = '1.242';
+  $Config::Model::Exception::WrongType::VERSION = '1.243';
 }
 
 sub full_message {
@@ -444,7 +454,7 @@ sub full_message {
 
 package Config::Model::Exception::Xml ;
 BEGIN {
-  $Config::Model::Exception::Xml::VERSION = '1.242';
+  $Config::Model::Exception::Xml::VERSION = '1.243';
 }
 
 sub full_message {
@@ -472,7 +482,7 @@ Config::Model::Exception - Exception mechanism for configuration model
 
 =head1 VERSION
 
-version 1.242
+version 1.243
 
 =head1 SYNOPSIS
 
