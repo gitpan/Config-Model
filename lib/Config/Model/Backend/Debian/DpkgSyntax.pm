@@ -9,7 +9,7 @@
 #
 package Config::Model::Backend::Debian::DpkgSyntax ;
 BEGIN {
-  $Config::Model::Backend::Debian::DpkgSyntax::VERSION = '1.243';
+  $Config::Model::Backend::Debian::DpkgSyntax::VERSION = '1.244';
 }
 
 use Any::Moose '::Role' ;
@@ -145,7 +145,7 @@ Config::Model::Backend::Debian::DpkgSyntax - Role to read and write files with D
 
 =head1 VERSION
 
-version 1.243
+version 1.244
 
 =head1 SYNOPSIS
 
@@ -216,9 +216,9 @@ Once parsed, this file will be stored in the following list of list :
  )
  
 Note: The description is changed into a paragraph without the Dpkg
-      syntax idiosyncrasies. The leading white is removed and the single
-      dot is transformed in to a "\n". These characters will be restored
-      when the file is written back.
+syntax idiosyncrasies. The leading white space is removed and the single
+dot is transformed in to a "\n". These characters will be restored
+when the file is written back.
 
 Last not but not least, this module can be re-used outside of C<Config::Model> with some 
 small modifications in exception handing. Ask the author

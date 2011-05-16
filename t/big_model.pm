@@ -17,7 +17,8 @@
    element => [
 	       [qw/aa2 ab2 ac2 ad2 Z/] =>
 	       { type => 'leaf', value_type => 'string' }
-	      ]
+	      ],
+    description => [ Z => 'Z comme zorro' ],
   ],
 
   [
@@ -193,7 +194,8 @@
 			       }
 	      ],
    description => [
-		   tree_macro => 'controls behavior of other elements'
+		   tree_macro => 'controls behavior of other elements',
+		   hidden_string => 'shy text',
 		  ]
    ],
 ] ;

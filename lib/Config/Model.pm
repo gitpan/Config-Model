@@ -9,7 +9,7 @@
 #
 package Config::Model;
 BEGIN {
-  $Config::Model::VERSION = '1.243';
+  $Config::Model::VERSION = '1.244';
 }
 use Any::Moose ;
 use Any::Moose '::Util::TypeConstraints';
@@ -95,7 +95,7 @@ Config::Model - Create tools to validate, migrate and edit configuration files
 
 =head1 VERSION
 
-version 1.243
+version 1.244
 
 =head1 SYNOPSIS
 
@@ -2344,6 +2344,11 @@ sub available_models {
     get_logger("Model")->trace("available_models: path is $path");
     foreach my $dir (glob("$path/*.d")) {
         my ($cat) = ( $dir =~ m!.*/([\w\-]+)\.d! );
+
+        if ($cat !~ /^user|system|application$/) {
+            warn "available_models: skipping unexpected category: $cat\n";
+            next;
+        }
         
         get_logger("Model")->trace("available_models: category dir $dir");
         
@@ -2550,11 +2555,15 @@ L<Config::Model::Report>
 
 =item *
 
-L<Config::Model::Searcher>
+L<Config::Model::Searcher>: Search element in configuration model.
 
 =item *
 
 L<Config::Model::SimpleUI>
+
+=item *
+
+L<Config::Model::TreeSearcher>: Search string or regexp in configuration tree.
 
 =item *
 

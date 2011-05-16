@@ -4,7 +4,7 @@ Config::Model::models::Fstab::FsLine - Configuration class Fstab::FsLine
 
 =head1 VERSION
 
-version 1.243
+version 1.244
 
 =head1 DESCRIPTION
 
@@ -76,9 +76,9 @@ mount options associated with the filesystem. I<< Optional. Type warped_node.  >
 
 =head2 fs_freq
 
-Specifies if the file system needs to be dumped. I<< Optional. Type boolean. default: '0'.  >>
+Specifies if the file system needs to be dumped. I<< Optional. Type enum. choice: '0', '1'. default: '0'.  >>
 
-=head2 fs_passno
+=head2 fs_passno - fsck pass number
 
 used by the fsck(8) program to determine the order in which filesystem checks are done at reboot time. I<< Optional. Type integer. default: '0'.  >>
 

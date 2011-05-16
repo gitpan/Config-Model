@@ -7,7 +7,7 @@
 #
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
-#    Copyright (c) 2005-2010 Dominique Dumont, Krzysztof Tyszecki.
+#    Copyright (c) 2005-2011 Dominique Dumont, Krzysztof Tyszecki.
 #
 #    This file is part of Config-Model.
 #
@@ -27,7 +27,7 @@
 
 package Config::Model::Node;
 BEGIN {
-  $Config::Model::Node::VERSION = '1.243';
+  $Config::Model::Node::VERSION = '1.244';
 }
 use Carp ;
 use strict;
@@ -37,6 +37,7 @@ use Config::Model::Loader;
 use Config::Model::Dumper;
 use Config::Model::DumpAsData;
 use Config::Model::Report;
+use Config::Model::TreeSearcher;
 use Config::Model::Describe;
 use Log::Log4perl qw(get_logger :levels);
 use UNIVERSAL;
@@ -68,7 +69,7 @@ Config::Model::Node - Class for configuration tree node
 
 =head1 VERSION
 
-version 1.243
+version 1.244
 
 =head1 SYNOPSIS
 
@@ -803,7 +804,7 @@ sub find_element {
     return ;
 }
 
-=head2 searcher ()
+=head2 model_searcher ()
 
 Returns an object dedicated to search an element in the configuration
 model (respecting privilege level).
@@ -1735,6 +1736,33 @@ sub get_help {
     }
 
     return defined $help ? $help : '';
+}
+
+=head2 tree_searcher( type => ... )
+
+Returns an object able to search the configuration tree. 
+Parameters are :
+
+=over
+
+=item type
+
+Where to perform the search. It can be C<element>, C<value>,
+C<key>, C<summary>, C<description>, C<help> or C<all>.
+
+=back
+
+Typically, you will have to call C<search> on this object.
+
+Returns a L<Config::Model::TreeSearcher> object.
+
+
+=cut
+
+sub tree_searcher {
+    my $self = shift;
+    
+    return Config::Model::TreeSearcher->new ( node => $self, @_ );
 }
 
 1;

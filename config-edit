@@ -197,14 +197,14 @@ Use this option if you want to test a model under development. This
 option will add C<lib> in C<@INC> and use C<lib/Config/Model/models>
 as model directory. This option is ignored when run as root.
 
-=item -model_dir
+=item -model-dir
 
 Specify an alternate directory to find model files. Mostly useful for
 tests.
 
-=item -instance_name
+=item -instance-name
 
-Specify an instance_name. By default the instance name is copied from
+Specify an instance name. By default the instance name is copied from
 model name. 
 
 =begin comment 
@@ -213,7 +213,7 @@ Could be useful for a backup config data feature. To be implemented
 
 =end comment
 
-=item -root_dir
+=item -root-dir
 
 Specify a pseudo root directory to read and write the configuration
 files. (Actual default directory and file names depends on the model
@@ -276,17 +276,58 @@ validate it and save it in configuration file (if no error was found).
 
 Force re-writing the configuration. (useful for configuration upgrade)
 
-=item -open_item 'path'
+=item -open-item 'path'
 
 In graphical mode, force the UI to open the node specified. E.g.
 
- -open_item 'foo bar'
+ -open-item 'foo bar'
 
-=item -fuse_dir
+=item -fuse-dir
 
 Directory where the FUSE virtual file system will be mounted (with C<-ui fuse>)
 
 =back
+
+=head1 Search
+
+You can search the configuration with the following options
+
+=over 
+
+=item -search
+
+Specifies a string or pattern to search. C<config-edit> will a list of path pointing 
+to the matching tree element and their value. 
+See L<Config::Model::AnyThing/grab(...)> for details
+on the path syntax.
+
+=item -narrow-search
+
+Narrows down the search to:
+
+=over 
+
+=item element 
+
+=item value 
+
+=item key 
+
+=item summary 
+
+Summary text
+
+=item description
+
+description text 
+
+=item help
+
+value help text
+
+=back 
+
+=back 
 
 =cut
 
@@ -309,6 +350,8 @@ my $fuse_dir ;
 my $gen_pod ;
 my $fuse_debug = 0;
 my $apply_fixes = 0 ;
+my $search ;
+my $search_type = 'all';
  
 my $result = GetOptions ("ui|if=s"          => \$ui_type,
 			 "model_dir|model-dir=s"      => \$model_dir,
@@ -316,7 +359,7 @@ my $result = GetOptions ("ui|if=s"          => \$ui_type,
 			 "model=s"          => \$root_model,
 			 "verbose!"         => \$verbose,
 			 "experience=s"     => \$experience ,
-			 "instance_name=s"  => \$instance_name,
+			 "instance_name|instance-name=s"  => \$instance_name,
 			 "debug!"           => \$debug,
 			 "trace!"           => \$trace,
 			 "man!"             => \$man,
@@ -335,6 +378,8 @@ my $result = GetOptions ("ui|if=s"          => \$ui_type,
 			 "dfuse!"           => \$fuse_debug,
 			 "apply-fixes!"     => \$apply_fixes ,
 			 "gen-pod|gen_pod:s" => \$gen_pod,
+			 "search=s"         => \$search,
+			 "narrow-search=s"  => \$search_type,
 			);
 
 pod2usage(2) if not $result ;
@@ -416,6 +461,20 @@ if (defined $dump) {
     }
     else {
 	print $dump_string ;
+    }
+    exit ;
+}
+
+if (defined $search) {
+    foreach my $path ($root->tree_searcher(type => $search_type)->search($search)) {
+        print "$path";
+        my $obj = $root->grab($path) ;
+        if ($obj->get_type =~ /leaf|check_list/) {
+            my $v = $obj->fetch ;
+            $v = defined $v ? $v : '<undef>' ;
+            print " -> '$v'";
+        }
+        print "\n";
     }
     exit ;
 }

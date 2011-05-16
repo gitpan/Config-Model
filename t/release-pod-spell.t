@@ -75,6 +75,7 @@ checklist
 conf
 contrib
 cpan
+cpu
 ctrl
 cvs
 cvsignore
@@ -92,6 +93,7 @@ dumont
 firstkey
 freebsd
 fs
+fsck
 fstab
 git
 gz
@@ -124,6 +126,7 @@ nextkey
 objtreescanner
 openbsd
 openssh
+os
 pts
 proc
 redhat
@@ -148,6 +151,8 @@ warper
 warpthing
 webdav
 webmin
+wildcard
+wildcards
 xorg
 xserver
 xz

@@ -27,7 +27,7 @@
 
 package Config::Model::AnyThing;
 BEGIN {
-  $Config::Model::AnyThing::VERSION = '1.243';
+  $Config::Model::AnyThing::VERSION = '1.244';
 }
 use Scalar::Util qw(weaken);
 use Pod::POM ;
@@ -43,7 +43,7 @@ Config::Model::AnyThing - Base class for configuration tree item
 
 =head1 VERSION
 
-version 1.243
+version 1.244
 
 =head1 SYNOPSIS
 
@@ -164,7 +164,7 @@ sub composite_name {
     $element = '' unless defined $element;
 
     my $idx = $self->index_value;
-    $idx = '"'.$idx.'"' if defined $idx && $idx =~ /\s/ ;
+    $idx = '"'.$idx.'"' if defined $idx && $idx =~ /\W/ ;
 
     return $element . ( defined $idx ? ':' . $idx : '' );
 }
@@ -479,6 +479,9 @@ sub grab {
             if ($mode eq 'step_by_step') {
                 return wantarray ? (undef,@command) : undef ;
             }
+            elsif ($mode eq 'loose') {
+                return ;
+            }
             elsif ($mode eq 'adaptative') {
                 last;
             }
@@ -496,8 +499,11 @@ sub grab {
         unless ($grab_non_available 
 		or $obj->is_element_available(name => $name, 
 					      experience => 'master')) {
-            if ($mode eq 'loose') {
+            if ($mode eq 'step_by_step') {
                 return wantarray ? (undef,@command) : undef ;
+            }
+            elsif ($mode eq 'loose') {
+                return ;
             }
             elsif ($mode eq 'adaptative') {
                 last;
@@ -680,7 +686,7 @@ sub grab_ancestor_with_element_named {
     }
 }
 
-=head2 searcher ()
+=head2 model_searcher ()
 
 Returns an object dedicated to search an element in the configuration
 model (respecting privilege level).
@@ -690,13 +696,18 @@ L<Config::Model::Searcher> for details on how to handle a search.
 
 =cut
 
-sub searcher {
+sub model_searcher {
     my $self = shift ;
     my %args = @_ ;
 
     my $model = $self->instance->config_model ;
     return Config::Model::SearchElement
       -> new(model => $model, node => $self, %args ) ;
+}
+
+sub searcher { 
+    carp "Config::Model::AnyThing searcher is deprecated";
+    goto &model_searcher ; 
 }
 
 =head2 dump_as_data ( )

@@ -58,6 +58,7 @@ lib/Config/Model/Report.pm
 lib/Config/Model/SearchElement.pm
 lib/Config/Model/SimpleUI.pm
 lib/Config/Model/TermUI.pm
+lib/Config/Model/TreeSearcher.pm
 lib/Config/Model/Value.pm
 lib/Config/Model/ValueComputer.pm
 lib/Config/Model/WarpedNode.pm
@@ -137,6 +138,8 @@ t/describe_node.t
 t/dump_as_data.t
 t/dump_load_model.pm
 t/dump_tree.t
+t/fstab-examples/t0
+t/fstab-examples/t1
 t/fuse_ui.t
 t/grab.t
 t/hash_id_of_node.t
@@ -160,6 +163,7 @@ t/release-pod-spell.t
 t/release-pod-syntax.t
 t/report.t
 t/search_element.t
+t/search_in_tree.t
 t/simple_ui.t
 t/smooth_upgrade.t
 t/term_ui.t
