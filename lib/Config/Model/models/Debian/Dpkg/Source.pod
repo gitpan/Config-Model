@@ -4,7 +4,7 @@ Config::Model::models::Debian::Dpkg::Source - Configuration class Debian::Dpkg::
 
 =head1 VERSION
 
-version 1.244
+version 1.245
 
 =head1 DESCRIPTION
 
@@ -17,7 +17,7 @@ See L<dpkg-source> for details.
 
 =head2 format - source package format
 
-Specifies the format of the source package. A missing format implies a '1.0' source format. I<< Mandatory. Type enum. choice: '1.0', '2.0', '3.0 (native)', '3.0 (quilt)', '3.0 (custom)', '3.0 (git)', '3.0 (bzr)'.  >>
+Specifies the format of the source package. A missing format implies a '1.0' source format.I<< Mandatory. Type enum. choice: '1.0', '2.0', '3.0 (native)', '3.0 (quilt)', '3.0 (custom)', '3.0 (git)', '3.0 (bzr)'.  >>
 
 Here are some explanations on the possible values:
 
@@ -60,7 +60,7 @@ A source package in this format contains at least an original tarball (.orig.tar
 
 =head2 options
 
-Source options as described in L<dpkg-source>. I<< Optional. Type node.  >>
+Source options as described in L<dpkg-source>I<< Optional. Type node.  >>
 
 =head1 SEE ALSO
 

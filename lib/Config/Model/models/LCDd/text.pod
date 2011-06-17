@@ -1,0 +1,29 @@
+=head1 NAME
+
+Config::Model::models::LCDd::text - Configuration class LCDd::text
+
+=head1 VERSION
+
+version 1.245
+
+=head1 DESCRIPTION
+
+Configuration classes used by L<Config::Model>
+
+=head1 Elements
+
+=head2 Size
+
+Set the display size [default: 20x4]I<< Optional. Type uniline. upstream_default: '20x4'.  >>
+
+=head1 SEE ALSO
+
+=over
+
+=item *
+
+L<config-edit>
+
+=back
+
+=cut

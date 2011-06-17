@@ -1,0 +1,33 @@
+=head1 NAME
+
+Config::Model::models::LCDd::bayrad - Configuration class LCDd::bayrad
+
+=head1 VERSION
+
+version 1.245
+
+=head1 DESCRIPTION
+
+Configuration classes used by L<Config::Model>
+
+=head1 Elements
+
+=head2 Device
+
+Select the output device to use [default: /dev/lcd]I<< Optional. Type uniline. default: '/dev/lcd'.  >>
+
+=head2 Speed
+
+Set the communication speed [default: 9600; legal:  1200, 2400, 9600, 19200]I<< Optional. Type enum. choice: '1200', '2400', '9600', '19200'. upstream_default: '9600'.  >>
+
+=head1 SEE ALSO
+
+=over
+
+=item *
+
+L<config-edit>
+
+=back
+
+=cut

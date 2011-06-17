@@ -1,0 +1,37 @@
+=head1 NAME
+
+Config::Model::models::LCDd::tyan - Configuration class LCDd::tyan
+
+=head1 VERSION
+
+version 1.245
+
+=head1 DESCRIPTION
+
+Configuration classes used by L<Config::Model>
+
+=head1 Elements
+
+=head2 Device
+
+Select the output device to use [default: /dev/lcd]I<< Optional. Type uniline. default: '/dev/lcd'.  >>
+
+=head2 Speed
+
+Set the communication speed [default: 9600; legal: 4800, 9600]I<< Optional. Type enum. choice: '4800', '9600'. upstream_default: '9600'.  >>
+
+=head2 Size
+
+set display size [default: 16x2]I<< Optional. Type uniline. upstream_default: '16x2'.  >>
+
+=head1 SEE ALSO
+
+=over
+
+=item *
+
+L<config-edit>
+
+=back
+
+=cut

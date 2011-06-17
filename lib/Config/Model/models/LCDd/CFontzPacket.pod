@@ -1,0 +1,72 @@
+=head1 NAME
+
+Config::Model::models::LCDd::CFontzPacket - Configuration class LCDd::CFontzPacket
+
+=head1 VERSION
+
+version 1.245
+
+=head1 DESCRIPTION
+
+Configuration classes used by L<Config::Model>
+
+=head1 Elements
+
+=head2 Model
+
+Select the LCD model [default: 633; legal: 533, 631, 633, 635]I<< Optional. Type enum. choice: '533', '631', '633', '635'. upstream_default: '633'.  >>
+
+=head2 Device
+
+Select the output device to use [default: /dev/lcd]I<< Optional. Type uniline. default: '/dev/ttyUSB0'.  >>
+
+=head2 Contrast
+
+Set the initial contrast [default: 560; legal: 0 - 1000]I<< Optional. Type integer. upstream_default: '560'.  >>
+
+=head2 Brightness
+
+Set the initial brightness [default: 1000; legal: 0 - 1000]I<< Optional. Type integer. upstream_default: '1000'.  >>
+
+=head2 OffBrightness
+
+Set the initial off-brightness [default: 0; legal: 0 - 1000]
+This value is used when the display is normally
+switched off in case LCDd is inactive. I<< Optional. Type integer. upstream_default: '0'.  >>
+
+=head2 Reboot
+
+Reinitialize the LCD's BIOS on driver start. [default: no; legal: yes, no]I<< Optional. Type enum. choice: 'yes', 'no'. upstream_default: 'no'.  >>
+
+=head2 USB
+
+Enable the USB flag if the device is connected to an USB port. For
+serial ports leave it disabled. [default: no; legal: yes, no]I<< Optional. Type enum. choice: 'yes', 'no'. upstream_default: 'no'.  >>
+
+=head2 OldFirmware
+
+Very old 633 firmware versions do not support partial screen updates using
+'Send Data to LCD' command (31). For those devices it may be necessary to
+enable this flag. [default: no; legal: yes, no]I<< Optional. Type enum. choice: 'yes', 'no'. upstream_default: 'no'.  >>
+
+=head2 Size
+
+Override the LCD size known for the selected model. Usually setting this
+value should not be necessary.I<< Optional. Type uniline. default: '20x4'.  >>
+
+=head2 Speed
+
+Override the default communication speed known for the selected model.
+[default: depending on model; legal: 19200, 115200]I<< Optional. Type enum. choice: '19200', '115200'. upstream_default: 'dependingonmodel'.  >>
+
+=head1 SEE ALSO
+
+=over
+
+=item *
+
+L<config-edit>
+
+=back
+
+=cut

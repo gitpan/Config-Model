@@ -4,13 +4,13 @@ Config::Model::models::Debian::Dpkg - Configuration class Debian::Dpkg
 
 =head1 VERSION
 
-version 1.244
+version 1.245
 
 =head1 DESCRIPTION
 
 Configuration classes used by L<Config::Model>
 
-Model of Debian source package files (e.g control, copyright...)
+Model of Debian source package files (e.g debian/control, debian/copyright...)
 
 =head1 Elements
 
@@ -20,7 +20,7 @@ Specify meta parameters that will tune the behavior of this dpkg model. I<< Opti
 
 =head2 control
 
-Package control file. Specifies the most vital (and version-independent) information about the source package and about the binary packages it creates. I<< Optional. Type node.  >>
+Package control file. Specifies the most vital (and version-independent) information about the source package and about the binary packages it creates.I<< Optional. Type node.  >>
 
 =head2 copyright - copyright and license information
 
@@ -33,12 +33,13 @@ I<< Optional. Type node.  >>
 =head2 clean - list of files to clean
 
 list of files to remove when dh_clean is run. Files names can include wild cards. For instance:
+
  build.log
  Makefile.in
  */Makefile.in
  */*/Makefile.in
 
- . I<< Optional. Type list of uniline.  >>
+I<< Optional. Type list of uniline.  >>
 
 =head1 SEE ALSO
 

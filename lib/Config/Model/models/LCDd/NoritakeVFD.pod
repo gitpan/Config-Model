@@ -1,0 +1,55 @@
+=head1 NAME
+
+Config::Model::models::LCDd::NoritakeVFD - Configuration class LCDd::NoritakeVFD
+
+=head1 VERSION
+
+version 1.245
+
+=head1 DESCRIPTION
+
+Configuration classes used by L<Config::Model>
+
+=head1 Elements
+
+=head2 Device
+
+device where the VFD is. Usual values are /dev/ttyS0 and /dev/ttyS1 [default: /dev/lcd]I<< Optional. Type uniline. default: '/dev/ttyS0'.  >>
+
+=head2 Size
+
+Specifies the size of the LCD.I<< Optional. Type uniline. default: '20x4'.  >>
+
+=head2 Brightness
+
+Set the initial brightness [default: 1000; legal: 0 - 1000]I<< Optional. Type integer. upstream_default: '1000'.  >>
+
+=head2 OffBrightness
+
+Set the initial off-brightness [default: 0; legal: 0 - 1000]
+This value is used when the display is normally
+switched off in case LCDd is inactive. I<< Optional. Type integer. upstream_default: '0'.  >>
+
+=head2 Speed
+
+set the serial port speed [default: 9600, legal: 1200, 2400, 9600, 19200, 115200]I<< Optional. Type enum. choice: '1200', '2400', '9600', '19200', '115200'. upstream_default: '9600'.  >>
+
+=head2 Parity
+
+Set serial data parity [default: 0 (None), legal: 0(=none), 1(=odd), 2(=even)]I<< Optional. Type enum. choice: '0'. upstream_default: '0'.  >>
+
+=head2 Reboot
+
+re-initialize the VFD [default: no; legal: yes, no]I<< Optional. Type enum. choice: 'yes', 'no'. upstream_default: 'no'.  >>
+
+=head1 SEE ALSO
+
+=over
+
+=item *
+
+L<config-edit>
+
+=back
+
+=cut

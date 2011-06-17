@@ -27,7 +27,7 @@
 
 package Config::Model::ListId ;
 BEGIN {
-  $Config::Model::ListId::VERSION = '1.244';
+  $Config::Model::ListId::VERSION = '1.245';
 }
 use Config::Model::Exception ;
 use Scalar::Util qw(weaken) ;
@@ -46,7 +46,7 @@ Config::Model::ListId - Handle list element for configuration model
 
 =head1 VERSION
 
-version 1.244
+version 1.245
 
 =head1 SYNOPSIS
 
@@ -422,11 +422,7 @@ sub create_default {
 
     map {$self->{data}[$_] = undef } @$def ;
 
-    if (defined $self->{default_with_init}) {
-        foreach my $def_key (keys %{$self->{default_with_init}}) {
-            $self->fetch_with_id($def_key)->load($def->{$def_key}) ;
-        }
-    }
+    $self->create_default_with_init ;
 }
 
 =head2 load_data ( array_ref | data )

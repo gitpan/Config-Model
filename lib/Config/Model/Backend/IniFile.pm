@@ -31,12 +31,11 @@
 
 package Config::Model::Backend::IniFile ;
 BEGIN {
-  $Config::Model::Backend::IniFile::VERSION = '1.244';
+  $Config::Model::Backend::IniFile::VERSION = '1.245';
 }
 
 use Carp;
-use strict;
-use warnings ;
+use Any::Moose ;
 use Config::Model::Exception ;
 use UNIVERSAL ;
 use File::Path;
@@ -84,6 +83,7 @@ sub read {
     my @assoc = $self->associates_comments_with_data( \@lines, $delimiter ) ;
     foreach my $item (@assoc) {
         my ($vdata,$comment) = @$item;
+        $logger->debug("ini read: reading '$vdata'");
 
         # Update section name
         if ( $vdata =~ /\[(.*)\]/ ) {
@@ -91,12 +91,15 @@ sub read {
             my $prefix = $hash_class ? "$hash_class:" : '';
             $obj = $self->node->grab(
                 step  => $prefix . $section,
-                check => $check
+                check => $check,
+                mode => $check eq 'yes' ? 'strict' : 'loose' ,
             );
-            $obj->annotation($comment) if $comment;
+            $logger->debug("ini read: new section '$section' on node ".$obj->location);
+            $obj->annotation($comment) if $comment and defined $obj;
         }
-        else {
+        elsif (defined $obj) {
             my ( $name, $val ) = split( /\s*=\s*/, $vdata );
+            $logger->debug("ini read: data $name for node ".$obj->location);
 
             my $elt = $obj->fetch_element( name => $name, check => $check );
 
@@ -116,6 +119,9 @@ sub read {
                     object => $obj
                 );
             }
+        }
+        else {
+            $logger->warn("ini read: skipping $vdata");
         }
     }
 
@@ -160,7 +166,7 @@ sub _write {
     # first write list and element, then classes
     foreach my $elt ($node->get_element_name) {
         my $type = $node->element_type($elt) ;
-        next if $type eq 'node' or $type eq 'hash';
+        next if $type =~ /node/ or $type eq 'hash';
         
         my $obj =  $node->fetch_element($elt) ;
 
@@ -171,21 +177,24 @@ sub _write {
                 my $note = $item->annotation ;
                 my $v = $item->fetch ;
                 next unless defined $v ;
+                $logger->debug("ini write: list elt $elt from ",$obj->location);
                 $self->write_data_and_comments($ioh,$delimiter,"$elt=$v",$obj_note.$note) ;
             }
         }
-        else {
-            my $v_obj = $node->grab($elt) ;
-            my $note = $v_obj->annotation;
-            my $v = $v_obj->fetch ;
-            $self->write_data_and_comments($ioh,$delimiter,"$elt=$v",$obj_note.$note) 
+        elsif ($node->element_type($elt) eq 'leaf') {
+            my $v = $obj->fetch ;
+            $logger->debug("ini write: leaf elt $elt from ",$obj->location);
+            $self->write_data_and_comments($ioh,$delimiter,"$elt=$v", $obj_note) 
                 if defined $v;
+        }
+        else {
+            $logger->error("ini write: unexpected type $type for leaf elt $elt from ",$obj->location);
         }
     }
 
     foreach my $elt ($node->get_element_name) {
         my $type = $node->element_type($elt) ;
-        next unless $type eq 'node' or $type eq 'hash';
+        next unless $type =~ /node/ or $type eq 'hash';
         my $obj =  $node->fetch_element($elt) ;
 
         my $obj_note = $obj->annotation ;
@@ -194,12 +203,14 @@ sub _write {
             foreach my $key ($obj->get_all_indexes) {
                 my $hash_obj = $obj->fetch_with_id($key) ;
                 my $note = $hash_obj->annotation;
+                $logger->debug("ini write: hash elt $elt key $key from ",$obj->location);
                 $self->write_data_and_comments($ioh,$delimiter,"[$key]",$obj_note.$note) ;
                 $self->_write(%args, object => $hash_obj);
                 $ioh->print("\n");
             }
         }
         else {
+            $logger->debug("ini write: class $elt from ",$obj->location);
             $self->write_data_and_comments($ioh,$delimiter,"[$elt]",$obj_note) ;
             $self->_write(%args, object => $obj);
             $ioh->print("\n");
@@ -208,6 +219,10 @@ sub _write {
 
     return 1;
 }
+
+no Any::Moose ;
+__PACKAGE__->meta->make_immutable ;
+
 
 1;
 
@@ -219,7 +234,7 @@ Config::Model::Backend::IniFile - Read and write config as a INI file
 
 =head1 VERSION
 
-version 1.244
+version 1.245
 
 =head1 SYNOPSIS
 
@@ -306,13 +321,14 @@ comment may apply. Wrong estimations are possible.
 
 =head1 CONSTRUCTOR
 
-=head2 new ( node => $node_obj, name => 'shellvar' ) ;
+=head2 new ( node => $node_obj, name => 'inifile' ) ;
 
 Inherited from L<Config::Model::Backend::Any>. The constructor will be
 called by L<Config::Model::AutoRead>.
 
-The constructor will be passed the optional parameters declared in the 
-model:
+=head1 Parameters
+
+Optional parameters declared in the model:
 
 =over
 
@@ -320,7 +336,74 @@ model:
 
 Change the character that starts comments in the INI file. Default is 'C<#>'.
 
+=item store_class_in_hash
+
+See L</"Arbitrary class name">
+
 =back
+
+=head1 Mapping between INI structure and model
+
+INI file typically have the same structure with 2 different conventions. 
+The class names can be imposed by the application or may be chosen by user.
+
+=head2 Imposed class name
+
+In this case, the class names must match what is expected by the application. 
+The elements of each class can be different. For instance:
+
+  foo = foo_v
+  [ A ]
+  bar = bar_v
+  [ B ]
+  baz = baz_v
+
+In this case, class C<A> and class C<B> will not use the same configuration class.
+
+The model will have this structure:
+   
+ Root class 
+ |- leaf element foo
+ |- node element A of class_A
+ |  \- leaf element bar
+ \- node element B of class_B
+    \-  leaf element baz
+    
+=head2 Arbitrary class name
+
+In this case, the class names can be chosen by the end user. Each class will have the same 
+elements. For instance:
+
+  foo = foo_v
+  [ A ]
+  bar = bar_v1
+  [ B ]
+  bar = bar_v2
+
+In this case, class C<A> and class C<B> will not use the same configuration class.
+The model will have this structure:
+   
+ Root class 
+ |- leaf foo
+ \- hash element my_class_holder
+    |- key A (value is node of class_A)
+    |  \- element-bar
+    \- key B (value is node of class_A)
+       \- element-bar
+
+In this case, the C<my_class_holder> name is specified in C<read_config> with C<store_class_in_hash> 
+parameter:
+
+    read_config  => [
+        { 
+            backend => 'IniFile',
+            config_dir => '/tmp',
+            file  => 'foo.ini',
+            store_class_in_hash => 'my_class_holder',
+        }
+    ],
+
+=head1 Methods
 
 =head2 read ( io_handle => ... )
 

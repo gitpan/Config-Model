@@ -28,7 +28,7 @@
 
 package Config::Model::IdElementReference ;
 BEGIN {
-  $Config::Model::IdElementReference::VERSION = '1.244';
+  $Config::Model::IdElementReference::VERSION = '1.245';
 }
 
 use warnings ;
@@ -43,7 +43,7 @@ Config::Model::IdElementReference - Refer to id element(s) and extract keys
 
 =head1 VERSION
 
-version 1.244
+version 1.245
 
 =head1 SYNOPSIS
 
@@ -319,11 +319,12 @@ sub get_choice_from_refered_to {
 
 	if ($@) {
 	    my $e = $@ ;
-	    my $msg = $e ? $e->full_message : '' ;
+	    # don't use $e->full_description as it will recurse badly
+	    my $msg = $e ? $e->description : '' ;
 	    Config::Model::Exception::Model
 		-> throw (
 			  object => $config_elt,
-			  error => "'refer_to' parameter: " . $msg
+			  error => "'refer_to' parameter with path '@path': " . $msg
 			 ) ;
 	}
 

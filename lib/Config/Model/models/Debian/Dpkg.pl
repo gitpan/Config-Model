@@ -9,7 +9,7 @@
 #
 [
   {
-    'class_description' => 'Model of Debian source package files (e.g control, copyright...)',
+    'class_description' => 'Model of Debian source package files (e.g debian/control, debian/copyright...)',
     'read_config' => [
       {
         'auto_create' => '1',
@@ -60,12 +60,13 @@
         'summary' => 'list of files to clean',
         'type' => 'list',
         'description' => 'list of files to remove when dh_clean is run. Files names can include wild cards. For instance:
+
  build.log
  Makefile.in
  */Makefile.in
  */*/Makefile.in
 
- '
+'
       }
     ]
   }

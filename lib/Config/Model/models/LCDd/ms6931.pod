@@ -1,0 +1,33 @@
+=head1 NAME
+
+Config::Model::models::LCDd::ms6931 - Configuration class LCDd::ms6931
+
+=head1 VERSION
+
+version 1.245
+
+=head1 DESCRIPTION
+
+Configuration classes used by L<Config::Model>
+
+=head1 Elements
+
+=head2 Device
+
+device to use [default: /dev/ttyS1]I<< Optional. Type uniline. default: '/dev/ttyS1'.  >>
+
+=head2 Size
+
+display size [default: 16x2]I<< Optional. Type uniline. upstream_default: '16x2'.  >>
+
+=head1 SEE ALSO
+
+=over
+
+=item *
+
+L<config-edit>
+
+=back
+
+=cut
