@@ -27,7 +27,7 @@
 
 package Config::Model::Warper ;
 BEGIN {
-  $Config::Model::Warper::VERSION = '1.245';
+  $Config::Model::Warper::VERSION = '1.246';
 }
 
 use Any::Moose ;
@@ -597,7 +597,7 @@ Config::Model::Warper - Warp tree properties
 
 =head1 VERSION
 
-version 1.245
+version 1.246
 
 =head1 SYNOPSIS
 

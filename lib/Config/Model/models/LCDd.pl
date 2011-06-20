@@ -36,7 +36,7 @@ The drivers read their own options from the respective sections.
 
 Model information extracted from template /etc/LCDd.conf
 
-=head1 BUGS
+'.'=head1 BUGS
 
 This model does not support to load several drivers. Loading several drivers is probably a marginal case. Please complain to the author if this assumption is false',
     'read_config' => [

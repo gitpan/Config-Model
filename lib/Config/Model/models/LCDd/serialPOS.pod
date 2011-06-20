@@ -4,7 +4,7 @@ Config::Model::models::LCDd::serialPOS - Configuration class LCDd::serialPOS
 
 =head1 VERSION
 
-version 1.245
+version 1.246
 
 =head1 DESCRIPTION
 
@@ -14,7 +14,7 @@ Configuration classes used by L<Config::Model>
 
 =head2 Device
 
-Device to use in serial modea [default: /dev/lcd]I<< Optional. Type uniline. default: '/dev/lcd'.  >>
+Device to use in serial mode [default: /dev/lcd]I<< Optional. Type uniline. default: '/dev/lcd'.  >>
 
 =head2 Size
 

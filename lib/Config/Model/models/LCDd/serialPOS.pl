@@ -16,7 +16,7 @@
         'value_type' => 'uniline',
         'default' => '/dev/lcd',
         'type' => 'leaf',
-        'description' => 'Device to use in serial modea [default: /dev/lcd]'
+        'description' => 'Device to use in serial mode [default: /dev/lcd]'
       },
       'Size',
       {
