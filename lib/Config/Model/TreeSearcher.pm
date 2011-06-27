@@ -27,7 +27,7 @@
 
 package Config::Model::TreeSearcher ;
 BEGIN {
-  $Config::Model::TreeSearcher::VERSION = '1.246';
+  $Config::Model::TreeSearcher::VERSION = '1.247';
 }
 
 use Any::Moose ;
@@ -155,7 +155,7 @@ Config::Model::TreeSearcher - Search tree for match in value, description...
 
 =head1 VERSION
 
-version 1.246
+version 1.247
 
 =head1 SYNOPSIS
 

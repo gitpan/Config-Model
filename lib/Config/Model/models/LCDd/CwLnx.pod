@@ -4,7 +4,7 @@ Config::Model::models::LCDd::CwLnx - Configuration class LCDd::CwLnx
 
 =head1 VERSION
 
-version 1.246
+version 1.247
 
 =head1 DESCRIPTION
 
@@ -54,7 +54,7 @@ KeyMap_C=Left
 KeyMap_D=Right
 KeyMap_E=Enter
 KeyMap_F=Escape
-keypad_test_mode permits to test keypad assignement
+keypad_test_mode permits one to test keypad assignement
 Default value is no. I<< Optional. Type uniline. default: 'yes'.  >>
 
 =head1 SEE ALSO

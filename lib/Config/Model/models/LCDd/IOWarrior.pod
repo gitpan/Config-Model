@@ -4,7 +4,7 @@ Config::Model::models::LCDd::IOWarrior - Configuration class LCDd::IOWarrior
 
 =head1 VERSION
 
-version 1.246
+version 1.247
 
 =head1 DESCRIPTION
 
@@ -23,7 +23,7 @@ serial number [exactly as listed by usbview]
 
 =head2 ExtendedMode
 
-If you have an HD66712, a KS0073 or an other 'almost HD44780-compatible',
+If you have an HD66712, a KS0073 or another 'almost HD44780-compatible',
 set this flag to get into extended mode (4-line linear).I<< Optional. Type uniline. default: 'yes'.  >>
 
 =head2 Lastline

@@ -31,7 +31,7 @@
 
 package Config::Model::Backend::IniFile ;
 BEGIN {
-  $Config::Model::Backend::IniFile::VERSION = '1.246';
+  $Config::Model::Backend::IniFile::VERSION = '1.247';
 }
 
 use Carp;
@@ -94,7 +94,10 @@ sub read {
                 check => $check,
                 mode => $check eq 'yes' ? 'strict' : 'loose' ,
             );
-            $logger->debug("ini read: new section '$section' on node ".$obj->location);
+            if ($logger->is_debug) {
+                my $debug_loc = defined $obj ? 'on node '.$obj->location : '' ;
+                $logger->debug("ini read: new section '$section' $debug_loc");
+            }
             $obj->annotation($comment) if $comment and defined $obj;
         }
         elsif (defined $obj) {
@@ -234,7 +237,7 @@ Config::Model::Backend::IniFile - Read and write config as a INI file
 
 =head1 VERSION
 
-version 1.246
+version 1.247
 
 =head1 SYNOPSIS
 

@@ -4,7 +4,7 @@ Config::Model::models::LCDd::serialVFD - Configuration class LCDd::serialVFD
 
 =head1 VERSION
 
-version 1.246
+version 1.247
 
 =head1 DESCRIPTION
 
@@ -24,7 +24,7 @@ Specifies the displaytype.[default: 0]
 6 Futaba NA202SD08FA (allmost IEE compatible)
 7 Samsung 20S207DA4 and 20S207DA6
 8 Nixdorf BA6x / VT100
-(* most should work, not testet yet.)I<< Optional. Type uniline. upstream_default: '0'.  >>
+(* most should work, not tested yet.)I<< Optional. Type uniline. upstream_default: '0'.  >>
 
 =head2 use_parallel
 

@@ -26,7 +26,7 @@
 6 Futaba NA202SD08FA (allmost IEE compatible)
 7 Samsung 20S207DA4 and 20S207DA6
 8 Nixdorf BA6x / VT100
-(* most should work, not testet yet.)'
+(* most should work, not tested yet.)'
       },
       'use_parallel',
       {

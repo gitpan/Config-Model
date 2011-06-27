@@ -87,7 +87,7 @@ KeyMap_C=Left
 KeyMap_D=Right
 KeyMap_E=Enter
 KeyMap_F=Escape
-keypad_test_mode permits to test keypad assignement
+keypad_test_mode permits one to test keypad assignement
 Default value is no'
       }
     ]

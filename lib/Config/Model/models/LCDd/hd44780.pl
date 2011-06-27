@@ -117,7 +117,7 @@ Vspan=2,2 means both displays have 2 lines.'
         'value_type' => 'uniline',
         'default' => 'yes',
         'type' => 'leaf',
-        'description' => 'If you have an HD66712, a KS0073 or an other \'almost HD44780-compatible\',
+        'description' => 'If you have an HD66712, a KS0073 or another \'almost HD44780-compatible\',
 set this flag to get into extended mode (4-line linear).'
       },
       'LineAddress',
