@@ -9,6 +9,7 @@
 #
 
 $conf_file_name = "LCDd.conf" ;
+$conf_dir = "etc" ;
 $model_to_test = "LCDd" ;
 
 @tests = (

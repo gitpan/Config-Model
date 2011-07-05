@@ -28,7 +28,7 @@
 
 package Config::Model::AutoRead ;
 BEGIN {
-  $Config::Model::AutoRead::VERSION = '1.247';
+  $Config::Model::AutoRead::VERSION = '1.248';
 }
 use Carp;
 use strict;
@@ -62,7 +62,7 @@ sub get_cfg_file_path {
     my $dir = $args{root}.$args{config_dir} ;
     if ($dir =~ /~/) { 
         my $home = File::HomeDir->my_data; # Works also on Windows
-        $dir =~ s/^~/$home/;
+        $dir =~ s/~/$home/;
     }
     
     $dir .= '/' unless $dir =~ m!/$! ;
@@ -628,7 +628,7 @@ Config::Model::AutoRead - Load configuration node on demand
 
 =head1 VERSION
 
-version 1.247
+version 1.248
 
 =head1 SYNOPSIS
 

@@ -59,6 +59,7 @@ my $build = Module::Build->new(
     dist_author   => 'Dominique Dumont (ddumont at cpan dot org)',
 
   'build_requires' => {
+    'File::Copy::Recursive' => '0',
     'File::Slurp' => '0',
     'Module::Build' => '0.34',
     'Path::Class' => '0',

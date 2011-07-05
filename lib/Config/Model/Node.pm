@@ -27,7 +27,7 @@
 
 package Config::Model::Node;
 BEGIN {
-  $Config::Model::Node::VERSION = '1.247';
+  $Config::Model::Node::VERSION = '1.248';
 }
 use Carp ;
 use strict;
@@ -69,7 +69,7 @@ Config::Model::Node - Class for configuration tree node
 
 =head1 VERSION
 
-version 1.247
+version 1.248
 
 =head1 SYNOPSIS
 
