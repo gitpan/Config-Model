@@ -28,7 +28,7 @@
 
 package Config::Model::IdElementReference ;
 BEGIN {
-  $Config::Model::IdElementReference::VERSION = '1.248';
+  $Config::Model::IdElementReference::VERSION = '1.249';
 }
 
 use warnings ;
@@ -43,7 +43,7 @@ Config::Model::IdElementReference - Refer to id element(s) and extract keys
 
 =head1 VERSION
 
-version 1.248
+version 1.249
 
 =head1 SYNOPSIS
 

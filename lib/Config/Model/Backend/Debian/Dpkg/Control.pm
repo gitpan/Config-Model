@@ -10,7 +10,7 @@
 
 package Config::Model::Backend::Debian::Dpkg::Control ;
 BEGIN {
-  $Config::Model::Backend::Debian::Dpkg::Control::VERSION = '1.248';
+  $Config::Model::Backend::Debian::Dpkg::Control::VERSION = '1.249';
 }
 
 use Any::Moose ;
@@ -231,7 +231,7 @@ Config::Model::Backend::Debian::Dpkg::Control - Read and write Debian Dpkg contr
 
 =head1 VERSION
 
-version 1.248
+version 1.249
 
 =head1 SYNOPSIS
 

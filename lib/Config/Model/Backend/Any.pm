@@ -27,7 +27,7 @@
 
 package Config::Model::Backend::Any ;
 BEGIN {
-  $Config::Model::Backend::Any::VERSION = '1.248';
+  $Config::Model::Backend::Any::VERSION = '1.249';
 }
 
 use Carp;
@@ -180,7 +180,7 @@ Config::Model::Backend::Any - Virtual class for other backends
 
 =head1 VERSION
 
-version 1.248
+version 1.249
 
 =head1 SYNOPSIS
 

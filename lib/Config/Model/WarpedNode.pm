@@ -28,7 +28,7 @@
 
 package Config::Model::WarpedNode ;
 BEGIN {
-  $Config::Model::WarpedNode::VERSION = '1.248';
+  $Config::Model::WarpedNode::VERSION = '1.249';
 }
 
 use Carp qw(cluck croak);
@@ -52,7 +52,7 @@ Config::Model::WarpedNode - Node that change config class properties
 
 =head1 VERSION
 
-version 1.248
+version 1.249
 
 =head1 SYNOPSIS
 

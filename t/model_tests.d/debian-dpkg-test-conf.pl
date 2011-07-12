@@ -14,6 +14,9 @@ $conf_file_name = "control" ;
 $conf_dir='debian' ;
 $model_to_test = "Debian::Dpkg" ;
 
+eval { require AptPkg::Config ;} ;
+$skip = ( $@ or not -r '/etc/debian_version') ? 1 : 0 ;
+
 @tests = (
     { # t0
      check => { 
@@ -37,6 +40,7 @@ unless (my $return = do $cache_file ) {
     }
 
 END {
+    return if $::DebianDependencyCacheWritten ;
     my $str = Data::Dumper->Dump([\%Config::Model::Debian::Dependency::cache], ['*Config::Model::Debian::Dependency::cache']);
     my $fh = new IO::File "> $cache_file";
     print "writing back cache file\n";
@@ -44,6 +48,7 @@ END {
         # not a bit deal if cache cannot be written back
         $fh->print($str);
         $fh->close;
+        $::DebianDependencyCacheWritten=1;
     }
 }
 

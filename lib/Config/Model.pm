@@ -9,7 +9,7 @@
 #
 package Config::Model;
 BEGIN {
-  $Config::Model::VERSION = '1.248';
+  $Config::Model::VERSION = '1.249';
 }
 use Any::Moose ;
 use Any::Moose '::Util::TypeConstraints';
@@ -95,7 +95,7 @@ Config::Model - Create tools to validate, migrate and edit configuration files
 
 =head1 VERSION
 
-version 1.248
+version 1.249
 
 =head1 SYNOPSIS
 

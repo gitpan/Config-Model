@@ -14,6 +14,9 @@ $conf_file_name = "control";
 $conf_dir       = 'debian';
 $model_to_test  = "Debian::Dpkg::Control";
 
+eval { require AptPkg::Config ;} ;
+$skip = ( $@ or not -r '/etc/debian_version') ? 1 : 0 ;
+
 @tests = (
     {
 
@@ -21,22 +24,25 @@ $model_to_test  = "Debian::Dpkg::Control";
         check => {
             'source Source',          "libdist-zilla-plugins-cjm-perl",
             'source Build-Depends:0', "debhelper (>= 7)",
-            'source Build-Depends-Indep:0', "libcpan-meta-perl",     # fixed
+            'source Build-Depends-Indep:0', "libcpan-meta-perl | perl (>= 5.13.10)",     # fixed
             'source Build-Depends-Indep:1', "libdist-zilla-perl",    # fixed
             'source Build-Depends-Indep:5', "libpath-class-perl",
-            'source Build-Depends-Indep:6', "perl (>= 5.10.1)",
+            'source Build-Depends-Indep:6', "perl (>= 5.11.3) | libmodule-build-perl (>= 0.36)", # fixed
             'binary:libdist-zilla-plugins-cjm-perl Depends:0',
             '${misc:Depends}',
         },
-        load_warnings => [ (qr/dependency/) x 3, qr/standard version/, 
-                           (qr/dependency/) x 3, qr/description/ ],
+        load_warnings => [ qr/dependency/, qr/dual life/, (qr/dependency/) x 2, 
+                          qr/libmodule-build-perl \(>= 0.36\) \| perl \(>= 5.8.8\)/,
+                          qr/should be 'perl \(>= 5.11.3\) \| libmodule-build-perl \(>= 0.36\)/,
+                          qr/standard version/, 
+                           qr/dependency/, qr/dual life/, (qr/dependency/) x 2, qr/description/ ],
         apply_fix => 1,
     },
     {
 
         # t1
         check => { 'binary:seaview Recommends:0', 'clustalw', },
-        load_warnings => [ qr/standard version/, qr/description/ ],
+        load_warnings => [ qr/standard version/, qr/description/, qr/too long/ ],
         apply_fix => 1,
         load => 'binary:seaview Synopsis="multiplatform interface for sequence alignment"',
     },
@@ -72,7 +78,7 @@ xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx providing the following file:
 
  - xt/release/pod-spell.t - a standard Test::Spelling test"
         },
-        load_warnings => [ qr/standard version/, qr/description/, qr/value/],
+        load_warnings => [ qr/standard version/, qr/description/, (qr/value/) x 2],
         apply_fix => 1,
     },
     {
@@ -104,6 +110,7 @@ unless ( my $return = do $cache_file ) {
 }
 
 END {
+    return if $::DebianDependencyCacheWritten ;
     my $str = Data::Dumper->Dump(
         [ \%Config::Model::Debian::Dependency::cache ],
         ['*Config::Model::Debian::Dependency::cache']
@@ -112,9 +119,10 @@ END {
     print "writing back cache file\n";
     if ( defined $fh ) {
 
-        # not a bit deal if cache cannot be written back
+        # not a big deal if cache cannot be written back
         $fh->print($str);
         $fh->close;
+        $::DebianDependencyCacheWritten=1;
     }
 }
 
