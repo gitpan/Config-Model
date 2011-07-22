@@ -27,7 +27,7 @@
 
 package Config::Model::Loader;
 BEGIN {
-  $Config::Model::Loader::VERSION = '1.249';
+  $Config::Model::Loader::VERSION = '1.250';
 }
 use Carp;
 use strict;
@@ -44,7 +44,7 @@ Config::Model::Loader - Load serialized data into config tree
 
 =head1 VERSION
 
-version 1.249
+version 1.250
 
 =head1 SYNOPSIS
 
@@ -709,6 +709,14 @@ sub _load_hash {
     if ($action eq ':' and $cargo_type =~ /node/) {
 	# remove possible leading or trailing quote
 	$logger->debug("_load_hash: calling _load on node $id");
+	if (defined $subaction) {
+            Config::Model::Exception::Load -> throw (
+		object => $element,
+                command => join('',@$inst) ,
+		error => qq!Hash assignment with '$action"$id"$subaction"$value"' on unexpected !
+		      ."cargo_type: $cargo_type"
+            ) ;
+	}
 	return $self->_load($obj,$check, $experience, $cmdref);
     }
     elsif ($action eq ':' and defined $subaction and $cargo_type =~ /leaf/) {

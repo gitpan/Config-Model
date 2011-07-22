@@ -1,6 +1,6 @@
 =head1 NAME
 
-Config::Model::models::Debian::Dpkg::Copyright::License - Configuration class Debian::Dpkg::Copyright::License
+Config::Model::models::Debian::Dpkg::Copyright::FileLicense - Configuration class Debian::Dpkg::Copyright::FileLicense
 
 =head1 VERSION
 

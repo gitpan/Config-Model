@@ -9,7 +9,7 @@
 #
 package Config::Model::Backend::Debian::DpkgSyntax ;
 BEGIN {
-  $Config::Model::Backend::Debian::DpkgSyntax::VERSION = '1.249';
+  $Config::Model::Backend::Debian::DpkgSyntax::VERSION = '1.250';
 }
 
 use Any::Moose '::Role' ;
@@ -35,29 +35,34 @@ sub parse_dpkg_file {
     my $key = '';
     while (<$fh>) {
         chomp ;
+        $logger->trace("Parsing line '$_'");
         if (/^([\w\-]+)\s*:/) {  # keyword: 
             my ($field,$text) = split /\s*:\s*/,$_,2 ;
             $key = $field ;
             $logger->trace("start new field $key with '$text'");
 
-	    push @$store_list, $field, "$text\n" ;
-	    chomp $$store_ref if defined $$store_ref; # remove trailing \n 
+	    push @$store_list, $field, $text ;
 	    $store_ref = \$store_list->[$#$store_list] ;
         }
-        elsif (/^\s*$/) {     # empty line
+        elsif ($key and /^\s*$/) {     # first empty line after a section
             $logger->trace("empty line: starting new section");
             $key = '';
             push @res, $store_list if @$store_list ; # don't store empty sections 
             $store_list = [] ;
+	    chomp $$store_ref if defined $$store_ref; # remove trailing \n 
             undef $store_ref ; # to ensure that next line contains a keyword
         }
+        elsif (/^\s*$/) {     # "extra" empty line
+            $logger->trace("extra empty line: skipped");
+            # just skip it
+        } 
         elsif (/^\s+\.$/) {   # line with a single dot
             $logger->trace("dot line: adding blank line to field $key");
-            _store_line($store_ref,"\n",$check) ;
+            _store_line($store_ref,"",$check) ;
         }
         elsif (s/^\s//) {     # non empty line
             $logger->trace("text line: adding '$_' to field $key");
-            _store_line($store_ref,"$_\n" , $check);
+            _store_line($store_ref,$_ , $check);
         }
         else {
             my $msg = "DpkgSyntax error: Invalid line $. (missing ':' ?) : $_" ;
@@ -66,6 +71,8 @@ sub parse_dpkg_file {
         }
     }
 
+    # remove trailing \n of last stored value 
+    chomp $$store_ref if defined $$store_ref;
     # store last section if not empty
     push @res, $store_list if @$store_list;
     $fh->close ;
@@ -84,7 +91,7 @@ sub _store_line {
     my ($store_ref,$line,$check) = @_ ;
     
     if (defined $store_ref) {
-        $$store_ref .= $line ;
+        $$store_ref .= "\n$line" ;
     }
     else {
         my $l = $. ;
@@ -145,7 +152,7 @@ Config::Model::Backend::Debian::DpkgSyntax - Role to read and write files with D
 
 =head1 VERSION
 
-version 1.249
+version 1.250
 
 =head1 SYNOPSIS
 

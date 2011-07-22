@@ -80,8 +80,13 @@ lib/Config/Model/models/Debian/Dpkg/Copyright.pl
 lib/Config/Model/models/Debian/Dpkg/Copyright.pod
 lib/Config/Model/models/Debian/Dpkg/Copyright/Content.pl
 lib/Config/Model/models/Debian/Dpkg/Copyright/Content.pod
-lib/Config/Model/models/Debian/Dpkg/Copyright/License.pl
+lib/Config/Model/models/Debian/Dpkg/Copyright/FileLicense.pl
+lib/Config/Model/models/Debian/Dpkg/Copyright/FileLicense.pod
+lib/Config/Model/models/Debian/Dpkg/Copyright/GlobalLicense.pl
+lib/Config/Model/models/Debian/Dpkg/Copyright/GlobalLicense.pod
 lib/Config/Model/models/Debian/Dpkg/Copyright/License.pod
+lib/Config/Model/models/Debian/Dpkg/Copyright/LicenseSpec.pl
+lib/Config/Model/models/Debian/Dpkg/Copyright/LicenseSpec.pod
 lib/Config/Model/models/Debian/Dpkg/Meta.pl
 lib/Config/Model/models/Debian/Dpkg/Meta.pod
 lib/Config/Model/models/Debian/Dpkg/Source.pl
@@ -236,6 +241,7 @@ t/load.t
 t/load_model_snippets.t
 t/model.t
 t/model_tests.d/debian-dependency-cache.pl
+t/model_tests.d/debian-dependency-cache.txt
 t/model_tests.d/debian-dpkg-control-examples/t0
 t/model_tests.d/debian-dpkg-control-examples/t1
 t/model_tests.d/debian-dpkg-control-examples/t2
@@ -250,6 +256,7 @@ t/model_tests.d/debian-dpkg-copyright-examples/t10
 t/model_tests.d/debian-dpkg-copyright-examples/t11
 t/model_tests.d/debian-dpkg-copyright-examples/t12
 t/model_tests.d/debian-dpkg-copyright-examples/t13
+t/model_tests.d/debian-dpkg-copyright-examples/t14
 t/model_tests.d/debian-dpkg-copyright-examples/t2
 t/model_tests.d/debian-dpkg-copyright-examples/t3
 t/model_tests.d/debian-dpkg-copyright-examples/t4

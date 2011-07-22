@@ -4,7 +4,7 @@ Config::Model::models::Debian::Dpkg::Copyright::Content - Configuration class De
 
 =head1 VERSION
 
-version 1.249
+version 1.250
 
 =head1 DESCRIPTION
 
@@ -48,7 +48,7 @@ L<config-edit>
 
 =item *
 
-L<Config::Model::models::Debian::Dpkg::Copyright::License>
+L<Config::Model::models::Debian::Dpkg::Copyright::FileLicense>
 
 =back
 

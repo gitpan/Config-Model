@@ -9,6 +9,7 @@
 #
 use Data::Dumper;
 use IO::File;
+use utf8; 
 
 $conf_file_name = "copyright";
 $conf_dir       = 'debian';
@@ -37,9 +38,9 @@ $skip = ( $@ or not -r '/etc/debian_version') ? 1 : 0 ;
         load_warnings => [ (qr/deprecated/) x 3 ],
 
         check => {
-            'License:MPL-1.1'     => "[MPL-1.1 LICENSE TEXT]",
-            'License:"GPL-2+"'    => "[GPL-2 LICENSE TEXT]",
-            'License:"LGPL-2.1+"' => "[LGPL-2.1 plus LICENSE TEXT]",
+            'License:"MPL-1.1" text'     => "[MPL-1.1 LICENSE TEXT]",
+            'License:"GPL-2+" text'    => "[GPL-2 LICENSE TEXT]",
+            'License:"LGPL-2.1+" text' => "[LGPL-2.1 plus LICENSE TEXT]",
             'Files:"src/js/editline/*" License short_name' =>
               "MPL-1.1 or GPL-2+ or LGPL-2.1+"
         },
@@ -49,7 +50,7 @@ $skip = ( $@ or not -r '/etc/debian_version') ? 1 : 0 ;
         load_warnings => [ (qr/deprecated/) x 1 ],
 
         check => {
-            'License:MPL-1.1' => "[MPL-1.1 LICENSE TEXT]",
+            'License:MPL-1.1 text' => "[MPL-1.1 LICENSE TEXT]",
             'Files:"src/js/editline/*" License short_name' => "MPL-1.1",
             'Files:"src/js/fdlibm/*" License short_name'   => "MPL-1.1",
         },
@@ -85,7 +86,7 @@ $skip = ( $@ or not -r '/etc/debian_version') ? 1 : 0 ;
         check => {
             'Files:"*" License short_name' => "LGPL-2+",
             'Source' => 'http://search.cpan.org/dist/Config-Model-CursesUI/',
-            'License:"LGPL-2+"' =>
+            'License:"LGPL-2+" text' =>
 "   [snip]either version 2.1 of\n   the License, or (at your option) any later version.\n"
               . "   [snip again]",
         },
@@ -142,7 +143,7 @@ $skip = ( $@ or not -r '/etc/debian_version') ? 1 : 0 ;
     { # t11 Debian bug #610231
         dump_errors =>  [ 
             qr/mandatory/ => 'Files:"*" Copyright:0="(c) foobar"',
-            qr/mandatory/ => ' License:FOO="foo bar" ! Files:"*" License short_name="FOO" '
+            qr/mandatory/ => ' License:FOO text="foo bar" ! Files:"*" License short_name="FOO" '
         ],
     },
     
@@ -150,13 +151,23 @@ $skip = ( $@ or not -r '/etc/debian_version') ? 1 : 0 ;
         load_warnings => [ (qr/deprecated/) x 3, qr/Adding/ ],
         load_check => 'no',
         dump_errors =>  [ 
-            qr/not declared/ => 'License:Expat="Expat license foobar"',
+            qr/not declared/ => 'License:Expat text="Expat license foobar"',
         ],
     },
 
     { # t13 Debian bug #624305
-   }
-
+    },
+    { # t14 Debian bug #633847
+        # need to change License model from Hash of leaves to hash of nodes 
+        check => { 
+            'Comment' => "On Debian systems, copies of the GNU General Public License version 1
+and Lesser General Public License version 2.1 can be found respectively in
+‘/usr/share/common-licenses/GPL-1’ and ‘/usr/share/common-licenses/LGPL-2.1’.",
+            'License:Perl Comment',"On Debian systems, the complete text of the Artistic License can be
+found in ‘/usr/share/common-licenses/Artistic’, and the complete text of
+the latest version of the GNU General Public License version 1 can be found
+in ‘/usr/share/common-licenses/GPL-1’." } , 
+    },       
 );
 
 1;

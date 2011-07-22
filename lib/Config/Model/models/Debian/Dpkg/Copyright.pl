@@ -138,7 +138,7 @@ To upgrade your file from an old spec, run:
       'Global-License',
       {
         'type' => 'node',
-        'config_class_name' => 'Debian::Dpkg::Copyright::License'
+        'config_class_name' => 'Debian::Dpkg::Copyright::GlobalLicense'
       },
       'Format-Specification',
       {
@@ -196,8 +196,8 @@ To upgrade your file from an old spec, run:
       'License',
       {
         'cargo' => {
-          'value_type' => 'string',
-          'type' => 'leaf'
+          'type' => 'node',
+          'config_class_name' => 'Debian::Dpkg::Copyright::LicenseSpec'
         },
         'allow_keys_matching' => '^[\\w\\-\\.+]+$',
         'type' => 'hash',

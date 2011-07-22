@@ -28,7 +28,7 @@
 
 package Config::Model::SearchElement;
 BEGIN {
-  $Config::Model::SearchElement::VERSION = '1.249';
+  $Config::Model::SearchElement::VERSION = '1.250';
 }
 use Log::Log4perl qw(get_logger :levels);
 use Carp;
@@ -46,7 +46,7 @@ Config::Model::SearchElement - Search an element in a configuration model
 
 =head1 VERSION
 
-version 1.249
+version 1.250
 
 =head1 SYNOPSIS
 

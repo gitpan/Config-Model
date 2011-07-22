@@ -9,7 +9,7 @@
 #
 [
   {
-    'name' => 'Debian::Dpkg::Copyright::License',
+    'name' => 'Debian::Dpkg::Copyright::FileLicense',
     'copyright' => [
       '2010,2011 Dominique Dumont'
     ],
