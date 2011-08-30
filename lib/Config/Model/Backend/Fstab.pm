@@ -8,8 +8,8 @@
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
 package Config::Model::Backend::Fstab ;
-BEGIN {
-  $Config::Model::Backend::Fstab::VERSION = '1.250';
+{
+  $Config::Model::Backend::Fstab::VERSION = '1.251';
 }
 use Any::Moose ;
 use Carp ;
@@ -158,7 +158,7 @@ Config::Model::Backend::Fstab - Read and write config from fstab file
 
 =head1 VERSION
 
-version 1.250
+version 1.251
 
 =head1 SYNOPSIS
 

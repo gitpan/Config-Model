@@ -26,8 +26,8 @@
 #    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 
 package Config::Model::Annotation;
-BEGIN {
-  $Config::Model::Annotation::VERSION = '1.250';
+{
+  $Config::Model::Annotation::VERSION = '1.251';
 }
 
 use Any::Moose ;
@@ -57,7 +57,7 @@ Config::Model::Annotation - Read and write configuration annotations
 
 =head1 VERSION
 
-version 1.250
+version 1.251
 
 =head1 SYNOPSIS
 

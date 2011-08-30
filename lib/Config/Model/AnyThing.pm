@@ -26,8 +26,8 @@
 #    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 
 package Config::Model::AnyThing;
-BEGIN {
-  $Config::Model::AnyThing::VERSION = '1.250';
+{
+  $Config::Model::AnyThing::VERSION = '1.251';
 }
 use Scalar::Util qw(weaken);
 use Pod::POM ;
@@ -43,7 +43,7 @@ Config::Model::AnyThing - Base class for configuration tree item
 
 =head1 VERSION
 
-version 1.250
+version 1.251
 
 =head1 SYNOPSIS
 

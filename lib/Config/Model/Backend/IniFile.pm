@@ -30,8 +30,8 @@
 #    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 
 package Config::Model::Backend::IniFile ;
-BEGIN {
-  $Config::Model::Backend::IniFile::VERSION = '1.250';
+{
+  $Config::Model::Backend::IniFile::VERSION = '1.251';
 }
 
 use Carp;
@@ -237,7 +237,7 @@ Config::Model::Backend::IniFile - Read and write config as a INI file
 
 =head1 VERSION
 
-version 1.250
+version 1.251
 
 =head1 SYNOPSIS
 

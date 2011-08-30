@@ -26,8 +26,8 @@
 #    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 
 package Config::Model::Warper ;
-BEGIN {
-  $Config::Model::Warper::VERSION = '1.250';
+{
+  $Config::Model::Warper::VERSION = '1.251';
 }
 
 use Any::Moose ;
@@ -597,7 +597,7 @@ Config::Model::Warper - Warp tree properties
 
 =head1 VERSION
 
-version 1.250
+version 1.251
 
 =head1 SYNOPSIS
 

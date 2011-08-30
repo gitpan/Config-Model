@@ -26,8 +26,8 @@
 #    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 
 package Config::Model::Loader;
-BEGIN {
-  $Config::Model::Loader::VERSION = '1.250';
+{
+  $Config::Model::Loader::VERSION = '1.251';
 }
 use Carp;
 use strict;
@@ -44,7 +44,7 @@ Config::Model::Loader - Load serialized data into config tree
 
 =head1 VERSION
 
-version 1.250
+version 1.251
 
 =head1 SYNOPSIS
 

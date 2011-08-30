@@ -28,8 +28,8 @@
 #    02110-1301 USA
 
 package Config::Model::TermUI ;
-BEGIN {
-  $Config::Model::TermUI::VERSION = '1.250';
+{
+  $Config::Model::TermUI::VERSION = '1.251';
 }
 
 use Carp;
@@ -47,7 +47,7 @@ Config::Model::TermUI - Provides Config::Model UI à la Term::ReadLine
 
 =head1 VERSION
 
-version 1.250
+version 1.251
 
 =head1 SYNOPSIS
 

@@ -27,8 +27,8 @@
 #    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 
 package Config::Model::WarpedNode ;
-BEGIN {
-  $Config::Model::WarpedNode::VERSION = '1.250';
+{
+  $Config::Model::WarpedNode::VERSION = '1.251';
 }
 
 use Carp qw(cluck croak);
@@ -52,7 +52,7 @@ Config::Model::WarpedNode - Node that change config class properties
 
 =head1 VERSION
 
-version 1.250
+version 1.251
 
 =head1 SYNOPSIS
 

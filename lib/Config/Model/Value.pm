@@ -26,8 +26,8 @@
 #    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 
 package Config::Model::Value ;
-BEGIN {
-  $Config::Model::Value::VERSION = '1.250';
+{
+  $Config::Model::Value::VERSION = '1.251';
 }
 use warnings ;
 use strict;
@@ -53,7 +53,7 @@ Config::Model::Value - Strongly typed configuration value
 
 =head1 VERSION
 
-version 1.250
+version 1.251
 
 =head1 SYNOPSIS
 
@@ -1376,6 +1376,11 @@ sub check_value {
     my %args = @_ > 1 ? @_ : (value => $_[0]) ;
     my $value = $args{value} ;
     my $quiet = $args{quiet} || 0 ;
+    my $check = $args{check} || 'yes' ;
+    my $apply_fix = $args{fix} || 0 ;
+    
+    # need to keep track to update GUI
+    $self->{nb_of_fixes} = 0; # reset before check
 
     my @error ;
     my @warn ;
@@ -1441,8 +1446,6 @@ sub check_value {
 		unless $value =~ $self->{match_regexp} ;
     }
 
-    $self->{fixes} = [] ;
-
     foreach my $t (qw/warn_if_match warn_unless_match/) {
         my $w_info = $self->{$t} ;
 
@@ -1453,12 +1456,14 @@ sub check_value {
             my $msg = $h->{$rxp}{msg} ;
             my $fix = $h->{$rxp}{fix} ;
             if ($t =~ /if/ and $value =~ /$rxp/) {
-                push @warn, $msg || "value '$value' should not match regexp $rxp"  ;
-                push @{$self->{fixes}}, $fix if defined $fix ;
+                push @warn, $msg || "value '$value' should not match regexp $rxp" unless $apply_fix ;
+                $self->{nb_of_fixes}++ if defined $fix and not $apply_fix;
+                $self->apply_fix($fix) if defined $fix and $apply_fix;
             } 
             if ($t =~ /unless/ and $value !~ /$rxp/) {
-                push @warn, $msg || "value '$value' should match regexp $rxp"  ;
-                push @{$self->{fixes}}, $fix if defined $fix ;
+                push @warn, $msg || "value '$value' should match regexp $rxp" unless $apply_fix ;
+                $self->{nb_of_fixes}++ if defined $fix and not $apply_fix ;
+                $self->apply_fix($fix) if defined $fix and $apply_fix ;
             }
         }
     }
@@ -1491,7 +1496,7 @@ Returns the number of fixes that can be applied to the current value.
 
 sub has_fixes {
     my $self = shift; 
-    return scalar @{$self->{fixes}} ;
+    return $self->{nb_of_fixes} ;
 }
 
 =head2 apply_fixes
@@ -1502,36 +1507,33 @@ Applies the fixes to suppress the current warnings.
 
 sub apply_fixes {
     my $self = shift ; 
-    my $count = 0;
 
-    $logger->debug( $self->location.": apply_fixes called on ". @{$self->{fixes} || [] }.
-        " fixable problems" ) ;
-        
-    while ( @{$self->{fixes} || [] } ) {
-        local $_ ;
-        $_ = $self->fetch(silent => 1) ;
+    $logger->debug( $self->location.": apply_fixes called" ) ;
 
-        # apply all fixes fir this value THEN store the new value
-        foreach my $fix (@{$self->{fixes}}) {
-            $logger->info($self->location.": Applying fix '$fix'" );
-            eval ( $fix ) ;
-            if ($@) { 	
-                Config::Model::Exception::Model -> throw (
-                    object => $self, 
-                    message => "Eval of fix  $fix failed : $@" 
-                );
-            }
-        }
-
-        $self->store($_) ; # will update $self->{fixes} 
-        Config::Model::Exception::Model -> throw (
-            object => $self, 
-            message => "apply_fixes: too many tries to fix, bailing out\nUnfixable value is $_" ,
-        ) if $count ++ > 10 ;
-    } ;
+    $self->check_value(value => $self->{data}, fix => 1);
 }
 
-=head2 check( value  )
+
+# internal: called by check when a fix is required
+sub apply_fix {
+    my ( $self, $fix ) = @_;
+
+    local $_;
+    $_ = $self->fetch( silent => 1 );
+
+    $logger->info( $self->location . ": Applying fix '$fix'" );
+    eval($fix);
+    if ($@) {
+        Config::Model::Exception::Model->throw(
+            object  => $self,
+            message => "Eval of fix  $fix failed : $@"
+        );
+    }
+
+    $self->store($_);    # will update $self->{fixes}
+}
+
+=head2 check( value )
 
 Like L</check_value>. Also ensure that mandatory value are defined
 

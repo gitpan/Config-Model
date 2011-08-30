@@ -27,8 +27,8 @@
 #    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 
 package Config::Model::Iterator ;
-BEGIN {
-  $Config::Model::Iterator::VERSION = '1.250';
+{
+  $Config::Model::Iterator::VERSION = '1.251';
 }
 use Carp;
 use strict;
@@ -45,7 +45,7 @@ Config::Model::Iterator - Iterates forward or backward a configuration tree
 
 =head1 VERSION
 
-version 1.250
+version 1.251
 
 =head1 SYNOPSIS
 

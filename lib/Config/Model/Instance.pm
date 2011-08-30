@@ -26,8 +26,8 @@
 #    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 
 package Config::Model::Instance;
-BEGIN {
-  $Config::Model::Instance::VERSION = '1.250';
+{
+  $Config::Model::Instance::VERSION = '1.251';
 }
 use Scalar::Util qw(weaken) ;
 use File::Path;
@@ -56,7 +56,7 @@ Config::Model::Instance - Instance of configuration tree
 
 =head1 VERSION
 
-version 1.250
+version 1.251
 
 =head1 SYNOPSIS
 
@@ -522,7 +522,33 @@ sub apply_fixes {
       $leaf_object->apply_fixes ;
     } ;
 
-    my $scan = Config::Model::ObjTreeScanner-> new ( leaf_cb => $fix_leaf ) ;
+    my $fix_hash = sub {
+        my ( $scanner, $data_r, $node, $element, @keys ) = @_;
+
+        return unless @keys;
+
+        # leaves must be fixed before the hash, hence the 
+        # calls to scan_hash before apply_fixes
+        map {$scanner->scan_hash($data_r,$node,$element,$_)} @keys ;
+
+        $node->fetch_element($element)->apply_fixes ;
+    } ;
+    
+    my $fix_list = sub {
+        my ( $scanner, $data_r, $node, $element, @keys ) = @_;
+
+        return unless @keys;
+
+        map {$scanner->scan_list($data_r,$node,$element,$_)} @keys ;
+        $node->fetch_element($element)->apply_fixes ;
+    } ;
+    
+   my $scan = Config::Model::ObjTreeScanner-> new ( 
+        hash_element_cb => $fix_hash ,
+        list_element_cb => $fix_list ,
+        leaf_cb => $fix_leaf ,
+        check => 'no',
+    ) ;
 
     $scan->scan_node(undef, $self->config_root) ;
 }

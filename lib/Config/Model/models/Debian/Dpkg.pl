@@ -14,7 +14,7 @@
       {
         'auto_create' => '1',
         'file' => 'clean',
-        'backend' => 'PlainFile',
+        'backend' => 'Debian::Dpkg',
         'config_dir' => 'debian'
       }
     ],
@@ -67,6 +67,16 @@
  */*/Makefile.in
 
 '
+      },
+      'patches',
+      {
+        'cargo' => {
+          'type' => 'node',
+          'config_class_name' => 'Debian::Dpkg::Patch'
+        },
+        'ordered' => '1',
+        'type' => 'hash',
+        'index_type' => 'string'
       }
     ]
   }

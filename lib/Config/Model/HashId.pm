@@ -26,8 +26,8 @@
 #    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 
 package Config::Model::HashId ;
-BEGIN {
-  $Config::Model::HashId::VERSION = '1.250';
+{
+  $Config::Model::HashId::VERSION = '1.251';
 }
 use Config::Model::Exception ;
 use Scalar::Util qw(weaken) ;
@@ -47,7 +47,7 @@ Config::Model::HashId - Handle hash element for configuration model
 
 =head1 VERSION
 
-version 1.250
+version 1.251
 
 =head1 SYNOPSIS
 
@@ -213,6 +213,10 @@ sub _delete {
     return delete $self->{data}{$key};
 }
 
+sub remove {
+    goto &_delete ;
+}
+
 sub _clear {
     my ($self) = @_ ;
     $self->{list} = [];
@@ -312,7 +316,7 @@ sub move {
                  )
           unless exists $self->{data}{$from} ;
 
-    my $ok = $self->check($to) ;
+    my $ok = $self->check_idx($to) ;
 
     if ($ok) {
         # this may clobber the old content of $self->{data}{$to}

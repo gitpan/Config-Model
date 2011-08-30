@@ -28,8 +28,8 @@
 #    02110-1301 USA
 
 package Config::Model::SimpleUI ;
-BEGIN {
-  $Config::Model::SimpleUI::VERSION = '1.250';
+{
+  $Config::Model::SimpleUI::VERSION = '1.251';
 }
 
 use Carp;
@@ -43,7 +43,7 @@ Config::Model::SimpleUI - Simple interface for Config::Model
 
 =head1 VERSION
 
-version 1.250
+version 1.251
 
 =head1 SYNOPSIS
 

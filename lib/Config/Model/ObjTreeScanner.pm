@@ -26,8 +26,8 @@
 #    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 
 package Config::Model::ObjTreeScanner ;
-BEGIN {
-  $Config::Model::ObjTreeScanner::VERSION = '1.250';
+{
+  $Config::Model::ObjTreeScanner::VERSION = '1.251';
 }
 use strict ;
 use Config::Model::Exception ;
@@ -45,7 +45,7 @@ Config::Model::ObjTreeScanner - Scan config tree and perform call-backs
 
 =head1 VERSION
 
-version 1.250
+version 1.251
 
 =head1 SYNOPSIS
 
@@ -108,10 +108,11 @@ version 1.250
 This module creates an object that will explore (depth first) a
 configuration tree.
 
-For each part of the configuration tree, ObjTreeScanner object will
-call-back one of the subroutine reference passed during construction.
+For each part of the configuration tree, ObjTreeScanner object will call
+one of the subroutine reference passed during construction. (a call-back
+or a hook)
 
-Call-back routines will be called:
+Call-back and hook routines will be called:
 
 =over
 
@@ -136,6 +137,9 @@ scanner. (i.e. perform another call-back). In other words the user's
 subroutine and the scanner play a game of ping-pong until the tree is
 completely explored.
 
+Hooks routines are not required to resume the exploration, i.e. to call
+the scanner. This will be done after the hook routine has returned.
+
 The scanner provides a set of default callback for the nodes. This
 way, the user only have to provide call-backs for the leaves.
 
@@ -148,8 +152,8 @@ ref may be used to store whatever result you want.
 =head2 new ( ... )
 
 One way or another, the ObjTreeScanner object must be able to find all
-callback for all the items of the tree. All the possible call-back are
-listed below:
+callback for all the items of the tree. All the possible call-back and
+hooks are listed below:
 
 =over
 
@@ -164,11 +168,19 @@ C<reference_value_cb>
 
 C<node_content_cb> , C<node_dispatch_cb>
 
+=item node hooks:
+
+C<node_content_hook>
+
 =item element callback:
 
 All these call-backs are called on the elements of a node:
 C<list_element_cb>, C<check_list_element_cb>, C<hash_element_cb>,
 C<node_element_cb>, C<node_content_cb>.
+
+=item element hooks:
+
+C<list_element_hook>, C<hash_element_hook>.
 
 =back
 
@@ -278,6 +290,11 @@ Example:
      # note: scan_list and scan_hash are equivalent
   }
 
+=head2 List element hook
+
+C<hash_element_hook>: Works like the list element callback. Except that the calls to 
+C<scan_list> are not required. This will be done once the hook returns.
+
 =head2 Check list element callback
 
 C<check_list_element_cb>: Like C<list_element_cb>, but called on a
@@ -307,6 +324,11 @@ Example:
      map {$scanner->scan_hash($data_ref,$node,$element_name,$_)} @keys ;
   }
 
+=head2 Hash element hook
+
+C<hash_element_hook>: Works like the hash element callback. Except that the calls to 
+C<scan_hash> are not required. This will be done once the hook returns.
+
 =head2 Node content callback
 
 C<node_content_cb>: This call-back is called foreach node (including
@@ -326,6 +348,12 @@ Example:
      # resume exploration
      map {$scanner->scan_element($data_ref, $node,$_)} @element ;
   }
+
+=head2 Node content hook
+
+C<node_content_hook>: This hook is called foreach node (including
+root node). Works like the node content call-back. Except that the calls to 
+C<scan_element> are not required. This will be done once the hook returns.
 
 =head2 Dispatch node callback
 
@@ -411,6 +439,7 @@ sub new {
 
     foreach my $param (qw/check node_element_cb hash_element_cb 
                           list_element_cb check_list_element_cb node_content_cb
+                          node_content_hook list_element_hook hash_element_hook
                           experience auto_vivify up_cb/, @value_cb) {
         $self->{$param} = $args{$param} if defined $args{$param};
 	delete $args{$param} ; # may exists but be undefined
@@ -438,6 +467,8 @@ sub create_fallback {
     my $self = shift ;
     my $fallback = shift;
 
+    map { $self->{$_} = sub {} } qw/node_content_hook hash_element_hook list_element_hook/;
+ 
     return if not defined $fallback or $fallback eq 'none' ;
 
     my $done = 0 ;
@@ -523,6 +554,8 @@ sub scan_node {
         check => $self->{check}
     ) ;
 
+    $self->{node_content_hook}->($self, $data_r,$node,@element_list) ;
+
     # we could add here a "last element" call-back, but it's not
     # very useful if the last element is a hash.
     $actual_cb->($self, $data_r,$node,@element_list) ;
@@ -552,11 +585,13 @@ sub scan_element {
         #print "type hash\n";
         my @keys = $self->get_keys($node,$element_name) ;
         # if hash element grab keys and perform callback
+        $self->{hash_element_hook}->($self, $data_r,$node,$element_name,@keys);
         $self->{hash_element_cb}->($self, $data_r,$node,$element_name,@keys);
     }
     elsif ($element_type eq 'list') {
         #print "type list\n";
         my @keys = $self->get_keys($node,$element_name) ;
+        $self->{list_element_hook}->($self, $data_r,$node,$element_name, @keys);
         $self->{list_element_cb}->($self, $data_r,$node,$element_name, @keys);
     }
     elsif ($element_type eq 'check_list') {

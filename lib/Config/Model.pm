@@ -8,8 +8,8 @@
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
 package Config::Model;
-BEGIN {
-  $Config::Model::VERSION = '1.250';
+{
+  $Config::Model::VERSION = '1.251';
 }
 use Any::Moose ;
 use Any::Moose '::Util::TypeConstraints';
@@ -95,7 +95,7 @@ Config::Model - Create tools to validate, migrate and edit configuration files
 
 =head1 VERSION
 
-version 1.250
+version 1.251
 
 =head1 SYNOPSIS
 

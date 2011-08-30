@@ -26,8 +26,8 @@
 #    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 
 package Config::Model::ListId ;
-BEGIN {
-  $Config::Model::ListId::VERSION = '1.250';
+{
+  $Config::Model::ListId::VERSION = '1.251';
 }
 use Config::Model::Exception ;
 use Scalar::Util qw(weaken) ;
@@ -46,7 +46,7 @@ Config::Model::ListId - Handle list element for configuration model
 
 =head1 VERSION
 
-version 1.250
+version 1.251
 
 =head1 SYNOPSIS
 
@@ -278,7 +278,7 @@ sub move {
     $self->_delete($from);
     delete $self->{warning_hash}{$from} ;
 
-    my $ok = $self->check($to) ;
+    my $ok = $self->check_idx($to) ;
     if ($ok or $check eq 'no') {
         $self->_store($to, $moved) ;
         $moved->index_value($to) ;
@@ -327,7 +327,7 @@ list ref of annotation to store with the list values
 
 Example:
 
- $elt->push (
+ $elt->push_x (
     values => [ v1','v2' ] , 
     annotation => [ 'v1 comment', 'v2 comment' ],
     check => ''skip'

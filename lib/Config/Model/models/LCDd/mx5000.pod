@@ -4,7 +4,7 @@ Config::Model::models::LCDd::mx5000 - Configuration class LCDd::mx5000
 
 =head1 VERSION
 
-version 1.250
+version 1.251
 
 =head1 DESCRIPTION
 

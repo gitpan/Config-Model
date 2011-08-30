@@ -9,8 +9,8 @@
 #
 
 package Config::Model::Backend::Debian::Dpkg::Copyright ;
-BEGIN {
-  $Config::Model::Backend::Debian::Dpkg::Copyright::VERSION = '1.250';
+{
+  $Config::Model::Backend::Debian::Dpkg::Copyright::VERSION = '1.251';
 }
 
 use Any::Moose ;
@@ -117,13 +117,13 @@ sub read {
             }
 
 
-            if ($key =~ /files/i) {
+            if ($key =~ /^files$/i) {
                 $logger->debug("Creating Files:$v element");
                 $v =~ s/\s*,\s*/ /g;
                 $file = $root->fetch_element('Files')->fetch_with_id(index => $v, check => $check) ;
                 $object = $file ;
             }
-            elsif ($key =~ /licen[sc]e/i) {
+            elsif ($key =~ /^licen[sc]e$/i) {
                 $logger->warn("Found UK spelling for $key: $v. $key will be converted to License")
                     if $key =~ /license/ ;
                 my $lic_node = defined $file ? $file->fetch_element('License') 
@@ -335,7 +335,7 @@ Config::Model::Backend::Debian::Dpkg::Copyright - Read and write Debian Dpkg Lic
 
 =head1 VERSION
 
-version 1.250
+version 1.251
 
 =head1 SYNOPSIS
 
