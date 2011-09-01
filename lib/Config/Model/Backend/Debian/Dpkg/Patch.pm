@@ -10,7 +10,7 @@
 
 package Config::Model::Backend::Debian::Dpkg::Patch;
 {
-  $Config::Model::Backend::Debian::Dpkg::Patch::VERSION = '1.251';
+  $Config::Model::Backend::Debian::Dpkg::Patch::VERSION = '1.252';
 }
 
 use Any::Moose;
@@ -151,7 +151,7 @@ Config::Model::Backend::Debian::Dpkg::Patch - Read and write Debian Dpkg Patch i
 
 =head1 VERSION
 
-version 1.251
+version 1.252
 
 =head1 SYNOPSIS
 

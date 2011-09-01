@@ -17,11 +17,17 @@ $model_to_test  = "Debian::Dpkg";
 eval { require AptPkg::Config; };
 $skip = ( $@ or not -r '/etc/debian_version' ) ? 1 : 0;
 
+my $del_home = sub { 
+    my $r = shift ;
+    @$r = grep { ! m(\bhome\b) } @$r ;
+};
+
 @tests = (
     {   name => 't0',
         check =>
           { 'control source Build-Depends-Indep:3', 'libtest-pod-perl', },
         dump_warnings => [ (qr/deprecated/) x 3 ],
+        file_check_sub => $del_home,
 
         #errors => [ ],
     },
@@ -33,6 +39,7 @@ $skip = ( $@ or not -r '/etc/debian_version' ) ? 1 : 0;
               "Test is modified in order not to load the Test:Dzil module\nprovided in t/lib",
         },
         load => qq!patches:fix-spelling Description="more spelling details"! ,
+        file_check_sub => $del_home,
         # dump_warnings => [ (qr/deprecated/) x 3 ],
     },
 
@@ -42,7 +49,8 @@ $skip = ( $@ or not -r '/etc/debian_version' ) ? 1 : 0;
         check => {
             'control source Build-Depends-Indep:0', => 'perl',
             'control source Build-Depends-Indep:1', => 'libdist-zilla-perl',
-        }
+        },
+        file_check_sub => $del_home,
     }
 );
 

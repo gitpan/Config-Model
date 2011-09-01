@@ -27,7 +27,7 @@
 
 package Config::Model::Backend::ShellVar ;
 {
-  $Config::Model::Backend::ShellVar::VERSION = '1.251';
+  $Config::Model::Backend::ShellVar::VERSION = '1.252';
 }
 
 use Carp;
@@ -95,8 +95,8 @@ sub write {
 
     croak "Undefined file handle to write" unless defined $ioh;
 
-    $self->write_global_comment($ioh,'#') ;
 
+    my @to_write ;
     # Using Config::Model::ObjTreeScanner would be overkill
     foreach my $elt ($node->get_element_name) {
         my $obj =  $node->fetch_element($elt) ;
@@ -104,9 +104,14 @@ sub write {
 
         next unless defined $v ;
 
-        $self->write_data_and_comments($ioh,'#',qq!$elt="$v"!, $obj->annotation) ;
+        push @to_write, [ qq!$elt="$v"!, $obj->annotation ] ;
     }
 
+    if (@to_write) {
+        $self->write_global_comment($ioh,'#') ;
+        map { $self->write_data_and_comments($ioh,'#',@$_) ; } @to_write ;
+    }
+    
     return 1;
 }
 
@@ -123,7 +128,7 @@ Config::Model::Backend::ShellVar - Read and write config as a C<SHELLVAR> data s
 
 =head1 VERSION
 
-version 1.251
+version 1.252
 
 =head1 SYNOPSIS
 

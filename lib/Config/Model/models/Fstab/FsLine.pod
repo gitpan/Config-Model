@@ -4,7 +4,7 @@ Config::Model::models::Fstab::FsLine - Configuration class Fstab::FsLine
 
 =head1 VERSION
 
-version 1.251
+version 1.252
 
 =head1 DESCRIPTION
 

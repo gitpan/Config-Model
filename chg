@@ -1,0 +1,29 @@
+2011-09-01  Dominique Dumont  <domi@komarr.gre.hp.com>
+
+	* config-model-core/lib/Config/Model/AutoRead.pm:
+	correctly handle ~ as home dir
+	[3429292268a8] [tip]
+
+	* config-model-core/t/model_tests.d/debian-dpkg-test-conf.pl, config-
+	model-core/t/model_tests.t:
+	test that no spurious files are left
+	[87807eb1f1e1]
+
+	* config-model-core/lib/Config/Model/Backend/ShellVar.pm:
+	do not write global comments if there's no data to write
+	[eee7a2bb2fb7]
+
+	* config-model-core/lib/Config/Model/AutoRead.pm:
+	do not leave empty files
+	[84ac1567327a]
+
+2011-08-30  Dominique Dumont  <domi@komarr.gre.hp.com>
+
+	* .hgtags:
+	Added tag core_1.251 for changeset b7dd840b9503
+	[36addbb5e4ec]
+
+	* config-model-core/MANIFEST.SKIP:
+	skip debian dir in top dir only
+	[b7dd840b9503] [core_1.251]
+
