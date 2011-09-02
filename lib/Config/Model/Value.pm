@@ -27,7 +27,7 @@
 
 package Config::Model::Value ;
 {
-  $Config::Model::Value::VERSION = '1.252';
+  $Config::Model::Value::VERSION = '1.253';
 }
 use warnings ;
 use strict;
@@ -53,7 +53,7 @@ Config::Model::Value - Strongly typed configuration value
 
 =head1 VERSION
 
-version 1.252
+version 1.253
 
 =head1 SYNOPSIS
 
@@ -1533,7 +1533,7 @@ sub apply_fix {
     $self->store($_);    # will update $self->{fixes}
 }
 
-=head2 check( value )
+=head2 check( [ value => foo ] )
 
 Like L</check_value>. Also ensure that mandatory value are defined
 
@@ -1541,12 +1541,17 @@ Will also display warnings on STDOUT unless C<silent> parameter is set to 1.
 In this case,user is expected to retrieve them with
 L<warning_msg>.
 
+Without C<value> argument, this method will check the value currently stored.
+
 =cut
 
 sub check {
     my $self = shift ;
-    my %args = @_ > 1 ? @_ : (value => $_[0]) ;
-    my $value = $args{value} ;
+    
+    my %args = @_ == 0 ? ( value => $self->{data} ) 
+             : @_ == 1 ? ( value => $_[0]         )
+             :           @_ ;
+    my $value = exists $args{value} ? $args{value} : $self->{data} ;
     my $silent = $args{silent} || 0 ;
 
     my @error = $self->check_value(%args) ;

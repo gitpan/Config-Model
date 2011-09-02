@@ -4,7 +4,7 @@ Config::Model::models::LCDd::menu - Configuration class LCDd::menu
 
 =head1 VERSION
 
-version 1.252
+version 1.253
 
 =head1 DESCRIPTION
 

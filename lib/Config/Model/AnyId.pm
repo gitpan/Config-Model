@@ -27,7 +27,7 @@
 
 package Config::Model::AnyId ;
 {
-  $Config::Model::AnyId::VERSION = '1.252';
+  $Config::Model::AnyId::VERSION = '1.253';
 }
 use Config::Model::Exception ;
 use Config::Model::Warper ;
@@ -56,7 +56,7 @@ Config::Model::AnyId - Base class for hash or list element
 
 =head1 VERSION
 
-version 1.252
+version 1.253
 
 =head1 SYNOPSIS
 
@@ -157,6 +157,7 @@ sub new {
 
     my $self= { 
             warning_hash => { },
+            warning_list => [ ],
         } ;
 
     bless $self,$type;
@@ -784,7 +785,7 @@ my %check_idx_dispatch =
 my %check_dispatch = map { ($_ => 'check_'.$_) ;}
     qw/duplicates/;
 
-# check all indexes in the list or hash
+# check globally the list or hash
 sub check {
     my $self = shift ;
     
@@ -813,6 +814,8 @@ sub check {
         if defined $self->{max_nb} and $nb > $self->{max_nb};
 
     map { warn ("Warning in '".$self->location."': $_\n") } @warn unless $silent;
+    
+    $self->{warning_list} = \@warn ;
 
     return scalar @error ? 0 : 1 ;
 }
@@ -874,6 +877,9 @@ sub check_idx {
     if (@warn) {
         $self->{warning_hash}{$idx} = \@warn ;
         map { warn ("Warning in '".$self->location."': $_\n") } @warn unless $silent;
+    }
+    else {
+        delete $self->{warning_hash}{$idx} ;
     }
         
     return scalar @error ? 0 : 1 ;
@@ -958,9 +964,7 @@ sub check_duplicates {
         if ($h{$v} > 1) {
             $logger->debug("got duplicates $i -> $v : $h{$v}");
             push @to_delete, $i ;
-            my @to_push = ($v);
-            unshift @to_push,"$i -> " if $self->get_type eq 'hash';
-            push @issues, @to_push ; 
+            push @issues, qq!$i:"$v"! ; 
         }
     }
 
@@ -1388,15 +1392,22 @@ sub clear_values {
 =head2 warning_msg ( [index] )
 
 Returns warnings concerning indexes of this hash. 
-Without parameter, returns a hash ref or undef. With an index, return the warnings
+Without parameter, returns a string containing all warnings or undef. With an index, return the warnings
 concerning this index or undef.
 
 =cut
 
 sub warning_msg {
     my ($self,$idx) = @_ ;
-    return unless scalar %{$self->{warning_hash}};
-    return defined $idx ? $self->{warning_hash}{$idx} : $self->{warning_hash} ;
+    
+    if (defined $idx) {
+        return $self->{warning_hash}{$idx} ;
+    }
+    elsif (scalar %{$self->{warning_hash}} or @{$self->{warning_list}}) {
+        my @list = @{$self->{warning_list}} ;
+        push @list , map ( "key $_: ".$self->{warning_hash}{$_}, keys %{$self->{warning_hash}}) ;
+        return join("\n",@list) ;
+    }
 }
 
 
