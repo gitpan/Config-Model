@@ -5,10 +5,8 @@ MANIFEST
 MANIFEST.SKIP
 META.yml
 MODELS
-MYMETA.json
 README
 TODO
-chg
 config-edit
 contrib/bash_completion.config-edit
 examples/fstab/README
@@ -23,6 +21,7 @@ examples/fstab/lib/Config/Model/models/MyFstab/FsLine.pl
 examples/fstab/lib/Config/Model/models/MyFstab/Iso9660_Opt.pl
 examples/fstab/lib/Config/Model/models/MyFstab/SwapOptions.pl
 examples/fstab/lib/Config/Model/models/MyFstab/UsbFsOptions.pl
+examples/lcdproc/#LCDd.conf#
 examples/lcdproc/LCDd.conf
 examples/lcdproc/lcdconf2model.pl
 lib/Config/Model.pm

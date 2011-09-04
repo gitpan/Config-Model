@@ -23,8 +23,8 @@ eval "use Pod::Wordlist::hanekomu";
 plan skip_all => "Pod::Wordlist::hanekomu required for testing POD spelling"
   if $@;
 
-eval "use Test::Spelling";
-plan skip_all => "Test::Spelling required for testing POD spelling"
+eval "use Test::Spelling 0.12";
+plan skip_all => "Test::Spelling 0.12 required for testing POD spelling"
   if $@;
 
 
@@ -157,3 +157,7 @@ xorg
 xserver
 xz
 yaml
+Dominique
+Dumont
+Krzysztof
+Tyszecki
