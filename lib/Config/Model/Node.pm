@@ -27,7 +27,7 @@
 
 package Config::Model::Node;
 {
-  $Config::Model::Node::VERSION = '1.254';
+  $Config::Model::Node::VERSION = '1.255';
 }
 use Carp ;
 use strict;
@@ -39,12 +39,13 @@ use Config::Model::DumpAsData;
 use Config::Model::Report;
 use Config::Model::TreeSearcher;
 use Config::Model::Describe;
+use Config::Model::BackendMgr;
 use Log::Log4perl qw(get_logger :levels);
 use UNIVERSAL;
 use Scalar::Util qw/weaken/;
 use Storable qw/dclone/ ;
 
-use base qw/Config::Model::AutoRead/;
+use base qw/Config::Model::AnyThing/;
 
 use vars qw(@status @level
             @experience_list %experience_index %default_property);
@@ -69,7 +70,7 @@ Config::Model::Node - Class for configuration tree node
 
 =head1 VERSION
 
-version 1.254
+version 1.255
 
 =head1 SYNOPSIS
 
@@ -641,7 +642,13 @@ sub new {
 
     $self->{index_value} = delete $args{index_value} ;
     my $skip_read = delete $args{skip_read} ;
-    my $check = $self->_check_check(delete $args{check}) ;
+    my $req_check = $self->_check_check(delete $args{check}) ;
+    my $read_check = $self->instance->read_check;
+    
+    my $check = $req_check eq 'no'   || $read_check eq 'no'   ? 'no'
+              : $req_check eq 'skip' || $read_check eq 'skip' ? 'skip' 
+              :                                                 'yes' ;
+    
     
     $self->{auto_read} = { skip => delete $args{skip_read}, check => $check };
     
@@ -672,11 +679,14 @@ sub init {
 
     my $model = $self->{model} ;
     my $ar = $self->{auto_read} ;
+    my $bmgr ;
+    
     my $check = $ar->{check} ;
     if (defined $model->{read_config} and not $ar->{skip_read} ) {
+        $bmgr = $self->{bmgr} = Config::Model::BackendMgr->new (node => $self) ;
         $ar->{done} = 1 ;
         # setup auto_read, read_config_dir is obsolete
-        $self->auto_read_init($model->{read_config}, $check, $model->{read_config_dir} );
+        $bmgr->auto_read_init($model->{read_config}, $check, $model->{read_config_dir} );
     }
 
     # use read_config data if write_config is missing
@@ -685,9 +695,20 @@ sub init {
 
     if ($model->{write_config}) {
         # setup auto_write, write_config_dir is obsolete
-        $self->auto_write_init($model->{write_config},
+        $bmgr->auto_write_init($model->{write_config},
                                $model->{write_config_dir});
     }
+}
+
+sub write_back {
+    my $self = shift ;
+    $self->{bmgr}->write_back(@_) ;
+}
+
+sub is_auto_write_for_type {
+    my $self = shift ;
+    return 0 unless defined $self->{bmgr} ;
+    return $self->{bmgr}->is_auto_write_for_type(@_) ;
 }
 
 =head1 Introspection methods
@@ -1761,8 +1782,10 @@ Returns a L<Config::Model::TreeSearcher> object.
 
 sub tree_searcher {
     my $self = shift;
+    my %args = @_ ;
     
-    return Config::Model::TreeSearcher->new ( node => $self, @_ );
+    $args{search_type} = delete $args{type} ;
+    return Config::Model::TreeSearcher->new ( node => $self, %args );
 }
 
 1;

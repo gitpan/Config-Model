@@ -4,7 +4,7 @@ Config::Model::models::LCDd::CFontz - Configuration class LCDd::CFontz
 
 =head1 VERSION
 
-version 1.254
+version 1.255
 
 =head1 DESCRIPTION
 
@@ -14,11 +14,12 @@ Configuration classes used by L<Config::Model>
 
 =head2 Device
 
-Select the output device to use [default: /dev/lcd]I<< Optional. Type uniline. default: '/dev/ttyS0'.  >>
+Select the output device to use [default: /dev/lcd]
+[ assert: "-d" ]I<< Optional. Type uniline. default: '/dev/ttyS0'.  >>
 
 =head2 Size
 
-Select the LCD size [default: 20x4]I<< Optional. Type uniline. upstream_default: '20x4'.  >>
+Select the LCD size [default: 20x4; match: "^\d+x\d+$"]I<< Optional. Type uniline. upstream_default: '20x4'.  >>
 
 =head2 Contrast
 

@@ -26,25 +26,41 @@
 #    along with Config-Model; if not, write to the Free Software
 #    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 
-package Config::Model::AutoRead ;
+package Config::Model::BackendMgr ;
 {
-  $Config::Model::AutoRead::VERSION = '1.254';
+  $Config::Model::BackendMgr::VERSION = '1.255';
 }
+
+use Any::Moose ;
+
 use Carp;
-use strict;
-use warnings FATAL => qw/all/;
+
 use Config::Model::Exception ;
 use Data::Dumper ;
 use File::Path ;
 use File::HomeDir ;
 use IO::File ;
-use UNIVERSAL ;
 use Storable qw/dclone/ ;
 use Log::Log4perl qw(get_logger :levels);
 
-use base qw/Config::Model::AnyThing/ ;
-
 my $logger = get_logger('Data') ;
+
+# one BackendMgr per file
+
+has 'node' => (
+    is       => 'ro',
+    isa      => 'Config::Model::Node',
+    weak_ref => 1,
+    required => 1
+);
+has 'file_backup' => ( is => 'rw', isa => 'ArrayRef', default => sub { [] } );
+has 'backend' => (
+    is      => 'rw',
+    isa     => 'HashRef[Config::Model::Backend::Any]',
+    traits    => ['Hash'],
+    default => sub { {} },
+    handles => { set_backend => 'set', get_backend => 'get' }
+);
 
 sub get_cfg_file_path {
     my $self = shift ; 
@@ -56,7 +72,7 @@ sub get_cfg_file_path {
         (
          error=> "auto_". ($w ? 'write' : 'read') 
                  ." error: empty 'config_dir' parameter",
-         object => $self
+         object => $self->node
         ) unless $args{config_dir};
 
     my $dir = $args{config_dir} ;
@@ -70,7 +86,7 @@ sub get_cfg_file_path {
     
     $dir .= '/' unless $dir =~ m!/$! ;
     if (not -d $dir and $w and $args{auto_create}) {
-        $logger->info("get_cfg_file_path: auto_write create directory $dir" );
+        $logger->info("get_cfg_file_path:{ite create directory $dir" );
         mkpath ($dir,0, 0755);
     }
 
@@ -91,11 +107,11 @@ sub get_cfg_file_path {
         return ;
     }
 
-    my $i = $self->instance ;
+    my $i = $self->node->instance ;
     my $name = $dir. $i->name ;
 
     # append ":foo bar" if not root object
-    my $loc = $self->location ; # not very good
+    my $loc = $self->node->location ; # not very good
     if ($loc) {
         if (($w and not -d $name and $args{auto_create})) {
           $logger->info("get_cfg_file_path: auto_write create subdirectory ",
@@ -129,7 +145,7 @@ sub open_read_file {
         $fh->open($file_path);
         $fh->binmode(":utf8");
         # store a backup in memory in case there's a problem
-        $self->{file_backup} = [ $fh-> getlines ] ;
+        $self->file_backup( [ $fh-> getlines ] ) ;
         $fh->seek(0,0) ; # go back to beginning of file
         return ($file_path,$fh) ;
     }
@@ -194,12 +210,12 @@ sub auto_read_init {
     my ($self, $readlist_orig, $check, $r_dir) = @_ ;
     # r_dir is obsolete
     if (defined $r_dir) {
-        warn $self->config_class_name," : read_config_dir is obsolete\n";
+        warn $self->node->config_class_name," : read_config_dir is obsolete\n";
     }
 
     my $readlist = dclone $readlist_orig ;
 
-    my $instance = $self->instance() ;
+    my $instance = $self->node->instance() ;
 
     # root override is passed by the instance
     my $root_dir = $instance -> read_root_dir || '';
@@ -251,7 +267,7 @@ sub auto_read_init {
             my $res = &{$c.'::'.$f}(@read_args, 
                                     file_path => $file_path,
                                     io_handle => $fh,
-                                    object => $self) ;
+                                    object => $self->node) ;
             if ($res) { 
                 $read_done = 1 ;
                 last;
@@ -288,8 +304,8 @@ sub auto_read_init {
             next unless defined $c;
 
             no strict 'refs';
-            my $backend_obj = $self->{backend}{$backend} 
-              = $c->new(node => $self, name => $backend) ;
+            my $backend_obj = $c->new(node => $self->node, name => $backend) ;
+            $self->set_backend($backend => $backend_obj) ; 
             my $suffix ;
             $suffix = $backend_obj->suffix if $backend_obj->can('suffix');
             my ($file_path,$fh) = $self->open_read_file(@read_args,
@@ -299,7 +315,7 @@ sub auto_read_init {
             my $res = $backend_obj->$f(@read_args, 
                                        file_path => $file_path,
                                        io_handle => $fh,
-                                       object => $self,
+                                       object => $self->node,
                                       );
             if ($res) {
                 $read_done = 1 ;
@@ -317,10 +333,10 @@ sub auto_read_init {
             (
              error => "auto_read error: $msg. May be add "
                     . "'auto_create' parameter in configuration model" ,
-             object => $self,
+             object => $self->node,
             ) unless $auto_create ;
 
-        $logger->warn("Warning: node '".$self->name."' $msg");
+        $logger->warn("Warning: node '".$self->node->name."' $msg");
     }
 
 }
@@ -336,7 +352,7 @@ sub auto_write_init {
 
     my $wrlist = dclone $wrlist_orig ;
 
-    my $instance = $self->instance() ;
+    my $instance = $self->node->instance() ;
 
     # root override is passed by the instance
     my $root_dir = $instance -> write_root_dir || '';
@@ -367,7 +383,7 @@ sub auto_write_init {
         my $fh ;
         $fh = new IO::File ; # opened in write callback
 
-        $logger->debug("auto_write_init creating write cb ($backend) for ",$self->name);
+        $logger->debug("auto_write_init creating write cb ($backend) for ",$self->node->name);
 
         my @wr_args = (%$write,                  # model data
                        auto_create => $auto_create,
@@ -385,11 +401,11 @@ sub auto_write_init {
             my $f = $write->{function} || 'write' ;
             require $file.'.pm' unless $c->can($f) ;
 
-            my $safe_self = $self ; # provide a closure
+            my $node = $self->node ; # provide a closure
             $wb = sub  {  
                 no strict 'refs';
                 my $file_path ;
-                $logger->debug("write cb ($backend) called for ",$self->name);
+                $logger->debug("write cb ($backend) called for ",$self->node->name);
                 $file_path = $self-> open_file_to_write($backend,$fh,@wr_args,@_) 
                     unless ($c->can('skip_open') and $c->skip_open) ;
                 my $res ;
@@ -398,7 +414,7 @@ sub auto_write_init {
                     &{$c.'::'.$f}(@wr_args,
                                   file_path => $file_path,
                                   conf_dir => $write_dir, # legacy FIXME
-                                  object => $safe_self, 
+                                  object => $node, 
                                   @_                      # override from user
                                 ) ;
                 };
@@ -410,7 +426,7 @@ sub auto_write_init {
         }
         elsif ($backend eq 'perl_file') {
             $wb = sub {
-                $logger->debug("write cb ($backend) called for ",$self->name);
+                $logger->debug("write cb ($backend) called for ",$self->node->name);
                 my $file_path 
                     = $self-> open_file_to_write($backend,$fh,
                                                 suffix => '.pl',@wr_args,@_) ;
@@ -426,7 +442,7 @@ sub auto_write_init {
         }
         elsif ($backend eq 'cds_file') {
             $wb = sub {
-                $logger->debug("write cb ($backend) called for ",$self->name);
+                $logger->debug("write cb ($backend) called for ",$self->node->name);
                 my $file_path 
                    = $self-> open_file_to_write($backend,$fh,
                                                 suffix => '.cds',@wr_args,@_) ;
@@ -444,12 +460,12 @@ sub auto_write_init {
 			my $f = $write->{function} || 'write' ;
 			my $c = load_backend_class ($backend, $f);
 
-            my $safe_self = $self ; # provide a closure
+            my $node = $self->node ; # provide a closure
             $wb = sub {
                 no strict 'refs';
-                $logger->debug("write cb ($backend) called for ",$self->name);
-                my $backend_obj =  $self->{backend}{$backend}
-                                || $c->new(node => $self, name => $backend) ;
+                $logger->debug("write cb ($backend) called for ",$self->node->name);
+                my $backend_obj =  $self->get_backend($backend)
+                                || $c->new(node => $self->node, name => $backend) ;
                 my $file_path ;
                 my $suffix ;
                 $suffix = $backend_obj->suffix if $backend_obj->can('suffix');
@@ -462,7 +478,7 @@ sub auto_write_init {
                     # override needed for "save as" button
                     $backend_obj->$f( @wr_args, 
                                       file_path => $file_path,
-                                      object => $safe_self, 
+                                      object => $node, 
                                       @_                      # override from user
                                     ) ;
                 } ;
@@ -474,9 +490,9 @@ sub auto_write_init {
 
         # FIXME: enhance write back mechanism so that different backend *and* different nodse
         # work as expected
-        $logger->debug("registering write $backend in node ".$self->name);
+        $logger->debug("registering write $backend in node ".$self->node->name);
         push @{$self->{write_back}}, [$backend, $wb] ;
-        $instance->register_write_back($self->location) ;
+        $instance->register_write_back($self->node->location) ;
     }
 }
 
@@ -506,11 +522,11 @@ sub write_back {
 
     my $force_backend = delete $args{backend} || '' ;
 
-    croak "write_back: no subs registered in node", $self->location,". cannot save data\n" 
+    croak "write_back: no subs registered in node", $self->node->location,". cannot save data\n" 
         unless @{$self->{write_back}} ;
 
     my @backends = @{$self->{write_back}} ;
-    $logger->debug("write_back called on node '",$self->name, "' for " , scalar @backends, " backends");
+    $logger->debug("write_back called on node '",$self->node->name, "' for " , scalar @backends, " backends");
 
 
     my $dir = $args{config_dir} ;
@@ -527,7 +543,7 @@ sub write_back {
 	    last if ($res and not $force_backend); 
 	}
     }
-    $logger->debug("write_back on node '",$self->name, "' done");
+    $logger->debug("write_back on node '",$self->node->name, "' done");
 }
 
 sub open_file_to_write {
@@ -550,7 +566,7 @@ sub close_file_to_write {
     
     if ($error) {
         # restore backup and display error
-        my $data = $self->{file_backup} || [];
+        my $data = $self->file_backup ;
         $logger->debug("Error during write, restoring backup in $file_path with ".scalar @$data." lines");
         $fh->seek(0,0) ; # go back to beginning of file
         $fh->print(@$data);
@@ -578,7 +594,7 @@ sub read_cds_file {
     my $file_path = $args{file_path} ;
     $logger->info( "Read cds data from $file_path");
 
-    $self->load( step => [ $args{io_handle}->getlines ] ) ;
+    $self->node->load( step => [ $args{io_handle}->getlines ] ) ;
     return 1 ;
 }
 
@@ -588,7 +604,7 @@ sub write_cds_file {
     my $file_path = $args{file_path} ;
     $logger->info("Write cds data to $file_path");
 
-    my $dump = $self->dump_tree(skip_auto_write => 'cds_file', check => $args{check} ) ;
+    my $dump = $self->node->dump_tree(skip_auto_write => 'cds_file', check => $args{check} ) ;
     $args{io_handle}->print( $dump ) ;
     return 1 ;
 }
@@ -601,7 +617,7 @@ sub read_perl {
     $logger->info("Read Perl data from $file_path");
 
     my $pdata = do $file_path || die "Cannot open $file_path:$!";
-    $self->load_data( $pdata ) ;
+    $self->node->load_data( $pdata ) ;
     return 1 ;
 }
 
@@ -611,7 +627,7 @@ sub write_perl {
     my $file_path = $args{file_path} ;
     $logger->info("Write perl data to $file_path");
 
-    my $p_data = $self->dump_as_data(skip_auto_write => 'perl_file', check => $args{check} ) ;
+    my $p_data = $self->node->dump_as_data(skip_auto_write => 'perl_file', check => $args{check} ) ;
     my $dumper = Data::Dumper->new([$p_data]) ;
     $dumper->Terse(1) ;
 
@@ -625,15 +641,15 @@ __END__
 
 =head1 NAME
 
-Config::Model::AutoRead - Load configuration node on demand
+Config::Model::BackendMgr - Load configuration node on demand
 
 =head1 VERSION
 
-version 1.254
+version 1.255
 
 =head1 SYNOPSIS
 
- # Use AutoRead to write data in perl data file
+ # Use BackendMgr to write data in perl data file
  use Config::Model;
  use Log::Log4perl qw(:easy);
  Log::Log4perl->easy_init($WARN);
@@ -653,7 +669,7 @@ version 1.254
  $model->create_config_class(
     name => "MyClass",
 
-    # read_config spec is used by Config::Model::AutoRead
+    # read_config spec is used by Config::Model::BackendMgr
     read_config => [
         {
             backend     => 'perl_file',
@@ -679,7 +695,7 @@ version 1.254
     ],
  );
 
- my $inst = $model->instance( root_class_name => 'MyClass' );
+ my $inst = $model->node->instance( root_class_name => 'MyClass' );
 
  my $root = $inst->config_root;
 

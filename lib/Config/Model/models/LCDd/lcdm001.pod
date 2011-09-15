@@ -4,7 +4,7 @@ Config::Model::models::LCDd::lcdm001 - Configuration class LCDd::lcdm001
 
 =head1 VERSION
 
-version 1.254
+version 1.255
 
 =head1 DESCRIPTION
 

@@ -16,14 +16,15 @@
         'value_type' => 'uniline',
         'default' => '/dev/ttyS0',
         'type' => 'leaf',
-        'description' => 'Select the output device to use [default: /dev/lcd]'
+        'description' => 'Select the output device to use [default: /dev/lcd]
+[ assert: "-d" ]'
       },
       'Size',
       {
         'value_type' => 'uniline',
         'upstream_default' => '20x4',
         'type' => 'leaf',
-        'description' => 'Select the LCD size [default: 20x4]'
+        'description' => 'Select the LCD size [default: 20x4; match: "^\\d+x\\d+$"]'
       },
       'Contrast',
       {

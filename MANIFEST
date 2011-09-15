@@ -5,6 +5,7 @@ MANIFEST
 MANIFEST.SKIP
 META.yml
 MODELS
+MYMETA.json
 README
 TODO
 config-edit
@@ -21,14 +22,12 @@ examples/fstab/lib/Config/Model/models/MyFstab/FsLine.pl
 examples/fstab/lib/Config/Model/models/MyFstab/Iso9660_Opt.pl
 examples/fstab/lib/Config/Model/models/MyFstab/SwapOptions.pl
 examples/fstab/lib/Config/Model/models/MyFstab/UsbFsOptions.pl
-examples/lcdproc/#LCDd.conf#
 examples/lcdproc/LCDd.conf
 examples/lcdproc/lcdconf2model.pl
 lib/Config/Model.pm
 lib/Config/Model/Annotation.pm
 lib/Config/Model/AnyId.pm
 lib/Config/Model/AnyThing.pm
-lib/Config/Model/AutoRead.pm
 lib/Config/Model/Backend/Any.pm
 lib/Config/Model/Backend/Debian/Dpkg.pm
 lib/Config/Model/Backend/Debian/Dpkg/Control.pm
@@ -40,6 +39,7 @@ lib/Config/Model/Backend/IniFile.pm
 lib/Config/Model/Backend/PlainFile.pm
 lib/Config/Model/Backend/ShellVar.pm
 lib/Config/Model/Backend/Yaml.pm
+lib/Config/Model/BackendMgr.pm
 lib/Config/Model/CheckList.pm
 lib/Config/Model/Cookbook/CreateModelFromDoc.pod
 lib/Config/Model/Debian/Dependency.pm
@@ -245,6 +245,7 @@ t/load.t
 t/load_model_snippets.t
 t/model.t
 t/model_tests.d/debian-dependency-cache.txt
+t/model_tests.d/debian-dpkg-control-examples/sdlperl
 t/model_tests.d/debian-dpkg-control-examples/t0
 t/model_tests.d/debian-dpkg-control-examples/t1
 t/model_tests.d/debian-dpkg-control-examples/t2

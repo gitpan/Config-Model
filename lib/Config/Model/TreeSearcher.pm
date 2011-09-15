@@ -27,7 +27,7 @@
 
 package Config::Model::TreeSearcher ;
 {
-  $Config::Model::TreeSearcher::VERSION = '1.254';
+  $Config::Model::TreeSearcher::VERSION = '1.255';
 }
 
 use Any::Moose ;
@@ -44,7 +44,7 @@ enum ('SearchType' =>  @search_types, 'all');
 has 'node'  => ( is => 'ro', isa => 'Config::Model::Node' , 
                   weak_ref => 1, required => 1 );
 
-has 'type' => ( is => 'ro', isa => 'SearchType' ) ;
+has 'search_type' => ( is => 'ro', isa => 'SearchType' ) ;
 
 has '_type_hash' => (
     is =>'rw',
@@ -57,7 +57,7 @@ my $logger = get_logger("TreeSearcher") ;
 
 sub _build_type_hash {
     my $self = shift ;
-    my $t = $self->type ;
+    my $t = $self->search_type ;
     my $def = $t eq 'all' ? 1 : 0 ;
     my %res=  map { $_ => $def ;} @search_types ;
     $res{$t} = 1 unless $t eq 'all' ;
@@ -155,7 +155,7 @@ Config::Model::TreeSearcher - Search tree for match in value, description...
 
 =head1 VERSION
 
-version 1.254
+version 1.255
 
 =head1 SYNOPSIS
 

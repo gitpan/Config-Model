@@ -4,7 +4,7 @@ Config::Model::models::LCDd::server - Configuration class LCDd::server
 
 =head1 VERSION
 
-version 1.254
+version 1.255
 
 =head1 DESCRIPTION
 
@@ -19,7 +19,8 @@ IMPORTANT: Make sure to change this setting to reflect your
            specific setup! Otherwise LCDd won't be able to find
            the driver modules and will thus not be able to
            function properly.
-NOTE: Always place a slash as last character !I<< Optional. Type uniline. default: '/usr/lib/lcdproc/'.  >>
+NOTE: Always place a slash as last character !
+[ match:"\/$" assert:"-d" ]I<< Optional. Type uniline. default: '/usr/lib/lcdproc/'.  >>
 
 =head2 Driver
 
@@ -36,7 +37,11 @@ The following drivers are supported:
   IOWarrior, irman, joy, lb216, lcdm001, lcterm, lirc, lis, MD8800,
   mdm166a, ms6931, mtc_s16209x, MtxOrb, mx5000, NoritakeVFD, picolcd,
   pyramid, sed1330, sed1520, serialPOS, serialVFD, shuttleVFD, sli,
-  stv5730, svga, t6963, text, tyan, ula200, xosd. I<< Optional. Type enum. choice: 'bayrad', 'CFontz', 'CFontz633', 'CFontzPacket', 'curses', 'CwLnx', 'ea65', 'EyeboxOne', 'g15', 'glcdlib', 'glk', 'hd44780', 'icp_a106', 'imon', 'imonlcd', 'IOWarrior', 'irman', 'joy', 'lb216', 'lcdm001', 'lcterm', 'lirc', 'lis', 'MD8800', 'mdm166a', 'ms6931', 'mtc_s16209x', 'MtxOrb', 'mx5000', 'NoritakeVFD', 'picolcd', 'pyramid', 'sed1330', 'sed1520', 'serialPOS', 'serialVFD', 'shuttleVFD', 'sli', 'stv5730', 'svga', 't6963', 'text', 'tyan', 'ula200', 'xosd'.  >>
+  stv5730, svga, t6963, text, tyan, ula200, xosd
+{ warn_if_match:"CFontz 633" 
+  message="this driver is deprecated, please use CFontzPacket driver with Model=633 instead." 
+  load="server Driver=CFontzPacket - CFontzPacket model=633"
+}I<< Optional. Type enum. choice: 'bayrad', 'CFontz', 'CFontz633', 'CFontzPacket', 'curses', 'CwLnx', 'ea65', 'EyeboxOne', 'g15', 'glcdlib', 'glk', 'hd44780', 'icp_a106', 'imon', 'imonlcd', 'IOWarrior', 'irman', 'joy', 'lb216', 'lcdm001', 'lcterm', 'lirc', 'lis', 'MD8800', 'mdm166a', 'ms6931', 'mtc_s16209x', 'MtxOrb', 'mx5000', 'NoritakeVFD', 'picolcd', 'pyramid', 'sed1330', 'sed1520', 'serialPOS', 'serialVFD', 'shuttleVFD', 'sli', 'stv5730', 'svga', 't6963', 'text', 'tyan', 'ula200', 'xosd', 'warn_if_match', 'CFontz', '633', 'message', 'this', 'driver', 'is', 'deprecated', 'please', 'use', 'CFontzPacket', 'driver', 'with', 'Model', '633', 'instead', 'load', 'server', 'Driver', 'CFontzPacket', 'CFontzPacket', 'model', '633'.  >>
 
 =head2 Bind
 
@@ -48,7 +53,9 @@ Listen on this specified port; defaults to 13666.I<< Optional. Type integer. def
 
 =head2 ReportLevel
 
-Sets the reporting level; defaults to 2 (warnings and errors only).I<< Optional. Type integer. default: '3'.  >>
+Sets the reporting level; defaults to 2 (warnings and errors only).
+[ value_type: int; max: 3; default: 2; ]
+{ help 0:"no report" 1:"reports errors" 2:"reports warnings" 3:"reports info" }I<< Optional. Type integer. upstream_default: '2'.  >>
 
 =head2 ReportToSyslog
 
@@ -56,12 +63,13 @@ Should we report to syslog instead of stderr ? [default: no; legal: yes, no]I<< 
 
 =head2 User
 
-User to run as.  LCDd will drop its root priviledges, if any,
+User to run as.  LCDd will drop its root privileges, if any,
 and run as this user instead.I<< Optional. Type uniline. default: 'nobody'.  >>
 
 =head2 Foreground
 
-The server will stay in the foreground if set to true.I<< Optional. Type uniline. default: 'no'.  >>
+The server will stay in the foreground if set to true.
+[ legal: yes, no ]I<< Optional. Type enum. choice: 'yes', 'no'. default: 'no'.  >>
 
 =head2 Hello
 

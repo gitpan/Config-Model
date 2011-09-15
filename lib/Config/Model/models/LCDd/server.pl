@@ -22,7 +22,8 @@ IMPORTANT: Make sure to change this setting to reflect your
            specific setup! Otherwise LCDd won\'t be able to find
            the driver modules and will thus not be able to
            function properly.
-NOTE: Always place a slash as last character !'
+NOTE: Always place a slash as last character !
+[ match:"\\/$" assert:"-d" ]'
       },
       'Driver',
       {
@@ -41,7 +42,11 @@ The following drivers are supported:
   IOWarrior, irman, joy, lb216, lcdm001, lcterm, lirc, lis, MD8800,
   mdm166a, ms6931, mtc_s16209x, MtxOrb, mx5000, NoritakeVFD, picolcd,
   pyramid, sed1330, sed1520, serialPOS, serialVFD, shuttleVFD, sli,
-  stv5730, svga, t6963, text, tyan, ula200, xosd',
+  stv5730, svga, t6963, text, tyan, ula200, xosd
+{ warn_if_match:"CFontz 633" 
+  message="this driver is deprecated, please use CFontzPacket driver with Model=633 instead." 
+  load="server Driver=CFontzPacket - CFontzPacket model=633"
+}',
         'choice' => [
           'bayrad',
           'CFontz',
@@ -87,7 +92,30 @@ The following drivers are supported:
           'text',
           'tyan',
           'ula200',
-          'xosd'
+          'xosd',
+          'warn_if_match',
+          'CFontz',
+          '633',
+          'message',
+          'this',
+          'driver',
+          'is',
+          'deprecated',
+          'please',
+          'use',
+          'CFontzPacket',
+          'driver',
+          'with',
+          'Model',
+          '633',
+          'instead',
+          'load',
+          'server',
+          'Driver',
+          'CFontzPacket',
+          'CFontzPacket',
+          'model',
+          '633'
         ]
       },
       'Bind',
@@ -107,9 +135,11 @@ The following drivers are supported:
       'ReportLevel',
       {
         'value_type' => 'integer',
-        'default' => '3',
+        'upstream_default' => '2',
         'type' => 'leaf',
-        'description' => 'Sets the reporting level; defaults to 2 (warnings and errors only).'
+        'description' => 'Sets the reporting level; defaults to 2 (warnings and errors only).
+[ value_type: int; max: 3; default: 2; ]
+{ help 0:"no report" 1:"reports errors" 2:"reports warnings" 3:"reports info" }'
       },
       'ReportToSyslog',
       {
@@ -127,15 +157,20 @@ The following drivers are supported:
         'value_type' => 'uniline',
         'default' => 'nobody',
         'type' => 'leaf',
-        'description' => 'User to run as.  LCDd will drop its root priviledges, if any,
+        'description' => 'User to run as.  LCDd will drop its root privileges, if any,
 and run as this user instead.'
       },
       'Foreground',
       {
-        'value_type' => 'uniline',
+        'value_type' => 'enum',
         'default' => 'no',
         'type' => 'leaf',
-        'description' => 'The server will stay in the foreground if set to true.'
+        'description' => 'The server will stay in the foreground if set to true.
+[ legal: yes, no ]',
+        'choice' => [
+          'yes',
+          'no'
+        ]
       },
       'Hello',
       {
