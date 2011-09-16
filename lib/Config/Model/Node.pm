@@ -27,7 +27,7 @@
 
 package Config::Model::Node;
 {
-  $Config::Model::Node::VERSION = '1.255';
+  $Config::Model::Node::VERSION = '1.256';
 }
 use Carp ;
 use strict;
@@ -70,7 +70,7 @@ Config::Model::Node - Class for configuration tree node
 
 =head1 VERSION
 
-version 1.255
+version 1.256
 
 =head1 SYNOPSIS
 
@@ -1782,10 +1782,8 @@ Returns a L<Config::Model::TreeSearcher> object.
 
 sub tree_searcher {
     my $self = shift;
-    my %args = @_ ;
     
-    $args{search_type} = delete $args{type} ;
-    return Config::Model::TreeSearcher->new ( node => $self, %args );
+    return Config::Model::TreeSearcher->new ( node => $self, @_ );
 }
 
 1;

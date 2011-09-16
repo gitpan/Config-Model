@@ -27,7 +27,7 @@
 
 package Config::Model::ObjTreeScanner ;
 {
-  $Config::Model::ObjTreeScanner::VERSION = '1.255';
+  $Config::Model::ObjTreeScanner::VERSION = '1.256';
 }
 use strict ;
 use Config::Model::Exception ;
@@ -45,7 +45,7 @@ Config::Model::ObjTreeScanner - Scan config tree and perform call-backs
 
 =head1 VERSION
 
-version 1.255
+version 1.256
 
 =head1 SYNOPSIS
 
@@ -577,7 +577,6 @@ sub scan_element {
 
     my $element_type = $node->element_type($element_name);
 
-    return unless defined $element_type; # element may not be initialized
     my $autov = $self->{auto_vivify} ;
 
     #print "scan_element $element_name ";

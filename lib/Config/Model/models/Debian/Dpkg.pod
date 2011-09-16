@@ -4,7 +4,7 @@ Config::Model::models::Debian::Dpkg - Configuration class Debian::Dpkg
 
 =head1 VERSION
 
-version 1.255
+version 1.256
 
 =head1 DESCRIPTION
 
@@ -44,6 +44,24 @@ I<< Optional. Type list of uniline.  >>
 =head2 patches
 
 I<< Optional. Type hash of node.  >>
+
+=head2 compat
+
+compat file defines the debhelper compatibility level. I<< Optional. Type integer. default: '7'.  >>
+
+=head2 dirs - Extra directories
+
+This file specifies any directories which we need but which are not created by the normal installation procedure (make install DESTDIR=... invoked by dh_auto_install). This generally means there is a problem with the Makefile.
+
+Files listed in an install file don't need their directories created first. 
+
+It is best to try to run the installation first and only use this if you run into trouble. There is no preceding slash on the directory names listed in the dirs file. I<< Optional. Type list of uniline.  >>
+
+=head2 docs
+
+This file specifies the file names of documentation files we can have dh_installdocs(1) install into the temporary directory for us.
+
+By default, it will include all existing files in the top-level source directory that are called BUGS, README*, TODO etc. I<< Optional. Type list of uniline.  >>
 
 =head1 SEE ALSO
 
