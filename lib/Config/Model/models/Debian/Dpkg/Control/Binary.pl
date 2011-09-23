@@ -48,6 +48,7 @@ A package may specify an architecture wildcard. Architecture wildcards are in th
           'class' => 'Config::Model::Debian::Dependency',
           'type' => 'leaf'
         },
+        'duplicates' => 'warn',
         'type' => 'list'
       },
       'Recommends',
@@ -57,6 +58,7 @@ A package may specify an architecture wildcard. Architecture wildcards are in th
           'class' => 'Config::Model::Debian::Dependency',
           'type' => 'leaf'
         },
+        'duplicates' => 'warn',
         'type' => 'list'
       },
       'Suggests',
@@ -66,6 +68,7 @@ A package may specify an architecture wildcard. Architecture wildcards are in th
           'class' => 'Config::Model::Debian::Dependency',
           'type' => 'leaf'
         },
+        'duplicates' => 'warn',
         'type' => 'list'
       },
       'Enhances',

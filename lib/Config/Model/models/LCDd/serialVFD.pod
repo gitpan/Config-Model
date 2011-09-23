@@ -4,7 +4,7 @@ Config::Model::models::LCDd::serialVFD - Configuration class LCDd::serialVFD
 
 =head1 VERSION
 
-version 1.256
+version 1.257
 
 =head1 DESCRIPTION
 

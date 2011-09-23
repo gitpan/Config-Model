@@ -27,7 +27,7 @@
 
 package Config::Model::Backend::Debian::Dpkg ;
 {
-  $Config::Model::Backend::Debian::Dpkg::VERSION = '1.256';
+  $Config::Model::Backend::Debian::Dpkg::VERSION = '1.257';
 }
 
 use Carp;
@@ -45,9 +45,10 @@ sub read_hash {
     my ($self,$obj,$elt, $file,$check,$args) = @_;
 
     if ($elt eq 'patches') {
-        $logger->info("Checking patches directory");
+        my $patch_dir = $args->{root}.$args->{config_dir}."patches" ;
+        $logger->info("Checking patches directory ($patch_dir)");
 
-        $self->read_patch_series($obj,$check,$args->{root}."patches") ;
+        $self->read_patch_series($obj,$check,$patch_dir) ;
     }
     else {
         $self->SUPER::read_hash(@_) ;
@@ -118,7 +119,7 @@ sub write {
             @v = map { "$_\n" } $obj->fetch_all_values ;
         }
         else {
-            $logger->debug("Debian::Dpkg write skiped $type $elt");
+            $logger->debug("Debian::Dpkg write skipped $type $elt");
         }
 
 
@@ -148,7 +149,7 @@ Config::Model::Backend::Debian::Dpkg - Read and write config as plain file
 
 =head1 VERSION
 
-version 1.256
+version 1.257
 
 =head1 SYNOPSIS
 

@@ -27,7 +27,7 @@
 
 package Config::Model::Value ;
 {
-  $Config::Model::Value::VERSION = '1.256';
+  $Config::Model::Value::VERSION = '1.257';
 }
 use warnings ;
 use strict;
@@ -53,7 +53,7 @@ Config::Model::Value - Strongly typed configuration value
 
 =head1 VERSION
 
-version 1.256
+version 1.257
 
 =head1 SYNOPSIS
 

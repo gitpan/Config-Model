@@ -12,7 +12,7 @@
     'read_config' => [
       {
         'backend' => 'Debian::Dpkg::Patch',
-        'config_dir' => 'patches'
+        'config_dir' => 'debian/patches'
       }
     ],
     'name' => 'Debian::Dpkg::Patch',
@@ -21,10 +21,6 @@
       {
         'value_type' => 'uniline',
         'warn_if_match' => {
-          '^[A-Z]' => {
-            'msg' => 'short description should start with a small letter',
-            'fix' => '$_ = lcfirst($_) ;'
-          },
           '.{60,}' => {
             'msg' => 'Synopsis is too long. '
           }
