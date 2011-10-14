@@ -13,17 +13,20 @@
     'element' => [
       'DriverPath',
       {
+        'warn_unless' => {
+          '0' => {
+            'code' => '-d'
+          }
+        },
         'value_type' => 'uniline',
-        'match' => '/$',
-        'default' => '/usr/lib/lcdproc/',
+        'match' => '\\/$',
         'type' => 'leaf',
         'description' => 'Where can we find the driver modules ?
 IMPORTANT: Make sure to change this setting to reflect your
            specific setup! Otherwise LCDd won\'t be able to find
            the driver modules and will thus not be able to
            function properly.
-NOTE: Always place a slash as last character !
-[ match:"\\/$" assert:"-d" ]'
+NOTE: Always place a slash as last character !'
       },
       'Driver',
       {
@@ -135,18 +138,23 @@ The following drivers are supported:
       'ReportLevel',
       {
         'value_type' => 'integer',
+        'help' => {
+          '1' => 'reports errors',
+          '3' => 'reports info',
+          '0' => 'no report',
+          '2' => 'reports warnings'
+        },
         'upstream_default' => '2',
+        'max' => '3',
         'type' => 'leaf',
-        'description' => 'Sets the reporting level; defaults to 2 (warnings and errors only).
-[ value_type: int; max: 3; default: 2; ]
-{ help 0:"no report" 1:"reports errors" 2:"reports warnings" 3:"reports info" }'
+        'description' => 'Sets the reporting level; defaults to 2 (warnings and errors only).'
       },
       'ReportToSyslog',
       {
         'value_type' => 'enum',
         'upstream_default' => 'no',
         'type' => 'leaf',
-        'description' => 'Should we report to syslog instead of stderr ? [default: no; legal: yes, no]',
+        'description' => 'Should we report to syslog instead of stderr ? ',
         'choice' => [
           'yes',
           'no'
@@ -163,10 +171,8 @@ and run as this user instead.'
       'Foreground',
       {
         'value_type' => 'enum',
-        'default' => 'no',
         'type' => 'leaf',
-        'description' => 'The server will stay in the foreground if set to true.
-[ legal: yes, no ]',
+        'description' => 'The server will stay in the foreground if set to true.',
         'choice' => [
           'yes',
           'no'
@@ -213,7 +219,7 @@ and run as this user instead.'
         'description' => 'If yes, the the serverscreen will be rotated as a usual info screen. If no,
 it will be a background screen, only visible when no other screens are
 active. The special value \'blank\' is similar to no, but only a blank screen
-is displayed. [default: on; legal: on, off, blank]',
+is displayed. ',
         'choice' => [
           'on',
           'off',
@@ -226,7 +232,7 @@ is displayed. [default: on; legal: on, off, blank]',
         'upstream_default' => 'open',
         'type' => 'leaf',
         'description' => 'Set master backlight setting. If set to \'open\' a client may control the
-backlight for its own screens (only). [default: open; legal: off, open, on]',
+backlight for its own screens (only). ',
         'choice' => [
           'off',
           'open',
@@ -239,7 +245,7 @@ backlight for its own screens (only). [default: open; legal: off, open, on]',
         'upstream_default' => 'open',
         'type' => 'leaf',
         'description' => 'Set master heartbeat setting. If set to \'open\' a client may control the
-heartbeat for its own screens (only). [default: open; legal: off, open, on]',
+heartbeat for its own screens (only). ',
         'choice' => [
           'off',
           'open',
@@ -253,7 +259,7 @@ heartbeat for its own screens (only). [default: open; legal: off, open, on]',
         'upstream_default' => '10',
         'max' => '10',
         'type' => 'leaf',
-        'description' => 'set title scrolling speed [default: 10; legal: 0-10]'
+        'description' => 'set title scrolling speed '
       },
       'ToggleRotateKey',
       {

@@ -4,7 +4,7 @@ Config::Model::models::LCDd::xosd - Configuration class LCDd::xosd
 
 =head1 VERSION
 
-version 1.257
+version 1.258
 
 =head1 DESCRIPTION
 
@@ -14,11 +14,11 @@ Configuration classes used by L<Config::Model>
 
 =head2 Size
 
-set display size [default: 20x4]I<< Optional. Type uniline. upstream_default: '20x4'.  >>
+set display size I<< Optional. Type uniline. upstream_default: '20x4'.  >>
 
 =head2 Offset
 
-Offset in pixels from the top-left corner of the monitor [default: 0x0]I<< Optional. Type uniline. upstream_default: '0x0'.  >>
+Offset in pixels from the top-left corner of the monitor I<< Optional. Type uniline. upstream_default: '0x0'.  >>
 
 =head2 Font
 

@@ -16,14 +16,14 @@
         'value_type' => 'uniline',
         'upstream_default' => '20x4',
         'type' => 'leaf',
-        'description' => 'set display size [default: 20x4]'
+        'description' => 'set display size '
       },
       'Offset',
       {
         'value_type' => 'uniline',
         'upstream_default' => '0x0',
         'type' => 'leaf',
-        'description' => 'Offset in pixels from the top-left corner of the monitor [default: 0x0]'
+        'description' => 'Offset in pixels from the top-left corner of the monitor '
       },
       'Font',
       {

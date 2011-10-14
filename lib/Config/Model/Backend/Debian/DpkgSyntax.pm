@@ -9,7 +9,7 @@
 #
 package Config::Model::Backend::Debian::DpkgSyntax ;
 {
-  $Config::Model::Backend::Debian::DpkgSyntax::VERSION = '1.257';
+  $Config::Model::Backend::Debian::DpkgSyntax::VERSION = '1.258';
 }
 
 use Any::Moose '::Role' ;
@@ -94,7 +94,7 @@ sub parse_dpkg_lines {
         map { $logger->debug("Parse result section ".$i++.":\n'".join("','",@$_)."'") ;} @res ;
     }
 
-    warn "No section found\n" unless @res ;
+    $logger->warn("No section found") unless @res ;
     
     return wantarray ? @res : \@res ;   
 }
@@ -164,7 +164,7 @@ Config::Model::Backend::Debian::DpkgSyntax - Role to read and write files with D
 
 =head1 VERSION
 
-version 1.257
+version 1.258
 
 =head1 SYNOPSIS
 

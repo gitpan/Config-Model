@@ -14,16 +14,16 @@
       'Device',
       {
         'value_type' => 'uniline',
-        'default' => '/dev/ttyS1',
+        'upstream_default' => '/dev/ttyS1',
         'type' => 'leaf',
-        'description' => 'device to use [default: /dev/ttyS1]'
+        'description' => 'device to use '
       },
       'Size',
       {
         'value_type' => 'uniline',
         'upstream_default' => '16x2',
         'type' => 'leaf',
-        'description' => 'display size [default: 16x2]'
+        'description' => 'display size '
       }
     ]
   }

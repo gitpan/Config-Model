@@ -4,7 +4,7 @@ Config::Model::models::LCDd::joy - Configuration class LCDd::joy
 
 =head1 VERSION
 
-version 1.257
+version 1.258
 
 =head1 DESCRIPTION
 
@@ -14,7 +14,7 @@ Configuration classes used by L<Config::Model>
 
 =head2 Device
 
-Select the input device to use [default: /dev/js0]I<< Optional. Type uniline. default: '/dev/js0'.  >>
+Select the input device to use I<< Optional. Type uniline. upstream_default: '/dev/js0'.  >>
 
 =head2 Map_Axis1neg
 

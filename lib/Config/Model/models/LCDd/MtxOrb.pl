@@ -14,23 +14,23 @@
       'Device',
       {
         'value_type' => 'uniline',
-        'default' => '/dev/ttyS0',
+        'upstream_default' => '/dev/lcd',
         'type' => 'leaf',
-        'description' => 'Select the output device to use [default: /dev/lcd]'
+        'description' => 'Select the output device to use '
       },
       'Size',
       {
         'value_type' => 'uniline',
         'upstream_default' => '20x4',
         'type' => 'leaf',
-        'description' => 'Set the display size [default: 20x4]'
+        'description' => 'Set the display size '
       },
       'Type',
       {
         'value_type' => 'enum',
         'upstream_default' => 'lcd',
         'type' => 'leaf',
-        'description' => 'Set the display type [default: lcd; legal: lcd, lkd, vfd, vkd]',
+        'description' => 'Set the display type ',
         'choice' => [
           'lcd',
           'lkd',
@@ -43,7 +43,7 @@
         'value_type' => 'uniline',
         'upstream_default' => '480',
         'type' => 'leaf',
-        'description' => 'Set the initial contrast [default: 480]
+        'description' => 'Set the initial contrast 
 NOTE: The driver will ignore this if the display
       is a vfd or vkd as they don\'t have this feature'
       },
@@ -54,7 +54,7 @@ NOTE: The driver will ignore this if the display
         'type' => 'leaf',
         'description' => 'Some old displays do not have an adjustable backlight but only can
 switch the backlight on/off. If you experience randomly appearing block
-characters, try setting this to false. [default: yes; legal: yes, no]',
+characters, try setting this to false. ',
         'choice' => [
           'yes',
           'no'
@@ -67,7 +67,7 @@ characters, try setting this to false. [default: yes; legal: yes, no]',
         'upstream_default' => '1000',
         'max' => '1000',
         'type' => 'leaf',
-        'description' => 'Set the initial brightness [default: 1000; legal: 0 - 1000]'
+        'description' => 'Set the initial brightness '
       },
       'OffBrightness',
       {
@@ -76,7 +76,7 @@ characters, try setting this to false. [default: yes; legal: yes, no]',
         'upstream_default' => '0',
         'max' => '1000',
         'type' => 'leaf',
-        'description' => 'Set the initial off-brightness [default: 0; legal: 0 - 1000]
+        'description' => 'Set the initial off-brightness 
 This value is used when the display is normally
 switched off in case LCDd is inactive'
       },
@@ -85,7 +85,7 @@ switched off in case LCDd is inactive'
         'value_type' => 'enum',
         'upstream_default' => '19200',
         'type' => 'leaf',
-        'description' => 'Set the communication speed [default: 19200; legal: 1200, 2400, 9600, 19200]',
+        'description' => 'Set the communication speed ',
         'choice' => [
           '1200',
           '2400',

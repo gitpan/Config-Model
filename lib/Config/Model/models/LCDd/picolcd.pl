@@ -29,7 +29,7 @@ balanced value.'
         'upstream_default' => '1000',
         'max' => '1000',
         'type' => 'leaf',
-        'description' => 'Set the initial brightness [default: 1000; legal: 0 - 1000]'
+        'description' => 'Set the initial brightness '
       },
       'Contrast',
       {
@@ -38,14 +38,14 @@ balanced value.'
         'upstream_default' => '1000',
         'max' => '1000',
         'type' => 'leaf',
-        'description' => 'Set the initial contrast [default: 1000; legal: 0 - 1000]'
+        'description' => 'Set the initial contrast '
       },
       'Keylights',
       {
         'value_type' => 'enum',
         'upstream_default' => 'on',
         'type' => 'leaf',
-        'description' => 'Light the keys? i[default: on; legal: on, off]',
+        'description' => 'Light the keys? ',
         'choice' => [
           'on',
           'off'
@@ -59,7 +59,7 @@ balanced value.'
         'description' => 'If Keylights is on, the you can unlight specific keys below:
 Key0 is the directional pad.  Key1 - Key5 correspond to the F1 - F5 keys.
 There is no LED for the +/- keys.  This is a handy way to indicate to users
-which keys are disabled.  [default: on; legal: on, off]',
+which keys are disabled.  ',
         'choice' => [
           'on',
           'off'
@@ -110,7 +110,7 @@ If not set, or set to an empty value, IR support is disabled.'
         'upstream_default' => '8765',
         'max' => '65535',
         'type' => 'leaf',
-        'description' => 'UDP port on which LIRC is listening [default: 8765; legal: 1 - 65535]'
+        'description' => 'UDP port on which LIRC is listening '
       },
       'LircFlushThreshold',
       {
@@ -118,7 +118,7 @@ If not set, or set to an empty value, IR support is disabled.'
         'upstream_default' => '100',
         'type' => 'leaf',
         'description' => 'Threshold in jiffies of synthesized gap that triggers flushing the IR data to lirc
-[default: 100 (6.1ms); 0 to suppress]'
+ (100 is 6.1ms); use 0 to suppress'
       }
     ]
   }

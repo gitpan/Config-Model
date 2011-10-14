@@ -16,7 +16,7 @@
         'value_type' => 'uniline',
         'upstream_default' => 'image',
         'type' => 'leaf',
-        'description' => 'which graphical display supported by graphlcd-base to use [default: image]
+        'description' => 'which graphical display supported by graphlcd-base to use 
 (see /etc/graphlcd.conf for possible drivers)'
       },
       'UseFT2',
@@ -32,7 +32,7 @@ yes=use fonts supported by FreeType2 (needs Freetype2 support in libglcdprocdriv
         'value_type' => 'uniline',
         'upstream_default' => '16x4',
         'type' => 'leaf',
-        'description' => 'text resolution in fixed width characters [default: 16x4]
+        'description' => 'text resolution in fixed width characters 
 (if it won\'t fit according to available physical pixel resolutioni
 and the minimum available font face size in pixels, then
 \'DebugBorder\' will automatically be turned on)'

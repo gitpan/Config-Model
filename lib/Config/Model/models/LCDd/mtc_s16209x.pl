@@ -14,9 +14,9 @@
       'Device',
       {
         'value_type' => 'uniline',
-        'default' => '/dev/lcd',
+        'upstream_default' => '/dev/lcd',
         'type' => 'leaf',
-        'description' => 'Select the output device to use [default: /dev/lcd]'
+        'description' => 'Select the output device to use '
       },
       'Brightness',
       {
@@ -25,14 +25,14 @@
         'upstream_default' => '255',
         'max' => '255',
         'type' => 'leaf',
-        'description' => 'Set the initial brightness [default: 255; legal: 0 - 255]'
+        'description' => 'Set the initial brightness '
       },
       'Reboot',
       {
         'value_type' => 'enum',
         'upstream_default' => 'no',
         'type' => 'leaf',
-        'description' => 'Reinitialize the LCD\'s BIOS [default: no; legal: yes, no]',
+        'description' => 'Reinitialize the LCD\'s BIOS ',
         'choice' => [
           'yes',
           'no'

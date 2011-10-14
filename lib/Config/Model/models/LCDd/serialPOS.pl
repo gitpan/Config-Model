@@ -14,24 +14,23 @@
       'Device',
       {
         'value_type' => 'uniline',
-        'default' => '/dev/lcd',
+        'upstream_default' => '/dev/lcd',
         'type' => 'leaf',
-        'description' => 'Device to use in serial mode [default: /dev/lcd]'
+        'description' => 'Device to use in serial mode '
       },
       'Size',
       {
         'value_type' => 'uniline',
         'upstream_default' => '16x2',
         'type' => 'leaf',
-        'description' => 'Specifies the size of the display in characters. [default: 16x2]'
+        'description' => 'Specifies the size of the display in characters. '
       },
       'Type',
       {
         'value_type' => 'enum',
         'upstream_default' => 'AEDEX',
         'type' => 'leaf',
-        'description' => 'Set the communication protocol to use with the POS display.
-[default: AEDEX; legal: IEE, Epson, Emax, IBM, LogicControls, Ultimate]',
+        'description' => 'Set the communication protocol to use with the POS display.',
         'choice' => [
           'IEE',
           'Epson',
@@ -46,7 +45,7 @@
         'value_type' => 'enum',
         'upstream_default' => '9600',
         'type' => 'leaf',
-        'description' => 'communication baud rate with the display [default: 9600; legal: 1200, 2400, 19200, 115200]',
+        'description' => 'communication baud rate with the display ',
         'choice' => [
           '1200',
           '2400',

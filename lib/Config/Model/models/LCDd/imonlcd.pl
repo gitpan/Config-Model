@@ -14,25 +14,23 @@
       'Protocol',
       {
         'value_type' => 'uniline',
-        'default' => '0',
+        'upstream_default' => '0',
         'type' => 'leaf',
-        'description' => 'Specify which iMon protocol should be used [legal: 0=15c2:ffdc device,
-1=15c2:0038 device; default: 0]'
+        'description' => 'Specify which iMon protocol should be used '
       },
       'OnExit',
       {
         'value_type' => 'uniline',
-        'default' => '2',
+        'upstream_default' => '1',
         'type' => 'leaf',
-        'description' => 'Set the exit behavior [legal: 0=leave shutdown message, 1=show the big clock,
-2=blank device; default: 1]'
+        'description' => 'Set the exit behavior '
       },
       'Device',
       {
         'value_type' => 'uniline',
-        'default' => '/dev/lcd0',
+        'upstream_default' => '/dev/lcd0',
         'type' => 'leaf',
-        'description' => 'Select the output device to use [default: /dev/lcd0]'
+        'description' => 'Select the output device to use '
       },
       'Contrast',
       {
@@ -41,21 +39,21 @@
         'upstream_default' => '200',
         'max' => '1000',
         'type' => 'leaf',
-        'description' => 'Select the displays contrast [default: 200; legal: 0-1000]'
+        'description' => 'Select the displays contrast '
       },
       'Size',
       {
         'value_type' => 'uniline',
         'upstream_default' => '96x16',
         'type' => 'leaf',
-        'description' => 'Specify the size of the display in pixels [default: 96x16]'
+        'description' => 'Specify the size of the display in pixels '
       },
       'Backlight',
       {
         'value_type' => 'enum',
         'upstream_default' => 'on',
         'type' => 'leaf',
-        'description' => 'Set the backlight state [default: on; legal: on, off]',
+        'description' => 'Set the backlight state ',
         'choice' => [
           'on',
           'off'
@@ -64,10 +62,9 @@
       'DiscMode',
       {
         'value_type' => 'uniline',
-        'default' => '0',
+        'upstream_default' => '0',
         'type' => 'leaf',
-        'description' => 'Set the disc mode [legal: 0=spin the "slim" disc - two disc segments,
-1=their complement spinning; default: 0]'
+        'description' => 'Set the disc mode '
       }
     ]
   }

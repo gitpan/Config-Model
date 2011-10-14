@@ -16,24 +16,21 @@
         'value_type' => 'uniline',
         'upstream_default' => '20x6',
         'type' => 'leaf',
-        'description' => 'set display size [default: 20x6]'
+        'description' => 'set display size '
       },
       'Port',
       {
-        'value_type' => 'enum',
+        'value_type' => 'uniline',
         'upstream_default' => '0x378',
         'type' => 'leaf',
-        'description' => 'port to use [default: 0x378; legal: 0x200 - 0x400]',
-        'choice' => [
-          '0x200'
-        ]
+        'description' => 'port to use '
       },
       'ECPlpt',
       {
         'value_type' => 'enum',
         'upstream_default' => 'yes',
         'type' => 'leaf',
-        'description' => 'Is ECP mode on? [default: yes; legal: yes, no]',
+        'description' => 'Is ECP mode on? ',
         'choice' => [
           'yes',
           'no'
@@ -44,7 +41,7 @@
         'value_type' => 'enum',
         'upstream_default' => 'no',
         'type' => 'leaf',
-        'description' => 'Use graphics? [default: no; legal: yes, no]',
+        'description' => 'Use graphics? ',
         'choice' => [
           'yes',
           'no'

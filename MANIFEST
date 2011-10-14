@@ -214,6 +214,7 @@ lib/Config/Model/models/PopCon.pod
 lib/Config/Model/system.d/fstab
 lib/Config/Model/system.d/lcdproc
 lib/Config/Model/system.d/popcon
+log
 script/gen_LCDd_model.pl
 script/gen_class_pod.pl
 t/accept.t
@@ -289,6 +290,7 @@ t/model_tests.d/debian-dpkg-examples/t1/debian/changelog
 t/model_tests.d/debian-dpkg-examples/t1/debian/compat
 t/model_tests.d/debian-dpkg-examples/t1/debian/control
 t/model_tests.d/debian-dpkg-examples/t1/debian/copyright
+t/model_tests.d/debian-dpkg-examples/t1/debian/patches/fix-man-page-spelling
 t/model_tests.d/debian-dpkg-examples/t1/debian/patches/fix-spelling
 t/model_tests.d/debian-dpkg-examples/t1/debian/patches/series
 t/model_tests.d/debian-dpkg-examples/t1/debian/patches/use-standard-dzil-test

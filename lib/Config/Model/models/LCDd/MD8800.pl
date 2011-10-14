@@ -14,16 +14,16 @@
       'Device',
       {
         'value_type' => 'uniline',
-        'default' => '/dev/ttyS1',
+        'upstream_default' => '/dev/ttyS1',
         'type' => 'leaf',
-        'description' => 'device to use [default: /dev/ttyS1]'
+        'description' => 'device to use '
       },
       'Size',
       {
         'value_type' => 'uniline',
         'upstream_default' => '16x2',
         'type' => 'leaf',
-        'description' => 'display size [default: 16x2]'
+        'description' => 'display size '
       },
       'Brightness',
       {
@@ -32,7 +32,7 @@
         'upstream_default' => '1000',
         'max' => '1000',
         'type' => 'leaf',
-        'description' => 'Set the initial brightness [default: 1000; legal: 0 - 1000]'
+        'description' => 'Set the initial brightness '
       },
       'OffBrightness',
       {
@@ -41,7 +41,7 @@
         'upstream_default' => '0',
         'max' => '1000',
         'type' => 'leaf',
-        'description' => 'Set the initial off-brightness [default: 0; legal: 0 - 1000]
+        'description' => 'Set the initial off-brightness 
 This value is used when the display is normally
 switched off in case LCDd is inactive'
       }

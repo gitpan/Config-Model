@@ -16,7 +16,7 @@
         'value_type' => 'enum',
         'upstream_default' => 'G320x240x256',
         'type' => 'leaf',
-        'description' => 'svgalib mode to use [default: G320x240x256; legal: supported svgalib modes]',
+        'description' => 'svgalib mode to use ',
         'choice' => [
           'supportedsvgalibmodes'
         ]
@@ -26,7 +26,7 @@
         'value_type' => 'uniline',
         'upstream_default' => '20x4',
         'type' => 'leaf',
-        'description' => 'set display size [default: 20x4]'
+        'description' => 'set display size '
       },
       'Contrast',
       {
@@ -35,7 +35,7 @@
         'upstream_default' => '500',
         'max' => '1000',
         'type' => 'leaf',
-        'description' => 'Set the initial contrast [default: 500; legal: 0 - 1000]
+        'description' => 'Set the initial contrast 
 Can be set but does not change anything internally'
       },
       'Brightness',
@@ -45,7 +45,7 @@ Can be set but does not change anything internally'
         'upstream_default' => '1000',
         'max' => '1000',
         'type' => 'leaf',
-        'description' => 'Set the initial brightness [default: 1000; legal: 1 - 1000]'
+        'description' => 'Set the initial brightness '
       },
       'OffBrightness',
       {
@@ -54,7 +54,7 @@ Can be set but does not change anything internally'
         'upstream_default' => '500',
         'max' => '1000',
         'type' => 'leaf',
-        'description' => 'Set the initial off-brightness [default: 500; legal: 1 - 1000]
+        'description' => 'Set the initial off-brightness 
 This value is used when the display is normally
 switched off in case LCDd is inactive'
       }

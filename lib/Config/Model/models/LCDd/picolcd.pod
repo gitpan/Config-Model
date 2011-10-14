@@ -4,7 +4,7 @@ Config::Model::models::LCDd::picolcd - Configuration class LCDd::picolcd
 
 =head1 VERSION
 
-version 1.257
+version 1.258
 
 =head1 DESCRIPTION
 
@@ -22,22 +22,22 @@ balanced value.I<< Optional. Type uniline. default: '500'.  >>
 
 =head2 Brightness
 
-Set the initial brightness [default: 1000; legal: 0 - 1000]I<< Optional. Type integer. upstream_default: '1000'.  >>
+Set the initial brightness I<< Optional. Type integer. upstream_default: '1000'.  >>
 
 =head2 Contrast
 
-Set the initial contrast [default: 1000; legal: 0 - 1000]I<< Optional. Type integer. upstream_default: '1000'.  >>
+Set the initial contrast I<< Optional. Type integer. upstream_default: '1000'.  >>
 
 =head2 Keylights
 
-Light the keys? i[default: on; legal: on, off]I<< Optional. Type enum. choice: 'on', 'off'. upstream_default: 'on'.  >>
+Light the keys? I<< Optional. Type enum. choice: 'on', 'off'. upstream_default: 'on'.  >>
 
 =head2 Key0Light
 
 If Keylights is on, the you can unlight specific keys below:
 Key0 is the directional pad.  Key1 - Key5 correspond to the F1 - F5 keys.
 There is no LED for the +/- keys.  This is a handy way to indicate to users
-which keys are disabled.  [default: on; legal: on, off]I<< Optional. Type enum. choice: 'on', 'off'. upstream_default: 'on'.  >>
+which keys are disabled.  I<< Optional. Type enum. choice: 'on', 'off'. upstream_default: 'on'.  >>
 
 =head2 Key1Light
 
@@ -66,12 +66,12 @@ If not set, or set to an empty value, IR support is disabled.I<< Optional. Type 
 
 =head2 LircPort
 
-UDP port on which LIRC is listening [default: 8765; legal: 1 - 65535]I<< Optional. Type integer. upstream_default: '8765'.  >>
+UDP port on which LIRC is listening I<< Optional. Type integer. upstream_default: '8765'.  >>
 
 =head2 LircFlushThreshold
 
 Threshold in jiffies of synthesized gap that triggers flushing the IR data to lirc
-[default: 100 (6.1ms); 0 to suppress]I<< Optional. Type uniline. upstream_default: '100'.  >>
+ (100 is 6.1ms); use 0 to suppress. I<< Optional. Type uniline. upstream_default: '100'.  >>
 
 =head1 SEE ALSO
 

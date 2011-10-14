@@ -4,7 +4,7 @@ Config::Model::models::LCDd::t6963 - Configuration class LCDd::t6963
 
 =head1 VERSION
 
-version 1.257
+version 1.258
 
 =head1 DESCRIPTION
 
@@ -14,19 +14,19 @@ Configuration classes used by L<Config::Model>
 
 =head2 Size
 
-set display size [default: 20x6]I<< Optional. Type uniline. upstream_default: '20x6'.  >>
+set display size I<< Optional. Type uniline. upstream_default: '20x6'.  >>
 
 =head2 Port
 
-port to use [default: 0x378; legal: 0x200 - 0x400]I<< Optional. Type enum. choice: '0x200'. upstream_default: '0x378'.  >>
+port to use I<< Optional. Type uniline. upstream_default: '0x378'.  >>
 
 =head2 ECPlpt
 
-Is ECP mode on? [default: yes; legal: yes, no]I<< Optional. Type enum. choice: 'yes', 'no'. upstream_default: 'yes'.  >>
+Is ECP mode on? I<< Optional. Type enum. choice: 'yes', 'no'. upstream_default: 'yes'.  >>
 
 =head2 graphic
 
-Use graphics? [default: no; legal: yes, no]I<< Optional. Type enum. choice: 'yes', 'no'. upstream_default: 'no'.  >>
+Use graphics? I<< Optional. Type enum. choice: 'yes', 'no'. upstream_default: 'no'.  >>
 
 =head1 SEE ALSO
 

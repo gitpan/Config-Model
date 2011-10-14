@@ -14,9 +14,9 @@
       'lircrc',
       {
         'value_type' => 'uniline',
-        'default' => '/etc/lircrc.lcdproc',
+        'upstream_default' => '~/.lircrc',
         'type' => 'leaf',
-        'description' => 'Specify an alternative location of the lircrc file [default: ~/.lircrc]'
+        'description' => 'Specify an alternative location of the lircrc file '
       },
       'prog',
       {

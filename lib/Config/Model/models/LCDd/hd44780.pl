@@ -20,17 +20,21 @@
       },
       'Port',
       {
-        'value_type' => 'uniline',
-        'default' => '0x378',
+        'value_type' => 'enum',
         'type' => 'leaf',
-        'description' => 'Port where the LPT is [ususal: 0x278, 0x378 and 0x3BC]'
+        'description' => 'Port where the LPT is ',
+        'choice' => [
+          '0x278',
+          '0x378',
+          '0x3BC'
+        ]
       },
       'Device',
       {
         'value_type' => 'uniline',
-        'default' => '/dev/ttyS0',
+        'upstream_default' => '/dev/lcd',
         'type' => 'leaf',
-        'description' => 'Device of the serial interface [default: /dev/lcd]'
+        'description' => 'Device of the serial interface '
       },
       'Speed',
       {
@@ -54,14 +58,16 @@ You may also need to configure the keypad layout further on in this file.'
         'upstream_default' => '500',
         'max' => '1000',
         'type' => 'leaf',
-        'description' => 'Set the initial contrast (bwctusb and lcd2usb) [default: 500; legal: 0 - 1000]'
+        'description' => 'Set the initial contrast (bwctusb and lcd2usb) '
       },
       'Brightness',
       {
-        'value_type' => 'uniline',
+        'value_type' => 'integer',
+        'min' => '0',
         'upstream_default' => '0',
+        'max' => '1000',
         'type' => 'leaf',
-        'description' => 'Set brightness of the backlight (lcd2usb only) [default: 0; legal 0 - 1000]'
+        'description' => 'Set brightness of the backlight (lcd2usb only) '
       },
       'OffBrightness',
       {
@@ -87,10 +93,10 @@ be able to control it with the lcdproc OUTPUT command'
       'Lastline',
       {
         'value_type' => 'enum',
-        'upstream_default' => 'true',
+        'upstream_default' => 'true(=pixeladdressable)',
         'type' => 'leaf',
         'description' => 'Specifies if the last line is pixel addressable or it controls an
-underline effect. [default: true (= pixel addressable); legal: yes, no]',
+underline effect. ',
         'choice' => [
           'yes',
           'no'
@@ -126,16 +132,21 @@ set this flag to get into extended mode (4-line linear).'
         'upstream_default' => '0x20',
         'type' => 'leaf',
         'description' => 'In extended mode, on some controllers like the ST7036 (in 3 line mode)
-the next line in DDRAM won\'t start 0x20 higher. [default: 0x20]'
+the next line in DDRAM won\'t start 0x20 higher. '
       },
       'CharMap',
       {
-        'value_type' => 'uniline',
-        'default' => 'hd44780_default',
+        'value_type' => 'enum',
+        'upstream_default' => 'hd44780_default',
         'type' => 'leaf',
-        'description' => 'Character map to to map ISO-8859-1 to the LCD\'s character set
-[default: hd44780_default; legal: hd44780_default, hd44780_euro,
- ea_ks0073, sed1278f_0b, hd44780_koi8_r ]'
+        'description' => 'Character map to to map ISO-8859-1 to the LCD\'s character set',
+        'choice' => [
+          'hd44780_default',
+          'hd44780_euro',
+          'ea_ks0073',
+          'sed1278f_0b',
+          'hd44780_koi8_r'
+        ]
       },
       'DelayMult',
       {

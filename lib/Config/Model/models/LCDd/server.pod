@@ -4,7 +4,7 @@ Config::Model::models::LCDd::server - Configuration class LCDd::server
 
 =head1 VERSION
 
-version 1.257
+version 1.258
 
 =head1 DESCRIPTION
 
@@ -19,8 +19,7 @@ IMPORTANT: Make sure to change this setting to reflect your
            specific setup! Otherwise LCDd won't be able to find
            the driver modules and will thus not be able to
            function properly.
-NOTE: Always place a slash as last character !
-[ match:"\/$" assert:"-d" ]I<< Optional. Type uniline. default: '/usr/lib/lcdproc/'.  >>
+NOTE: Always place a slash as last character !I<< Optional. Type uniline.  >>
 
 =head2 Driver
 
@@ -53,13 +52,35 @@ Listen on this specified port; defaults to 13666.I<< Optional. Type integer. def
 
 =head2 ReportLevel
 
-Sets the reporting level; defaults to 2 (warnings and errors only).
-[ value_type: int; max: 3; default: 2; ]
-{ help 0:"no report" 1:"reports errors" 2:"reports warnings" 3:"reports info" }I<< Optional. Type integer. upstream_default: '2'.  >>
+Sets the reporting level; defaults to 2 (warnings and errors only).I<< Optional. Type integer. upstream_default: '2'.  >>
+
+Here are some explanations on the possible values:
+
+=over
+
+=item 0
+
+no report
+
+=item 1
+
+reports errors
+
+=item 2
+
+reports warnings
+
+=item 3
+
+reports info
+
+=back
+
+
 
 =head2 ReportToSyslog
 
-Should we report to syslog instead of stderr ? [default: no; legal: yes, no]I<< Optional. Type enum. choice: 'yes', 'no'. upstream_default: 'no'.  >>
+Should we report to syslog instead of stderr ? I<< Optional. Type enum. choice: 'yes', 'no'. upstream_default: 'no'.  >>
 
 =head2 User
 
@@ -68,8 +89,7 @@ and run as this user instead.I<< Optional. Type uniline. default: 'nobody'.  >>
 
 =head2 Foreground
 
-The server will stay in the foreground if set to true.
-[ legal: yes, no ]I<< Optional. Type enum. choice: 'yes', 'no'. default: 'no'.  >>
+The server will stay in the foreground if set to true.I<< Optional. Type enum. choice: 'yes', 'no'.  >>
 
 =head2 Hello
 
@@ -88,21 +108,21 @@ Sets the default time in seconds to displays a screen.I<< Optional. Type integer
 If yes, the the serverscreen will be rotated as a usual info screen. If no,
 it will be a background screen, only visible when no other screens are
 active. The special value 'blank' is similar to no, but only a blank screen
-is displayed. [default: on; legal: on, off, blank]I<< Optional. Type enum. choice: 'on', 'off', 'blank'. upstream_default: 'on'.  >>
+is displayed. I<< Optional. Type enum. choice: 'on', 'off', 'blank'. upstream_default: 'on'.  >>
 
 =head2 Backlight
 
 Set master backlight setting. If set to 'open' a client may control the
-backlight for its own screens (only). [default: open; legal: off, open, on]I<< Optional. Type enum. choice: 'off', 'open', 'on'. upstream_default: 'open'.  >>
+backlight for its own screens (only). I<< Optional. Type enum. choice: 'off', 'open', 'on'. upstream_default: 'open'.  >>
 
 =head2 Heartbeat
 
 Set master heartbeat setting. If set to 'open' a client may control the
-heartbeat for its own screens (only). [default: open; legal: off, open, on]I<< Optional. Type enum. choice: 'off', 'open', 'on'. upstream_default: 'open'.  >>
+heartbeat for its own screens (only). I<< Optional. Type enum. choice: 'off', 'open', 'on'. upstream_default: 'open'.  >>
 
 =head2 TitleSpeed
 
-set title scrolling speed [default: 10; legal: 0-10]I<< Optional. Type integer. upstream_default: '10'.  >>
+set title scrolling speed I<< Optional. Type integer. upstream_default: '10'.  >>
 
 =head2 ToggleRotateKey
 

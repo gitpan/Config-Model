@@ -14,37 +14,37 @@
       'Device',
       {
         'value_type' => 'uniline',
-        'default' => '/dev/ttyS1',
+        'upstream_default' => '/dev/ttyS1',
         'type' => 'leaf',
-        'description' => 'Select the output device to use [default: /dev/ttyS1]'
+        'description' => 'Select the output device to use '
       },
       'Size',
       {
         'value_type' => 'uniline',
         'upstream_default' => '20x4',
         'type' => 'leaf',
-        'description' => 'Set the display size [default: 20x4]'
+        'description' => 'Set the display size '
       },
       'Backlight',
       {
         'value_type' => 'uniline',
         'upstream_default' => 'yes',
         'type' => 'leaf',
-        'description' => 'Switch on the backlight? [default: yes]'
+        'description' => 'Switch on the backlight? '
       },
       'Cursor',
       {
         'value_type' => 'uniline',
         'upstream_default' => 'no',
         'type' => 'leaf',
-        'description' => 'Switch on the cursor? [default: no]'
+        'description' => 'Switch on the cursor? '
       },
       'Speed',
       {
         'value_type' => 'enum',
         'upstream_default' => '19200',
         'type' => 'leaf',
-        'description' => 'Set the communication speed [default: 19200; legal: 1200, 2400, 9600, 19200]',
+        'description' => 'Set the communication speed ',
         'choice' => [
           '1200',
           '2400',

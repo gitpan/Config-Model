@@ -7,7 +7,7 @@
 #
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
-#    Copyright (c) 2005-2011 Dominique Dumont.
+#    Cpyright (c) 2005-2011 Dominique Dumont.
 #
 #    This file is part of Config-Model.
 #
@@ -27,7 +27,7 @@
 
 package Config::Model::Value ;
 {
-  $Config::Model::Value::VERSION = '1.257';
+  $Config::Model::Value::VERSION = '1.258';
 }
 use warnings ;
 use strict;
@@ -53,7 +53,7 @@ Config::Model::Value - Strongly typed configuration value
 
 =head1 VERSION
 
-version 1.257
+version 1.258
 
 =head1 SYNOPSIS
 
@@ -298,6 +298,8 @@ sub set_compute {
 sub submit_to_compute {
     my $self = shift ;
 
+    $logger->debug("called") ;
+    
     my $c_info = $self->{compute} ;
     $self->{_compute} = Config::Model::ValueComputer
       -> new (
@@ -314,6 +316,7 @@ sub submit_to_compute {
     my $v = $self->{_compute}->compute_variables ;
 
     $self->register_in_other_value( $v ) ;
+    $logger->debug("done") ;
 }
 
 sub register_in_other_value {
@@ -337,6 +340,7 @@ sub register_in_other_value {
 # internal
 sub compute {
     my $self = shift ;
+    $logger->debug("called");
 
     $self->submit_to_compute unless defined $self->{_compute} ;
 
@@ -361,6 +365,7 @@ sub compute {
 		     );
     }
 
+    $logger->debug("done");
     return $ok ? $result : undef ;
 }
 
@@ -420,7 +425,7 @@ sub migrate_value {
 
     # check if the migrated result fits with the constraints of the
     # Value object
-    my $ok = $self->check_value($result) ;
+    my $ok = $self->check_value(value => $result, mode => 'allow_undef') ;
 
     #print "check result: $ok\n";
     if (not $ok) {
@@ -522,11 +527,11 @@ when the value match the passed regular expression. Valid only for
 C<string> or C<uniline> values. The fix instructions will be evaluated
 when L<apply_fixes> is called. C<$_> will contain the value to fix.
 C<$_> will be stored as the new value once the instructions are done.
-
+C<$self> will contain the value object. Use with care.
 
 In the example below, any value matching 'foo' will be converted in uppercase:
 
-  warn_if_match => { 'foo' => { fix =>'uc;' }},
+  warn_if_match => { 'foo' => { fix =>'uc;', msg =>  'lower foo is not good'}},
 
 =item warn_unless_match
 
@@ -537,6 +542,24 @@ C<uniline> values.
 =item warn
 
 String. Issue a warning to user with the specified string any time a value is set or read.
+
+=item warn_unless
+
+A bit like C<warn_if_match>. The hash key is not a regexp but a label to help users.
+The hash ref containd some Perl code that is evaluated to perform the test. A warning will be issued if 
+the code returns false. 
+
+C<$_> will contains the value to check. C<$self> will contain the C<Config::Model::Value> object.
+
+The example below will warn if a directory is missing:
+
+  warn_unless => { 'dir' => { code => '-d' , msg => 'missing dir', fix => "system(mkdir $_);" }}
+
+
+=item assert
+
+Like C<warn_if_match>. Except that returned value will trigger an error if false.
+
 
 =cut
 
@@ -727,7 +750,7 @@ ref. Example:
 
 my @warp_accessible_params =  qw/min max mandatory default 
 				 choice convert upstream_default replace match grammar
-				 warn warn_if_match warn_unless_match/ ;
+				 warn assert warn_unless warn_if_match warn_unless_match/ ;
 
 my @accessible_params =  (@warp_accessible_params, 
 			  qw/index_value element_name value_type
@@ -829,7 +852,7 @@ sub set_properties {
 
 
     map { $self->{$_} =  delete $args{$_} if defined $args{$_} }
-      qw/min max mandatory replace warn replace_follow/ ;
+      qw/min max mandatory replace warn replace_follow assert warn_unless/ ;
 
     $self->set_help           ( \%args );
     $self->set_value_type     ( \%args );
@@ -1346,8 +1369,7 @@ sub enum_error {
 
 =head2 check_value ( value )
 
-Check the consistency of the value. Does not check for undefined
-mandatory values.
+Check the consistency of the value.
 
 C<check_value> also accepts named parameters:
 
@@ -1378,7 +1400,18 @@ sub check_value {
     my $quiet = $args{quiet} || 0 ;
     my $check = $args{check} || 'yes' ;
     my $apply_fix = $args{fix} || 0 ;
-    
+    my $mode = $args{mode} || '' ;
+
+    #croak "Cannot specify a value with fix = 1" if $apply_fix and exists $args{value} ;
+
+    if($logger ->is_debug) {
+        no warnings 'uninitialized' ;
+        my $v = defined $value ? $value : '<undef>' ;
+        my $loc = $self->location ;
+        my $msg= "called with value '$v' mode $mode check $check on '$loc'";
+        $logger->debug($msg) ;
+    } 
+
     # need to keep track to update GUI
     $self->{nb_of_fixes} = 0; # reset before check
 
@@ -1440,6 +1473,16 @@ sub check_value {
 	    -> throw (object => $self, message => $msg) ;
     }
 
+    if ($self->{mandatory} and $check eq 'yes' and ($mode eq '') 
+        and (not defined $value or not length($value))
+        ) {
+	# check only "empty" mode. 
+        my $msg = "Undefined mandatory value." ;
+        $msg .= $self->warp_error 
+          if defined $self->{warped_attribute}{default} ;
+        push @error, $msg ;
+    }
+
     if (defined $self->{match_regexp} and defined $value) {
 	push @error,"value '$value' does not match regexp "
 	    .$self->{match} 
@@ -1449,23 +1492,25 @@ sub check_value {
     foreach my $t (qw/warn_if_match warn_unless_match/) {
         my $w_info = $self->{$t} ;
 
-        next unless defined $w_info and defined $value ;
-        my $h = ref $w_info ? $w_info : { $w_info => '' } ;
-
-        foreach my $rxp ( keys %$h ) {
-            my $msg = $h->{$rxp}{msg} ;
-            my $fix = $h->{$rxp}{fix} ;
-            if ($t =~ /if/ and $value =~ /$rxp/) {
-                push @warn, $msg || "value '$value' should not match regexp $rxp" unless $apply_fix ;
-                $self->{nb_of_fixes}++ if defined $fix and not $apply_fix;
-                $self->apply_fix($fix) if defined $fix and $apply_fix;
-            } 
-            if ($t =~ /unless/ and $value !~ /$rxp/) {
-                push @warn, $msg || "value '$value' should match regexp $rxp" unless $apply_fix ;
-                $self->{nb_of_fixes}++ if defined $fix and not $apply_fix ;
-                $self->apply_fix($fix) if defined $fix and $apply_fix ;
-            }
+        next unless defined $w_info ;
+        
+    }
+    
+    if ($mode ne 'custom') {
+        if ($self->{warn_if_match}) {
+            my $test_sub = sub {my ($v,$r) = @_ ; $v =~ /$r/ ? 0 : 1;} ;
+            $self->run_regexp_set_on_value($value, $apply_fix, \@warn, 'not ',$test_sub, $self->{warn_if_match}) ; 
         }
+    
+        if ($self->{warn_unless_match}) {
+            my $test_sub = sub {my ($v,$r) = @_ ; $v =~ /$r/ ? 1 : 0 ;} ;
+            $self->run_regexp_set_on_value($value, $apply_fix, \@warn, '',$test_sub, $self->{warn_unless_match}) ; 
+        }
+    
+        $self->run_code_set_on_value($value, $apply_fix, \@error, "assert failure" ,$self->{assert})  if $self->{assert};
+        $self->run_code_set_on_value($value, $apply_fix, \@warn,  "warn_unless code check returned false", $self->{warn_unless}) 
+            if $self->{warn_unless};
+
     }
     
     # unconditional warn
@@ -1482,12 +1527,68 @@ sub check_value {
         push @warn, $warn_msg if $warn_msg ;
     }
 
+    $logger->debug("check_value returns ",scalar @error," errors and ", scalar @warn," warnings");
     $self->{error_list} = \@error ;
     $self->{warning_list} = \@warn ;
 
+    $logger->debug("done") ;
     return wantarray ? @error : scalar @error ? 0 : 1 ;
 }
 
+sub run_code_on_value {
+    my ($self,$value, $apply_fix, $array, $label, $sub, $msg, $fix) = @_;
+
+    $logger->info( $self->location . ": run_code_on_value called (apply_fix $apply_fix)" );
+
+    my $ret = $sub->($value) ;
+    $logger->debug( "run_code_on_value sub returned '$ret'" );
+
+    unless ($ret) {
+        $logger->debug( "run_code_on_value sub returned false" );
+        push @$array, $msg unless $apply_fix ;
+        $self->{nb_of_fixes}++ if (defined $fix and not $apply_fix);
+        $self->apply_fix($fix,$value) if (defined $fix and $apply_fix);
+    }
+}
+
+sub run_code_set_on_value {
+    my ($self,$value, $apply_fix, $array, $msg, $w_info) = @_ ; ; 
+        
+    foreach my $label ( keys %$w_info ) {
+        my $code = $w_info->{$label}{code} ;
+        my $msg  = $w_info->{$label}{msg} || $msg;
+        my $fix  = $w_info->{$label}{fix} ;
+        
+        my $sub = sub {
+            local $_ = shift ;
+            my $ret = eval($code);
+            if ($@) {
+                Config::Model::Exception::Model->throw(
+                    object  => $self,
+                    message => "Eval of code failed : $@"
+                );
+            }
+            return $ret ;
+        };
+        
+        $self->run_code_on_value($value,$apply_fix,$array,$label,$sub,$msg,$fix) ;
+    }
+}
+
+sub run_regexp_set_on_value {
+    my ($self,$value, $apply_fix, $array, $msg, $test_sub, $w_info) = @_ ; ; 
+
+    # no need to check default or computed values
+    return unless defined $value;
+
+    foreach my $rxp ( keys %$w_info ) {
+        my $sub = sub { $test_sub->($_[0], $rxp) } ;
+        my $msg = $w_info->{$rxp}{msg} || "value '$value' should $msg"."match regexp $rxp";
+        my $fix = $w_info->{$rxp}{fix} ;
+        $self->run_code_on_value($value,$apply_fix,$array,'regexp',$sub,$msg,$fix) ;
+    }
+}
+    
 =head2 has_fixes
 
 Returns the number of fixes that can be applied to the current value. 
@@ -1508,7 +1609,9 @@ Applies the fixes to suppress the current warnings.
 sub apply_fixes {
     my $self = shift ; 
 
-    $logger->debug( $self->location.": apply_fixes called" ) ;
+    if ($logger->is_debug) {
+        $logger->debug( "called for ".$self->location ) ;
+    }
 
     $self->check_value(value => $self->{data}, fix => 1);
 }
@@ -1516,10 +1619,9 @@ sub apply_fixes {
 
 # internal: called by check when a fix is required
 sub apply_fix {
-    my ( $self, $fix ) = @_;
+    my ( $self, $fix, $value ) = @_;
 
-    local $_;
-    $_ = $self->fetch( silent => 1 );
+    local $_ = $value;
 
     $logger->info( $self->location . ": Applying fix '$fix'" );
     eval($fix);
@@ -1530,12 +1632,13 @@ sub apply_fix {
         );
     }
 
-    $self->store($_);    # will update $self->{fixes}
+    $self->{data}  = $_ ;
+    # $self->store(value => $_, check => 'no');  # will update $self->{fixes}
 }
 
 =head2 check( [ value => foo ] )
 
-Like L</check_value>. Also ensure that mandatory value are defined
+Like L</check_value>.
 
 Will also display warnings on STDOUT unless C<silent> parameter is set to 1.
 In this case,user is expected to retrieve them with
@@ -1548,6 +1651,7 @@ Without C<value> argument, this method will check the value currently stored.
 sub check {
     my $self = shift ;
     
+    $logger->debug("called for ".$self->location) if $logger->is_debug ;
     my %args = @_ == 0 ? ( value => $self->{data} ) 
              : @_ == 1 ? ( value => $_[0]         )
              :           @_ ;
@@ -1556,16 +1660,15 @@ sub check {
 
     my @error = $self->check_value(%args) ;
 
-    if ((not defined $value or length($value) == 0 ) and $self->{mandatory}) {
-        push @error, "Mandatory value is not defined" ;
-    }
-
     my $warn = $self->{warning_list} ;
-    map { warn "Warning in '".$self->location."' value '$value': $_\n" ;} @$warn 
-        if @$warn and not $nowarning and not $silent;
+    map { 
+        my $str = defined $value ? "'$value'" : '<undef>' ;
+        warn "Warning in '".$self->location."' value $str: $_\n" ;
+    } @$warn if @$warn and not $nowarning and not $silent;
 
 
     $self->{error_list} = \@error ;
+    $logger->debug("done") ;
     return wantarray ? @error : not scalar @error ;
 }
 
@@ -1795,7 +1898,7 @@ sub _init {
 sub _pre_fetch {
     my ($self, $mode, $check) = @_ ;
 
-    $self->_init ;
+    #$self->_init ;
 
     my $inst = $self->instance ;
 
@@ -1838,6 +1941,7 @@ my %accept_mode = map { ( $_ => 1) }
 
 sub _fetch {
     my ($self, $mode, $check) = @_ ;
+    $logger->debug("called for ".$self->location) if $logger->is_debug ;
 
     # always call to perform submit_to_warp
     my $std = $self->_pre_fetch($mode, $check) ;
@@ -1864,6 +1968,8 @@ sub _fetch {
 	no warnings "uninitialized" ;
 	my $cust ;
 	$cust = $data if $data ne $std and $data ne $self->{upstream_default} ;
+        $logger->debug("done in custom mode for ".$self->location) 
+            if $logger->is_debug ;
 	return $cust;
     }
 
@@ -1873,8 +1979,13 @@ sub _fetch {
 	        : defined $std  && $std  ne $self->{upstream_default} ? $std 
                 :                                                      undef ;
 
+        $logger->debug("done in non_upstream_default mode for ".$self->location)
+            if $logger->is_debug ;
 	return $nbu;
     }
+
+    $logger->debug("done in $mode mode for ".$self->location) 
+        if $logger->is_debug ;
 
     return $mode eq 'preset'                   ? $self->{preset}
          : $mode eq 'default'                  ? $self->{default}
@@ -1992,6 +2103,10 @@ sub fetch {
     my $mode = $args{mode} || '';
     my $silent = $args{silent} || 0 ;
     my $check = $self->_check_check($args{check}); 
+
+    if ($logger->is_debug) {
+        $logger->debug("called for ".$self->location." check $check mode $mode");
+    }
     
     my $inst = $self->instance ;
 
@@ -2014,52 +2129,32 @@ sub fetch {
 
     # check and subsequent storage of fixes instruction must be done only
     # in user or custom mode. (because fixes are cleaned up during check and using
-    # mode may not trigger the warnings. Hence confusion afterwards
+    # mode may not trigger the warnings. Hence confusion afterwards)
     my $ok = 1 ;
-    $ok = $self->check(value => $value, silent => $silent) 
+    $ok = $self->check(value => $value, silent => $silent, mode => $mode ) 
         if $mode eq '' or $mode eq 'custom' ;
 
-    if (defined $value) {
-	# check validity (all modes)
-	if ($ok or $check eq 'no') {
-	    return $value ;
-	}
-	elsif ($check eq 'skip') {
-	    my $msg = $self->error_msg ;
-	    warn "Warning: skipping value $value because of the following errors:\n$msg\n\n" 
-                if not $silent and $msg;
-	    return undef ;
-	}
-	
-        Config::Model::Exception::WrongValue
-	    -> throw (
-		      object => $self,
-		      error => join("\n\t",@{$self->{error_list}})
-		     ) ;
+
+    $logger->debug( "(almost) done for " . $self->location )
+      if $logger->is_debug;
+
+    # check validity (all modes)
+    if ( $ok or $check eq 'no' ) {
+        return $value;
+    }
+    elsif ( $check eq 'skip' ) {
+        my $msg = $self->error_msg;
+        warn "Warning: skipping value $value because of the following errors:\n$msg\n\n"
+          if not $silent and $msg;
+        return undef;
     }
     
-    if (     $self->{mandatory}
-	 and $check eq 'yes'
-	 and (not $mode or $mode eq 'custom' )
-         and ($mode ne 'allow_undef')
-	 and (not defined $self->_fetch('', $check) )
-	  ) {
-	# check only custom or "empty" mode. But undef custom value is
-	# authorized if standard value is defined (that's what is
-	# important)
-        my @error ;
-        push @error, "Undefined mandatory value."
-          if $self->{mandatory} ;
-        push @error, $self->warp_error 
-          if defined $self->{warped_attribute}{default} ;
-        Config::Model::Exception::WrongValue
-	    -> throw (
-		      object => $self,
-		      error => join("\n\t",@error)
-		     );
-    }
+    Config::Model::Exception::WrongValue->throw(
+        object => $self,
+        error  => join( "\n\t", @{ $self->{error_list} } )
+    );
 
-    return ;
+    #return $value;    # undef in fact
 }
 
 =head2 user_value

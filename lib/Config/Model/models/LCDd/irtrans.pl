@@ -16,7 +16,7 @@
         'value_type' => 'enum',
         'upstream_default' => 'no',
         'type' => 'leaf',
-        'description' => 'Does the device have a backlight? [default: no; legal: yes, no]',
+        'description' => 'Does the device have a backlight? ',
         'choice' => [
           'yes',
           'no'
@@ -27,7 +27,7 @@
         'value_type' => 'uniline',
         'upstream_default' => 'localhost',
         'type' => 'leaf',
-        'description' => 'IRTrans device to connect to [default: localhost]'
+        'description' => 'IRTrans device to connect to '
       },
       'Size',
       {

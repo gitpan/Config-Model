@@ -16,7 +16,7 @@
         'value_type' => 'enum',
         'upstream_default' => '12232',
         'type' => 'leaf',
-        'description' => 'Select the LCD model [default: 12232; legal: 12232, 12832, 1602]',
+        'description' => 'Select the LCD model ',
         'choice' => [
           '12232',
           '12832',
@@ -26,23 +26,23 @@
       'Device',
       {
         'value_type' => 'uniline',
-        'default' => '/dev/ttyUSB0',
+        'upstream_default' => '/dev/lcd',
         'type' => 'leaf',
-        'description' => 'Select the output device to use [default: /dev/lcd]'
+        'description' => 'Select the output device to use '
       },
       'Size',
       {
         'value_type' => 'uniline',
-        'upstream_default' => 'dependingonmodel',
+        'upstream_default' => 'dependingonmodel:12232:20x4,12832:21x4,1602:16x2',
         'type' => 'leaf',
-        'description' => 'Select the LCD size [default: depending on model: 12232: 20x4, 12832: 21x4, 1602: 16x2]'
+        'description' => 'Select the LCD size '
       },
       'Speed',
       {
         'value_type' => 'enum',
         'upstream_default' => '19200',
         'type' => 'leaf',
-        'description' => 'Set the communication speed [default: 19200; legal: 9600, 19200]',
+        'description' => 'Set the communication speed ',
         'choice' => [
           '9600',
           '19200'
@@ -53,7 +53,7 @@
         'value_type' => 'enum',
         'upstream_default' => 'no',
         'type' => 'leaf',
-        'description' => 'Reinitialize the LCD\'s BIOS [default: no; legal: yes, no]
+        'description' => 'Reinitialize the LCD\'s BIOS 
 normally you shouldn\'t need this',
         'choice' => [
           'yes',

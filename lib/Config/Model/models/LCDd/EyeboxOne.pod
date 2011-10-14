@@ -4,7 +4,7 @@ Config::Model::models::LCDd::EyeboxOne - Configuration class LCDd::EyeboxOne
 
 =head1 VERSION
 
-version 1.257
+version 1.258
 
 =head1 DESCRIPTION
 
@@ -14,23 +14,23 @@ Configuration classes used by L<Config::Model>
 
 =head2 Device
 
-Select the output device to use [default: /dev/ttyS1]I<< Optional. Type uniline. default: '/dev/ttyS1'.  >>
+Select the output device to use I<< Optional. Type uniline. upstream_default: '/dev/ttyS1'.  >>
 
 =head2 Size
 
-Set the display size [default: 20x4]I<< Optional. Type uniline. upstream_default: '20x4'.  >>
+Set the display size I<< Optional. Type uniline. upstream_default: '20x4'.  >>
 
 =head2 Backlight
 
-Switch on the backlight? [default: yes]I<< Optional. Type uniline. upstream_default: 'yes'.  >>
+Switch on the backlight? I<< Optional. Type uniline. upstream_default: 'yes'.  >>
 
 =head2 Cursor
 
-Switch on the cursor? [default: no]I<< Optional. Type uniline. upstream_default: 'no'.  >>
+Switch on the cursor? I<< Optional. Type uniline. upstream_default: 'no'.  >>
 
 =head2 Speed
 
-Set the communication speed [default: 19200; legal: 1200, 2400, 9600, 19200]I<< Optional. Type enum. choice: '1200', '2400', '9600', '19200'. upstream_default: '19200'.  >>
+Set the communication speed I<< Optional. Type enum. choice: '1200', '2400', '9600', '19200'. upstream_default: '19200'.  >>
 
 =head2 LeftKey
 

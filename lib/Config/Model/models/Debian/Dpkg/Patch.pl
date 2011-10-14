@@ -26,7 +26,15 @@
           }
         },
         'summary' => 'short description of the patch',
-        'mandatory' => '1',
+        'warn_unless' => {
+          'empty' => {
+            'code' => 'defined $_ && /\w/ ? 1 : 0 ;', 
+            'msg' => 'Empty synopsis',
+            'fix' => '$_ = ucfirst( $self->parent->index_value )  ;
+s/-/ /g;
+'
+          }
+        },
         'type' => 'leaf'
       },
       'Description',

@@ -4,7 +4,7 @@ Config::Model::models::LCDd::CwLnx - Configuration class LCDd::CwLnx
 
 =head1 VERSION
 
-version 1.257
+version 1.258
 
 =head1 DESCRIPTION
 
@@ -14,23 +14,23 @@ Configuration classes used by L<Config::Model>
 
 =head2 Model
 
-Select the LCD model [default: 12232; legal: 12232, 12832, 1602]I<< Optional. Type enum. choice: '12232', '12832', '1602'. upstream_default: '12232'.  >>
+Select the LCD model I<< Optional. Type enum. choice: '12232', '12832', '1602'. upstream_default: '12232'.  >>
 
 =head2 Device
 
-Select the output device to use [default: /dev/lcd]I<< Optional. Type uniline. default: '/dev/ttyUSB0'.  >>
+Select the output device to use I<< Optional. Type uniline. upstream_default: '/dev/lcd'.  >>
 
 =head2 Size
 
-Select the LCD size [default: depending on model: 12232: 20x4, 12832: 21x4, 1602: 16x2]I<< Optional. Type uniline. upstream_default: 'dependingonmodel'.  >>
+Select the LCD size I<< Optional. Type uniline. upstream_default: 'dependingonmodel:12232:20x4,12832:21x4,1602:16x2'.  >>
 
 =head2 Speed
 
-Set the communication speed [default: 19200; legal: 9600, 19200]I<< Optional. Type enum. choice: '9600', '19200'. upstream_default: '19200'.  >>
+Set the communication speed I<< Optional. Type enum. choice: '9600', '19200'. upstream_default: '19200'.  >>
 
 =head2 Reboot
 
-Reinitialize the LCD's BIOS [default: no; legal: yes, no]
+Reinitialize the LCD's BIOS 
 normally you shouldn't need this. I<< Optional. Type enum. choice: 'yes', 'no'. upstream_default: 'no'.  >>
 
 =head2 Keypad

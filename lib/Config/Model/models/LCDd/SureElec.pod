@@ -4,7 +4,7 @@ Config::Model::models::LCDd::SureElec - Configuration class LCDd::SureElec
 
 =head1 VERSION
 
-version 1.257
+version 1.258
 
 =head1 DESCRIPTION
 
@@ -18,7 +18,7 @@ Port the device is connected to  (by default first USB serial port)I<< Optional.
 
 =head2 Edition
 
-Edition level of the device (can be 1, 2 or 3) [default: 2]I<< Optional. Type uniline. upstream_default: '2'.  >>
+Edition level of the device (can be 1, 2 or 3) I<< Optional. Type uniline. upstream_default: '2'.  >>
 
 =head2 Size
 
@@ -27,15 +27,15 @@ Note: The size can be obtained directly from device for edition 2 & 3.I<< Option
 
 =head2 Contrast
 
-Set the initial contrast [default: 480; legal: 0 - 1000]I<< Optional. Type integer. upstream_default: '480'.  >>
+Set the initial contrast I<< Optional. Type integer. upstream_default: '480'.  >>
 
 =head2 Brightness
 
-Set the initial brightness [default: 480; legal: 1 - 1000]I<< Optional. Type integer. upstream_default: '480'.  >>
+Set the initial brightness I<< Optional. Type integer. upstream_default: '480'.  >>
 
 =head2 OffBrightness
 
-Set the initial off-brightness [default: 100; legal: 1 - 1000]
+Set the initial off-brightness 
 This value is used when the display is normally
 switched off in case LCDd is inactive. I<< Optional. Type integer. upstream_default: '100'.  >>
 

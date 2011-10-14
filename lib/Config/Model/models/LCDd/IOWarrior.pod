@@ -4,7 +4,7 @@ Config::Model::models::LCDd::IOWarrior - Configuration class LCDd::IOWarrior
 
 =head1 VERSION
 
-version 1.257
+version 1.258
 
 =head1 DESCRIPTION
 
@@ -18,7 +18,7 @@ display dimensions. I<< Optional. Type uniline. default: '20x4'.  >>
 
 =head2 SerialNumber
 
-serial number [exactly as listed by usbview]
+serial number. Must be exactly as listed by usbview
 (if not given, the 1st IOWarrior found gets used)I<< Optional. Type uniline. default: '00000674'.  >>
 
 =head2 ExtendedMode
@@ -29,7 +29,7 @@ set this flag to get into extended mode (4-line linear).I<< Optional. Type unili
 =head2 Lastline
 
 Specifies if the last line is pixel addressable or it controls an
-underline effect. [default: true (= pixel addressable); legal: yes, no]I<< Optional. Type enum. choice: 'yes', 'no'. upstream_default: 'true'.  >>
+underline effect. I<< Optional. Type enum. choice: 'yes', 'no'. upstream_default: 'true(=pixeladdressable)'.  >>
 
 =head1 SEE ALSO
 

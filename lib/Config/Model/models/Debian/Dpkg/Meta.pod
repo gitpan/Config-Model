@@ -4,7 +4,7 @@ Config::Model::models::Debian::Dpkg::Meta - Configuration class Debian::Dpkg::Me
 
 =head1 VERSION
 
-version 1.257
+version 1.258
 
 =head1 DESCRIPTION
 
@@ -13,6 +13,10 @@ Configuration classes used by L<Config::Model>
 This class contains parameters to tune the behavior of the Dpkg model. For instance, user can specify rules to update e-mail addresses.
 
 =head1 Elements
+
+=head2 email
+
+I<< Optional. Type uniline.  >>
 
 =head2 email-updates - email update hash
 

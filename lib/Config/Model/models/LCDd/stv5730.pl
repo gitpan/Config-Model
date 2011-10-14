@@ -16,7 +16,7 @@
         'value_type' => 'uniline',
         'upstream_default' => '0x378',
         'type' => 'leaf',
-        'description' => 'Port the device is connected to [default: 0x378]'
+        'description' => 'Port the device is connected to '
       }
     ]
   }

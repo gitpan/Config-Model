@@ -14,9 +14,9 @@
       'Device',
       {
         'value_type' => 'uniline',
-        'default' => '/dev/js0',
+        'upstream_default' => '/dev/js0',
         'type' => 'leaf',
-        'description' => 'Select the input device to use [default: /dev/js0]'
+        'description' => 'Select the input device to use '
       },
       'Map_Axis1neg',
       {

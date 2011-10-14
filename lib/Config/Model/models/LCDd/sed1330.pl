@@ -28,20 +28,17 @@ Note: Currently only tested with G321D & SP14Q002.'
       },
       'CellSize',
       {
-        'value_type' => 'enum',
+        'value_type' => 'uniline',
         'upstream_default' => '6x10',
         'type' => 'leaf',
-        'description' => 'Width x Height of a character cell in pixels [legal: 6x7 - 8x16; default: 6x10]',
-        'choice' => [
-          '6x7'
-        ]
+        'description' => 'Width x Height of a character cell in pixels '
       },
       'ConnectionType',
       {
         'value_type' => 'enum',
         'upstream_default' => 'classic',
         'type' => 'leaf',
-        'description' => 'Select what type of connection [legal: classic, bitshaker; default: classic]',
+        'description' => 'Select what type of connection ',
         'choice' => [
           'classic',
           'bitshaker'

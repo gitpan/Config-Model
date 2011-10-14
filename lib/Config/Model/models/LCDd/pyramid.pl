@@ -14,9 +14,9 @@
       'Device',
       {
         'value_type' => 'uniline',
-        'default' => '/dev/ttyUSB0',
+        'upstream_default' => '/dev/lcd',
         'type' => 'leaf',
-        'description' => 'device to connect to [default: /dev/lcd]'
+        'description' => 'device to connect to '
       }
     ]
   }

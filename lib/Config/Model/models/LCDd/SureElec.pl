@@ -23,7 +23,7 @@
         'value_type' => 'uniline',
         'upstream_default' => '2',
         'type' => 'leaf',
-        'description' => 'Edition level of the device (can be 1, 2 or 3) [default: 2]'
+        'description' => 'Edition level of the device (can be 1, 2 or 3) '
       },
       'Size',
       {
@@ -40,7 +40,7 @@ Note: The size can be obtained directly from device for edition 2 & 3.'
         'upstream_default' => '480',
         'max' => '1000',
         'type' => 'leaf',
-        'description' => 'Set the initial contrast [default: 480; legal: 0 - 1000]'
+        'description' => 'Set the initial contrast '
       },
       'Brightness',
       {
@@ -49,7 +49,7 @@ Note: The size can be obtained directly from device for edition 2 & 3.'
         'upstream_default' => '480',
         'max' => '1000',
         'type' => 'leaf',
-        'description' => 'Set the initial brightness [default: 480; legal: 1 - 1000]'
+        'description' => 'Set the initial brightness '
       },
       'OffBrightness',
       {
@@ -58,7 +58,7 @@ Note: The size can be obtained directly from device for edition 2 & 3.'
         'upstream_default' => '100',
         'max' => '1000',
         'type' => 'leaf',
-        'description' => 'Set the initial off-brightness [default: 100; legal: 1 - 1000]
+        'description' => 'Set the initial off-brightness 
 This value is used when the display is normally
 switched off in case LCDd is inactive'
       }

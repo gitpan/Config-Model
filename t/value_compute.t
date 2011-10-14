@@ -8,7 +8,7 @@ use Test::Warn ;
 use Config::Model ;
 use Log::Log4perl qw(:easy) ;
 
-BEGIN { plan tests => 43; }
+BEGIN { plan tests => 47; }
 
 use strict;
 
@@ -41,8 +41,7 @@ $model->create_config_class(
             type       => 'leaf',
             value_type => 'string',
             compute    => {
-                variables => { p => '-' },
-                formula   => '&element($p)',
+                formula   => '&element(-)',
             },
         },
         location_function_in_formula => {
@@ -56,8 +55,7 @@ $model->create_config_class(
             type       => 'leaf',
             value_type => 'boolean',
             compute    => {
-                variables => { p => '-' },
-                formula   => '&element($p) eq "foo2"',
+                formula   => '"&element(-)" eq "foo2"',
             },
         },
         [qw/av bv/] => {
@@ -68,6 +66,34 @@ $model->create_config_class(
                 formula   => '$p',
             },
         },
+    ]
+);
+
+$model->create_config_class(
+    'name'    => 'LicenseSpec',
+    'element' => [
+        'text',
+        {
+            'value_type' => 'string',
+            'type'       => 'leaf',
+            'compute'    => {
+                'replace' => { 
+                    'GPL-1+' => "yada yada GPL-1+\nyada yada", 
+                    'Artistic' => "yada yada Artistic\nyada yada", 
+                },
+                'formula'        => '$replace{&index(-)}',
+                'allow_override' => '1',
+                undef_is => '',
+            },
+        },
+        short_name_from_index => {
+            'type'       => 'leaf',
+            'value_type' => 'string',
+            compute => {
+                'formula' => '&index( - );',
+                'use_eval' => 1,
+            },
+        }
     ]
 );
 
@@ -233,7 +259,15 @@ $model->create_config_class(
             'value_type' => 'string',
             'status'     => 'deprecated',
             'type'       => 'leaf'
-        }
+        },
+        Licenses => { 
+            type => 'hash',
+            index_type => 'string',
+            cargo => { 
+                type => 'node',
+                config_class_name => 'LicenseSpec'
+            }
+        },
     ]
 );
 
@@ -247,7 +281,7 @@ my $root = $inst -> config_root ;
 is_deeply([$root->get_element_name()],
           [qw/av bv compute_int sav sbv one_var one_wrong_var 
               meet_test compute_with_override compute_no_var bar 
-              foo2 url host with_tmp_var Upstream-Contact Source Source2/],
+              foo2 url host with_tmp_var Upstream-Contact Source Source2 Licenses/],
          "check available elements");
 
 my ( $av, $bv, $compute_int );
@@ -267,8 +301,8 @@ use warnings 'once';
 
 {
     no warnings qw/once/;
-    $::RD_HINT  = 1 if $trace > 4;
-    $::RD_TRACE = 1 if $trace > 5;
+    $::RD_HINT  = 1 if $arg =~ /rdt?h/;
+    $::RD_TRACE = 1 if $arg =~ /rdh?t/;
 }
 
 my $object = $root->fetch_element('one_var') ;
@@ -403,7 +437,7 @@ is($root->grab_value(step => 'Source'   ),'foobar',"check migrate_from with unde
 
 my $v ;
 warning_like {$v = $root->grab_value(step => 'Source2'   );} 
-    [ (qr/deprecated/) x 4 ], "check compute with undef_is" ;
+    [ (qr/deprecated/) x 4 ], "check Source2 compute with undef_is" ;
 is($v ,'foobar',"check result of compute with undef_is");
 
 foreach (qw/bar foo2/) {
@@ -416,4 +450,11 @@ my $tmph = $root->fetch_element('with_tmp_var');
 
 is($tmph->fetch,'foo.bar',"check extracted host with temp variable") ;
 
+my $lic_gpl = $root->grab('Licenses:"GPL-1+"') ;
+is($lic_gpl->grab_value('text'), "yada yada GPL-1+\nyada yada","check replacement with &index()");
+
+is($root->grab_value('Licenses:PsF text'), "","check missing replacement with &index()");
+is($root->grab_value('Licenses:"MPL-1.1" text'), "","check missing replacement with &index()");
+
+is($root->grab_value('Licenses:"MPL-1.1" short_name_from_index'), "MPL-1.1",'evaled &index($holder)');
 

@@ -4,7 +4,7 @@ Config::Model::models::LCDd::mdm166a - Configuration class LCDd::mdm166a
 
 =head1 VERSION
 
-version 1.257
+version 1.258
 
 =head1 DESCRIPTION
 
@@ -15,15 +15,15 @@ Configuration classes used by L<Config::Model>
 =head2 Clock
 
 Show self-running clock after LCDd shutdown
-Possible values: [default: no; legal: no, small, big]I<< Optional. Type enum. choice: 'no', 'small', 'big'. upstream_default: 'no'.  >>
+Possible values: I<< Optional. Type enum. choice: 'no', 'small', 'big'. upstream_default: 'no'.  >>
 
 =head2 Dimming
 
-Dimm display, no dimming gives full brightness [default: no, legal: yes, no]I<< Optional. Type enum. choice: 'yes', 'no'. upstream_default: 'no'.  >>
+Dimm display, no dimming gives full brightness I<< Optional. Type uniline. upstream_default: 'no,legal:yes,no'.  >>
 
 =head2 OffDimming
 
-Dimm display in case LCDd is inactive [default: no, legal: yes, no]I<< Optional. Type enum. choice: 'yes', 'no'. upstream_default: 'no'.  >>
+Dimm display in case LCDd is inactive I<< Optional. Type uniline. upstream_default: 'no,legal:yes,no'.  >>
 
 =head1 SEE ALSO
 

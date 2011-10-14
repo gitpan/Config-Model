@@ -4,7 +4,7 @@ Config::Model::models::LCDd::sed1330 - Configuration class LCDd::sed1330
 
 =head1 VERSION
 
-version 1.257
+version 1.258
 
 =head1 DESCRIPTION
 
@@ -23,11 +23,11 @@ Note: Currently only tested with G321D & SP14Q002.I<< Optional. Type uniline. de
 
 =head2 CellSize
 
-Width x Height of a character cell in pixels [legal: 6x7 - 8x16; default: 6x10]I<< Optional. Type enum. choice: '6x7'. upstream_default: '6x10'.  >>
+Width x Height of a character cell in pixels I<< Optional. Type uniline. upstream_default: '6x10'.  >>
 
 =head2 ConnectionType
 
-Select what type of connection [legal: classic, bitshaker; default: classic]I<< Optional. Type enum. choice: 'classic', 'bitshaker'. upstream_default: 'classic'.  >>
+Select what type of connection I<< Optional. Type enum. choice: 'classic', 'bitshaker'. upstream_default: 'classic'.  >>
 
 =head1 SEE ALSO
 

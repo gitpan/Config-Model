@@ -16,7 +16,7 @@
         'value_type' => 'uniline',
         'upstream_default' => '20x4',
         'type' => 'leaf',
-        'description' => 'Select the LCD size [default: 20x4]'
+        'description' => 'Select the LCD size '
       }
     ]
   }

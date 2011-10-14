@@ -4,7 +4,7 @@ Config::Model::models::LCDd::stv5730 - Configuration class LCDd::stv5730
 
 =head1 VERSION
 
-version 1.257
+version 1.258
 
 =head1 DESCRIPTION
 
@@ -14,7 +14,7 @@ Configuration classes used by L<Config::Model>
 
 =head2 Port
 
-Port the device is connected to [default: 0x378]I<< Optional. Type uniline. upstream_default: '0x378'.  >>
+Port the device is connected to I<< Optional. Type uniline. upstream_default: '0x378'.  >>
 
 =head1 SEE ALSO
 

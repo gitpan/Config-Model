@@ -17,7 +17,7 @@
         'upstream_default' => 'no',
         'type' => 'leaf',
         'description' => 'Show self-running clock after LCDd shutdown
-Possible values: [default: no; legal: no, small, big]',
+Possible values: ',
         'choice' => [
           'no',
           'small',
@@ -26,25 +26,17 @@ Possible values: [default: no; legal: no, small, big]',
       },
       'Dimming',
       {
-        'value_type' => 'enum',
-        'upstream_default' => 'no',
+        'value_type' => 'uniline',
+        'upstream_default' => 'no,legal:yes,no',
         'type' => 'leaf',
-        'description' => 'Dimm display, no dimming gives full brightness [default: no, legal: yes, no]',
-        'choice' => [
-          'yes',
-          'no'
-        ]
+        'description' => 'Dimm display, no dimming gives full brightness '
       },
       'OffDimming',
       {
-        'value_type' => 'enum',
-        'upstream_default' => 'no',
+        'value_type' => 'uniline',
+        'upstream_default' => 'no,legal:yes,no',
         'type' => 'leaf',
-        'description' => 'Dimm display in case LCDd is inactive [default: no, legal: yes, no]',
-        'choice' => [
-          'yes',
-          'no'
-        ]
+        'description' => 'Dimm display in case LCDd is inactive '
       }
     ]
   }

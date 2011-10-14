@@ -110,8 +110,8 @@ The archive area and section for each package should be specified in the package
         'summary' => 'Debian policy version number this package complies to',
         'warn_unless_match' => {
           '3\\.9\\.2' => {
-            'msg' => 'Current standard version is 3.9.2',
-            'fix' => '$_ = \'3.9.2\';'
+            'msg' => 'Current standards version is 3.9.2',
+            'fix' => '$_ = undef; # restore default value'
           }
         },
         'match' => '\\d+\\.\\d+\\.\\d+(\\.\\d+)?',
@@ -132,7 +132,7 @@ The archive area and section for each package should be specified in the package
         },
         'value_type' => 'uniline',
         'summary' => 'web-browsable URL of the VCS repository',
-        'match' => '^http://',
+        'match' => '^https?://',
         'type' => 'leaf',
         'description' => 'Value of this field should be a http:// URL pointing to a web-browsable copy of the Version Control System repository used to maintain the given package, if available.
 

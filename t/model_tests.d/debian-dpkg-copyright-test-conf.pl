@@ -20,8 +20,8 @@ $skip = ( $@ or not -r '/etc/debian_version') ? 1 : 0 ;
 
 @tests = (
     { # t0
-        load_warnings => [ (qr/deprecated/) x 3, qr/Missing/ ],
-
+        load_warnings => [ qr/Missing/, (qr/deprecated/) x 3 , ],
+        load_check => 'no',
         check => {
             'Files:"*" License full_license' => "[PSF LICENSE TEXT]",
             'Files:"*" Copyright:0' => "2008, John Doe <john.doe\@example.com>",
@@ -51,7 +51,7 @@ $skip = ( $@ or not -r '/etc/debian_version') ? 1 : 0 ;
 
         check => {
             'License:MPL-1.1 text' => "[MPL-1.1 LICENSE TEXT]",
-            'Files:"src/js/editline/*" License short_name' => "MPL-1.1",
+            'Files:"*" License short_name' => "MPL-1.1",
             'Files:"src/js/fdlibm/*" License short_name'   => "MPL-1.1",
         },
     },
@@ -104,6 +104,7 @@ $skip = ( $@ or not -r '/etc/debian_version') ? 1 : 0 ;
     { # t7
         # example from CANDIDATE DEP-5 spec (nb 7)
         load_warnings => [ (qr/Adding/) x 1 ],
+        load_check => 'no',
         check => { 
             Format => "http://dep.debian.net/deps/dep5/", 
             'Files:"*" Copyright:0' => 'Copyright 1998 John Doe <jdoe@example.com>',
@@ -148,7 +149,7 @@ $skip = ( $@ or not -r '/etc/debian_version') ? 1 : 0 ;
     },
     
     { # t12
-        load_warnings => [ (qr/deprecated/) x 3, qr/Adding/ ],
+        load_warnings => [ qr/Adding/, (qr/deprecated/) x 3, ],
         load_check => 'no',
         dump_errors =>  [ 
             qr/not declared/ => 'License:Expat text="Expat license foobar"',

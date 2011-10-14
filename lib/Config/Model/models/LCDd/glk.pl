@@ -14,9 +14,9 @@
       'Device',
       {
         'value_type' => 'uniline',
-        'default' => '/dev/lcd',
+        'upstream_default' => '/dev/lcd',
         'type' => 'leaf',
-        'description' => 'select the serial device to use [default: /dev/lcd]'
+        'description' => 'select the serial device to use '
       },
       'Contrast',
       {
@@ -25,14 +25,14 @@
         'upstream_default' => '560',
         'max' => '1000',
         'type' => 'leaf',
-        'description' => 'set the initial contrast value [default: 560; legal: 0 - 1000]'
+        'description' => 'set the initial contrast value '
       },
       'Speed',
       {
         'value_type' => 'enum',
         'upstream_default' => '19200',
         'type' => 'leaf',
-        'description' => 'set the serial port speed [default: 19200; legal: 9600, 19200, 38400]',
+        'description' => 'set the serial port speed ',
         'choice' => [
           '9600',
           '19200',

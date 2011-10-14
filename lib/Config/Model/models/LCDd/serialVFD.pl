@@ -16,7 +16,7 @@
         'value_type' => 'uniline',
         'upstream_default' => '0',
         'type' => 'leaf',
-        'description' => 'Specifies the displaytype.[default: 0]
+        'description' => 'Specifies the displaytype.
 0 NEC (FIPC8367 based) VFDs.
 1 KD Rev 2.1.
 2 Noritake VFDs (*).
@@ -31,16 +31,16 @@
       'use_parallel',
       {
         'value_type' => 'uniline',
-        'upstream_default' => 'no',
+        'upstream_default' => 'no(=serial)',
         'type' => 'leaf',
-        'description' => '"no" if display connected serial, "yes" if connected parallel. [default: no(=serial)]'
+        'description' => '"no" if display connected serial, "yes" if connected parallel. '
       },
       'Port',
       {
         'value_type' => 'uniline',
         'upstream_default' => 'displaytypedependent',
         'type' => 'leaf',
-        'description' => 'Number of Custom-Characters [default: displaytype dependent]
+        'description' => 'Number of Custom-Characters 
 Custom-Characters=0
 Portaddress where the LPT is. Used in parallelmode only. Usual values are 0x278, 0x378 and 0x3BC'
       },
@@ -51,7 +51,7 @@ Portaddress where the LPT is. Used in parallelmode only. Usual values are 0x278,
         'upstream_default' => '2',
         'max' => '255',
         'type' => 'leaf',
-        'description' => 'Set parallel port timingdelay (us). Used in parallelmode only. [default: 2; legal: 0 - 255]'
+        'description' => 'Set parallel port timingdelay (us). Used in parallelmode only. '
       },
       'Device',
       {
@@ -74,7 +74,7 @@ Portaddress where the LPT is. Used in parallelmode only. Usual values are 0x278,
         'upstream_default' => '1000',
         'max' => '1000',
         'type' => 'leaf',
-        'description' => 'Set the initial brightness [default: 1000; legal: 0 - 1000]
+        'description' => 'Set the initial brightness 
 (4 steps 0-250, 251-500, 501-750, 751-1000)'
       },
       'OffBrightness',
@@ -84,7 +84,7 @@ Portaddress where the LPT is. Used in parallelmode only. Usual values are 0x278,
         'upstream_default' => '0',
         'max' => '1000',
         'type' => 'leaf',
-        'description' => 'Set the initial off-brightness [default: 0; legal: 0 - 1000]
+        'description' => 'Set the initial off-brightness 
 This value is used when the display is normally
 switched off in case LCDd is inactive
 (4 steps 0-250, 251-500, 501-750, 751-1000)'
@@ -94,7 +94,7 @@ switched off in case LCDd is inactive
         'value_type' => 'enum',
         'upstream_default' => '9600',
         'type' => 'leaf',
-        'description' => 'set the serial port speed [default: 9600; legal: 1200, 2400, 9600, 19200, 115200]',
+        'description' => 'set the serial port speed ',
         'choice' => [
           '1200',
           '2400',
@@ -108,7 +108,7 @@ switched off in case LCDd is inactive
         'value_type' => 'enum',
         'upstream_default' => 'yes',
         'type' => 'leaf',
-        'description' => 'enable ISO 8859 1 compatibility [default: yes; legal: yes, no]',
+        'description' => 'enable ISO 8859 1 compatibility ',
         'choice' => [
           'yes',
           'no'

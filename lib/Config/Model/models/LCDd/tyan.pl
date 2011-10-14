@@ -14,16 +14,16 @@
       'Device',
       {
         'value_type' => 'uniline',
-        'default' => '/dev/lcd',
+        'upstream_default' => '/dev/lcd',
         'type' => 'leaf',
-        'description' => 'Select the output device to use [default: /dev/lcd]'
+        'description' => 'Select the output device to use '
       },
       'Speed',
       {
         'value_type' => 'enum',
         'upstream_default' => '9600',
         'type' => 'leaf',
-        'description' => 'Set the communication speed [default: 9600; legal: 4800, 9600]',
+        'description' => 'Set the communication speed ',
         'choice' => [
           '4800',
           '9600'
@@ -34,7 +34,7 @@
         'value_type' => 'uniline',
         'upstream_default' => '16x2',
         'type' => 'leaf',
-        'description' => 'set display size [default: 16x2]'
+        'description' => 'set display size '
       }
     ]
   }

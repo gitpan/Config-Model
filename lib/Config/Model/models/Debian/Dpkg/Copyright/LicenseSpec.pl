@@ -29,6 +29,21 @@
     'element' => [
       'text',
       {
+        'compute' => {
+          'undef_is' => '\'\'',
+          'use_eval' => '1',
+          'formula' => 'require Software::License ;
+my $h = { 
+  short_name => &index( - ), 
+  holder => \'foo\' 
+} ;
+
+# no need to fail if short_name is unknown
+eval {
+  Software::License->new($h)->summary ; 
+} ;',
+          'allow_override' => '1'
+        },
         'value_type' => 'string',
         'type' => 'leaf',
         'description' => 'Full license text.'

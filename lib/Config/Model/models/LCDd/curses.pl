@@ -17,28 +17,28 @@
         'upstream_default' => 'blue',
         'type' => 'leaf',
         'description' => 'color settings
-foreground color [default: blue]'
+foreground color '
       },
       'Background',
       {
         'value_type' => 'uniline',
         'upstream_default' => 'cyan',
         'type' => 'leaf',
-        'description' => 'background color when "backlight" is off [default: cyan]'
+        'description' => 'background color when "backlight" is off '
       },
       'Backlight',
       {
         'value_type' => 'uniline',
         'upstream_default' => 'red',
         'type' => 'leaf',
-        'description' => 'background color when "backlight" is on [default: red]'
+        'description' => 'background color when "backlight" is on '
       },
       'Size',
       {
         'value_type' => 'uniline',
         'upstream_default' => '20x4',
         'type' => 'leaf',
-        'description' => 'display size [default: 20x4]'
+        'description' => 'display size '
       },
       'TopLeftX',
       {
@@ -56,17 +56,21 @@ Default: (7,7)'
       },
       'UseACS',
       {
-        'value_type' => 'uniline',
+        'value_type' => 'enum',
         'upstream_default' => 'no',
         'type' => 'leaf',
-        'description' => 'use ASC symbols for icons & bars [default: no; legal, yes, no]'
+        'description' => 'use ASC symbols for icons & bars ',
+        'choice' => [
+          'yes',
+          'no'
+        ]
       },
       'DrawBorder',
       {
         'value_type' => 'enum',
         'upstream_default' => 'yes',
         'type' => 'leaf',
-        'description' => 'draw Border [default: yes; legal: yes, no]',
+        'description' => 'draw Border ',
         'choice' => [
           'yes',
           'no'

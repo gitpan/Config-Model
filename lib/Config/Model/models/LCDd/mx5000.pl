@@ -14,16 +14,16 @@
       'Device',
       {
         'value_type' => 'uniline',
-        'default' => '/dev/hiddev0',
+        'upstream_default' => '/dev/hiddev0',
         'type' => 'leaf',
-        'description' => 'Select the output device to use [default: /dev/hiddev0]'
+        'description' => 'Select the output device to use '
       },
       'WaitAfterRefresh',
       {
         'value_type' => 'uniline',
         'upstream_default' => '1000',
         'type' => 'leaf',
-        'description' => 'Time to wait in ms after the refresh screen has been sent [default: 1000]'
+        'description' => 'Time to wait in ms after the refresh screen has been sent '
       }
     ]
   }

@@ -23,7 +23,7 @@
         'value_type' => 'uniline',
         'default' => '00000674',
         'type' => 'leaf',
-        'description' => 'serial number [exactly as listed by usbview]
+        'description' => 'serial number. Must be exactly as listed by usbview
 (if not given, the 1st IOWarrior found gets used)'
       },
       'ExtendedMode',
@@ -37,10 +37,10 @@ set this flag to get into extended mode (4-line linear).'
       'Lastline',
       {
         'value_type' => 'enum',
-        'upstream_default' => 'true',
+        'upstream_default' => 'true(=pixeladdressable)',
         'type' => 'leaf',
         'description' => 'Specifies if the last line is pixel addressable or it controls an
-underline effect. [default: true (= pixel addressable); legal: yes, no]',
+underline effect. ',
         'choice' => [
           'yes',
           'no'

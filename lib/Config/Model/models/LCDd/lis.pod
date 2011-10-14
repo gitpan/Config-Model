@@ -4,7 +4,7 @@ Config::Model::models::LCDd::lis - Configuration class LCDd::lis
 
 =head1 VERSION
 
-version 1.257
+version 1.258
 
 =head1 DESCRIPTION
 
@@ -14,21 +14,21 @@ Configuration classes used by L<Config::Model>
 
 =head2 Brightness
 
-Set the initial brightness [default: 1000; legal: 0 - 1000]
+Set the initial brightness 
 0-250 = 25%, 251-500 = 50%, 501-750 = 75%, 751-1000 = 100%I<< Optional. Type integer. upstream_default: '1000'.  >>
 
 =head2 Size
 
-Columns by lines [default: 20x2]I<< Optional. Type uniline. upstream_default: '20x2'.  >>
+Columns by lines I<< Optional. Type uniline. upstream_default: '20x2'.  >>
 
 =head2 VendorID
 
-USB Vendor ID [default: 0x0403]
+USB Vendor ID 
 Change only if testing a compatible device.I<< Optional. Type uniline. upstream_default: '0x0403'.  >>
 
 =head2 ProductID
 
-USB Product ID [default: 0x6001]
+USB Product ID 
 Change only if testing a compatible device.I<< Optional. Type uniline. upstream_default: '0x6001'.  >>
 
 =head1 SEE ALSO

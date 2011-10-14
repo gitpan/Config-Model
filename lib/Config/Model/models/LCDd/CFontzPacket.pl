@@ -16,7 +16,7 @@
         'value_type' => 'enum',
         'upstream_default' => '633',
         'type' => 'leaf',
-        'description' => 'Select the LCD model [default: 633; legal: 533, 631, 633, 635]',
+        'description' => 'Select the LCD model ',
         'choice' => [
           '533',
           '631',
@@ -27,9 +27,9 @@
       'Device',
       {
         'value_type' => 'uniline',
-        'default' => '/dev/ttyUSB0',
+        'upstream_default' => '/dev/lcd',
         'type' => 'leaf',
-        'description' => 'Select the output device to use [default: /dev/lcd]'
+        'description' => 'Select the output device to use '
       },
       'Contrast',
       {
@@ -38,7 +38,7 @@
         'upstream_default' => '560',
         'max' => '1000',
         'type' => 'leaf',
-        'description' => 'Set the initial contrast [default: 560; legal: 0 - 1000]'
+        'description' => 'Set the initial contrast '
       },
       'Brightness',
       {
@@ -47,7 +47,7 @@
         'upstream_default' => '1000',
         'max' => '1000',
         'type' => 'leaf',
-        'description' => 'Set the initial brightness [default: 1000; legal: 0 - 1000]'
+        'description' => 'Set the initial brightness '
       },
       'OffBrightness',
       {
@@ -56,7 +56,7 @@
         'upstream_default' => '0',
         'max' => '1000',
         'type' => 'leaf',
-        'description' => 'Set the initial off-brightness [default: 0; legal: 0 - 1000]
+        'description' => 'Set the initial off-brightness 
 This value is used when the display is normally
 switched off in case LCDd is inactive'
       },
@@ -65,7 +65,7 @@ switched off in case LCDd is inactive'
         'value_type' => 'enum',
         'upstream_default' => 'no',
         'type' => 'leaf',
-        'description' => 'Reinitialize the LCD\'s BIOS on driver start. [default: no; legal: yes, no]',
+        'description' => 'Reinitialize the LCD\'s BIOS on driver start. ',
         'choice' => [
           'yes',
           'no'
@@ -77,7 +77,7 @@ switched off in case LCDd is inactive'
         'upstream_default' => 'no',
         'type' => 'leaf',
         'description' => 'Enable the USB flag if the device is connected to an USB port. For
-serial ports leave it disabled. [default: no; legal: yes, no]',
+serial ports leave it disabled. ',
         'choice' => [
           'yes',
           'no'
@@ -90,7 +90,7 @@ serial ports leave it disabled. [default: no; legal: yes, no]',
         'type' => 'leaf',
         'description' => 'Very old 633 firmware versions do not support partial screen updates using
 \'Send Data to LCD\' command (31). For those devices it may be necessary to
-enable this flag. [default: no; legal: yes, no]',
+enable this flag. ',
         'choice' => [
           'yes',
           'no'
@@ -109,8 +109,7 @@ value should not be necessary.'
         'value_type' => 'enum',
         'upstream_default' => 'dependingonmodel',
         'type' => 'leaf',
-        'description' => 'Override the default communication speed known for the selected model.
-[default: depending on model; legal: 19200, 115200]',
+        'description' => 'Override the default communication speed known for the selected model.',
         'choice' => [
           '19200',
           '115200'
