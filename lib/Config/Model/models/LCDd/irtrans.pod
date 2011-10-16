@@ -4,7 +4,7 @@ Config::Model::models::LCDd::irtrans - Configuration class LCDd::irtrans
 
 =head1 VERSION
 
-version 1.258
+version 1.259
 
 =head1 DESCRIPTION
 

@@ -28,7 +28,7 @@
 
 package Config::Model::BackendMgr ;
 {
-  $Config::Model::BackendMgr::VERSION = '1.258';
+  $Config::Model::BackendMgr::VERSION = '1.259';
 }
 
 use Any::Moose ;
@@ -645,7 +645,7 @@ Config::Model::BackendMgr - Load configuration node on demand
 
 =head1 VERSION
 
-version 1.258
+version 1.259
 
 =head1 SYNOPSIS
 
