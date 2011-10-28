@@ -62,6 +62,7 @@ lib/Config/Model/Report.pm
 lib/Config/Model/SearchElement.pm
 lib/Config/Model/SimpleUI.pm
 lib/Config/Model/TermUI.pm
+lib/Config/Model/Tester.pm
 lib/Config/Model/TreeSearcher.pm
 lib/Config/Model/Value.pm
 lib/Config/Model/ValueComputer.pm

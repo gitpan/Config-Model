@@ -27,7 +27,7 @@
 
 package Config::Model::Backend::Debian::Dpkg ;
 {
-  $Config::Model::Backend::Debian::Dpkg::VERSION = '1.259';
+  $Config::Model::Backend::Debian::Dpkg::VERSION = '1.260';
 }
 
 use Carp;
@@ -75,6 +75,7 @@ sub read_patch_series {
     # trigger element creation to read patch file_path
     foreach my $pname ($ser_io -> getlines) { 
         chomp $pname; 
+        next unless $pname =~ /\w/; # skip empty lines
         my $obj = $hash->fetch_with_id($pname);
         $obj->init;
         my $location = $obj->name;
@@ -149,7 +150,7 @@ Config::Model::Backend::Debian::Dpkg - Read and write config as plain file
 
 =head1 VERSION
 
-version 1.259
+version 1.260
 
 =head1 SYNOPSIS
 

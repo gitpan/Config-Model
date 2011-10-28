@@ -27,7 +27,7 @@
 
 package Config::Model::Loader;
 {
-  $Config::Model::Loader::VERSION = '1.259';
+  $Config::Model::Loader::VERSION = '1.260';
 }
 use Carp;
 use strict;
@@ -44,7 +44,7 @@ Config::Model::Loader - Load serialized data into config tree
 
 =head1 VERSION
 
-version 1.259
+version 1.260
 
 =head1 SYNOPSIS
 
@@ -320,7 +320,18 @@ sub load {
 
     #print "command is ",join('+',@command),"\n" ;
 
-    my $ret = $self->_load($node, $check, $experience, \@command,1) ;
+    my $current_node = $node ;
+    my $ret ;
+    do {
+        $ret = $self->_load($current_node, $check, $experience, \@command,1) ;
+        $logger->debug("_load returned $ret") ;
+        
+        # found '!' command
+        if ($ret eq 'root') {
+            $logger->debug("Setting current_node to root node") ;
+            $current_node = $current_node->root ;
+        }
+    } while ($ret eq 'root') ;
 
     if (@command) {
         my $str = "Error: command '@command' was not executed, you may have".
@@ -399,8 +410,8 @@ my %load_dispatch = (
 
 # return 'done', 'root', 'up', 'error'
 sub _load {
-    my ($self, $node, $check, $experience, $cmdref,$is_root) = @_ ;
-    $is_root ||= 0;
+    my ($self, $node, $check, $experience, $cmdref,$at_top_level) = @_ ;
+    $at_top_level ||= 0;
     my $node_name = "'".$node->name."'" ;
     $logger->debug("_load: called on node $node_name");
 
@@ -417,8 +428,8 @@ sub _load {
         next if $cmd =~ /^\s*$/ ;
 
         if ($cmd eq '!') {
-	    $logger->debug("_load: going to root");
-	    next if $is_root ;
+	    $logger->debug("_load: going to root, at_top_level is $at_top_level");
+	    # Do not change current node as we don't want to mess up =~ commands
 	    return 'root' ;
 	}
 
@@ -512,8 +523,14 @@ sub _load {
 	$logger->debug("_load: calling $element_type loader on element $element_name") ;
 	my $ret = $self->$method($node, $check,$experience, \@instructions,$cmdref) ;
 
-	if ($ret eq 'error' or $ret eq 'done') { return $ret; }
-	return 'root' if $ret eq 'root' and not $is_root ;
+	if ($ret eq 'error' or $ret eq 'done') { 
+	    $logger->debug("_load return: $node_name got $ret");
+            return $ret; 
+        }
+	if ($ret eq 'root' and not $at_top_level) {
+            $logger->debug("_load return: $node_name got $ret");
+            return 'root' ;
+        }
 	# ret eq up or ok -> go on with the loop
     }
 
