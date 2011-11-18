@@ -27,7 +27,7 @@
 
 package Config::Model::AnyId ;
 {
-  $Config::Model::AnyId::VERSION = '1.260';
+  $Config::Model::AnyId::VERSION = '1.261';
 }
 use Config::Model::Exception ;
 use Config::Model::Warper ;
@@ -56,7 +56,7 @@ Config::Model::AnyId - Base class for hash or list element
 
 =head1 VERSION
 
-version 1.260
+version 1.261
 
 =head1 SYNOPSIS
 
@@ -255,7 +255,8 @@ Specify the minimum value (optional, only for hash and for integer index)
 
 =item max_index
 
-Specify the maximum value (optional, only for integer index)
+Specify the maximum value (optional, only for list or for hash with 
+integer index)
 
 =item max_nb
 
@@ -484,7 +485,7 @@ sub set_properties {
             Config::Model::Exception::WrongValue 
                 -> throw (
                           error => "Error while setting id property:".
-                          join("\n\t",@{$self->{error}}),
+                          join("\n\t",@{$self->{error_list}}),
                           object => $self
                          ) ;
         }
@@ -831,6 +832,7 @@ sub check {
     map { warn ("Warning in '".$self->location."': $_\n") } @warn unless $silent;
     
     $self->{warning_list} = \@warn ;
+    $self->{error_list}   = \@error ;
 
     return scalar @error ? 0 : 1 ;
 }
@@ -887,7 +889,7 @@ sub check_idx {
           $self->warp_error  ;
     }
 
-    $self->{error} = \@error ;
+    $self->{error_list} = \@error ;
 
     if (@warn) {
         $self->{warning_hash}{$idx} = \@warn ;
@@ -973,7 +975,7 @@ sub check_duplicates {
     my @to_delete ;
     foreach my $i ( $self->get_all_indexes ) {
         my $v = $self->fetch_with_id(index => $i, check => 'no')->fetch;
-        next unless defined $v ;
+        next unless $v ;
         $h{$v} = 0 unless defined $h{$v} ;
         $h{$v}++;
         if ($h{$v} > 1) {
@@ -1036,7 +1038,7 @@ sub fetch_with_id {
     else {
         Config::Model::Exception::WrongValue 
             -> throw (
-                      error => join("\n\t",@{$self->{error}}),
+                      error => join("\n\t",@{$self->{error_list}}),
                       object => $self
                      ) ;
     }
@@ -1112,7 +1114,7 @@ sub copy {
     else {
         Config::Model::Exception::WrongValue 
             -> throw (
-                      error => join("\n\t",@{$self->{error}}),
+                      error => join("\n\t",@{$self->{error_list}}),
                       object => $self
                      ) ;
     }
@@ -1180,7 +1182,7 @@ sub fetch_all_values {
         }
         else {
             Config::Model::Exception::WrongValue->throw(
-                error  => join( "\n\t", @{ $self->{error} } ),
+                error  => join( "\n\t", @{ $self->{error_list} } ),
                 object => $self
             );
         }
@@ -1435,8 +1437,8 @@ Returns the error messages of this object (if any)
 
 sub error_msg {
     my $self = shift ;
-    return unless $self->{error} ;
-    return wantarray ? @{$self->{error}} : join("\n\t",@{ $self ->{error}}) ;
+    return unless $self->{error_list} ;
+    return wantarray ? @{$self->{error_list}} : join("\n\t",@{ $self ->{error_list}}) ;
 }
 
 1;

@@ -13,13 +13,11 @@
     'element' => [
       'Mode',
       {
-        'value_type' => 'enum',
+        'value_type' => 'uniline',
         'upstream_default' => 'G320x240x256',
         'type' => 'leaf',
-        'description' => 'svgalib mode to use ',
-        'choice' => [
-          'supportedsvgalibmodes'
-        ]
+        'description' => 'svgalib mode to use 
+legal values are supported svgalib modes'
       },
       'Size',
       {

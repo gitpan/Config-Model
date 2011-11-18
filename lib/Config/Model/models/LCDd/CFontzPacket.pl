@@ -107,9 +107,9 @@ value should not be necessary.'
       'Speed',
       {
         'value_type' => 'enum',
-        'upstream_default' => 'dependingonmodel',
         'type' => 'leaf',
-        'description' => 'Override the default communication speed known for the selected model.',
+        'description' => 'Override the default communication speed known for the selected model.
+Default value depends on model ',
         'choice' => [
           '19200',
           '115200'

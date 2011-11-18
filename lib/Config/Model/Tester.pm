@@ -9,7 +9,7 @@
 #
 package Config::Model::Tester;
 {
-  $Config::Model::Tester::VERSION = '1.260';
+  $Config::Model::Tester::VERSION = '1.261';
 }
 
 use Test::More;
@@ -20,6 +20,7 @@ use File::Path;
 use File::Copy;
 use File::Copy::Recursive qw(fcopy rcopy dircopy);
 use File::Find;
+use File::Spec ;
 use Test::Warn;
 use Test::Exception;
 use Test::Differences;
@@ -46,23 +47,19 @@ sub setup_test {
     mkpath( $wr_root, { mode => 0755 } );
 
     my $wr_dir    = $wr_root . '/test-' . $t_name;
-    my $conf_file = "$wr_dir/$conf_dir/$conf_file_name";
+    my $conf_file ;
+    $conf_file = "$wr_dir/$conf_dir/$conf_file_name" if defined $conf_file_name;
 
     my $ex_data = "t/model_tests.d/$model_test-examples/$t_name";
     my @file_list;
     if ( -d $ex_data ) {
 
         # copy whole dir
-        my $debian_dir = "$wr_dir/$conf_dir";
+        my $debian_dir = "$wr_dir/" ;
+        $debian_dir .= $conf_dir if $conf_dir;
         dircopy( $ex_data, $debian_dir )
           || die "dircopy $ex_data -> $debian_dir failed:$!";
-        find(
-            {
-                wanted => sub { push @file_list, $_ unless -d; },
-                no_chdir => 1
-            },
-            $debian_dir
-        );
+        list_test_files ($debian_dir, \@file_list);
     }
     else {
 
@@ -75,10 +72,29 @@ sub setup_test {
     return ( $wr_dir, $conf_file, $ex_data, @file_list );
 }
 
+#
+# New subroutine "list_test_files" extracted - Thu Nov 17 17:27:20 2011.
+#
+sub list_test_files {
+    my $debian_dir = shift;
+    my $file_list  = shift;
+
+    find(
+        {
+            wanted => sub { push @$file_list, $_ unless -d; },
+            no_chdir => 1
+        },
+        $debian_dir
+    );
+    map { s!^$debian_dir!/!; } @$file_list;
+}
+
 sub run_model_test {
     my ($model_test, $model_test_conf, $do, $model, $trace, $wr_root) = @_ ;
 
     $skip = 0;
+    undef $conf_file_name ;
+    undef $conf_dir ;
 
     note("Beginning $model_test test ($model_test_conf)");
 
@@ -93,7 +109,9 @@ sub run_model_test {
         next;
     }
 
-    note("$model_test uses $model_to_test model on file $conf_file_name");
+    my $note ="$model_test uses $model_to_test model";
+    $note .= " on file $conf_file_name" if defined $conf_file_name;
+    note($note);
 
     my $idx = 0;
     foreach my $t (@tests) {
@@ -106,11 +124,17 @@ sub run_model_test {
 
         my ($wr_dir, $conf_file, $ex_data, @file_list) 
             = setup_test ($model_test, $t_name, $wr_root);
+            
+        if ($t->{config_file}) { 
+            my ($v,$local_conf_dir,$f) = File::Spec->splitpath($wr_dir.$t->{config_file}) ;
+            mkpath($local_conf_dir,{mode => 0755} );
+        }
 
         my $inst = $model->instance(
             root_class_name => $model_to_test,
             root_dir        => $wr_dir,
             instance_name   => "$model_test-" . $t_name,
+            config_file     => $t->{config_file} ,
             check           => $t->{load_check} || 'yes',
         );
 
@@ -121,11 +145,11 @@ sub run_model_test {
         {
             local $Config::Model::Value::nowarning = 1;
             $root->init;
-            ok( 1,"Read $conf_file and created instance with init() method without warning check" );
+            ok( 1,"Read configuration and created instance with init() method without warning check" );
         }
         else {
             warnings_like { $root->init; } $t->{load_warnings},
-                "Read $conf_file and created instance with init() method with warning check ";
+                "Read configuration and created instance with init() method with warning check ";
         }
 
         if ( $t->{load} ) {
@@ -183,22 +207,17 @@ sub run_model_test {
 
         local $Config::Model::Value::nowarning = $t->{no_warnings} || 0;
 
-        $inst->write_back;
+        $inst->write_back(config_file     => $t->{config_file} );
         ok( 1, "$model_test write back done" );
 
         my @new_file_list;
         if ( -d $ex_data ) {
 
             # copy whole dir
-            my $debian_dir = "$wr_dir/$conf_dir" ;
-            find(
-                {
-                    wanted => sub { push @new_file_list, $_ unless -d; },
-                    no_chdir => 1
-                },
-                $debian_dir
-            );
-            $t->{file_check_sub}->( \@new_file_list )
+            my $debian_dir = "$wr_dir/" ;
+            $debian_dir .= $conf_dir if $conf_dir;
+            list_test_files($debian_dir, \@new_file_list) ;
+            $t->{file_check_sub}->( \@file_list )
               if defined $t->{file_check_sub};
             eq_or_diff( \@new_file_list, \@file_list,
                 "check added or removed files" );
@@ -212,6 +231,7 @@ sub run_model_test {
         my $i2_test = $model->instance(
             root_class_name => $model_to_test,
             root_dir        => $wr_dir2,
+            config_file     => $t->{config_file} ,
             instance_name   => "$model_test-$t_name-w",
         );
 
@@ -228,7 +248,8 @@ sub run_model_test {
         );
 
         ok( -s "$wr_dir2/$conf_dir/$conf_file_name" , 
-            "check that original $model_test file was not clobbered" );
+            "check that original $model_test file was not clobbered" )
+                if defined $conf_file_name ;
 
         note("End of subtest $model_test $t_name");
 
@@ -265,7 +286,7 @@ sub run_tests {
     # pseudo root where config files are written by config-model
     my $wr_root = 'wr_root';
 
-    my @group_of_tests = grep { /-test-conf.pl/ } glob("t/model_tests.d/*");
+    my @group_of_tests = grep { /-test-conf.pl$/ } glob("t/model_tests.d/*");
 
     foreach my $model_test_conf (@group_of_tests) {
         my ($model_test) = ( $model_test_conf =~ m!\.d/([\w\-]+)-test-conf! );
@@ -284,7 +305,7 @@ Config::Model::Tester - Test framework for Config::Model
 
 =head1 VERSION
 
-version 1.260
+version 1.261
 
 =head1 SYNOPSIS
 
@@ -368,6 +389,22 @@ Here, C<t0> file will be copied in C<wr_root/test-t0/etc/fstab>.
 
  1; # to keep Perl happy
  
+=head2 Test specification with arbitrary file names
+
+In some models (e.g. C<Multistrap>, the config file is choosen by the user. 
+In this case, the file name must be specified for each tests case:
+
+ $model_to_test = "Multistrap";
+
+ @tests = (
+    {
+        name        => 'arm',
+        config_file => '/home/foo/my_arm.conf',
+        check       => {},
+    },
+ );
+
+
 =head2 test scenario
 
 Each subtest follow a sequence explained below. Each step of this
@@ -421,10 +458,10 @@ Likewise, specify any expected warnings:
 
         dump_warnings => [ (qr/deprecated/) x 3 ],
 
-You can tolerate any sump warning this way:
+You can tolerate any dump warning this way:
 
         dump_warnings => undef ,
-        
+
 =item * 
 
 Run specific content check to verify that configuration data was retrieved 
@@ -446,11 +483,12 @@ You can skip warning when writing back with:
 =item *
 
 Check added or removed configuration files. If you expect changes, 
-specify a subref  to alter the file list:
+specify a subref to alter the file list:
 
     file_check_sub => sub { 
-        my $file_list_ref = shift ; 
-        @$r = grep { ! /home/ } @$r ;
+        my $list_ref = shift ; 
+        # file added during tests
+        push @$list_ref, "/debian/source/format" ;
     };
 
 =item *

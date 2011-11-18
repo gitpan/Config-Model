@@ -4,7 +4,7 @@ Config::Model::models::LCDd::mdm166a - Configuration class LCDd::mdm166a
 
 =head1 VERSION
 
-version 1.260
+version 1.261
 
 =head1 DESCRIPTION
 
@@ -19,11 +19,11 @@ Possible values: I<< Optional. Type enum. choice: 'no', 'small', 'big'. upstream
 
 =head2 Dimming
 
-Dimm display, no dimming gives full brightness I<< Optional. Type uniline. upstream_default: 'no,legal:yes,no'.  >>
+Dim display, no dimming gives full brightness I<< Optional. Type uniline. upstream_default: 'no,legal:yes,no'.  >>
 
 =head2 OffDimming
 
-Dimm display in case LCDd is inactive I<< Optional. Type uniline. upstream_default: 'no,legal:yes,no'.  >>
+Dim display in case LCDd is inactive I<< Optional. Type uniline. upstream_default: 'no,legal:yes,no'.  >>
 
 =head1 SEE ALSO
 

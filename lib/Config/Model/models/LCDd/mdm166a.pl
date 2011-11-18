@@ -29,14 +29,14 @@ Possible values: ',
         'value_type' => 'uniline',
         'upstream_default' => 'no,legal:yes,no',
         'type' => 'leaf',
-        'description' => 'Dimm display, no dimming gives full brightness '
+        'description' => 'Dim display, no dimming gives full brightness '
       },
       'OffDimming',
       {
         'value_type' => 'uniline',
         'upstream_default' => 'no,legal:yes,no',
         'type' => 'leaf',
-        'description' => 'Dimm display in case LCDd is inactive '
+        'description' => 'Dim display in case LCDd is inactive '
       }
     ]
   }

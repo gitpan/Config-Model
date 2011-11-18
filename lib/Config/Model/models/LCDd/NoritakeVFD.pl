@@ -16,7 +16,7 @@
         'value_type' => 'uniline',
         'upstream_default' => '/dev/lcd',
         'type' => 'leaf',
-        'description' => 'device where the VFD is. Usual values are /dev/ttyS0 and /dev/ttyS1 '
+        'description' => 'device where the VFD is. Usual values are /dev/ttyS0 and /dev/ttyS1'
       },
       'Size',
       {
@@ -54,10 +54,13 @@ switched off in case LCDd is inactive'
       },
       'Parity',
       {
-        'value_type' => 'uniline',
-        'upstream_default' => '0(None),legal:0(=none),1(=odd),2(=even)',
+        'value_type' => 'integer',
+        'min' => '0',
+        'upstream_default' => '0',
+        'max' => '2',
         'type' => 'leaf',
-        'description' => 'Set serial data parity '
+        'description' => 'Set serial data parity 
+Meaning: 0(=none), 1(=odd), 2(=even)'
       },
       'Reboot',
       {

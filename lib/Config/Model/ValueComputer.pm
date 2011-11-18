@@ -10,7 +10,7 @@
 
 package Config::Model::ValueComputer ;
 {
-  $Config::Model::ValueComputer::VERSION = '1.260';
+  $Config::Model::ValueComputer::VERSION = '1.261';
 }
 
 use warnings ;
@@ -31,7 +31,7 @@ Config::Model::ValueComputer - Provides configuration value computation
 
 =head1 VERSION
 
-version 1.260
+version 1.261
 
 =head1 SYNOPSIS
 

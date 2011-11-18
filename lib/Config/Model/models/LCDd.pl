@@ -21,7 +21,7 @@ The server has a \'central\' section named [server]. For the menu there is
 a section called [menu]. Further each driver has a section which
 defines how the driver acts.
 
-The drivers are activated by specifiying them in a driver= line in the
+The drivers are activated by specifying them in a driver= line in the
 server section, like:
 
   Driver=curses
@@ -92,21 +92,6 @@ This model does not support to load several drivers. Loading several drivers is 
           }
         ],
         'config_class_name' => 'LCDd::CFontz'
-      },
-      'CFontz633',
-      {
-        'follow' => {
-          'selected' => '- server Driver'
-        },
-        'level' => 'hidden',
-        'type' => 'warped_node',
-        'rules' => [
-          '$selected eq \'CFontz633\'',
-          {
-            'level' => 'normal'
-          }
-        ],
-        'config_class_name' => 'LCDd::CFontz633'
       },
       'CFontzPacket',
       {
@@ -197,6 +182,21 @@ This model does not support to load several drivers. Loading several drivers is 
           }
         ],
         'config_class_name' => 'LCDd::g15'
+      },
+      'glcd',
+      {
+        'follow' => {
+          'selected' => '- server Driver'
+        },
+        'level' => 'hidden',
+        'type' => 'warped_node',
+        'rules' => [
+          '$selected eq \'glcd\'',
+          {
+            'level' => 'normal'
+          }
+        ],
+        'config_class_name' => 'LCDd::glcd'
       },
       'glcdlib',
       {
@@ -752,6 +752,21 @@ This model does not support to load several drivers. Loading several drivers is 
           }
         ],
         'config_class_name' => 'LCDd::sli'
+      },
+      'vlsys_m428',
+      {
+        'follow' => {
+          'selected' => '- server Driver'
+        },
+        'level' => 'hidden',
+        'type' => 'warped_node',
+        'rules' => [
+          '$selected eq \'vlsys_m428\'',
+          {
+            'level' => 'normal'
+          }
+        ],
+        'config_class_name' => 'LCDd::vlsys_m428'
       },
       'xosd',
       {

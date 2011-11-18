@@ -4,7 +4,7 @@ Config::Model::models::LCDd::picolcd - Configuration class LCDd::picolcd
 
 =head1 VERSION
 
-version 1.260
+version 1.261
 
 =head1 DESCRIPTION
 
@@ -14,15 +14,25 @@ Configuration classes used by L<Config::Model>
 
 =head2 KeyTimeout
 
-KeyTimeout is the time that LCDd spends waiting for a key press before cycling
-through other duties.  Higher values make LCDd use less CPU time and make
-key presses more detectable.  Lower values make LCDd more responsive but a
-little prone to missing key presses.  500 (.5 second) is the default and a
-balanced value.I<< Optional. Type uniline. default: '500'.  >>
+KeyTimeout is the time in ms that LCDd spends waiting for a key press before
+cycling through other duties.  Higher values make LCDd use less CPU time and
+make key presses more detectable.  Lower values make LCDd more responsive
+but a little prone to missing key presses.  500 (.5 second) is the default
+and a balanced value. I<< Optional. Type integer. upstream_default: '500'.  >>
+
+=head2 Backlight
+
+Sets the initial state of the backlight upon start-up.I<< Optional. Type enum. choice: 'on', 'off'. upstream_default: 'on'.  >>
 
 =head2 Brightness
 
-Set the initial brightness I<< Optional. Type integer. upstream_default: '1000'.  >>
+Set the initial brightness . Works only
+with the 20x4 device. I<< Optional. Type integer. upstream_default: '1000'.  >>
+
+=head2 OffBrightness
+
+Set the brightness while the backlight is 'off' .
+Works only with the 20x4 device.I<< Optional. Type integer. upstream_default: '0'.  >>
 
 =head2 Contrast
 
@@ -70,8 +80,9 @@ UDP port on which LIRC is listening I<< Optional. Type integer. upstream_default
 
 =head2 LircFlushThreshold
 
-Threshold in jiffies of synthesized gap that triggers flushing the IR data to lirc
- (100 is 6.1ms); use 0 to suppress. I<< Optional. Type uniline. upstream_default: '100'.  >>
+Threshold in jiffies of synthesized gap that triggers flushing the IR data
+to lirc 
+100 means 6.1ms. legal: 16 - 32767; Use 0 to disable.I<< Optional. Type integer. upstream_default: '100'.  >>
 
 =head1 SEE ALSO
 

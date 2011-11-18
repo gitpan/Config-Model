@@ -4,7 +4,7 @@ Config::Model::models::LCDd::CFontz633 - Configuration class LCDd::CFontz633
 
 =head1 VERSION
 
-version 1.260
+version 1.261
 
 =head1 DESCRIPTION
 

@@ -11,7 +11,7 @@ use Config::Model;
 use Config::Model::AnyId;
 use Log::Log4perl qw(:easy :levels) ;
 
-BEGIN { plan tests => 87; }
+BEGIN { plan tests => 96; }
 
 use strict;
 
@@ -190,8 +190,18 @@ is( $b->fetch_with_id(5)->annotation,
     'toto comment', "check pushed toto annotation with push_x" );
 is( $b->fetch_with_id(6)->fetch, 'titi', "check pushed titi item with push_x" );
 
+$b->push_x(
+    values     => 'toto2',
+    check      => 'no',
+    annotation => 'toto2 comment'
+);
+
+is( $b->fetch_with_id(7)->fetch, 'toto2', "check pushed toto2 item with push_x" );
+is( $b->fetch_with_id(7)->annotation,
+    'toto2 comment', "check pushed toto2 annotation with push_x" );
+
 my @all = $b->fetch_all_values;
-is_deeply( \@all, [qw/baz bar toto titi toto titi/], "check fetch_all_values" );
+is_deeply( \@all, [qw/baz bar toto titi toto titi toto2/], "check fetch_all_values" );
 
 my $lac = $root->fetch_element('list_with_auto_created_id');
 is_deeply(
@@ -362,3 +372,32 @@ foreach my $what (qw/forbid warn suppress/) {
     is ($lwd->fetch_with_id(0)->fetch,'string1',
         "check that original values is untouched after $what duplicates");
 }
+
+# test preset clear stuff
+# done after auto_create_ids tests, because preset_clear or layered_clear
+# also clean up auto_create_ids (if there's no data in there)
+$pl->clear ;
+is_deeply( [ $pl->get_all_indexes ], [ ] ,"check that preset stuff was cleared");
+
+$inst->preset_start;
+$pl->fetch_with_id(0)->store('prefoo');
+$pl->fetch_with_id(1)->store('prebar');
+$inst->preset_stop;
+is_deeply( [ $pl->get_all_indexes ], [0,1] ,"check preset indexes");
+$pl->fetch_with_id(1)->store('bar');
+$inst->preset_clear ;
+is_deeply( [ $pl->get_all_indexes ], [0] ,"check that only preset stuff was cleared");
+is($pl->fetch_with_id(0)->fetch,'bar',"check that bar was moved from 1 to 0");
+
+# test layered stuff
+$pl->clear ;
+$inst->layered_start;
+$pl->fetch_with_id(0)->store('prefoo');
+$pl->fetch_with_id(1)->store('prebar');
+$inst->layered_stop;
+is_deeply( [ $pl->get_all_indexes ], [0,1] ,"check layered indexes");
+$pl->fetch_with_id(1)->store('bar');
+$inst->layered_clear ;
+is_deeply( [ $pl->get_all_indexes ], [0] ,"check that only layered stuff was cleared");
+is($pl->fetch_with_id(0)->fetch,'bar',"check that bar was moved from 1 to 0");
+$pl->clear ;

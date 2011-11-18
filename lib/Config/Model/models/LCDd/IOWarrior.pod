@@ -4,7 +4,7 @@ Config::Model::models::LCDd::IOWarrior - Configuration class LCDd::IOWarrior
 
 =head1 VERSION
 
-version 1.260
+version 1.261
 
 =head1 DESCRIPTION
 
@@ -28,8 +28,8 @@ set this flag to get into extended mode (4-line linear).I<< Optional. Type unili
 
 =head2 Lastline
 
-Specifies if the last line is pixel addressable or it controls an
-underline effect. I<< Optional. Type enum. choice: 'yes', 'no'. upstream_default: 'true(=pixeladdressable)'.  >>
+Specifies if the last line is pixel addressable (yes) or it controls an
+underline effect (no). I<< Optional. Type enum. choice: 'yes', 'no'. upstream_default: 'yes'.  >>
 
 =head1 SEE ALSO
 

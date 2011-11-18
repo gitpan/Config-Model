@@ -4,7 +4,7 @@ Config::Model::models::LCDd::menu - Configuration class LCDd::menu
 
 =head1 VERSION
 
-version 1.260
+version 1.261
 
 =head1 DESCRIPTION
 
@@ -16,7 +16,9 @@ Configuration classes used by L<Config::Model>
 
 You can configure what keys the menu should use. Note that the MenuKey
 will be reserved exclusively, the others work in shared mode.
-The following works excellent with 4 keys or more.I<< Optional. Type uniline. default: 'Escape'.  >>
+Up to six keys are supported. The MenuKey (to enter and exit the menu), the
+EnterKey (to select values) and at least one movement keys are required.
+These are the default key assignments:I<< Optional. Type uniline. default: 'Escape'.  >>
 
 =head2 EnterKey
 
@@ -32,7 +34,7 @@ I<< Optional. Type uniline. default: 'Down'.  >>
 
 =head2 LeftKey
 
-If you have 6 keys you may define these as well. I<< Optional. Type uniline. default: 'Left'.  >>
+I<< Optional. Type uniline. default: 'Left'.  >>
 
 =head2 RightKey
 

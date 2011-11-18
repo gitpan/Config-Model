@@ -27,7 +27,7 @@
 
 package Config::Model::Node;
 {
-  $Config::Model::Node::VERSION = '1.260';
+  $Config::Model::Node::VERSION = '1.261';
 }
 use Carp ;
 use strict;
@@ -70,7 +70,7 @@ Config::Model::Node - Class for configuration tree node
 
 =head1 VERSION
 
-version 1.260
+version 1.261
 
 =head1 SYNOPSIS
 
@@ -651,6 +651,7 @@ sub new {
     
     
     $self->{auto_read} = { skip => delete $args{skip_read}, check => $check };
+    $self->{config_file} = delete $args{config_file} ;
     
     my @left = keys %args ;
     croak "Node->new: unexpected parameter: @left" if @left ;
@@ -672,39 +673,69 @@ sub new {
 }
 
 sub init {
-    my $self = shift ;
+    my $self = shift;
 
-    return if $self->{initialized} ;
-    $self->{initialized} = 1 ; # avoid recursions
+    return if $self->{initialized};
+    $self->{initialized} = 1;    # avoid recursions
 
-    my $model = $self->{model} ;
-    
-    return unless defined $model->{read_config} or defined $model->{write_config} ;
-    $self->{bmgr} ||= Config::Model::BackendMgr->new (node => $self) ;
-    
-    my $ar = $self->{auto_read} ;
-    
-    my $check = $ar->{check} ;
-    if (defined $model->{read_config} and not $ar->{skip_read} ) {
-        $ar->{done} = 1 ;
-        # setup auto_read, read_config_dir is obsolete
-        $self->{bmgr}->auto_read_init($model->{read_config}, $check, $model->{read_config_dir} );
+    my $model = $self->{model};
+
+    return
+      unless defined $model->{read_config}
+          or defined $model->{write_config};
+    $self->{bmgr} ||= Config::Model::BackendMgr->new( node => $self );
+
+    my $ar = $self->{auto_read};
+
+    my $check = $ar->{check};
+    if ( defined $model->{read_config} and not $ar->{skip_read} ) {
+        $ar->{done} = 1;
+        $self->read_config_data(check => $check) ;
     }
 
     # use read_config data if write_config is missing
-    $model->{write_config} ||= dclone $model->{read_config} 
+    $model->{write_config} ||= dclone $model->{read_config}
       if defined $model->{read_config};
 
-    if ($model->{write_config}) {
+    if ( $model->{write_config} ) {
+
         # setup auto_write, write_config_dir is obsolete
-        $self->{bmgr}->auto_write_init($model->{write_config},
-                                       $model->{write_config_dir});
+        $self->{bmgr}->auto_write_init(
+            write_config     => $model->{write_config},
+            write_config_dir => $model->{write_config_dir},
+        );
     }
 }
 
+sub read_config_data {
+    my ($self,%args) = @_ ;
+    
+    my $model = $self->{model};
+    
+    if ($self->location and $args{config_file}) {
+        die "read_config_data: cannot override config_file in non root node (",
+            $self->location,")\n";
+    }
+
+    # setup auto_read, read_config_dir is obsolete
+    # may use an overridden config file
+    $self->{bmgr}->read_config_data(
+        read_config     => $model->{read_config},
+        check           => $args{check},
+        read_config_dir => $model->{read_config_dir},
+        config_file     => $args{config_file} || $self->{config_file},
+    );
+}
+
 sub write_back {
-    my $self = shift ;
-    $self->{bmgr}->write_back(@_) ;
+    my ($self,%args) = @_ ;
+
+    if ($self->location and $args{config_file}) {
+        die "write_back: cannot override config_file in non root node (",
+            $self->location,")\n";
+    }
+    
+    $self->{bmgr}->write_back(%args) ;
 }
 
 sub is_auto_write_for_type {
@@ -788,7 +819,13 @@ sub has_element {
     my %args = ( @_ > 1 ) ? @_ : ( name => shift ) ;
     my $name = $args{name};
     my $type = $args{type} ;
-    croak "has_element: missing element name" unless defined $name ;
+
+    if (not defined $name) {
+        Config::Model::Exception::Internal->throw(
+            object   => $self,
+            info     => "has_element: missing element name",
+        ) ;
+    }
 
     $self->accept_element($name);
     return 0 unless defined $self->{model}{element}{$name} ;

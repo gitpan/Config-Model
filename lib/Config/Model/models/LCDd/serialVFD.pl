@@ -31,18 +31,20 @@
       'use_parallel',
       {
         'value_type' => 'uniline',
-        'upstream_default' => 'no(=serial)',
+        'upstream_default' => 'no',
         'type' => 'leaf',
-        'description' => '"no" if display connected serial, "yes" if connected parallel. '
+        'description' => '"no" if display connected serial, "yes" if connected parallel. 
+I.e. serial by default'
       },
       'Port',
       {
         'value_type' => 'uniline',
-        'upstream_default' => 'displaytypedependent',
+        'default' => '0x378',
         'type' => 'leaf',
-        'description' => 'Number of Custom-Characters 
+        'description' => 'Number of Custom-Characters. default is display type dependent
 Custom-Characters=0
-Portaddress where the LPT is. Used in parallelmode only. Usual values are 0x278, 0x378 and 0x3BC'
+Portaddress where the LPT is. Used in parallel mode only. Usual values are
+0x278, 0x378 and 0x3BC.'
       },
       'PortWait',
       {
@@ -51,7 +53,7 @@ Portaddress where the LPT is. Used in parallelmode only. Usual values are 0x278,
         'upstream_default' => '2',
         'max' => '255',
         'type' => 'leaf',
-        'description' => 'Set parallel port timingdelay (us). Used in parallelmode only. '
+        'description' => 'Set parallel port timing delay (us). Used in parallel mode only.'
       },
       'Device',
       {

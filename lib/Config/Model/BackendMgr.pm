@@ -28,7 +28,7 @@
 
 package Config::Model::BackendMgr ;
 {
-  $Config::Model::BackendMgr::VERSION = '1.260';
+  $Config::Model::BackendMgr::VERSION = '1.261';
 }
 
 use Any::Moose ;
@@ -43,7 +43,7 @@ use IO::File ;
 use Storable qw/dclone/ ;
 use Log::Log4perl qw(get_logger :levels);
 
-my $logger = get_logger('Data') ;
+my $logger = get_logger('BackendMgr') ;
 
 # one BackendMgr per file
 
@@ -68,12 +68,19 @@ sub get_cfg_file_path {
 
     my $w = $args{write} || 0 ;
 
-    Config::Model::Exception::Model -> throw
-        (
+    # config file override
+    if (defined $args{config_file}) {
+        my $override = $args{root}.$args{config_file}  ;
+         $logger->trace("auto_". ($w ? 'write' : 'read') 
+                  ." $args{backend} override target file is $override" );
+        return $args{root}.$args{config_file} 
+    }
+
+    Config::Model::Exception::Model -> throw (
          error=> "auto_". ($w ? 'write' : 'read') 
-                 ." error: empty 'config_dir' parameter",
+                 ." error: empty 'config_dir' parameter (and no config_file override)",
          object => $self->node
-        ) unless $args{config_dir};
+    ) unless $args{config_dir};
 
     my $dir = $args{config_dir} ;
     if ($dir =~ /^~/) { 
@@ -86,7 +93,7 @@ sub get_cfg_file_path {
     
     $dir .= '/' unless $dir =~ m!/$! ;
     if (not -d $dir and $w and $args{auto_create}) {
-        $logger->info("get_cfg_file_path:{ite create directory $dir" );
+        $logger->info("creating directory $dir" );
         mkpath ($dir,0, 0755);
     }
 
@@ -206,8 +213,15 @@ sub load_backend_class {
     return $class_to_load ;
 }
 
-sub auto_read_init {
-    my ($self, $readlist_orig, $check, $r_dir) = @_ ;
+sub read_config_data {
+    my ($self, %args) = @_ ;
+    my $readlist_orig = delete $args{read_config} ;
+    my $check = delete $args{check} ;
+    my $r_dir = delete $args{read_config_dir} ;
+    my $config_file_override = delete $args{config_file} ;
+    
+    croak "unexpected args ".join(' ',keys %args)."\n" if %args ;
+
     # r_dir is obsolete
     if (defined $r_dir) {
         warn $self->node->config_class_name," : read_config_dir is obsolete\n";
@@ -221,7 +235,7 @@ sub auto_read_init {
     my $root_dir = $instance -> read_root_dir || '';
     $root_dir .= '/' if ($root_dir and $root_dir !~ m(/$)) ; 
 
-    croak "auto_read_init: readlist must be array or hash ref\n" 
+    croak "readlist must be array or hash ref\n" 
       unless ref $readlist ;
 
     my @list = ref $readlist  eq 'ARRAY' ? @$readlist :  ($readlist) ;
@@ -252,7 +266,8 @@ sub auto_read_init {
         $auto_create ||= delete $read->{auto_create} if defined $read->{auto_create};
 
         my @read_args = (%$read, root => $root_dir, config_dir => $read_dir,
-                        backend => $backend, check => $check);
+                        backend => $backend, check => $check, 
+                        config_file => $config_file_override);
 
         if ($backend eq 'custom') {
             my $c = my $file = delete $read->{class} ;
@@ -343,7 +358,12 @@ sub auto_read_init {
 
 # called at configuration node creation, NOT when writing
 sub auto_write_init {
-    my ($self, $wrlist_orig, $w_dir) = @_ ;
+    my ($self, %args) = @_ ;
+    my $wrlist_orig = delete $args{write_config} ;
+    my $w_dir = delete $args{write_config_dir} ;
+
+    croak "auto_write_init: unexpected args ".join(' ',keys %args)."\n" 
+        if %args ;
 
     # w_dir is obsolete
     if (defined $w_dir) {
@@ -512,6 +532,9 @@ For instance, C<< backend => 'augeas' >> or C<< backend => 'custom' >>.
 You can force to use all backend to write the files by specifying 
 C<< backend => 'all' >>.
 
+You can force a specific config file to write with 
+C<<config_file => 'foo/bar.conf' >>
+
 C<write_back> will croak if no write call-back are known for this node.
 
 =cut
@@ -645,7 +668,7 @@ Config::Model::BackendMgr - Load configuration node on demand
 
 =head1 VERSION
 
-version 1.260
+version 1.261
 
 =head1 SYNOPSIS
 

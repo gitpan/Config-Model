@@ -4,7 +4,7 @@ Config::Model::models::LCDd::CFontzPacket - Configuration class LCDd::CFontzPack
 
 =head1 VERSION
 
-version 1.260
+version 1.261
 
 =head1 DESCRIPTION
 
@@ -56,7 +56,8 @@ value should not be necessary.I<< Optional. Type uniline. default: '20x4'.  >>
 
 =head2 Speed
 
-Override the default communication speed known for the selected model.I<< Optional. Type enum. choice: '19200', '115200'. upstream_default: 'dependingonmodel'.  >>
+Override the default communication speed known for the selected model.
+Default value depends on model I<< Optional. Type enum. choice: '19200', '115200'.  >>
 
 =head1 SEE ALSO
 

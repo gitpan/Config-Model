@@ -27,7 +27,7 @@
 
 package Config::Model::Instance;
 {
-  $Config::Model::Instance::VERSION = '1.260';
+  $Config::Model::Instance::VERSION = '1.261';
 }
 use Scalar::Util qw(weaken) ;
 use File::Path;
@@ -39,6 +39,7 @@ use Config::Model::Node ;
 use Config::Model::Loader;
 use Config::Model::SearchElement;
 use Config::Model::Iterator;
+use Config::Model::ObjTreeScanner;
 
 use strict ;
 use Carp;
@@ -56,7 +57,7 @@ Config::Model::Instance - Instance of configuration tree
 
 =head1 VERSION
 
-version 1.260
+version 1.261
 
 =head1 SYNOPSIS
 
@@ -157,8 +158,7 @@ sub new {
     carp "instance new: force_load is deprecated" if defined $args{force_load} ;
     $read_check = 'no' if delete $args{force_load} ;
 
-    my $self 
-      = {
+    my $self  = {
 	 # stack used to store whether read and/or write check must 
 	 # be done in tree objects (Value, Id ...)
 	 check_stack => [ { fetch => 1,
@@ -176,6 +176,10 @@ sub new {
 	 # automatic scheme
 	 preset => 0,
 
+	 # layered mode to load values found in included files (e.g. a la multistrap)
+	 layered => 0,
+
+
 	 config_model => $config_model ,
 	 root_class_name => $root_class_name ,
 
@@ -187,6 +191,7 @@ sub new {
 	 # used for auto_read auto_write feature
 	 name            =>  delete $args{name} ,
 	 root_dir        =>  delete $args{root_dir},
+	 config_file     =>  delete $args{config_file} , 
 
 	 backend         =>  delete $args{backend} || '',
 	 skip_read       =>  delete $args{skip_read} || 0,
@@ -249,14 +254,15 @@ data (and annotations) loaded from disk.
 =cut
 
 sub reset_config {
-    my ($self, %args ) = @_ ;
+    my ( $self, %args ) = @_;
 
-    $self->{tree} = Config::Model::Node
-      -> new ( config_class_name => $self->{root_class_name},
-	       instance => $self,
-	       config_model => $self->{config_model},
-	       skip_read  => $self->{skip_read},
-	     );
+    $self->{tree} = Config::Model::Node->new(
+        config_class_name => $self->{root_class_name},
+        instance          => $self,
+        config_model      => $self->{config_model},
+        skip_read         => $self->{skip_read},
+        config_file       => $self->{config_file} ,
+    );
 
     # $self->{annotation_saver} = Config::Model::Annotation
     #   -> new (
@@ -266,7 +272,7 @@ sub reset_config {
     # 	     ) ;
     # $self->{annotation_saver}->load ;
 
-    return $self->{tree} ;
+    return $self->{tree};
 }
 
 
@@ -328,6 +334,109 @@ sub preset {
     my $self = shift ;
     return $self->{preset} ;
 }
+
+=head2 preset_clear()
+
+Clear all preset values stored.
+
+=cut
+
+sub preset_clear {
+    my $self = shift ;
+
+    my $leaf_cb = sub {
+        my ($scanner, $data_ref,$node,$element_name,$index, $leaf_object) = @_ ;
+        $leaf_object->clear_preset ;
+    } ;
+    
+    $self->_stuff_clear($leaf_cb) ;
+}
+
+=head2 layered_start ()
+
+All values stored in layered mode are shown to the user as default
+values. This feature is useful to enter configuration data entered by
+an automatic process (like hardware scan)
+
+=cut
+
+sub layered_start {
+    my $self = shift ;
+    $logger->info("Starting layered mode");
+    $self->{layered} = 1;
+}
+
+=head2 layered_stop ()
+
+Stop layered mode
+
+=cut
+
+sub layered_stop {
+    my $self = shift ;
+    $logger->info("Stopping layered mode");
+    $self->{layered} = 0;
+}
+
+=head2 layered ()
+
+Get layered mode
+
+=cut
+
+sub layered {
+    my $self = shift ;
+    return $self->{layered} ;
+}
+
+=head2 layered_clear()
+
+Clear all layered values stored.
+
+=cut
+
+sub layered_clear {
+    my $self = shift ;
+    
+    my $leaf_cb = sub {
+        my ($scanner, $data_ref,$node,$element_name,$index, $leaf_object) = @_ ;
+        $$data_ref ||= $leaf_object->clear_layered ;
+    };
+
+    $self->_stuff_clear($leaf_cb);
+}
+    
+sub _stuff_clear {
+    my ($self,$leaf_cb) = @_ ;
+    
+    # this sub may remove hash keys that were entered by user if the 
+    # corresponding hash value has no data. 
+    # it also clear auto_created ids if there's no data in there
+    my $h_cb = sub {
+        my  ($scanner, $data_ref,$node,$element_name,@keys) = @_ ;
+        my $obj = $node->fetch_element($element_name) ;
+        
+        foreach my $k (@keys) {
+            my $has_data = 0;
+            $scanner->scan_hash(\$has_data,$node,$element_name,$k);
+            $obj->remove($k) unless $has_data ;
+            $$data_ref ||= $has_data ;
+        }
+    };
+    
+    my $wiper = Config::Model::ObjTreeScanner->new (
+        fallback => 'all',
+        auto_vivify => 0,
+        check => 'skip' ,
+        leaf_cb => $leaf_cb ,
+        hash_element_cb => $h_cb,
+        list_element_cb => $h_cb,
+    );
+
+    $wiper->scan_node(undef,$self->config_root) ;
+
+}
+
 
 =head2 data( kind, [data] )
 
@@ -501,12 +610,15 @@ sub write_back {
 
     my $force_backend = delete $args{backend} || $self->{backend} ;
 
-    map {croak "write_back: wrong parameters $_" 
-	     unless /^(root|config_dir)$/ ;
-	 $args{$_} ||= '' ;
-	 $args{$_} .= '/' if $args{$_} and $args{$_} !~ m(/$) ;
+    foreach (keys %args) {
+        if (/^(root|config_dir)$/) {
+            $args{$_} ||= '' ;
+            $args{$_} .= '/' if $args{$_} and $args{$_} !~ m(/$) ;
+        }
+        elsif (not /^config_file$/) {
+            croak "write_back: wrong parameters $_" ;
+        }
      }
-      keys %args;
 
     croak "write_back: no subs registered in instance $self->{name}. cannot save data\n" 
       unless @{$self->{write_back}} ;
@@ -514,7 +626,11 @@ sub write_back {
     foreach my $path (@{$self->{write_back}}) {
 	$logger->info("write_back called on node $path");
         my $node = $self->config_root->grab(step => $path, type => 'node');
-        $node->write_back(%args, backend => $force_backend);
+        $node->write_back(
+            %args, 
+            config_file => $self->{config_file} ,
+            backend => $force_backend
+        );
     }
 }
 

@@ -4,7 +4,7 @@ Config::Model::models::LCDd::t6963 - Configuration class LCDd::t6963
 
 =head1 VERSION
 
-version 1.260
+version 1.261
 
 =head1 DESCRIPTION
 
@@ -14,19 +14,24 @@ Configuration classes used by L<Config::Model>
 
 =head2 Size
 
-set display size I<< Optional. Type uniline. upstream_default: '20x6'.  >>
+set display size in pixels I<< Optional. Type uniline. upstream_default: '128x64'.  >>
 
 =head2 Port
 
 port to use I<< Optional. Type uniline. upstream_default: '0x378'.  >>
 
-=head2 ECPlpt
+=head2 bidirectional
 
-Is ECP mode on? I<< Optional. Type enum. choice: 'yes', 'no'. upstream_default: 'yes'.  >>
+Use LPT port in bi-directional mode. This should work on most LPT port and
+is required for proper timing! I<< Optional. Type enum. choice: 'yes', 'no'. upstream_default: 'yes'.  >>
 
-=head2 graphic
+=head2 delayBus
 
-Use graphics? I<< Optional. Type enum. choice: 'yes', 'no'. upstream_default: 'no'.  >>
+Insert additional delays into reads / writes. I<< Optional. Type enum. choice: 'yes', 'no'. upstream_default: 'no'.  >>
+
+=head2 ClearGraphic
+
+Clear graphic memory on start-up. I<< Optional. Type enum. choice: 'yes', 'no'. upstream_default: 'no'.  >>
 
 =head1 SEE ALSO
 

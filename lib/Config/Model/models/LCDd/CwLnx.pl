@@ -33,9 +33,12 @@
       'Size',
       {
         'value_type' => 'uniline',
-        'upstream_default' => 'dependingonmodel:12232:20x4,12832:21x4,1602:16x2',
+        'default' => '20x4',
         'type' => 'leaf',
-        'description' => 'Select the LCD size '
+        'description' => 'Select the LCD size. Default depends on model:
+12232: 20x4
+12832: 21x4
+1602: 16x2'
       },
       'Speed',
       {
@@ -87,7 +90,7 @@ KeyMap_C=Left
 KeyMap_D=Right
 KeyMap_E=Enter
 KeyMap_F=Escape
-keypad_test_mode permits one to test keypad assignement
+keypad_test_mode permits one to test keypad assignment
 Default value is no'
       }
     ]

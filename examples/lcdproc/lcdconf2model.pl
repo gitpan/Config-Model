@@ -227,7 +227,7 @@ $dispatch{"LCDd::server"}{Driver} = sub {
 
 # like default but ensure that parameter is integer
 $dispatch{"LCDd::server"}{WaitTime} = $dispatch{"LCDd::server"}{ReportLevel} =
-  $dispatch{"LCDd::server"}{Port}   = sub {
+ $dispatch{"LCDd::picolcd"}{LircFlushThreshold} = $dispatch{"LCDd::server"}{Port}   = sub {
     my ( $class, $elt, $info_r, $ini_v ) = @_;
     return $dispatch{_default_}->( @_, 'integer' );
   };
@@ -341,6 +341,7 @@ sub info_to_model {
 
     foreach my $k (keys %info) {
         my $v = $info{$k} ;
+        die "Undefined value. Something is wrong in info '$info'" unless defined $v ;
         $v = '"'.$v.'"' unless $v=~/^"/ ;
 
         given ($k) {

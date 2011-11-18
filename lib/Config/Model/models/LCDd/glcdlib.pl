@@ -25,7 +25,8 @@
         'default' => 'yes',
         'type' => 'leaf',
         'description' => 'no=use graphlcd bitmap fonts (they have only one size / font file)
-yes=use fonts supported by FreeType2 (needs Freetype2 support in libglcdprocdriver and its dependants)'
+yes=use fonts supported by FreeType2 (needs Freetype2 support in
+libglcdprocdriver and its dependants)'
       },
       'TextResolution',
       {
@@ -33,7 +34,7 @@ yes=use fonts supported by FreeType2 (needs Freetype2 support in libglcdprocdriv
         'upstream_default' => '16x4',
         'type' => 'leaf',
         'description' => 'text resolution in fixed width characters 
-(if it won\'t fit according to available physical pixel resolutioni
+(if it won\'t fit according to available physical pixel resolution
 and the minimum available font face size in pixels, then
 \'DebugBorder\' will automatically be turned on)'
       },
@@ -56,7 +57,7 @@ and the minimum available font face size in pixels, then
         'value_type' => 'uniline',
         'default' => '7x12',
         'type' => 'leaf',
-        'description' => 'minumum size in pixels in which fonts should be rendered'
+        'description' => 'minimum size in pixels in which fonts should be rendered'
       },
       'Brightness',
       {
@@ -105,7 +106,7 @@ and the minimum available font face size in pixels, then
         'value_type' => 'uniline',
         'default' => 'no',
         'type' => 'leaf',
-        'description' => 'border whithin the usable text area,
+        'description' => 'border within the usable text area,
 for setting up TextResolution and
 MinFontFaceSize (if using FT2);
 border around the unused area'

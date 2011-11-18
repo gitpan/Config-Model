@@ -1,0 +1,54 @@
+Helllo Kate
+
+I've looked at the SPDX specification. There are common points between
+this specification and the Debian DEP-5 parser based on Config::Model.
+
+The Package, File, and the 3 License files from SPDX indeed have a
+similar notion in DEP-5 parser (Implemented with the models
+Debian::Dpkg::Copyright [1] D::D::FileLicense, D::D:License and
+D::D:LicenseSpec). 
+
+On the other hand, the equivalent classes for CreationInfo,
+PackageVerificationCode and Review are missing from DEP-5.
+
+Anyway, for the common parts, a conversion tool is possible that would
+reuse the DEP_5 parser. 
+
+First, a model for SPDX data is to be created. A parser/writer for the
+tagged format would probably be easier to create (compared to the RDF
+format)
+
+Then a new command line (similar to config-edit [2]) to handle 2
+configuration instances [3]: one for DEP-5 and one for SPDX
+
+Then to convert data from DEP-5 to SPDX, a mechanism similar to the
+migration feature [4] of Config::Model could be used. A model plugin [5]
+could be used to specify how to translate data. Compared to a bunch of
+dedicated code, this would be easier to maintain (albeit with a
+steeper learning curve).
+
+How could this work ? a new command (e.g. "cfg convert -from spdx -to
+dpkg-copyright) would;
+- load a dpkg-copyright model
+- load model plugin (the one that specifies the conversion)
+- create a dpkg-copyright instance
+- load a spdx model and create a spdx instance 
+- load spkx data in  spdx instance
+- read data from  dpkg-copyright, triggering the conversion from spdx
+  to dep-5)
+- write dep-5 data in debian/copyright file
+
+Conversion from SPDX to DEP-5 could be handled similarly. (except for
+the SPDX data with no equivalent in DEP-5).
+
+
+Does this match what you have in mind ?
+
+All the best
+
+
+[1] https://metacpan.org/module/Config::Model::models::Debian::Dpkg::Copyright
+[2] https://metacpan.org/module/config-edit
+[3] https://metacpan.org/module/Config::Model::Instance
+[4] http://wiki.debian.org/PackageConfigUpgrade#Upgrades_with_Config::Model
+[5] http://search.cpan.org/dist/Config-Model/lib/Config/Model.pm#Model_plugin

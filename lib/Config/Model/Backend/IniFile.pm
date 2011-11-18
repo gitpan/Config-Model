@@ -31,7 +31,7 @@
 
 package Config::Model::Backend::IniFile ;
 {
-  $Config::Model::Backend::IniFile::VERSION = '1.260';
+  $Config::Model::Backend::IniFile::VERSION = '1.261';
 }
 
 use Carp;
@@ -66,10 +66,12 @@ sub read {
 
     my $section;
 
-    my $delimiter  = $args{comment_delimiter}   || '#';
-    my $hash_class = $args{store_class_in_hash} || '';
-    my $check      = $args{check}               || 'yes';
-    my $obj        = $self->node;
+    my $delimiter   = $args{comment_delimiter}   || '#';
+    my $hash_class  = $args{store_class_in_hash} || '' ;
+    my $section_map = $args{section_map}         || {} ;
+    my $split_reg   = $args{split_list_value}    || '' ;  
+    my $check       = $args{check}               || 'yes';
+    my $obj         = $self->node;
 
     #FIXME: Is it possible to store the comments with their location
     #in the file?  It would be nice if comments that are after values
@@ -88,12 +90,23 @@ sub read {
         # Update section name
         if ( $vdata =~ /\[(.*)\]/ ) {
             $section = $1;
-            my $prefix = $hash_class ? "$hash_class:" : '';
+            my $steps = $section_map->{$section} ? $section_map->{$section}.' '
+                      : $hash_class              ? "$hash_class:$section" 
+                      :                            $section ;
+            $logger->debug("use step '$steps' for section '$section'");
             $obj = $self->node->grab(
-                step  => $prefix . $section,
+                step  => $steps ,
                 check => $check,
                 mode => $check eq 'yes' ? 'strict' : 'loose' ,
             );
+            
+            # for write later, need to store the obj if section map was used
+            if (defined $section_map->{$section}) {
+               my $map_loc = $obj->location ;
+               $logger->debug("store section_map loc '$map_loc' section '$section'");
+               $self->{reverse_section_map}{$map_loc} = $section ;
+            }
+            
             if ($logger->is_debug) {
                 my $debug_loc = defined $obj ? 'on node '.$obj->location : '' ;
                 $logger->debug("ini read: new section '$section' $debug_loc");
@@ -106,11 +119,16 @@ sub read {
 
             my $elt = $obj->fetch_element( name => $name, check => $check );
 
-            if ( $elt->get_type eq 'list' ) {
-                my $idx = $elt->fetch_size ;
-                my $list_val = $elt->fetch_with_id($idx);
-                $list_val -> store( $val, check => $check );
-                $list_val -> annotation($comment) if $comment ;
+            if ( $elt->get_type eq 'list' and $split_reg) {
+                my @v_list = split(/$split_reg/,$val) ;
+                my @args = (\@v_list, check => $check) ;
+                push @args, annotation => $comment if $comment ;
+                $elt->store_set(@args) ;
+            }
+            elsif ( $elt->get_type eq 'list' ) {
+                my @args = (values => $val, check => $check) ;
+                push @args, annotation => $comment if $comment ;
+                $elt -> push_x(@args) ;
             }
             elsif ( $elt->get_type eq 'leaf' ) {
                 $elt->store( value => $val, check => $check );
@@ -153,7 +171,15 @@ sub write {
     
     $self->write_global_comment($ioh,$delimiter) ;
 
-    $self->_write(@_) ;
+    # some INI file have a 'General' section mapped in root node
+    my $top_class_name = $self->{reverse_section_map}{''} ;
+    if (defined $top_class_name) {
+        $logger->debug("writing class $top_class_name from reverse_section_map");
+        $self->write_data_and_comments($ioh,$delimiter,"[$top_class_name]") ;
+    }
+
+    my $res = $self->_write(@_) ;
+    $ioh->print($res) ;
 }
 
 sub _write {
@@ -162,41 +188,65 @@ sub _write {
 
     my $node = $args{object} ;
     my $delimiter = $args{comment_delimiter} || '#' ;
-    my $ioh = $args{io_handle} ;
+    my $join_list = $args{join_list_value} ;
+    my $write_bool_as = $args{write_boolean_as} ;
+
+    $logger->debug("called on ",$node->name);
+    my $res = '';
 
     # Using Config::Model::ObjTreeScanner would be overkill
-    
     # first write list and element, then classes
     foreach my $elt ($node->get_element_name) {
         my $type = $node->element_type($elt) ;
+        $logger->debug("first loop on elt $elt type $type");
         next if $type =~ /node/ or $type eq 'hash';
         
         my $obj =  $node->fetch_element($elt) ;
 
         my $obj_note = $obj->annotation;
 
-        if ($node->element_type($elt) eq 'list'){
+        if ($node->element_type($elt) eq 'list' and $join_list){
+            my @v = grep { length } $obj->fetch_all_values() ;
+            my $v = join( $join_list, @v) ;
+            if (length ($v) ) {
+                $logger->debug("writing list elt $elt -> $v");
+                $res .= $self->write_data_and_comments(undef,$delimiter,"$elt=$v",$obj_note) ;
+            }
+        }
+        elsif ($node->element_type($elt) eq 'list'){
             foreach my $item ($obj->fetch_all('custom')) {
                 my $note = $item->annotation ;
                 my $v = $item->fetch ;
-                next unless defined $v ;
-                $logger->debug("ini write: list elt $elt from ",$obj->location);
-                $self->write_data_and_comments($ioh,$delimiter,"$elt=$v",$obj_note.$note) ;
+                if (length $v) {
+                    $logger->debug("writing list elt $elt -> $v");
+                    $res .= $self->write_data_and_comments(undef,$delimiter,"$elt=$v",$obj_note.$note) ;
+                }
+                else {
+                    $logger->debug("NOT writing undef or empty list elt");
+                }
             }
         }
         elsif ($node->element_type($elt) eq 'leaf') {
             my $v = $obj->fetch ;
-            $logger->debug("ini write: leaf elt $elt from ",$obj->location);
-            $self->write_data_and_comments($ioh,$delimiter,"$elt=$v", $obj_note) 
-                if defined $v;
+            if ($write_bool_as and length($v) and $obj->value_type eq 'boolean') {
+                $v = $write_bool_as->[$v] ;
+            }
+            if (length $v) {
+                $logger->debug("writing leaf elt $elt -> $v");
+                $res .= $self->write_data_and_comments(undef,$delimiter,"$elt=$v", $obj_note);
+            }
+            else {
+                $logger->debug("NOT writing undef or empty leaf elt");
+            }
         }
         else {
-            $logger->error("ini write: unexpected type $type for leaf elt $elt from ",$obj->location);
+            $logger->error("unexpected type $type for leaf elt $elt");
         }
     }
 
     foreach my $elt ($node->get_element_name) {
         my $type = $node->element_type($elt) ;
+        $logger->debug("second loop on elt $elt type $type");
         next unless $type =~ /node/ or $type eq 'hash';
         my $obj =  $node->fetch_element($elt) ;
 
@@ -206,21 +256,35 @@ sub _write {
             foreach my $key ($obj->get_all_indexes) {
                 my $hash_obj = $obj->fetch_with_id($key) ;
                 my $note = $hash_obj->annotation;
-                $logger->debug("ini write: hash elt $elt key $key from ",$obj->location);
-                $self->write_data_and_comments($ioh,$delimiter,"[$key]",$obj_note.$note) ;
-                $self->_write(%args, object => $hash_obj);
-                $ioh->print("\n");
+                $logger->debug("writing hash elt $elt key $key");
+                my $subres = $self->_write(%args, object => $hash_obj);
+                if ($subres) {
+                    $res .= "\n"
+                    . $self->write_data_and_comments(undef,$delimiter,"[$key]",$obj_note.$note) 
+                    .$subres   ;
+                }
             }
         }
         else {
-            $logger->debug("ini write: class $elt from ",$obj->location);
-            $self->write_data_and_comments($ioh,$delimiter,"[$elt]",$obj_note) ;
-            $self->_write(%args, object => $obj);
-            $ioh->print("\n");
+            $logger->debug("writing class $elt");
+            my $subres = $self->_write(%args, object => $obj);
+            if ($subres) {
+                # some INI file may have a section mapped to a node as exception to mapped in a hash
+                my $exception_name = $self->{reverse_section_map}{$obj->location} ;
+                if (defined $exception_name) {
+                    $logger->debug("writing class $exception_name from reverse_section_map");
+                }
+                my $c_name = $exception_name || $elt ;
+                $res .= "\n"
+                    . $self->write_data_and_comments(undef,$delimiter,"[$c_name]",$obj_note) 
+                    . $subres ;
+            }
         }
     }   
 
-    return 1;
+    $logger->debug("done on ",$node->name);
+
+    return $res ;
 }
 
 no Any::Moose ;
@@ -237,7 +301,7 @@ Config::Model::Backend::IniFile - Read and write config as a INI file
 
 =head1 VERSION
 
-version 1.260
+version 1.261
 
 =head1 SYNOPSIS
 
@@ -343,6 +407,28 @@ Change the character that starts comments in the INI file. Default is 'C<#>'.
 
 See L</"Arbitrary class name">
 
+=item section_map
+
+Is a kind of exception of the above rule. See also L</"Arbitrary class name">
+
+=item split_list_value
+
+Some INI values are in fact a list of items separated by a space or a comma. 
+This parameter specifies the regex  to use to split the value into a list. This
+applies only to C<list> elements.
+
+=item join_list_value
+
+Conversely, the list element split with C<split_list_value> needs to be written
+back with a string to join them. Specify this string (usually ' ' or ', ') 
+with C<join_list_value>.
+
+=item write_boolean_as
+
+Array ref. Reserved for boolean value. Specify how to write a boolean value. 
+Default is C<[0,1]> which may not be the most readable. C<write_boolean_as> can be 
+specified as C<['false','true']> or C<['no','yes']>. 
+
 =back
 
 =head1 Mapping between INI structure and model
@@ -405,6 +491,35 @@ parameter:
             store_class_in_hash => 'my_class_holder',
         }
     ],
+    
+Of course they are exceptions. For instance, in C<Multistrap>, the C<[General]> 
+INI class must be mapped to a specific node object. This can be specified
+with the C<section_map> parameter: 
+
+    read_config  => [
+        { 
+            backend => 'IniFile',
+            config_dir => '/tmp',
+            file  => 'foo.ini',
+            store_class_in_hash => 'my_class_holder',
+            section_map => { 
+                General => 'general_node',
+            }
+        }
+    ],
+
+C<section_map> can also map an INI class to the root node:
+
+    read_config => [
+        {
+            backend => 'ini_file',
+            store_class_in_hash => 'sections',
+            section_map => {
+                General => '!'
+            },
+        }
+    ],
+
 
 =head1 Methods
 

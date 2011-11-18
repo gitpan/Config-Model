@@ -13,11 +13,6 @@
     'element' => [
       'Device',
       {
-        'warn_unless' => {
-          '0' => {
-            'code' => '-d'
-          }
-        },
         'value_type' => 'uniline',
         'upstream_default' => '/dev/lcd',
         'type' => 'leaf',
@@ -26,7 +21,6 @@
       'Size',
       {
         'value_type' => 'uniline',
-        'match' => '^\\d+x\\d+$',
         'upstream_default' => '20x4',
         'type' => 'leaf',
         'description' => 'Select the LCD size '
@@ -70,7 +64,8 @@ switched off in case LCDd is inactive'
           '1200',
           '2400',
           '9600',
-          '19200or115200'
+          '19200',
+          '115200'
         ]
       },
       'NewFirmware',

@@ -4,7 +4,7 @@ Config::Model::models::LCDd::imonlcd - Configuration class LCDd::imonlcd
 
 =head1 VERSION
 
-version 1.260
+version 1.261
 
 =head1 DESCRIPTION
 
@@ -14,11 +14,17 @@ Configuration classes used by L<Config::Model>
 
 =head2 Protocol
 
-Specify which iMon protocol should be used I<< Optional. Type uniline. upstream_default: '0'.  >>
+Specify which iMon protocol should be used
+
+Choose 0 for 15c2:ffdc device,
+Choose 1 for 15c2:0038 device. I<< Optional. Type enum. choice: '0', '1'. upstream_default: '0'.  >>
 
 =head2 OnExit
 
-Set the exit behavior I<< Optional. Type uniline. upstream_default: '1'.  >>
+Set the exit behavior 
+0 means leave shutdown message,
+1 means show the big clock,
+2 means blank device. I<< Optional. Type integer. upstream_default: '1'.  >>
 
 =head2 Device
 
@@ -38,7 +44,9 @@ Set the backlight state I<< Optional. Type enum. choice: 'on', 'off'. upstream_d
 
 =head2 DiscMode
 
-Set the disc mode I<< Optional. Type uniline. upstream_default: '0'.  >>
+Set the disc mode 
+0 => spin the "slim" disc - two disc segments,
+1 => their complement spinning;I<< Optional. Type enum. choice: '0', '1'. upstream_default: '0'.  >>
 
 =head1 SEE ALSO
 

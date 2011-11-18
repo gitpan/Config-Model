@@ -18,7 +18,9 @@
         'type' => 'leaf',
         'description' => 'You can configure what keys the menu should use. Note that the MenuKey
 will be reserved exclusively, the others work in shared mode.
-The following works excellent with 4 keys or more.'
+Up to six keys are supported. The MenuKey (to enter and exit the menu), the
+EnterKey (to select values) and at least one movement keys are required.
+These are the default key assignments:'
       },
       'EnterKey',
       {
@@ -42,8 +44,7 @@ The following works excellent with 4 keys or more.'
       {
         'value_type' => 'uniline',
         'default' => 'Left',
-        'type' => 'leaf',
-        'description' => 'If you have 6 keys you may define these as well'
+        'type' => 'leaf'
       },
       'RightKey',
       {

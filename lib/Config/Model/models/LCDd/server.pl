@@ -13,13 +13,8 @@
     'element' => [
       'DriverPath',
       {
-        'warn_unless' => {
-          '0' => {
-            'code' => '-d'
-          }
-        },
         'value_type' => 'uniline',
-        'match' => '\\/$',
+        'default' => 'server/drivers/',
         'type' => 'leaf',
         'description' => 'Where can we find the driver modules ?
 IMPORTANT: Make sure to change this setting to reflect your
@@ -36,24 +31,19 @@ NOTE: Always place a slash as last character !'
 The name of the driver is case sensitive and determines the section
 where to look for further configuration options of the specific driver
 as well as the name of the dynamic driver module to load at runtime.
-The latter one can be changed by giving af File= directive in the
+The latter one can be changed by giving a File= directive in the
 driver specific section.
 
 The following drivers are supported:
-  bayrad, CFontz, CFontz633, CFontzPacket, curses, CwLnx, ea65,
+  bayrad, CFontz, CFontzPacket, curses, CwLnx, ea65,
   EyeboxOne, g15, glcdlib, glk, hd44780, icp_a106, imon, imonlcd,
   IOWarrior, irman, joy, lb216, lcdm001, lcterm, lirc, lis, MD8800,
   mdm166a, ms6931, mtc_s16209x, MtxOrb, mx5000, NoritakeVFD, picolcd,
   pyramid, sed1330, sed1520, serialPOS, serialVFD, shuttleVFD, sli,
-  stv5730, svga, t6963, text, tyan, ula200, xosd
-{ warn_if_match:"CFontz 633" 
-  message="this driver is deprecated, please use CFontzPacket driver with Model=633 instead." 
-  load="server Driver=CFontzPacket - CFontzPacket model=633"
-}',
+  stv5730, svga, t6963, text, tyan, ula200, vlsys_m428, xosd',
         'choice' => [
           'bayrad',
           'CFontz',
-          'CFontz633',
           'CFontzPacket',
           'curses',
           'CwLnx',
@@ -95,30 +85,8 @@ The following drivers are supported:
           'text',
           'tyan',
           'ula200',
-          'xosd',
-          'warn_if_match',
-          'CFontz',
-          '633',
-          'message',
-          'this',
-          'driver',
-          'is',
-          'deprecated',
-          'please',
-          'use',
-          'CFontzPacket',
-          'driver',
-          'with',
-          'Model',
-          '633',
-          'instead',
-          'load',
-          'server',
-          'Driver',
-          'CFontzPacket',
-          'CFontzPacket',
-          'model',
-          '633'
+          'vlsys_m428',
+          'xosd'
         ]
       },
       'Bind',
@@ -138,14 +106,7 @@ The following drivers are supported:
       'ReportLevel',
       {
         'value_type' => 'integer',
-        'help' => {
-          '1' => 'reports errors',
-          '3' => 'reports info',
-          '0' => 'no report',
-          '2' => 'reports warnings'
-        },
-        'upstream_default' => '2',
-        'max' => '3',
+        'default' => '3',
         'type' => 'leaf',
         'description' => 'Sets the reporting level; defaults to 2 (warnings and errors only).'
       },
@@ -170,13 +131,10 @@ and run as this user instead.'
       },
       'Foreground',
       {
-        'value_type' => 'enum',
+        'value_type' => 'uniline',
+        'default' => 'no',
         'type' => 'leaf',
-        'description' => 'The server will stay in the foreground if set to true.',
-        'choice' => [
-          'yes',
-          'no'
-        ]
+        'description' => 'The server will stay in the foreground if set to true.'
       },
       'Hello',
       {
@@ -210,6 +168,20 @@ and run as this user instead.'
         'default' => '5',
         'type' => 'leaf',
         'description' => 'Sets the default time in seconds to displays a screen.'
+      },
+      'AutoRotate',
+      {
+        'value_type' => 'enum',
+        'upstream_default' => 'on',
+        'type' => 'leaf',
+        'description' => 'If set to no, LCDd will start with screen rotation disabled. This has the
+same effect as if the ToggleRotateKey had been pressed. Rotation will start
+if the ToggleRotateKey is pressed. Note that this setting does not turn off
+priority sorting of screens. ',
+        'choice' => [
+          'on',
+          'off'
+        ]
       },
       'ServerScreen',
       {
@@ -267,8 +239,11 @@ heartbeat for its own screens (only). ',
         'default' => 'Enter',
         'type' => 'leaf',
         'description' => 'The "...Key=" lines define what the server does with keypresses that
-don\'t go to any client.
-These are the defaults:'
+don\'t go to any client. The ToggleRotateKey stops rotation of screens, while
+the PrevScreenKey and NextScreenKey go back / forward one screen (even if
+rotation is disabled.
+Assign the key string returned by the driver to the ...Key setting. These
+are the defaults:'
       },
       'PrevScreenKey',
       {

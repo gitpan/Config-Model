@@ -4,7 +4,7 @@ Config::Model::models::LCDd::hd44780 - Configuration class LCDd::hd44780
 
 =head1 VERSION
 
-version 1.260
+version 1.261
 
 =head1 DESCRIPTION
 
@@ -18,7 +18,7 @@ Select what type of connection. See documentation for types.I<< Optional. Type u
 
 =head2 Port
 
-Port where the LPT is I<< Optional. Type enum. choice: '0x278', '0x378', '0x3BC'.  >>
+Port where the LPT is. Usual value are: 0x278, 0x378 and 0x3BC. I<< Optional. Type uniline. default: '0x378'.  >>
 
 =head2 Device
 
@@ -56,8 +56,8 @@ be able to control it with the lcdproc OUTPUT command. I<< Optional. Type unilin
 
 =head2 Lastline
 
-Specifies if the last line is pixel addressable or it controls an
-underline effect. I<< Optional. Type enum. choice: 'yes', 'no'. upstream_default: 'true(=pixeladdressable)'.  >>
+Specifies if the last line is pixel addressable (yes) or it controls an
+underline effect (no). I<< Optional. Type enum. choice: 'yes', 'no'. upstream_default: 'yes'.  >>
 
 =head2 Size
 
@@ -81,7 +81,10 @@ the next line in DDRAM won't start 0x20 higher. I<< Optional. Type uniline. upst
 
 =head2 CharMap
 
-Character map to to map ISO-8859-1 to the LCD's character set. I<< Optional. Type enum. choice: 'hd44780_default', 'hd44780_euro', 'ea_ks0073', 'sed1278f_0b', 'hd44780_koi8_r'. upstream_default: 'hd44780_default'.  >>
+Character map to to map ISO-8859-1 to the LCD's character set
+
+(hd44780_koi8_r, hd44780_cp1251, hd44780_8859_5 and upd16314 are possible if
+compiled with additional charmaps)I<< Optional. Type enum. choice: 'hd44780_default', 'hd44780_euro', 'ea_ks0073', 'sed1278f_0b', 'hd44780_koi8_r', 'hd44780_cp1251', 'hd44780_8859_5', 'upd16314'. upstream_default: 'hd44780_default'.  >>
 
 =head2 DelayMult
 

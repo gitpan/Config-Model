@@ -4,7 +4,7 @@ Config::Model::models::LCDd::CwLnx - Configuration class LCDd::CwLnx
 
 =head1 VERSION
 
-version 1.260
+version 1.261
 
 =head1 DESCRIPTION
 
@@ -22,7 +22,10 @@ Select the output device to use I<< Optional. Type uniline. upstream_default: '/
 
 =head2 Size
 
-Select the LCD size I<< Optional. Type uniline. upstream_default: 'dependingonmodel:12232:20x4,12832:21x4,1602:16x2'.  >>
+Select the LCD size. Default depends on model:
+12232: 20x4
+12832: 21x4
+1602: 16x2. I<< Optional. Type uniline. default: '20x4'.  >>
 
 =head2 Speed
 
@@ -54,7 +57,7 @@ KeyMap_C=Left
 KeyMap_D=Right
 KeyMap_E=Enter
 KeyMap_F=Escape
-keypad_test_mode permits one to test keypad assignement
+keypad_test_mode permits one to test keypad assignment
 Default value is no. I<< Optional. Type uniline. default: 'yes'.  >>
 
 =head1 SEE ALSO

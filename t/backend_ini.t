@@ -1,5 +1,4 @@
 # -*- cperl -*-
-# $Author: ddumont, random_nick $
 
 use ExtUtils::testlib;
 use Test::More ;
@@ -7,6 +6,7 @@ use Config::Model;
 use File::Path;
 use File::Copy ;
 use Data::Dumper ;
+use Log::Log4perl qw(:easy) ;
 
 use warnings;
 no warnings qw(once);
@@ -17,14 +17,19 @@ use strict;
 my $arg = shift || '';
 
 my $trace = $arg =~ /t/ ? 1 : 0 ;
-$::verbose          = 1 if $arg =~ /v/;
-$::debug            = 1 if $arg =~ /d/;
+my $log   = $arg =~ /l/ ? 1 : 0 ;;
+
+my $log4perl_user_conf_file = $ENV{HOME}.'/.log4config-model' ;
+
+if ($log and -e $log4perl_user_conf_file ) {
+    Log::Log4perl::init($log4perl_user_conf_file);
+}
+else {
+    Log::Log4perl->easy_init($log ? $WARN: $ERROR);
+}
 Config::Model::Exception::Any->Trace(1) if $arg =~ /e/;
 
-use Log::Log4perl qw(:easy) ;
-Log::Log4perl->easy_init($arg =~ /l/ ? $TRACE: $ERROR);
-
-plan tests => 49 ;
+plan tests => 61 ;
 
 ok(1,"compiled");
 
@@ -83,6 +88,7 @@ foreach my $test_class (sort keys %test_setup) {
 
     foreach my $i (1 .. 3) {
         my $elt = $lista_obj->fetch_with_id($i - 1) ;
+        is($elt->fetch,"lista$i","check lista[$i] content");
         is($elt->annotation,
             "lista$i comment","check lista[$i] comment");
     } 

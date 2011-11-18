@@ -4,7 +4,7 @@ Config::Model::models::LCDd::svga - Configuration class LCDd::svga
 
 =head1 VERSION
 
-version 1.260
+version 1.261
 
 =head1 DESCRIPTION
 
@@ -14,7 +14,8 @@ Configuration classes used by L<Config::Model>
 
 =head2 Mode
 
-svgalib mode to use I<< Optional. Type enum. choice: 'supportedsvgalibmodes'. upstream_default: 'G320x240x256'.  >>
+svgalib mode to use 
+legal values are supported svgalib modes. I<< Optional. Type uniline. upstream_default: 'G320x240x256'.  >>
 
 =head2 Size
 

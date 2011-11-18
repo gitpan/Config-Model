@@ -4,7 +4,7 @@ Config::Model::models::LCDd::CFontz - Configuration class LCDd::CFontz
 
 =head1 VERSION
 
-version 1.260
+version 1.261
 
 =head1 DESCRIPTION
 
@@ -36,7 +36,7 @@ switched off in case LCDd is inactive. I<< Optional. Type integer. upstream_defa
 
 =head2 Speed
 
-Set the communication speed I<< Optional. Type enum. choice: '1200', '2400', '9600', '19200or115200'. upstream_default: '9600'.  >>
+Set the communication speed I<< Optional. Type enum. choice: '1200', '2400', '9600', '19200', '115200'. upstream_default: '9600'.  >>
 
 =head2 NewFirmware
 

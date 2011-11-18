@@ -13,14 +13,27 @@
     'element' => [
       'KeyTimeout',
       {
-        'value_type' => 'uniline',
-        'default' => '500',
+        'value_type' => 'integer',
+        'min' => '0',
+        'upstream_default' => '500',
+        'max' => '1000',
         'type' => 'leaf',
-        'description' => 'KeyTimeout is the time that LCDd spends waiting for a key press before cycling
-through other duties.  Higher values make LCDd use less CPU time and make
-key presses more detectable.  Lower values make LCDd more responsive but a
-little prone to missing key presses.  500 (.5 second) is the default and a
-balanced value.'
+        'description' => 'KeyTimeout is the time in ms that LCDd spends waiting for a key press before
+cycling through other duties.  Higher values make LCDd use less CPU time and
+make key presses more detectable.  Lower values make LCDd more responsive
+but a little prone to missing key presses.  500 (.5 second) is the default
+and a balanced value. '
+      },
+      'Backlight',
+      {
+        'value_type' => 'enum',
+        'upstream_default' => 'on',
+        'type' => 'leaf',
+        'description' => 'Sets the initial state of the backlight upon start-up.',
+        'choice' => [
+          'on',
+          'off'
+        ]
       },
       'Brightness',
       {
@@ -29,7 +42,18 @@ balanced value.'
         'upstream_default' => '1000',
         'max' => '1000',
         'type' => 'leaf',
-        'description' => 'Set the initial brightness '
+        'description' => 'Set the initial brightness . Works only
+with the 20x4 device'
+      },
+      'OffBrightness',
+      {
+        'value_type' => 'integer',
+        'min' => '0',
+        'upstream_default' => '0',
+        'max' => '1000',
+        'type' => 'leaf',
+        'description' => 'Set the brightness while the backlight is \'off\' .
+Works only with the 20x4 device.'
       },
       'Contrast',
       {
@@ -114,11 +138,13 @@ If not set, or set to an empty value, IR support is disabled.'
       },
       'LircFlushThreshold',
       {
-        'value_type' => 'uniline',
+        'value_type' => 'integer',
         'upstream_default' => '100',
+        'max' => '32767',
         'type' => 'leaf',
-        'description' => 'Threshold in jiffies of synthesized gap that triggers flushing the IR data to lirc
- (100 is 6.1ms); use 0 to suppress'
+        'description' => 'Threshold in jiffies of synthesized gap that triggers flushing the IR data
+to lirc 
+100 means 6.1ms. legal: 16 - 32767; Use 0 to disable.'
       }
     ]
   }

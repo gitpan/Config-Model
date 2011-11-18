@@ -4,7 +4,7 @@ Config::Model::models::LCDd::server - Configuration class LCDd::server
 
 =head1 VERSION
 
-version 1.260
+version 1.261
 
 =head1 DESCRIPTION
 
@@ -19,7 +19,7 @@ IMPORTANT: Make sure to change this setting to reflect your
            specific setup! Otherwise LCDd won't be able to find
            the driver modules and will thus not be able to
            function properly.
-NOTE: Always place a slash as last character !I<< Optional. Type uniline.  >>
+NOTE: Always place a slash as last character !I<< Optional. Type uniline. default: 'server/drivers/'.  >>
 
 =head2 Driver
 
@@ -27,20 +27,16 @@ Tells the server to load the given drivers. Multiple lines can be given.
 The name of the driver is case sensitive and determines the section
 where to look for further configuration options of the specific driver
 as well as the name of the dynamic driver module to load at runtime.
-The latter one can be changed by giving af File= directive in the
+The latter one can be changed by giving a File= directive in the
 driver specific section.
 
 The following drivers are supported:
-  bayrad, CFontz, CFontz633, CFontzPacket, curses, CwLnx, ea65,
+  bayrad, CFontz, CFontzPacket, curses, CwLnx, ea65,
   EyeboxOne, g15, glcdlib, glk, hd44780, icp_a106, imon, imonlcd,
   IOWarrior, irman, joy, lb216, lcdm001, lcterm, lirc, lis, MD8800,
   mdm166a, ms6931, mtc_s16209x, MtxOrb, mx5000, NoritakeVFD, picolcd,
   pyramid, sed1330, sed1520, serialPOS, serialVFD, shuttleVFD, sli,
-  stv5730, svga, t6963, text, tyan, ula200, xosd
-{ warn_if_match:"CFontz 633" 
-  message="this driver is deprecated, please use CFontzPacket driver with Model=633 instead." 
-  load="server Driver=CFontzPacket - CFontzPacket model=633"
-}I<< Optional. Type enum. choice: 'bayrad', 'CFontz', 'CFontz633', 'CFontzPacket', 'curses', 'CwLnx', 'ea65', 'EyeboxOne', 'g15', 'glcdlib', 'glk', 'hd44780', 'icp_a106', 'imon', 'imonlcd', 'IOWarrior', 'irman', 'joy', 'lb216', 'lcdm001', 'lcterm', 'lirc', 'lis', 'MD8800', 'mdm166a', 'ms6931', 'mtc_s16209x', 'MtxOrb', 'mx5000', 'NoritakeVFD', 'picolcd', 'pyramid', 'sed1330', 'sed1520', 'serialPOS', 'serialVFD', 'shuttleVFD', 'sli', 'stv5730', 'svga', 't6963', 'text', 'tyan', 'ula200', 'xosd', 'warn_if_match', 'CFontz', '633', 'message', 'this', 'driver', 'is', 'deprecated', 'please', 'use', 'CFontzPacket', 'driver', 'with', 'Model', '633', 'instead', 'load', 'server', 'Driver', 'CFontzPacket', 'CFontzPacket', 'model', '633'.  >>
+  stv5730, svga, t6963, text, tyan, ula200, vlsys_m428, xosd. I<< Optional. Type enum. choice: 'bayrad', 'CFontz', 'CFontzPacket', 'curses', 'CwLnx', 'ea65', 'EyeboxOne', 'g15', 'glcdlib', 'glk', 'hd44780', 'icp_a106', 'imon', 'imonlcd', 'IOWarrior', 'irman', 'joy', 'lb216', 'lcdm001', 'lcterm', 'lirc', 'lis', 'MD8800', 'mdm166a', 'ms6931', 'mtc_s16209x', 'MtxOrb', 'mx5000', 'NoritakeVFD', 'picolcd', 'pyramid', 'sed1330', 'sed1520', 'serialPOS', 'serialVFD', 'shuttleVFD', 'sli', 'stv5730', 'svga', 't6963', 'text', 'tyan', 'ula200', 'vlsys_m428', 'xosd'.  >>
 
 =head2 Bind
 
@@ -52,31 +48,7 @@ Listen on this specified port; defaults to 13666.I<< Optional. Type integer. def
 
 =head2 ReportLevel
 
-Sets the reporting level; defaults to 2 (warnings and errors only).I<< Optional. Type integer. upstream_default: '2'.  >>
-
-Here are some explanations on the possible values:
-
-=over
-
-=item 0
-
-no report
-
-=item 1
-
-reports errors
-
-=item 2
-
-reports warnings
-
-=item 3
-
-reports info
-
-=back
-
-
+Sets the reporting level; defaults to 2 (warnings and errors only).I<< Optional. Type integer. default: '3'.  >>
 
 =head2 ReportToSyslog
 
@@ -89,7 +61,7 @@ and run as this user instead.I<< Optional. Type uniline. default: 'nobody'.  >>
 
 =head2 Foreground
 
-The server will stay in the foreground if set to true.I<< Optional. Type enum. choice: 'yes', 'no'.  >>
+The server will stay in the foreground if set to true.I<< Optional. Type uniline. default: 'no'.  >>
 
 =head2 Hello
 
@@ -102,6 +74,13 @@ GoodBye message: each entry represents a display line; default: builtin. I<< Opt
 =head2 WaitTime
 
 Sets the default time in seconds to displays a screen.I<< Optional. Type integer. default: '5'.  >>
+
+=head2 AutoRotate
+
+If set to no, LCDd will start with screen rotation disabled. This has the
+same effect as if the ToggleRotateKey had been pressed. Rotation will start
+if the ToggleRotateKey is pressed. Note that this setting does not turn off
+priority sorting of screens. I<< Optional. Type enum. choice: 'on', 'off'. upstream_default: 'on'.  >>
 
 =head2 ServerScreen
 
@@ -127,8 +106,11 @@ set title scrolling speed I<< Optional. Type integer. upstream_default: '10'.  >
 =head2 ToggleRotateKey
 
 The "...Key=" lines define what the server does with keypresses that
-don't go to any client.
-These are the defaults:I<< Optional. Type uniline. default: 'Enter'.  >>
+don't go to any client. The ToggleRotateKey stops rotation of screens, while
+the PrevScreenKey and NextScreenKey go back / forward one screen (even if
+rotation is disabled.
+Assign the key string returned by the driver to the ...Key setting. These
+are the defaults:I<< Optional. Type uniline. default: 'Enter'.  >>
 
 =head2 PrevScreenKey
 

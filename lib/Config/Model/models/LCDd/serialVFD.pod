@@ -4,7 +4,7 @@ Config::Model::models::LCDd::serialVFD - Configuration class LCDd::serialVFD
 
 =head1 VERSION
 
-version 1.260
+version 1.261
 
 =head1 DESCRIPTION
 
@@ -28,17 +28,19 @@ Specifies the displaytype.
 
 =head2 use_parallel
 
-"no" if display connected serial, "yes" if connected parallel. I<< Optional. Type uniline. upstream_default: 'no(=serial)'.  >>
+"no" if display connected serial, "yes" if connected parallel. 
+I.e. serial by default. I<< Optional. Type uniline. upstream_default: 'no'.  >>
 
 =head2 Port
 
-Number of Custom-Characters 
+Number of Custom-Characters. default is display type dependent
 Custom-Characters=0
-Portaddress where the LPT is. Used in parallelmode only. Usual values are 0x278, 0x378 and 0x3BC. I<< Optional. Type uniline. upstream_default: 'displaytypedependent'.  >>
+Portaddress where the LPT is. Used in parallel mode only. Usual values are
+0x278, 0x378 and 0x3BC.I<< Optional. Type uniline. default: '0x378'.  >>
 
 =head2 PortWait
 
-Set parallel port timingdelay (us). Used in parallelmode only. I<< Optional. Type integer. upstream_default: '2'.  >>
+Set parallel port timing delay (us). Used in parallel mode only.I<< Optional. Type integer. upstream_default: '2'.  >>
 
 =head2 Device
 

@@ -27,7 +27,7 @@
 
 package Config::Model::Backend::Debian::Dpkg ;
 {
-  $Config::Model::Backend::Debian::Dpkg::VERSION = '1.260';
+  $Config::Model::Backend::Debian::Dpkg::VERSION = '1.261';
 }
 
 use Carp;
@@ -150,7 +150,7 @@ Config::Model::Backend::Debian::Dpkg - Read and write config as plain file
 
 =head1 VERSION
 
-version 1.260
+version 1.261
 
 =head1 SYNOPSIS
 

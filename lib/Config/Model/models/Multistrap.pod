@@ -1,0 +1,89 @@
+=head1 NAME
+
+Config::Model::models::Multistrap - Configuration class Multistrap
+
+=head1 VERSION
+
+version 1.261
+
+=head1 DESCRIPTION
+
+Configuration classes used by L<Config::Model>
+
+=head1 Elements
+
+=head2 include
+
+I<< Optional. Type uniline.  >>
+
+=head2 arch
+
+I<< Optional. Type enum. choice: 'alpha', 'arm', 'armel', 'powerpc'.  >>
+
+=head2 directory
+
+I<< Optional. Type uniline.  >>
+
+=head2 aptsources
+
+aptsources is a list of sections to be used in the /etc/apt/sources.list.d/multistrap.sources.list of the target. Order is not important.I<< Optional. Type list of reference.  >>
+
+=head2 bootstrap
+
+the bootstrap option determines which repository is used to calculate the list of Priority: required packages and which packages go into the rootfs. The order of sections is not important.I<< Optional. Type list of reference.  >>
+
+=head2 debootstrap
+
+I<< Optional. Type list of reference.  >>
+
+=head2 omitrequired
+
+I<< Optional. Type boolean.  >>
+
+=head2 addimportant
+
+I<< Optional. Type boolean.  >>
+
+=head2 configscript
+
+I<< Optional. Type uniline.  >>
+
+=head2 setupscript
+
+I<< Optional. Type uniline.  >>
+
+=head2 cleanup
+
+remove apt cache data, downloaded Packages files and the apt package cache.I<< Optional. Type boolean.  >>
+
+=head2 noauth
+
+allow the use of unauthenticated repositories. I<< Optional. Type boolean.  >>
+
+=head2 explicitsuite
+
+whether to add the /suite to be explicit about where apt needs to look for packages.I<< Optional. Type boolean. upstream_default: '0'.  >>
+
+=head2 unpack - extract all downloaded archives
+
+I<< Optional. Type boolean. upstream_default: '1'.  >>
+
+=head2 sections
+
+I<< Optional. Type hash of node.  >>
+
+=head1 SEE ALSO
+
+=over
+
+=item *
+
+L<config-edit>
+
+=item *
+
+L<Config::Model::models::Multistrap::Section>
+
+=back
+
+=cut

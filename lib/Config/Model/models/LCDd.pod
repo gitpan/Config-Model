@@ -4,7 +4,7 @@ Config::Model::models::LCDd - Configuration class LCDd
 
 =head1 VERSION
 
-version 1.260
+version 1.261
 
 =head1 DESCRIPTION
 
@@ -22,7 +22,7 @@ The server has a 'central' section named [server]. For the menu there is
 a section called [menu]. Further each driver has a section which
 defines how the driver acts.
 
-The drivers are activated by specifiying them in a driver= line in the
+The drivers are activated by specifying them in a driver= line in the
 server section, like:
 
   Driver=curses
@@ -59,10 +59,6 @@ I<< Optional. Type warped_node.  >>
 
 I<< Optional. Type warped_node.  >>
 
-=head2 CFontz633
-
-I<< Optional. Type warped_node.  >>
-
 =head2 CFontzPacket
 
 I<< Optional. Type warped_node.  >>
@@ -84,6 +80,10 @@ I<< Optional. Type warped_node.  >>
 I<< Optional. Type warped_node.  >>
 
 =head2 g15
+
+I<< Optional. Type warped_node.  >>
+
+=head2 glcd
 
 I<< Optional. Type warped_node.  >>
 
@@ -235,6 +235,10 @@ I<< Optional. Type warped_node.  >>
 
 I<< Optional. Type warped_node.  >>
 
+=head2 vlsys_m428
+
+I<< Optional. Type warped_node.  >>
+
 =head2 xosd
 
 I<< Optional. Type warped_node.  >>
@@ -250,10 +254,6 @@ L<config-edit>
 =item *
 
 L<Config::Model::models::LCDd::CFontz>
-
-=item *
-
-L<Config::Model::models::LCDd::CFontz633>
 
 =item *
 
@@ -306,6 +306,10 @@ L<Config::Model::models::LCDd::ea65>
 =item *
 
 L<Config::Model::models::LCDd::g15>
+
+=item *
+
+L<Config::Model::models::LCDd::glcd>
 
 =item *
 
@@ -438,6 +442,10 @@ L<Config::Model::models::LCDd::tyan>
 =item *
 
 L<Config::Model::models::LCDd::ula200>
+
+=item *
+
+L<Config::Model::models::LCDd::vlsys_m428>
 
 =item *
 

@@ -27,7 +27,7 @@
 
 package Config::Model::AnyThing;
 {
-  $Config::Model::AnyThing::VERSION = '1.260';
+  $Config::Model::AnyThing::VERSION = '1.261';
 }
 use Scalar::Util qw(weaken);
 use Pod::POM ;
@@ -43,7 +43,7 @@ Config::Model::AnyThing - Base class for configuration tree item
 
 =head1 VERSION
 
-version 1.260
+version 1.261
 
 =head1 SYNOPSIS
 
@@ -209,7 +209,7 @@ and return the resulting string.
 sub annotation {
     my $self = shift ;
     $self->{annotation} = join("\n", grep (defined $_,@_)) 
-        if @_ and not $self->instance->preset;
+        if @_ and not $self->instance->preset and not $self->instance->layered;
     return $self->{annotation} || '';
 }
 

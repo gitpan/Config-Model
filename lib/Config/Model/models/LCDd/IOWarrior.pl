@@ -37,10 +37,10 @@ set this flag to get into extended mode (4-line linear).'
       'Lastline',
       {
         'value_type' => 'enum',
-        'upstream_default' => 'true(=pixeladdressable)',
+        'upstream_default' => 'yes',
         'type' => 'leaf',
-        'description' => 'Specifies if the last line is pixel addressable or it controls an
-underline effect. ',
+        'description' => 'Specifies if the last line is pixel addressable (yes) or it controls an
+underline effect (no). ',
         'choice' => [
           'yes',
           'no'

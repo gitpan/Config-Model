@@ -13,17 +13,29 @@
     'element' => [
       'Protocol',
       {
-        'value_type' => 'uniline',
+        'value_type' => 'enum',
         'upstream_default' => '0',
         'type' => 'leaf',
-        'description' => 'Specify which iMon protocol should be used '
+        'description' => 'Specify which iMon protocol should be used
+
+Choose 0 for 15c2:ffdc device,
+Choose 1 for 15c2:0038 device',
+        'choice' => [
+          '0',
+          '1'
+        ]
       },
       'OnExit',
       {
-        'value_type' => 'uniline',
+        'value_type' => 'integer',
+        'min' => '0',
         'upstream_default' => '1',
+        'max' => '2',
         'type' => 'leaf',
-        'description' => 'Set the exit behavior '
+        'description' => 'Set the exit behavior 
+0 means leave shutdown message,
+1 means show the big clock,
+2 means blank device'
       },
       'Device',
       {
@@ -61,10 +73,16 @@
       },
       'DiscMode',
       {
-        'value_type' => 'uniline',
+        'value_type' => 'enum',
         'upstream_default' => '0',
         'type' => 'leaf',
-        'description' => 'Set the disc mode '
+        'description' => 'Set the disc mode 
+0 => spin the "slim" disc - two disc segments,
+1 => their complement spinning;',
+        'choice' => [
+          '0',
+          '1'
+        ]
       }
     ]
   }

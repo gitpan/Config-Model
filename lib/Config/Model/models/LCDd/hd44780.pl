@@ -20,14 +20,10 @@
       },
       'Port',
       {
-        'value_type' => 'enum',
+        'value_type' => 'uniline',
+        'default' => '0x378',
         'type' => 'leaf',
-        'description' => 'Port where the LPT is ',
-        'choice' => [
-          '0x278',
-          '0x378',
-          '0x3BC'
-        ]
+        'description' => 'Port where the LPT is. Usual value are: 0x278, 0x378 and 0x3BC'
       },
       'Device',
       {
@@ -93,10 +89,10 @@ be able to control it with the lcdproc OUTPUT command'
       'Lastline',
       {
         'value_type' => 'enum',
-        'upstream_default' => 'true(=pixeladdressable)',
+        'upstream_default' => 'yes',
         'type' => 'leaf',
-        'description' => 'Specifies if the last line is pixel addressable or it controls an
-underline effect. ',
+        'description' => 'Specifies if the last line is pixel addressable (yes) or it controls an
+underline effect (no). ',
         'choice' => [
           'yes',
           'no'
@@ -139,13 +135,19 @@ the next line in DDRAM won\'t start 0x20 higher. '
         'value_type' => 'enum',
         'upstream_default' => 'hd44780_default',
         'type' => 'leaf',
-        'description' => 'Character map to to map ISO-8859-1 to the LCD\'s character set',
+        'description' => 'Character map to to map ISO-8859-1 to the LCD\'s character set
+
+(hd44780_koi8_r, hd44780_cp1251, hd44780_8859_5 and upd16314 are possible if
+compiled with additional charmaps)',
         'choice' => [
           'hd44780_default',
           'hd44780_euro',
           'ea_ks0073',
           'sed1278f_0b',
-          'hd44780_koi8_r'
+          'hd44780_koi8_r',
+          'hd44780_cp1251',
+          'hd44780_8859_5',
+          'upd16314'
         ]
       },
       'DelayMult',

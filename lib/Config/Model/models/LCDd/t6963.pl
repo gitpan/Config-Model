@@ -14,9 +14,9 @@
       'Size',
       {
         'value_type' => 'uniline',
-        'upstream_default' => '20x6',
+        'upstream_default' => '128x64',
         'type' => 'leaf',
-        'description' => 'set display size '
+        'description' => 'set display size in pixels '
       },
       'Port',
       {
@@ -25,23 +25,35 @@
         'type' => 'leaf',
         'description' => 'port to use '
       },
-      'ECPlpt',
+      'bidirectional',
       {
         'value_type' => 'enum',
         'upstream_default' => 'yes',
         'type' => 'leaf',
-        'description' => 'Is ECP mode on? ',
+        'description' => 'Use LPT port in bi-directional mode. This should work on most LPT port and
+is required for proper timing! ',
         'choice' => [
           'yes',
           'no'
         ]
       },
-      'graphic',
+      'delayBus',
       {
         'value_type' => 'enum',
         'upstream_default' => 'no',
         'type' => 'leaf',
-        'description' => 'Use graphics? ',
+        'description' => 'Insert additional delays into reads / writes. ',
+        'choice' => [
+          'yes',
+          'no'
+        ]
+      },
+      'ClearGraphic',
+      {
+        'value_type' => 'enum',
+        'upstream_default' => 'no',
+        'type' => 'leaf',
+        'description' => 'Clear graphic memory on start-up. ',
         'choice' => [
           'yes',
           'no'
