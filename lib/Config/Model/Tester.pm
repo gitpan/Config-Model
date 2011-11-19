@@ -9,7 +9,7 @@
 #
 package Config::Model::Tester;
 {
-  $Config::Model::Tester::VERSION = '1.261';
+  $Config::Model::Tester::VERSION = '1.262';
 }
 
 use Test::More;
@@ -59,7 +59,7 @@ sub setup_test {
         $debian_dir .= $conf_dir if $conf_dir;
         dircopy( $ex_data, $debian_dir )
           || die "dircopy $ex_data -> $debian_dir failed:$!";
-        list_test_files ($debian_dir, \@file_list);
+        @file_list = list_test_files ($debian_dir);
     }
     else {
 
@@ -77,16 +77,17 @@ sub setup_test {
 #
 sub list_test_files {
     my $debian_dir = shift;
-    my $file_list  = shift;
+    my @file_list ;
 
     find(
         {
-            wanted => sub { push @$file_list, $_ unless -d; },
+            wanted => sub { push @file_list, $_ unless -d; },
             no_chdir => 1
         },
         $debian_dir
     );
-    map { s!^$debian_dir!/!; } @$file_list;
+    map { s!^$debian_dir!/!; } @file_list;
+    return sort @file_list;
 }
 
 sub run_model_test {
@@ -216,7 +217,7 @@ sub run_model_test {
             # copy whole dir
             my $debian_dir = "$wr_dir/" ;
             $debian_dir .= $conf_dir if $conf_dir;
-            list_test_files($debian_dir, \@new_file_list) ;
+            my @new_file_list = list_test_files($debian_dir) ;
             $t->{file_check_sub}->( \@file_list )
               if defined $t->{file_check_sub};
             eq_or_diff( \@new_file_list, \@file_list,
@@ -305,7 +306,7 @@ Config::Model::Tester - Test framework for Config::Model
 
 =head1 VERSION
 
-version 1.261
+version 1.262
 
 =head1 SYNOPSIS
 

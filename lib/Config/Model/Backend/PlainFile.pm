@@ -27,7 +27,7 @@
 
 package Config::Model::Backend::PlainFile;
 {
-  $Config::Model::Backend::PlainFile::VERSION = '1.261';
+  $Config::Model::Backend::PlainFile::VERSION = '1.262';
 }
 
 use Carp;
@@ -205,7 +205,7 @@ Config::Model::Backend::PlainFile - Read and write config as plain file
 
 =head1 VERSION
 
-version 1.261
+version 1.262
 
 =head1 SYNOPSIS
 

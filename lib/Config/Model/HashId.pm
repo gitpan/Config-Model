@@ -27,7 +27,7 @@
 
 package Config::Model::HashId ;
 {
-  $Config::Model::HashId::VERSION = '1.261';
+  $Config::Model::HashId::VERSION = '1.262';
 }
 use Config::Model::Exception ;
 use Scalar::Util qw(weaken) ;
@@ -47,7 +47,7 @@ Config::Model::HashId - Handle hash element for configuration model
 
 =head1 VERSION
 
-version 1.261
+version 1.262
 
 =head1 SYNOPSIS
 

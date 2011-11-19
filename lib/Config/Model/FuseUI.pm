@@ -9,7 +9,7 @@
 #
 package Config::Model::FuseUI ;
 {
-  $Config::Model::FuseUI::VERSION = '1.261';
+  $Config::Model::FuseUI::VERSION = '1.262';
 }
 
 # there's no Singleton with Mouse
@@ -278,7 +278,7 @@ Config::Model::FuseUI - Fuse virtual file interface for Config::Model
 
 =head1 VERSION
 
-version 1.261
+version 1.262
 
 =head1 SYNOPSIS
 

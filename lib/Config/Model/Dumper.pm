@@ -28,7 +28,7 @@
 
 package Config::Model::Dumper;
 {
-  $Config::Model::Dumper::VERSION = '1.261';
+  $Config::Model::Dumper::VERSION = '1.262';
 }
 use Carp;
 use strict;
@@ -43,7 +43,7 @@ Config::Model::Dumper - Serialize data of config tree
 
 =head1 VERSION
 
-version 1.261
+version 1.262
 
 =head1 SYNOPSIS
 

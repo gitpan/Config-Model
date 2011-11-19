@@ -27,7 +27,7 @@
 
 package Config::Model::Backend::ShellVar ;
 {
-  $Config::Model::Backend::ShellVar::VERSION = '1.261';
+  $Config::Model::Backend::ShellVar::VERSION = '1.262';
 }
 
 use Carp;
@@ -128,7 +128,7 @@ Config::Model::Backend::ShellVar - Read and write config as a C<SHELLVAR> data s
 
 =head1 VERSION
 
-version 1.261
+version 1.262
 
 =head1 SYNOPSIS
 
