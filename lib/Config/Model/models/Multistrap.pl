@@ -9,6 +9,7 @@
 #
 [
   {
+    'class_description' => 'Class for multistrap configuration files. Note that multistrap is based on INI where section and keys are case insensitive. Hence all sections and keys are converted to lower case and written back as lower case. Most values (but not all) are also case-insensitive. These values will also be written back as lowercase.',
     'accept' => [
       '\\w+',
       {
@@ -19,17 +20,19 @@
     ],
     'read_config' => [
       {
-        'auto_create' => '1',
+        'force_lc_section' => '1',
         'join_list_value' => ' ',
-        'section_map' => {
-          'General' => '!'
-        },
         'backend' => 'ini_file',
+        'force_lc_key' => '1',
+        'auto_create' => '1',
+        'section_map' => {
+          'general' => '!'
+        },
+        'split_list_value' => '\\s+',
         'write_boolean_as' => [
           'false',
           'true'
         ],
-        'split_list_value' => '\\s+',
         'store_class_in_hash' => 'sections'
       }
     ],
@@ -37,6 +40,7 @@
     'element' => [
       'include',
       {
+        'convert' => 'lc',
         'value_type' => 'uniline',
         'class' => 'Config::Model::Value::LayeredInclude',
         'type' => 'leaf'
@@ -60,6 +64,7 @@
       'aptsources',
       {
         'cargo' => {
+          'convert' => 'lc',
           'value_type' => 'reference',
           'type' => 'leaf',
           'refer_to' => '- sections'
@@ -71,6 +76,7 @@
       'bootstrap',
       {
         'cargo' => {
+          'convert' => 'lc',
           'value_type' => 'reference',
           'type' => 'leaf',
           'refer_to' => '- sections'
@@ -82,6 +88,7 @@
       'debootstrap',
       {
         'cargo' => {
+          'convert' => 'lc',
           'value_type' => 'reference',
           'type' => 'leaf',
           'refer_to' => '- sections'
@@ -101,11 +108,13 @@
       },
       'configscript',
       {
+        'convert' => 'lc',
         'value_type' => 'uniline',
         'type' => 'leaf'
       },
       'setupscript',
       {
+        'convert' => 'lc',
         'value_type' => 'uniline',
         'type' => 'leaf'
       },
@@ -130,19 +139,37 @@
       },
       'unpack',
       {
+        'convert' => 'lc',
         'value_type' => 'boolean',
         'summary' => 'extract all downloaded archives',
         'upstream_default' => '1',
+        'migrate_from' => {
+          'formula' => '$old',
+          'variables' => {
+            'old' => '- forceunpack'
+          }
+        },
         'type' => 'leaf'
       },
       'sections',
       {
+        'convert' => 'lc',
         'cargo' => {
           'type' => 'node',
           'config_class_name' => 'Multistrap::Section'
         },
         'type' => 'hash',
         'index_type' => 'string'
+      },
+      'forceunpack',
+      {
+        'convert' => 'lc',
+        'value_type' => 'boolean',
+        'summary' => 'extract all downloaded archives',
+        'status' => 'deprecated',
+        'upstream_default' => '1',
+        'type' => 'leaf',
+        'description' => 'deprecated. Replaced by unpack'
       }
     ]
   }

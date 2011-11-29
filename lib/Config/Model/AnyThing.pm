@@ -27,7 +27,7 @@
 
 package Config::Model::AnyThing;
 {
-  $Config::Model::AnyThing::VERSION = '1.262';
+  $Config::Model::AnyThing::VERSION = '1.263';
 }
 use Scalar::Util qw(weaken);
 use Pod::POM ;
@@ -43,7 +43,7 @@ Config::Model::AnyThing - Base class for configuration tree item
 
 =head1 VERSION
 
-version 1.262
+version 1.263
 
 =head1 SYNOPSIS
 
@@ -756,6 +756,25 @@ sub warp_error {
     return '' unless defined $self->{warper} ;
     return $self->{warper} -> warp_error ;
 }
+
+# used by Value and AnyId
+sub set_convert {
+    my ($self, $arg_ref) = @_ ;
+
+    my $convert = delete $arg_ref->{convert} ;
+    # convert_sub keeps a subroutine reference
+    $self->{convert_sub} = $convert eq 'uc' ? sub {uc(shift)} :
+      $convert eq 'lc' ? sub {lc(shift)} : undef;
+
+    Config::Model::Exception::Model
+	-> throw (
+		  object => $self,
+		  error => "Unexpected convert value: $convert, "
+		  ."expected lc or uc"
+		 ) 
+	  unless defined $self->{convert_sub};
+}
+
 
 1;
 

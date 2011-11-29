@@ -31,7 +31,7 @@
 
 package Config::Model::Backend::IniFile ;
 {
-  $Config::Model::Backend::IniFile::VERSION = '1.262';
+  $Config::Model::Backend::IniFile::VERSION = '1.263';
 }
 
 use Carp;
@@ -73,6 +73,14 @@ sub read {
     my $check       = $args{check}               || 'yes';
     my $obj         = $self->node;
 
+    my %force_lc ;
+    map { $force_lc{$_} = $args{"force_lc_$_"} ? 1 : 0; } qw/section key value/ ;
+
+    # delay validation after read because the read order depends
+    # on the INI file and not on the model
+    my $read_check = 'no'; 
+    
+
     #FIXME: Is it possible to store the comments with their location
     #in the file?  It would be nice if comments that are after values
     #in input file, would be written in the same way in the output
@@ -89,15 +97,15 @@ sub read {
 
         # Update section name
         if ( $vdata =~ /\[(.*)\]/ ) {
-            $section = $1;
+            $section = $force_lc{section} ? lc($1) : $1;
             my $steps = $section_map->{$section} ? $section_map->{$section}.' '
                       : $hash_class              ? "$hash_class:$section" 
                       :                            $section ;
             $logger->debug("use step '$steps' for section '$section'");
             $obj = $self->node->grab(
                 step  => $steps ,
-                check => $check,
-                mode => $check eq 'yes' ? 'strict' : 'loose' ,
+                check => $read_check,
+                mode => $read_check eq 'yes' ? 'strict' : 'loose' ,
             );
             
             # for write later, need to store the obj if section map was used
@@ -115,23 +123,26 @@ sub read {
         }
         elsif (defined $obj) {
             my ( $name, $val ) = split( /\s*=\s*/, $vdata );
+            $name = lc($name) if $force_lc{key} ;
+            $val  = lc($val)  if $force_lc{value} ;
+            
             $logger->debug("ini read: data $name for node ".$obj->location);
 
-            my $elt = $obj->fetch_element( name => $name, check => $check );
+            my $elt = $obj->fetch_element( name => $name, check => $read_check );
 
             if ( $elt->get_type eq 'list' and $split_reg) {
                 my @v_list = split(/$split_reg/,$val) ;
-                my @args = (\@v_list, check => $check) ;
+                my @args = (\@v_list, check => $read_check) ;
                 push @args, annotation => $comment if $comment ;
                 $elt->store_set(@args) ;
             }
             elsif ( $elt->get_type eq 'list' ) {
-                my @args = (values => $val, check => $check) ;
+                my @args = (values => $val, check => $read_check) ;
                 push @args, annotation => $comment if $comment ;
                 $elt -> push_x(@args) ;
             }
             elsif ( $elt->get_type eq 'leaf' ) {
-                $elt->store( value => $val, check => $check );
+                $elt->store( value => $val, check => $read_check );
                 $elt->annotation($comment) if scalar $comment;
             }
             else {
@@ -144,6 +155,11 @@ sub read {
         else {
             $logger->warn("ini read: skipping $vdata");
         }
+    }
+
+    # perform check if it was not done before
+    if ($check ne 'no') {
+        $obj->dump_tree(check => $check) ;
     }
 
     return 1;
@@ -301,7 +317,7 @@ Config::Model::Backend::IniFile - Read and write config as a INI file
 
 =head1 VERSION
 
-version 1.262
+version 1.263
 
 =head1 SYNOPSIS
 
@@ -410,6 +426,18 @@ See L</"Arbitrary class name">
 =item section_map
 
 Is a kind of exception of the above rule. See also L</"Arbitrary class name">
+
+=item force_lc_section
+
+Boolean. When set, sections names are converted to lowercase.
+
+=item force_lc_key
+
+Idem for key name 
+
+=item force_lc_value
+
+Idem for all values.
 
 =item split_list_value
 

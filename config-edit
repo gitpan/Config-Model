@@ -32,6 +32,7 @@ use strict ;
 use warnings ;
 
 use Config::Model;
+use Config::Model::Lister;
 use Getopt::Long ;
 use Pod::Usage ;
 use Log::Log4perl qw(get_logger :levels);
@@ -220,6 +221,13 @@ files. (Actual default directory and file names depends on the model
 C</etc/ssh/sshd_config> files will be written in C<~/mytest/etc/ssh/>
 directory.
 
+=item -config-file 
+
+Specify the configuration file to edit (which may override the file specified by the model).
+ Note that some applicaitions (like multistrap)
+will require this option. For other models (like Debian::Dpkg), this option may not make sense
+as several files are used.
+
 =item -verbose
 
 Be (very) verbose
@@ -343,7 +351,6 @@ my $dumptype;
 my $load;
 my $force_save = 0;
 my $open_item = '';
-my $list = '' ;
 my $application ='' ;
 my $fuse_dir ;
 my $gen_pod ;
@@ -352,6 +359,16 @@ my $apply_fixes = 0 ;
 my $search ;
 my $search_type = 'all';
 my $config_file ; # can override file given by model
+
+# backward compatility to avoid transition issues with bash_completion
+# remove March 2012
+my $list_sub = sub {
+    my ($opt,$v) = @_ ;
+    require Config::Model::Lister;
+    print $v eq 'models' ? Config::Model::Lister::models
+        :  Config::Model::Lister::applications ;
+    exit ;
+} ;
  
 my $result = GetOptions ("ui|if=s"          => \$ui_type,
 			 "model_dir|model-dir=s"      => \$model_dir,
@@ -371,27 +388,19 @@ my $result = GetOptions ("ui|if=s"          => \$ui_type,
                          "load=s"           => \$load,
 			 'save!'            => \$force_save ,
 			 "open_item|open-item=s"      => \$open_item ,
-			 "list=s"           => \$list ,
 			 "fuse_dir|fuse-dir=s"       => \$fuse_dir,
 			 "dfuse!"           => \$fuse_debug,
 			 "apply-fixes!"     => \$apply_fixes ,
 			 "gen-pod|gen_pod:s" => \$gen_pod,
 			 "search=s"         => \$search,
 			 "narrow-search=s"  => \$search_type,
-			 "file=s"           => \$config_file,
+			 "config-file|file=s"    => \$config_file,
+			 "list=s"           => $list_sub ,
 			);
 
 pod2usage(2) if not $result ;
 pod2usage(1) if $help;
 pod2usage(-verbose => 2) if $man;
-
-if ($list) {
-    my @i = Config::Model::available_models ;
-    if    ($list =~ /model/i)  { print join( ' ',  sort values %{$i[2]} ),"\n"; }
-    elsif ($list =~ /appli/i)  { print join( ' ',  sort keys   %{$i[2]} ),"\n"; }
-    else { die "Unknown item to list. Expected 'models' or 'applications'\n" }
-    exit ;
-}
 
 # ignore $dev if run as root
 if ($> and $dev) {
@@ -408,7 +417,7 @@ if (defined $root_dir && ! -e $root_dir) {
 
 my $model = Config::Model -> new(model_dir => $model_dir) ;
 
-my ($categories,$appli_info,$appli_map) = $model->available_models ;
+my ($categories,$appli_info,$appli_map) = Config::Model::Lister::available_models ;
 
 $root_model = $appli_map->{$application} if $application and defined $appli_map->{$application} ;
 

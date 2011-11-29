@@ -4,11 +4,13 @@ Config::Model::models::Multistrap - Configuration class Multistrap
 
 =head1 VERSION
 
-version 1.262
+version 1.263
 
 =head1 DESCRIPTION
 
 Configuration classes used by L<Config::Model>
+
+Class for multistrap configuration files. Note that multistrap is based on INI where section and keys are case insensitive. Hence all sections and keys are converted to lower case and written back as lower case. Most values (but not all) are also case-insensitive. These values will also be written back as lowercase.
 
 =head1 Elements
 
@@ -71,6 +73,10 @@ I<< Optional. Type boolean. upstream_default: '1'.  >>
 =head2 sections
 
 I<< Optional. Type hash of node.  >>
+
+=head2 forceunpack - extract all downloaded archives
+
+deprecated. Replaced by unpack. I<< Optional. Type boolean. upstream_default: '1'.  >>
 
 =head1 SEE ALSO
 

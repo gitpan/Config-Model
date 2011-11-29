@@ -28,7 +28,7 @@
 
 package Config::Model::WarpedNode ;
 {
-  $Config::Model::WarpedNode::VERSION = '1.262';
+  $Config::Model::WarpedNode::VERSION = '1.263';
 }
 
 use Carp qw(cluck croak);
@@ -52,7 +52,7 @@ Config::Model::WarpedNode - Node that change config class properties
 
 =head1 VERSION
 
-version 1.262
+version 1.263
 
 =head1 SYNOPSIS
 
@@ -268,7 +268,7 @@ get_cargo_type describe
 foreach my $method (qw/fetch_element config_class_name copy_from get_element_name
                        has_element is_element_available element_type load
 		       fetch_element_value get_type get_cargo_type dump_tree
-                       describe get_help children get set/
+                       describe get_help children get set accept_regexp/
 		   ) {
     # to register new methods in package
     no strict "refs"; 

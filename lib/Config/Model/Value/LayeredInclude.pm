@@ -9,13 +9,14 @@
 #
 package Config::Model::Value::LayeredInclude;
 {
-  $Config::Model::Value::LayeredInclude::VERSION = '1.262';
+  $Config::Model::Value::LayeredInclude::VERSION = '1.263';
 }
 
 
 use 5.010;
 use strict;
 use warnings;
+use Log::Log4perl qw(get_logger :levels);
 
 use base qw/Config::Model::Value/ ;
 
@@ -30,6 +31,8 @@ use base qw/Config::Model::Value/ ;
 # i.e. may write back in included files)
 
 # this class deals only with the first type
+
+my $logger = get_logger("Tree::Element::Value::LayeredInclude") ;
 
 sub store {
     my $self = shift ;
@@ -55,6 +58,11 @@ sub store {
         $i->layered_start ;
     }
     
+    {
+        no warnings 'uninitialized';
+        $logger->debug("Loading layered config from $new_data (old_data is $old_data)") ;
+    }
+    
     # load included file in layered mode
     $self->root->read_config_data(check => 'no', config_file => $new_data );
 
@@ -63,6 +71,7 @@ sub store {
     }
     
     # test if already in layered mode -> if no, clear layered, 
+    $logger->debug("Done loading layered config from $new_data") ;
     
     return $new_data ;
 }
@@ -104,7 +113,7 @@ Config::Model::Value::LayeredInclude - Include a sub layer configuration
 
 =head1 VERSION
 
-version 1.262
+version 1.263
 
 =head1 SYNOPSIS
 

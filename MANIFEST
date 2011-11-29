@@ -60,6 +60,7 @@ lib/Config/Model/IdElementReference.pm
 lib/Config/Model/Instance.pm
 lib/Config/Model/Iterator.pm
 lib/Config/Model/ListId.pm
+lib/Config/Model/Lister.pm
 lib/Config/Model/Loader.pm
 lib/Config/Model/Manual/ModelCreationAdvanced.pod
 lib/Config/Model/Manual/ModelCreationIntroduction.pod
@@ -326,6 +327,9 @@ t/model_tests.d/lcdd-test-conf.pl
 t/model_tests.d/multistrap-examples/arm/home/foo/my_arm.conf
 t/model_tests.d/multistrap-examples/arm/usr/share/multistrap/crosschroot.conf
 t/model_tests.d/multistrap-examples/from_scratch/usr/share/multistrap/crosschroot.conf
+t/model_tests.d/multistrap-examples/igep0020/home/foo/strap-igep0020.conf
+t/model_tests.d/multistrap-examples/igep0020/usr/share/multistrap/arm.conf
+t/model_tests.d/multistrap-examples/igep0020/usr/share/multistrap/crosschroot.conf
 t/model_tests.d/multistrap-test-conf.pl
 t/model_tests.t
 t/multi_warp_object.t
