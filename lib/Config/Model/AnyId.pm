@@ -27,7 +27,7 @@
 
 package Config::Model::AnyId ;
 {
-  $Config::Model::AnyId::VERSION = '1.263';
+  $Config::Model::AnyId::VERSION = '1.264';
 }
 use Config::Model::Exception ;
 use Config::Model::Warper ;
@@ -56,7 +56,7 @@ Config::Model::AnyId - Base class for hash or list element
 
 =head1 VERSION
 
-version 1.263
+version 1.264
 
 =head1 SYNOPSIS
 
