@@ -27,7 +27,7 @@
 
 package Config::Model::Value ;
 {
-  $Config::Model::Value::VERSION = '1.264';
+  $Config::Model::Value::VERSION = '1.265';
 }
 use warnings ;
 use strict;
@@ -53,7 +53,7 @@ Config::Model::Value - Strongly typed configuration value
 
 =head1 VERSION
 
-version 1.264
+version 1.265
 
 =head1 SYNOPSIS
 
@@ -1945,6 +1945,7 @@ sub _pre_fetch {
 	$std_value 
 	  = defined $self->{preset}        ? $self->{preset}
           : defined $self->{compute}       ? $self->compute 
+          : defined $self->{layered}       ? $self->{layered}
           :                                  $self->{default} ;
     };
 

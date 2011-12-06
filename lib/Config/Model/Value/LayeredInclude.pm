@@ -9,7 +9,7 @@
 #
 package Config::Model::Value::LayeredInclude;
 {
-  $Config::Model::Value::LayeredInclude::VERSION = '1.264';
+  $Config::Model::Value::LayeredInclude::VERSION = '1.265';
 }
 
 
@@ -113,7 +113,7 @@ Config::Model::Value::LayeredInclude - Include a sub layer configuration
 
 =head1 VERSION
 
-version 1.264
+version 1.265
 
 =head1 SYNOPSIS
 

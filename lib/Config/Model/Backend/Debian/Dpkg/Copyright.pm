@@ -10,7 +10,7 @@
 
 package Config::Model::Backend::Debian::Dpkg::Copyright ;
 {
-  $Config::Model::Backend::Debian::Dpkg::Copyright::VERSION = '1.264';
+  $Config::Model::Backend::Debian::Dpkg::Copyright::VERSION = '1.265';
 }
 
 use Any::Moose ;
@@ -54,8 +54,10 @@ sub read {
     my $check = $args{check} || 'yes';
 
     $logger->info("Parsing $args{file} control file");
+
     # load dpkgctrl file
     my $c = $self -> parse_dpkg_file ($args{io_handle}, $check) ;
+    return 0 unless @$c ; # no sections in file
     
     my $root = $args{object} ;
     my $file;
@@ -401,7 +403,7 @@ Config::Model::Backend::Debian::Dpkg::Copyright - Read and write Debian Dpkg Lic
 
 =head1 VERSION
 
-version 1.264
+version 1.265
 
 =head1 SYNOPSIS
 

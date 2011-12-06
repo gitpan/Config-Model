@@ -27,7 +27,7 @@
 
 package Config::Model::CheckList ;
 {
-  $Config::Model::CheckList::VERSION = '1.264';
+  $Config::Model::CheckList::VERSION = '1.265';
 }
 use Config::Model::Exception ;
 use Config::Model::IdElementReference ;
@@ -49,7 +49,7 @@ Config::Model::CheckList - Handle check list element
 
 =head1 VERSION
 
-version 1.264
+version 1.265
 
 =head1 SYNOPSIS
 
@@ -839,8 +839,10 @@ sub get_checked_list_as_hash {
 
     # copy hash and return it
     my %std = (%h, %$ud, %$lay, %$def, %$pre ) ;
+
+    # custom test must compare the whole list at once, not just one item at a time.
     my %result 
-      = $mode eq 'custom'   ? (%h, map { $dat->{$_} && ! $std{$_} ? ($_,1) : ()} keys %$dat )
+      = $mode eq 'custom'   ? ( ( grep { $dat->{$_} xor $std{$_} } keys %h ) ? (%h, %$pre ,%$dat) : %h )
       : $mode eq 'preset'   ? (%h, %$pre )
       : $mode eq 'layered'  ? (%h, %$lay )
       : $mode eq 'upstream_default' ? (%h, %$ud) 
@@ -959,6 +961,7 @@ sub store_set { goto &set_checked_list }
 
 sub set_checked_list {
     my $self = shift ;
+    $logger->debug("called with @_");
     $self->clear ;
     $self->{ordered_data} = [ @_ ] ; # copy list
     $self->check (@_) ;

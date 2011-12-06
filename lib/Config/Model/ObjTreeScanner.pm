@@ -27,7 +27,7 @@
 
 package Config::Model::ObjTreeScanner ;
 {
-  $Config::Model::ObjTreeScanner::VERSION = '1.264';
+  $Config::Model::ObjTreeScanner::VERSION = '1.265';
 }
 use strict ;
 use Config::Model::Exception ;
@@ -45,7 +45,7 @@ Config::Model::ObjTreeScanner - Scan config tree and perform call-backs
 
 =head1 VERSION
 
-version 1.264
+version 1.265
 
 =head1 SYNOPSIS
 

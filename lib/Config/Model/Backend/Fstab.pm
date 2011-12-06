@@ -9,7 +9,7 @@
 #
 package Config::Model::Backend::Fstab ;
 {
-  $Config::Model::Backend::Fstab::VERSION = '1.264';
+  $Config::Model::Backend::Fstab::VERSION = '1.265';
 }
 use Any::Moose ;
 use Carp ;
@@ -158,7 +158,7 @@ Config::Model::Backend::Fstab - Read and write config from fstab file
 
 =head1 VERSION
 
-version 1.264
+version 1.265
 
 =head1 SYNOPSIS
 
