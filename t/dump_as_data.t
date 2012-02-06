@@ -1,7 +1,8 @@
 # -*- cperl -*-
 
 use ExtUtils::testlib;
-use Test::More tests => 37;
+use Test::More tests => 38;
+use Test::Memory::Cycle;
 use Config::Model;
 
 use warnings;
@@ -196,3 +197,4 @@ my $pod_notes2 = $root2->dump_annotations_as_pod ;
 
 is($pod_notes2,$pod_notes,"check 2nd pod notes" );
 
+memory_cycle_ok($model);

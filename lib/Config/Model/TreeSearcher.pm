@@ -1,37 +1,20 @@
 #
 # This file is part of Config-Model
 #
-# This software is Copyright (c) 2011 by Dominique Dumont, Krzysztof Tyszecki.
+# This software is Copyright (c) 2012 by Dominique Dumont, Krzysztof Tyszecki.
 #
 # This is free software, licensed under:
 #
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
-#    Copyright (c) 2005-2011 Dominique Dumont.
-#
-#    This file is part of Config-Model.
-#
-#    Config-Model is free software; you can redistribute it and/or
-#    modify it under the terms of the GNU Lesser Public License as
-#    published by the Free Software Foundation; either version 2.1 of
-#    the License, or (at your option) any later version.
-#
-#    Config-Model is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    Lesser Public License for more details.
-#
-#    You should have received a copy of the GNU Lesser Public License
-#    along with Config-Model; if not, write to the Free Software
-#    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-
 package Config::Model::TreeSearcher ;
 {
-  $Config::Model::TreeSearcher::VERSION = '1.265';
+  $Config::Model::TreeSearcher::VERSION = '2.001';
 }
 
 use Any::Moose ;
 use Any::Moose '::Util::TypeConstraints';
+use namespace::autoclean;
 
 use Log::Log4perl qw(get_logger :levels);
 use Config::Model::Exception ;
@@ -39,7 +22,7 @@ use Config::Model::ObjTreeScanner ;
 use Carp;
 
 my @search_types = qw/element value key summary description help/;
-enum ('SearchType' =>  @search_types, 'all');
+enum ('SearchType' =>  [ @search_types, 'all' ]);
 
 # clean up namespace to avoid clash between MUTC keywords and
 # my functions
@@ -150,8 +133,8 @@ sub search {
     return @loc ;
 }
 
+__PACKAGE__->meta->make_immutable;
 
-no Any::Moose ;
 1;
 
 =head1 NAME
@@ -160,7 +143,7 @@ Config::Model::TreeSearcher - Search tree for match in value, description...
 
 =head1 VERSION
 
-version 1.265
+version 2.001
 
 =head1 SYNOPSIS
 

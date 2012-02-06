@@ -1,7 +1,7 @@
 #
 # This file is part of Config-Model
 #
-# This software is Copyright (c) 2011 by Dominique Dumont, Krzysztof Tyszecki.
+# This software is Copyright (c) 2012 by Dominique Dumont, Krzysztof Tyszecki.
 #
 # This is free software, licensed under:
 #
@@ -42,8 +42,10 @@
       {
         'convert' => 'lc',
         'value_type' => 'uniline',
+        'summary' => 'Include file for cascaded configuration',
         'class' => 'Config::Model::Value::LayeredInclude',
-        'type' => 'leaf'
+        'type' => 'leaf',
+        'description' => 'To support multiple variants of a basic (common) configuration, "multistrap" allows configuration files to include other (more general) configuration files. i.e. the most detailed / specific configuration file is specified on the command line and that file includes another file which is shared by other configurations.'
       },
       'arch',
       {
@@ -59,7 +61,9 @@
       'directory',
       {
         'value_type' => 'uniline',
-        'type' => 'leaf'
+        'summary' => 'target directory',
+        'type' => 'leaf',
+        'description' => 'top level directory where the bootstrap will be created'
       },
       'aptsources',
       {
@@ -93,8 +97,10 @@
           'type' => 'leaf',
           'refer_to' => '- sections'
         },
+        'status' => 'deprecated',
         'duplicates' => 'forbid',
-        'type' => 'list'
+        'type' => 'list',
+        'description' => 'Replaced by bootstrap parameter'
       },
       'omitrequired',
       {

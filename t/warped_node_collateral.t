@@ -3,8 +3,9 @@
 use warnings FATAL => qw(all);
 
 use ExtUtils::testlib;
-use Test::More tests => 13;
+use Test::More tests => 14;
 use Test::Exception;
+use Test::Memory::Cycle;
 use Config::Model;
 use Log::Log4perl qw(:easy);
 
@@ -111,6 +112,8 @@ my $inst = $model->instance(
     instance_name   => 'test1'
 );
 ok( $inst, "created dummy instance" );
+$inst->initial_load_stop ;
+
 
 my $root = $inst->config_root;
 
@@ -153,3 +156,4 @@ $root->load('fs_passno=0 fs_mntopts bind=1');
 is( $pass->fetch, '0', "check pass nb at 2 after setting bind" );
 
 ok($root->load('type=hash cargo atime=1'), "check warping in of a node");
+memory_cycle_ok($model);

@@ -4,7 +4,7 @@ Config::Model::models::LCDd::EyeboxOne - Configuration class LCDd::EyeboxOne
 
 =head1 VERSION
 
-version 1.265
+version 2.001
 
 =head1 DESCRIPTION
 

@@ -5,11 +5,12 @@ use warnings FATAL => qw(all);
 use ExtUtils::testlib;
 use Test::More;
 use Test::Differences ;
+use Test::Memory::Cycle;
 use Config::Model;
 use Config::Model::ValueComputer;
 use Log::Log4perl qw(:easy) ;
 
-BEGIN { plan tests => 65; }
+BEGIN { plan tests => 66; }
 
 use strict;
 
@@ -665,3 +666,4 @@ foreach my $k ( sort keys %loc_h ) {
     my $path = "$k warped_by_location";
     is( $root->grab_value($path), $loc_h{$k}, "check &location with $path" );
 }
+memory_cycle_ok($model);

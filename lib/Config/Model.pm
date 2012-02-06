@@ -1,7 +1,7 @@
 #
 # This file is part of Config-Model
 #
-# This software is Copyright (c) 2011 by Dominique Dumont, Krzysztof Tyszecki.
+# This software is Copyright (c) 2012 by Dominique Dumont, Krzysztof Tyszecki.
 #
 # This is free software, licensed under:
 #
@@ -9,9 +9,10 @@
 #
 package Config::Model;
 {
-  $Config::Model::VERSION = '1.265';
+  $Config::Model::VERSION = '2.001';
 }
 use Any::Moose ;
+use namespace::autoclean;
 use Any::Moose '::Util::TypeConstraints';
 use Any::Moose 'X::StrictConstructor' ;
 
@@ -95,7 +96,7 @@ Config::Model - Create tools to validate, migrate and edit configuration files
 
 =head1 VERSION
 
-version 1.265
+version 2.001
 
 =head1 SYNOPSIS
 
@@ -2313,7 +2314,6 @@ sub list_one_class_element {
 }
 
 
-no Any::Moose ;
 __PACKAGE__->meta->make_immutable ;
 
 1;
@@ -2354,7 +2354,7 @@ Dominique Dumont, (ddumont at cpan dot org)
 
 =head1 LICENSE
 
-    Copyright (c) 2005-2011 Dominique Dumont.
+    Copyright (c) 2005-2012 Dominique Dumont.
 
     This file is part of Config-Model.
 
@@ -2413,7 +2413,7 @@ L<Config::Model::WarpedNode> <- L<Config::Model::AnyThing>
 
 =head2 command line
 
-L<config-edit>
+L<cme>. L<config-edit> is now deprecated.
 
 =head2 Read and write backends
 
@@ -2516,6 +2516,16 @@ L<Config::Model::ValueComputer>
 =item *
 
 L<Config::Model::Warper>
+
+=back
+
+=head2 Test framework
+
+=over
+
+=item *
+
+L<Config::Model::Tester>
 
 =back
 

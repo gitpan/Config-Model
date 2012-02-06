@@ -2,6 +2,7 @@
 
 use ExtUtils::testlib;
 use Test::More ;
+use Test::Memory::Cycle;
 use Config::Model ;
 use Log::Log4perl qw(:easy) ;
 use File::Path ;
@@ -19,7 +20,7 @@ if ( $@ ) {
     plan skip_all => "AptPkg::Config is not installed";
 }
 elsif ( -r '/etc/debian_version' ) {
-    plan tests => 14 ;
+    plan tests => 15;
 }
 else {
     plan skip_all => "Not a Debian system";
@@ -98,3 +99,4 @@ foreach my $t (@test) {
 $root->load('control source Maintainer="foo <foo@bar>" ! meta dependency-filter=lenny') ;
 is($root->grab_value("meta package-dependency-filter:foopkg"),
     'lenny', "check package-dependency-filter");
+memory_cycle_ok($model);

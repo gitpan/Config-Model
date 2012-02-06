@@ -6,7 +6,8 @@
 use warnings FATAL => qw(all);
 
 use ExtUtils::testlib;
-use Test::More tests => 20 ;
+use Test::More tests => 21;
+use Test::Memory::Cycle;
 use Config::Model ;
 
 use strict;
@@ -121,3 +122,4 @@ foreach my $mv (qw/A B C/) {
 
 }
 
+memory_cycle_ok($model);

@@ -3,9 +3,10 @@
 use warnings FATAL => qw(all);
 
 use ExtUtils::testlib;
-use Test::More tests => 147;
+use Test::More tests => 160;
 use Test::Exception;
 use Test::Warn;
+use Test::Memory::Cycle;
 use Config::Model;
 use Config::Model::Value;
 use Log::Log4perl qw(:easy :levels) ;
@@ -224,19 +225,12 @@ $model->create_config_class(
     ],    # dummy class
 );
 
-my $inst = $model->instance(
-    root_class_name => 'Master',
-    instance_name   => 'test1'
-);
-ok( $inst, "created dummy instance" );
-
-my $root = $inst->config_root;
-
 my $bad_inst = $model->instance(
     root_class_name => 'BadClass',
     instance_name   => 'test_bad_class'
 );
-ok( $inst, "created bad_class instance" );
+ok( $bad_inst, "created bad_class instance" );
+$bad_inst->initial_load_stop ;
 
 my $bad_root = $bad_inst->config_root;
 
@@ -247,11 +241,29 @@ throws_ok { $bad_root->fetch_element('crooked'); }
   "test create expected failure";
 print "normal error:\n", $@, "\n" if $trace;
 
+my $inst = $model->instance(
+    root_class_name => 'Master',
+    instance_name   => 'test1'
+);
+ok( $inst, "created dummy instance" );
+$inst->initial_load_stop ;
+
+my $root = $inst->config_root;
+
 my $i = $root->fetch_element('scalar');
 ok( $i, "test create bounded integer" );
 
+is($inst->needs_save,0,"verify instance needs_save status after creation") ;
+
+is($i->needs_check,1,"verify check status after creation") ;
+
 ok( $i->store(1), "store test" );
+is($i->needs_check,0,"store not trigger a check (check done during store)") ;
+is($inst->needs_save,1,"verify instance needs_save status after store") ;
+
 is( $i->fetch, 1, "fetch test" );
+is($i->needs_check,0,"check was done during fetch") ;
+is($inst->needs_save,1,"verify instance needs_save status after fetch") ;
 
 throws_ok { $i->store(5); } 'Config::Model::Exception::User',
   "bounded integer: max error";
@@ -512,7 +524,8 @@ $l_enum->store('B');
 $layer_inst->layered_stop;
 is( $layer_inst->layered, 0, "instance in normal mode" );
 
-is( $l_scalar->fetch, 3, "scalar: read layered value as value" );
+is( $l_scalar->fetch,  undef, "scalar: read layered value as backend value" );
+is( $l_scalar->fetch(mode=>'user'), 3, "scalar: read layered value as user value" );
 $l_scalar->store(4);
 is( $l_scalar->fetch, 4, "scalar: read overridden layered value as value" );
 is( $l_scalar->fetch('layered'), 3,
@@ -521,7 +534,8 @@ is( $l_scalar->fetch_standard, 3,
     "scalar: read standard_value" );
 is( $l_scalar->fetch_custom, 4, "scalar: read custom_value" );
 
-is( $l_enum->fetch, 'B', "enum: read layered value as value" );
+is( $l_enum->fetch, undef, "enum: read layered value as backend value" );
+is( $l_enum->fetch(mode=>'user'), 'B', "enum: read layered value as user value" );
 $l_enum->store('C');
 is( $l_enum->fetch, 'C', "enum: read overridden layered value as value" );
 is( $l_enum->fetch('layered'), 'B', "enum: read layered value as layered_value" );
@@ -588,9 +602,7 @@ is( $wip->fetch, 'FOOBAR', "test if fixes were applied" );
 ### test warn_unless parameter
 my $wup = $root->fetch_element('warn_unless_match');
 warning_like { $wup->store('bar'); } qr/should match/,
-  "test warn_unless condition";
-
-warning_like { $wup->check; } qr/should match/, "check warn_unless_match condition";
+  "test warn_unless_match condition";
 
 is( $wup->has_fixes, 1, "test has_fixes" );
 $wup->apply_fixes;
@@ -606,10 +618,22 @@ $wip->store($smiley);
 is( $wip->fetch, $smiley, "check utf-8 string" );
 
 # test replace_follow
-$root->load('replacement_hash:foo=repfoo replacement_hash:bar=repbar');
 my $wrf = $root->fetch_element('with_replace_follow');
+$inst->needs_save(0);
+
 $wrf->store('foo');
-is( $wrf->fetch, 'repfoo', "check replacement_hash with foo" );
+is($inst->needs_save,1,"check needs_save after store") ;
+$inst->needs_save(0);
+
+is( $wrf->fetch, 'foo', "check replacement_hash with foo (before replacement)" );
+is($inst->needs_save,0,"check needs_save after simple fetch") ;
+
+$root->load('replacement_hash:foo=repfoo replacement_hash:bar=repbar');
+is($inst->needs_save,1,"check needs_save after load") ;
+$inst->needs_save(0);
+
+is( $wrf->fetch, 'repfoo', "check replacement_hash with foo (after replacement)" );
+is($inst->needs_save,1,"check needs_save after fetch with replacement") ;
 
 $wrf->store('bar');
 is( $wrf->fetch, 'repbar', "check replacement_hash with bar" );
@@ -649,3 +673,4 @@ $warn_unless->apply_fixes ;
 ok(1,"warn_unless apply_fixes called");
 is($warn_unless->fetch,'foobar',"check fixed warn_unless pb");
 
+memory_cycle_ok($model,"check memory cycles");

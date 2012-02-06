@@ -1,7 +1,8 @@
 # -*- cperl -*-
 
 use ExtUtils::testlib;
-use Test::More tests => 59;
+use Test::More tests => 60;
+use Test::Memory::Cycle;
 use Config::Model;
 use File::Path;
 use File::Copy ;
@@ -307,11 +308,11 @@ is( $same_rw->grab_value('bar Y'), 'Cv', "Check samerw custom read" );
 
 is( $result{same_rw_read}, $conf_dir, "check same_rw_spec custom read conf dir" );
 
-is( scalar @{ $i_zero->{write_back} }, 10, 
+is( $i_zero->count_write_back , 10, 
     "check that write call back are present" );
 
 # perform write back of dodu tree dump string
-$i_zero->write_back(backend => 'all');
+$i_zero->write_back(backend => 'all', force => 1);
 
 # check written files
 foreach my $suffix (qw/cds ini/) {
@@ -336,7 +337,7 @@ is($result{wr_root_name},'Master','check custom conf root to write') ;
 
 # perform write back of dodu tree dump string in an overridden dir
 my $override = 'etc/wr_2/';
-$i_zero->write_back(backend => 'all', config_dir => $override);
+$i_zero->write_back(backend => 'all', config_dir => $override, force => 1);
 
 # check written files
 foreach my $suffix (qw/cds ini/) {
@@ -530,3 +531,4 @@ file_contents_eq ("$root3/$scratch_conf", "aa=toto4 -\n" ,"checked file written 
 
 
 
+memory_cycle_ok($model);

@@ -1,7 +1,7 @@
 #
 # This file is part of Config-Model
 #
-# This software is Copyright (c) 2011 by Dominique Dumont, Krzysztof Tyszecki.
+# This software is Copyright (c) 2012 by Dominique Dumont, Krzysztof Tyszecki.
 #
 # This is free software, licensed under:
 #
@@ -52,7 +52,7 @@ To upgrade your file from an old spec, run:
         'default' => 'http://dep.debian.net/deps/dep5/',
         'mandatory' => '1',
         'type' => 'leaf',
-        'description' => 'URI of the format specification, such as: http://svn.debian.org/wsvn/dep/web/deps/dep5.mdwn?op=file&amp;rev=REVISION'
+        'description' => 'URI of the format specification.'
       },
       'Upstream-Name',
       {
@@ -144,10 +144,7 @@ To upgrade your file from an old spec, run:
       {
         'value_type' => 'uniline',
         'status' => 'deprecated',
-        'default' => 'http://svn.debian.org/wsvn/dep/web/deps/dep5.mdwn?op=file&rev=153',
-        'mandatory' => '1',
-        'type' => 'leaf',
-        'description' => 'URI of the format specification, such as: http://svn.debian.org/wsvn/dep/web/deps/dep5.mdwn?op=file&amp;rev=REVISION'
+        'type' => 'leaf'
       },
       'Name',
       {

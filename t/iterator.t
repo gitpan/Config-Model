@@ -1,7 +1,8 @@
 # -*- cperl -*-
 
 use ExtUtils::testlib;
-use Test::More tests => 31;
+use Test::More tests => 32;
+use Test::Memory::Cycle;
 use Config::Model;
 use Config::Model::Value ;
 use Log::Log4perl qw(get_logger :levels) ;
@@ -27,11 +28,11 @@ $::debug            = 1 if $arg =~ /d/;
 Config::Model::Exception::Any->Trace(1) if $arg =~ /e/;
 
 my $log4perl_user_conf_file = $ENV{HOME}.'/.log4config-model' ;
-if (-r $log4perl_user_conf_file) {
+if ($log and -r $log4perl_user_conf_file) {
     Log::Log4perl::init($log4perl_user_conf_file);
 }
 else {
-    Log::Log4perl->easy_init($log ? $TRACE: $WARN);
+    Log::Log4perl->easy_init($WARN);
 }
 
 ok(1,"compiled");
@@ -176,3 +177,4 @@ $iterator->start ;
 is_deeply(\@expected,[],"iterator explored all items") ;
 
 
+memory_cycle_ok($model);

@@ -1,100 +1,48 @@
 #
 # This file is part of Config-Model
 #
-# This software is Copyright (c) 2011 by Dominique Dumont, Krzysztof Tyszecki.
+# This software is Copyright (c) 2012 by Dominique Dumont, Krzysztof Tyszecki.
 #
 # This is free software, licensed under:
 #
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
-#    Copyright (c) 2005-2010 Dominique Dumont.
-#
-#    This file is part of Config-Model.
-#
-#    Config-Model is free software; you can redistribute it and/or
-#    modify it under the terms of the GNU Lesser Public License as
-#    published by the Free Software Foundation; either version 2.1 of
-#    the License, or (at your option) any later version.
-#
-#    Config-Model is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    Lesser Public License for more details.
-#
-#    You should have received a copy of the GNU Lesser Public License
-#    along with Config-Model; if not, write to the Free Software
-#    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-
 package Config::Model::HashId ;
 {
-  $Config::Model::HashId::VERSION = '1.265';
+  $Config::Model::HashId::VERSION = '2.001';
 }
+use Any::Moose ;
+use namespace::autoclean;
+
 use Config::Model::Exception ;
-use Scalar::Util qw(weaken) ;
-use warnings ;
 use Carp;
-use strict;
 
 use Log::Log4perl qw(get_logger :levels);
 
 my $logger = get_logger("Tree::Element::Id::Hash");
 
-use base qw/Config::Model::AnyId/ ;
+extends qw/Config::Model::AnyId/ ;
 
-=head1 NAME
+has data => ( is => 'rw', isa => 'HashRef' , default => sub { {} ;} ) ;
+has list => ( is => 'rw', isa => 'ArrayRef', default => sub { [] ;} ) ;
 
-Config::Model::HashId - Handle hash element for configuration model
+has [qw/default_keys auto_create_keys/] => ( is => 'rw', isa => 'ArrayRef', default => sub { [] ;} ) ;
+has [qw/morph ordered/] => (is => 'ro', isa => 'Bool' ) ;
 
-=head1 VERSION
+sub BUILD {
+    my $self = shift;
 
-version 1.265
-
-=head1 SYNOPSIS
-
-See L<Config::Model::AnyId/SYNOPSIS>
-
-=head1 DESCRIPTION
-
-This class provides hash elements for a L<Config::Model::Node>.
-
-The hash index can either be en enumerated type, a boolean, an integer
-or a string.
-
-=cut
-
-=head1 CONSTRUCTOR
-
-HashId object should not be created directly.
-
-=cut
-
-sub new {
-    my $type = shift;
-    my %args = @_ ;
-
-    my $self = $type->SUPER::new(\%args) ;
-
-    $self->{data} = {} ;
-    $self->{list} = [] ;
-
+    # could use "required", but we'd get a Moose error instead of a Config::Model
+    # error
     Config::Model::Exception::Model->throw 
         (
          object => $self,
          error => "Undefined index_type"
-        ) unless defined $args{index_type} ;
-
-    $self->handle_args(%args) ;
+        ) unless defined $self->index_type ;
 
     return $self;
 }
 
-=head1 Hash model declaration
-
-See
-L<model declaration section|Config::Model::AnyId/"Hash or list model declaration">
-from L<Config::Model::AnyId>.
-
-=cut
 
 sub set_properties {
     my $self = shift ;
@@ -126,24 +74,12 @@ sub set_properties {
     }
 }
 
-=head1 Methods
-
-=head2 get_type
-
-Returns C<hash>.
-
-=cut
 
 sub get_type {
     my $self = shift;
     return 'hash' ;
 }
 
-=head2 fetch_size
-
-Returns the number of elements of the hash.
-
-=cut
 
 sub fetch_size {
     my $self = shift;
@@ -159,6 +95,7 @@ sub _get_all_indexes {
 # fetch without any check 
 sub _fetch_with_id {
     my ($self,$key) = @_ ;
+    my $i = $self->instance ;
     return $self->{data}{$key};
 }
 
@@ -184,7 +121,8 @@ sub _defined {
 sub auto_create_elements {
     my $self = shift ;
 
-    my $auto_p = $self->{auto_create_keys} ;
+    my $auto_p = $self->auto_create_keys ;
+    return unless defined $auto_p ;
     # create empty slots
     map {
         $self->_store($_, undef) unless exists $self->{data}{$_};
@@ -214,7 +152,8 @@ sub _delete {
 }
 
 sub remove {
-    goto &_delete ;
+    my $self = shift ;
+    $self->delete(@_) ;
 }
 
 sub _clear {
@@ -223,12 +162,6 @@ sub _clear {
     $self->{data} = {};
 }
 
-=head2 firstkey
-
-Returns the first key of the hash. Behaves like C<each> core perl
-function.
-
-=cut
 
 # hash only method
 sub firstkey {
@@ -245,12 +178,6 @@ sub firstkey {
     return shift @list ;
 }
 
-=head2 nextkey
-
-Returns the next key of the hash. Behaves like C<each> core perl
-function.
-
-=cut
 
 # hash only method
 sub nextkey {
@@ -269,11 +196,6 @@ sub nextkey {
     return ;
 }
 
-=head2 swap ( key1 , key2 )
-
-Swap the order of the 2 keys. Ignored for non ordered hash.
-
-=cut
 
 sub swap {
     my $self = shift ;
@@ -299,11 +221,6 @@ sub swap {
     }
 }
 
-=head2 move ( key1 , key2 )
-
-Rename key1 in key2. 
-
-=cut
 
 sub move {
     my $self = shift ;
@@ -324,6 +241,11 @@ sub move {
         delete $self->{warning_hash}{$from} ;
         # update index_value attribute in moved objects
         $self->{data}{$to}->index_value($to) ;
+
+        # data_mode is preset or layered or user. Actually only user
+        # mode makes sense here
+        my $imode = $self->instance->get_data_mode ;
+        $self->set_data_mode( $to, $imode ) ;
 
         my ($to_idx,$from_idx);
         my $idx = 0 ;
@@ -353,13 +275,6 @@ sub move {
 
 
 
-=head2 move_after ( key_to_move [ , after_this_key ] )
-
-Move the first key after the second one. If the second parameter is
-omitted, the first key is placed in first position. Ignored for non
-ordered hash.
-
-=cut
 
 sub move_after {
     my $self = shift ;
@@ -391,12 +306,6 @@ sub move_after {
     }
 }
 
-=head2 move_up ( key )
-
-Move the key up in a ordered hash. Attempt to move up the first key of
-an ordered hash will be ignored. Ignored for non ordered hash.
-
-=cut
 
 sub move_up {
     my $self = shift ;
@@ -420,12 +329,6 @@ sub move_up {
     }
 }
 
-=head2 move_down ( key )
-
-Move the key down in a ordered hash. Attempt to move up the last key of
-an ordered hash will be ignored. Ignored for non ordered hash.
-
-=cut
 
 sub move_down {
     my $self = shift ;
@@ -449,20 +352,6 @@ sub move_down {
     }
 }
 
-=head2 load_data ( hash_ref | array_ref )
-
-Load check_list as a hash ref for standard hash. 
-
-Ordered hash should be loaded with an array ref or with a hash
-containing a special C<__order> element. E.g. loaded with either:
-
-  [ a => 'foo', b => 'bar' ]
-
-or
-
-  { __order => ['a','b'], b => 'bar', a => 'foo' }
-
-=cut
 
 sub load_data {
     my $self = shift ;
@@ -513,9 +402,100 @@ sub load_data {
     }
 }
 
+__PACKAGE__->meta->make_immutable;
+
 1;
 
 __END__
+
+
+=pod
+
+=head1 NAME
+
+Config::Model::HashId - Handle hash element for configuration model
+
+=head1 VERSION
+
+version 2.001
+
+=head1 SYNOPSIS
+
+See L<Config::Model::AnyId/SYNOPSIS>
+
+=head1 DESCRIPTION
+
+This class provides hash elements for a L<Config::Model::Node>.
+
+The hash index can either be en enumerated type, a boolean, an integer
+or a string.
+
+=head1 CONSTRUCTOR
+
+HashId object should not be created directly.
+
+=head1 Hash model declaration
+
+See
+L<model declaration section|Config::Model::AnyId/"Hash or list model declaration">
+from L<Config::Model::AnyId>.
+
+=head1 Methods
+
+=head2 get_type
+
+Returns C<hash>.
+
+=head2 fetch_size
+
+Returns the number of elements of the hash.
+
+=head2 firstkey
+
+Returns the first key of the hash. Behaves like C<each> core perl
+function.
+
+=head2 nextkey
+
+Returns the next key of the hash. Behaves like C<each> core perl
+function.
+
+=head2 swap ( key1 , key2 )
+
+Swap the order of the 2 keys. Ignored for non ordered hash.
+
+=head2 move ( key1 , key2 )
+
+Rename key1 in key2. 
+
+=head2 move_after ( key_to_move [ , after_this_key ] )
+
+Move the first key after the second one. If the second parameter is
+omitted, the first key is placed in first position. Ignored for non
+ordered hash.
+
+=head2 move_up ( key )
+
+Move the key up in a ordered hash. Attempt to move up the first key of
+an ordered hash will be ignored. Ignored for non ordered hash.
+
+=head2 move_down ( key )
+
+Move the key down in a ordered hash. Attempt to move up the last key of
+an ordered hash will be ignored. Ignored for non ordered hash.
+
+=head2 load_data ( hash_ref | array_ref )
+
+Load check_list as a hash ref for standard hash. 
+
+Ordered hash should be loaded with an array ref or with a hash
+containing a special C<__order> element. E.g. loaded with either:
+
+  [ a => 'foo', b => 'bar' ]
+
+or
+
+  { __order => ['a','b'], b => 'bar', a => 'foo' }
 
 =head1 AUTHOR
 

@@ -1,7 +1,7 @@
 #
 # This file is part of Config-Model
 #
-# This software is Copyright (c) 2011 by Dominique Dumont, Krzysztof Tyszecki.
+# This software is Copyright (c) 2012 by Dominique Dumont, Krzysztof Tyszecki.
 #
 # This is free software, licensed under:
 #
@@ -9,7 +9,7 @@
 #
 package Config::Model::Value::LayeredInclude;
 {
-  $Config::Model::Value::LayeredInclude::VERSION = '1.265';
+  $Config::Model::Value::LayeredInclude::VERSION = '2.001';
 }
 
 
@@ -64,7 +64,11 @@ sub store {
     }
     
     # load included file in layered mode
-    $self->root->read_config_data(check => 'no', config_file => $new_data );
+    $self->root->read_config_data(
+        check => 'no', 
+        config_file => $new_data ,
+        auto_create => 0, # included file must exist
+    );
 
     if (not $already_in_layered) {
         $i->layered_stop ;
@@ -113,7 +117,7 @@ Config::Model::Value::LayeredInclude - Include a sub layer configuration
 
 =head1 VERSION
 
-version 1.265
+version 2.001
 
 =head1 SYNOPSIS
 

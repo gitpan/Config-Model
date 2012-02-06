@@ -17,6 +17,7 @@ BEGIN {
 
 use ExtUtils::testlib;
 use Test::More ;
+use Test::Memory::Cycle;
 use Config::Model ;
 use Config::Model::Value ;
 #use Config::Model::Debian::Dependency ;
@@ -30,7 +31,7 @@ if ( $@ ) {
     plan skip_all => "AptPkg::Config is not installed";
 }
 elsif ( -r '/etc/debian_version' ) {
-    plan tests => 24;
+    plan tests => 25;
 }
 else {
     plan skip_all => "Not a Debian system";
@@ -41,20 +42,25 @@ use warnings;
 use strict;
 
 my $arg = shift || '';
-
 my ($log,$show,$one) = (0) x 3 ;
 
 my $trace = $arg =~ /t/ ? 1 : 0 ;
-$::debug            = 1 if $arg =~ /d/;
 $log                = 1 if $arg =~ /l/;
+Config::Model::Exception::Any->Trace(1) if $arg =~ /e/;
+
+use Log::Log4perl qw(:easy) ;
+my $log4perl_user_conf_file = $ENV{HOME}.'/.log4config-model' ;
+
+if ($log and -e $log4perl_user_conf_file ) {
+    Log::Log4perl::init($log4perl_user_conf_file);
+}
+else {
+    Log::Log4perl->easy_init($ERROR);
+}
 $show               = 1 if $arg =~ /s/;
 $one                = 1 if $arg =~ /1/;
 
-Log::Log4perl->easy_init($log ? $TRACE: $WARN);
-
 my $model = Config::Model -> new ( ) ;
-
-Config::Model::Exception::Any->Trace(1) if $arg =~ /e/;
 
 {
     no warnings qw/once/ ;
@@ -186,3 +192,4 @@ is($perl_bdi->has_fixes,0, "test that fixes are gone");
 @msgs = $perl_bdi->warning_msg ;
 is_deeply(\@msgs,[],"check that warnings are gone");
 
+memory_cycle_ok($model);

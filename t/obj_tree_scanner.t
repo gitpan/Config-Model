@@ -1,7 +1,8 @@
 # -*- cperl -*-
 
 use ExtUtils::testlib;
-use Test::More tests => 10;
+use Test::More tests => 11;
+use Test::Memory::Cycle;
 use Config::Model;
 use Config::Model::ObjTreeScanner ;
 use Test::Differences ;
@@ -323,3 +324,4 @@ my $root2 = $inst2->config_root ;
 eval{ $root2->dump_tree(auto_vivify => 1, mode => 'full') ;};
 ok($@,"expected failure of dump with empty mandatory value") ;
 print "normal error:", $@, "\n" if $trace;
+memory_cycle_ok($model);

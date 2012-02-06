@@ -2,6 +2,7 @@
 
 use ExtUtils::testlib;
 use Test::More ;
+use Test::Memory::Cycle;
 use Config::Model;
 use File::Path;
 use File::Copy ;
@@ -29,7 +30,7 @@ else {
 }
 Config::Model::Exception::Any->Trace(1) if $arg =~ /e/;
 
-plan tests => 61 ;
+plan tests => 65;
 
 ok(1,"compiled");
 
@@ -122,7 +123,10 @@ foreach my $test_class (sort keys %test_setup) {
 
     is($p2_dump,$orig,"compare original data with 2nd instance data") ;
 
+    memory_cycle_ok($model,"memory cycle test");
+
 }
+
 
 __DATA__
 #some global comment

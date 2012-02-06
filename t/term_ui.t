@@ -21,13 +21,14 @@ BEGIN {
 
 
     if ($ok) {
-	plan tests => 10 ;
+	plan tests => 11;
     }
     else {
 	plan skip_all => "Cannot load Term::ReadLine" ;
     }
 }
 
+use Test::Memory::Cycle;
 use Config::Model;
 use Config::Model::TermUI ;
 
@@ -99,3 +100,4 @@ foreach my $a_test (@test) {
     is_deeply(\@comp,$expect ,"exec '".join("', '",@$input)."'") ;
 
 }
+memory_cycle_ok($model);

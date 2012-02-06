@@ -1,37 +1,19 @@
 #
 # This file is part of Config-Model
 #
-# This software is Copyright (c) 2011 by Dominique Dumont, Krzysztof Tyszecki.
+# This software is Copyright (c) 2012 by Dominique Dumont, Krzysztof Tyszecki.
 #
 # This is free software, licensed under:
 #
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
-#
-#    Copyright (c) 2005-2011 Dominique Dumont.
-#
-#    This file is part of Config-Model.
-#
-#    Config-Model is free software; you can redistribute it and/or
-#    modify it under the terms of the GNU Lesser Public License as
-#    published by the Free Software Foundation; either version 2.1 of
-#    the License, or (at your option) any later version.
-#
-#    Config-Model is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    Lesser Public License for more details.
-#
-#    You should have received a copy of the GNU Lesser Public License
-#    along with Config-Model; if not, write to the Free Software
-#    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-
 package Config::Model::BackendMgr ;
 {
-  $Config::Model::BackendMgr::VERSION = '1.265';
+  $Config::Model::BackendMgr::VERSION = '2.001';
 }
 
 use Any::Moose ;
+use namespace::autoclean;
 
 use Carp;
 
@@ -41,6 +23,7 @@ use File::Path ;
 use File::HomeDir ;
 use IO::File ;
 use Storable qw/dclone/ ;
+use Scalar::Util qw/weaken/ ;
 use Log::Log4perl qw(get_logger :levels);
 
 my $logger = get_logger('BackendMgr') ;
@@ -215,12 +198,20 @@ sub load_backend_class {
 
 sub read_config_data {
     my ($self, %args) = @_ ;
+
+    {
+        no warnings 'uninitialized';
+        $logger->debug("called with ",join(' ',%args));
+    }
+    
     my $readlist_orig = delete $args{read_config} ;
     my $check = delete $args{check} ;
     my $r_dir = delete $args{read_config_dir} ;
     my $config_file_override = delete $args{config_file} ;
+    my $auto_create_override = delete $args{auto_create} ;
     
     croak "unexpected args ".join(' ',keys %args)."\n" if %args ;
+
 
     # r_dir is obsolete
     if (defined $r_dir) {
@@ -340,7 +331,9 @@ sub read_config_data {
     }
 
     if (not $read_done) {
-        my $msg = "could not read config file with ";
+        my $msg = "could not read config file " ;
+        $msg .= $config_file_override.' ' if defined $config_file_override ;
+        $msg .= "with ";
         $msg .= $pref_backend ? "'$pref_backend'" : 'any' ;
         $msg .= " backend";
 
@@ -349,7 +342,7 @@ sub read_config_data {
              error => "auto_read error: $msg. May be add "
                     . "'auto_create' parameter in configuration model" ,
              object => $self->node,
-            ) unless $auto_create ;
+            ) unless (defined $auto_create_override ? $auto_create_override : $auto_create );
 
         $logger->warn("Warning: node '".$self->node->name."' $msg");
     }
@@ -361,6 +354,8 @@ sub auto_write_init {
     my ($self, %args) = @_ ;
     my $wrlist_orig = delete $args{write_config} ;
     my $w_dir = delete $args{write_config_dir} ;
+
+    weaken($self) ; # avoid leak: $self is stored in write_back closure
 
     croak "auto_write_init: unexpected args ".join(' ',keys %args)."\n" 
         if %args ;
@@ -421,7 +416,6 @@ sub auto_write_init {
             my $f = $write->{function} || 'write' ;
             require $file.'.pm' unless $c->can($f) ;
 
-            my $node = $self->node ; # provide a closure
             $wb = sub  {  
                 no strict 'refs';
                 my $file_path ;
@@ -434,7 +428,7 @@ sub auto_write_init {
                     &{$c.'::'.$f}(@wr_args,
                                   file_path => $file_path,
                                   conf_dir => $write_dir, # legacy FIXME
-                                  object => $node, 
+                                  object => $self->node, 
                                   @_                      # override from user
                                 ) ;
                 };
@@ -477,10 +471,9 @@ sub auto_write_init {
             $self->{auto_write}{cds_file} = 1 ;
         }
         else {
-			my $f = $write->{function} || 'write' ;
-			my $c = load_backend_class ($backend, $f);
+            my $f = $write->{function} || 'write' ;
+            my $c = load_backend_class ($backend, $f);
 
-            my $node = $self->node ; # provide a closure
             $wb = sub {
                 no strict 'refs';
                 $logger->debug("write cb ($backend) called for ",$self->node->name);
@@ -498,7 +491,7 @@ sub auto_write_init {
                     # override needed for "save as" button
                     $backend_obj->$f( @wr_args, 
                                       file_path => $file_path,
-                                      object => $node, 
+                                      object => $self->node, 
                                       @_                      # override from user
                                     ) ;
                 } ;
@@ -658,6 +651,8 @@ sub write_perl {
     return 1 ;
 }
 
+__PACKAGE__->meta->make_immutable;
+
 1;
 
 __END__
@@ -668,7 +663,7 @@ Config::Model::BackendMgr - Load configuration node on demand
 
 =head1 VERSION
 
-version 1.265
+version 2.001
 
 =head1 SYNOPSIS
 

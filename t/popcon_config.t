@@ -1,7 +1,8 @@
 # -*- cperl -*-
 
 use ExtUtils::testlib;
-use Test::More tests => 9;
+use Test::More tests => 10;
+use Test::Memory::Cycle;
 use Config::Model ;
 use Log::Log4perl qw(:easy) ;
 use File::Path ;
@@ -116,6 +117,7 @@ $cfg3->load($dump) ;
 ok(1,"loaded 3nd instance with dump from 1st instance");
 $cfg2->load("MY_HOSTID=bbbbbbbb") ;
 
+memory_cycle_ok($model);
 
 __END__
 # Config file for Debian's popularity-contest package.

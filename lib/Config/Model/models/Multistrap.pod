@@ -4,7 +4,7 @@ Config::Model::models::Multistrap - Configuration class Multistrap
 
 =head1 VERSION
 
-version 1.265
+version 2.001
 
 =head1 DESCRIPTION
 
@@ -14,17 +14,17 @@ Class for multistrap configuration files. Note that multistrap is based on INI w
 
 =head1 Elements
 
-=head2 include
+=head2 include - Include file for cascaded configuration
 
-I<< Optional. Type uniline.  >>
+To support multiple variants of a basic (common) configuration, "multistrap" allows configuration files to include other (more general) configuration files. i.e. the most detailed / specific configuration file is specified on the command line and that file includes another file which is shared by other configurations.I<< Optional. Type uniline.  >>
 
 =head2 arch
 
 I<< Optional. Type enum. choice: 'alpha', 'arm', 'armel', 'powerpc'.  >>
 
-=head2 directory
+=head2 directory - target directory
 
-I<< Optional. Type uniline.  >>
+top level directory where the bootstrap will be created. I<< Optional. Type uniline.  >>
 
 =head2 aptsources
 
@@ -36,7 +36,7 @@ the bootstrap option determines which repository is used to calculate the list o
 
 =head2 debootstrap
 
-I<< Optional. Type list of reference.  >>
+Replaced by bootstrap parameter. I<< Optional. Type list of reference.  >>
 
 =head2 omitrequired
 

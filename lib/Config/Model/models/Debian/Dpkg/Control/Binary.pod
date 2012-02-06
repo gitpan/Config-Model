@@ -4,7 +4,7 @@ Config::Model::models::Debian::Dpkg::Control::Binary - Configuration class Debia
 
 =head1 VERSION
 
-version 1.265
+version 2.001
 
 =head1 DESCRIPTION
 
@@ -90,6 +90,10 @@ I<< Optional. Type list of uniline.  >>
 I<< Optional. Type list of uniline.  >>
 
 =head2 Package-Type - The type of the package, if not a regular Debian one
+
+If this field is present, the package is not a regular Debian package, but either a udeb generated for the Debian installer or a tdeb containing translated debconf strings.I<< Optional. Type enum. choice: 'tdeb', 'udeb'.  >>
+
+=head2 XC-Package-Type - The type of the package, if not a regular Debian one
 
 If this field is present, the package is not a regular Debian package, but either a udeb generated for the Debian installer or a tdeb containing translated debconf strings.I<< Optional. Type enum. choice: 'tdeb', 'udeb'.  >>
 

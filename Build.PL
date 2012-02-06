@@ -1,7 +1,7 @@
 #
 # This file is part of Config-Model
 #
-# This software is Copyright (c) 2011 by Dominique Dumont, Krzysztof Tyszecki.
+# This software is Copyright (c) 2012 by Dominique Dumont, Krzysztof Tyszecki.
 #
 # This is free software, licensed under:
 #
@@ -53,7 +53,7 @@ my $build = Module::Build->new(
     module_name => 'Config::Model',
     @version_info,
     license       => 'lgpl',
-    script_files  => ['config-edit'],
+    script_files  => ['config-edit','script/cme'],
     appli_files   => \%appli_files,
     dist_abstract => 'Describe, edit and validate configuration data',
     dist_author   => 'Dominique Dumont (ddumont at cpan dot org)',
@@ -68,6 +68,7 @@ my $build = Module::Build->new(
     'Test::Differences' => '0',
     'Test::Exception' => '0',
     'Test::File::Contents' => '0',
+    'Test::Memory::Cycle' => '0',
     'Test::More' => '0',
     'Test::Warn' => '0.11'
   },

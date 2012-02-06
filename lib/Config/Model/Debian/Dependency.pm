@@ -1,7 +1,7 @@
 #
 # This file is part of Config-Model
 #
-# This software is Copyright (c) 2011 by Dominique Dumont, Krzysztof Tyszecki.
+# This software is Copyright (c) 2012 by Dominique Dumont, Krzysztof Tyszecki.
 #
 # This is free software, licensed under:
 #
@@ -9,11 +9,12 @@
 #
 package Config::Model::Debian::Dependency ;
 {
-  $Config::Model::Debian::Dependency::VERSION = '1.265';
+  $Config::Model::Debian::Dependency::VERSION = '2.001';
 }
 
-use strict ;
-use warnings ;
+use Any::Moose;
+use namespace::autoclean;
+
 use Memoize ;
 use Memoize::Expire ;
 use DB_File ;
@@ -47,7 +48,7 @@ my $apt_cache = AptPkg::Cache->new ;
 
 # end black magic
 
-use base qw/Config::Model::Value/ ;
+extends qw/Config::Model::Value/ ;
 use vars qw/%cache/ ;
 
 # Set up persistence
@@ -134,20 +135,21 @@ sub check_value {
     # to get package list
     # wget -q -O - 'http://qa.debian.org/cgi-bin/madison.cgi?package=perl-doc&text=on'
 
-    my @error = $self->SUPER::check_value(%args) ;
+    $self->SUPER::check_value(%args) ;
+    my $e_list = $self->{error_list} ;
     
     if (defined $value) {
         $logger->debug("check_value '$value', calling check_depend with Parse::RecDescent");
         my $prd_check = dep_parser->check_depend ( $value,1,$self,$apply_fix, \$value) ; 
         $logger->debug("check_value '$value' done");
    
-        push @error,"dependency '$value' does not match grammar" unless defined $prd_check ;
+        push @$e_list,"dependency '$value' does not match grammar" unless defined $prd_check ;
     }
     
     #$self->store(value => $value, check => 'no') if $apply_fix ; 
     $self->{data} = $value if $apply_fix ; 
     
-    return wantarray ? @error : scalar @error ? 0 : 1 ;
+    return wantarray ? @$e_list : scalar @$e_list ? 0 : 1 ;
 }
 
 my @deb_releases = qw/etch lenny squeeze wheezy/;
@@ -364,6 +366,9 @@ sub get_available_version {
     }
     return "@res" ;
 }
+
+__PACKAGE__->meta->make_immutable;
+
 1;
 
 =head1 NAME
@@ -372,7 +377,7 @@ Config::Model::Debian::Dependency - Checks Debian dependency declarations
 
 =head1 VERSION
 
-version 1.265
+version 2.001
 
 =head1 SYNOPSIS
 
