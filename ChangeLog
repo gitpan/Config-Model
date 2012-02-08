@@ -1,5 +1,9 @@
-2012-02-08  Dominique Dumont  <domi.dumont@free.fr> 2.002
+2012-02-08  Dominique Dumont  <domi.dumont@free.fr> 2.003
+   
+   * Added configure_requires on File::Slurp (Fix RT#73611)
+   * Updated meta-data to point toward github instead of sourceforge
 
+2012-02-08  Dominique Dumont  <domi.dumont@free.fr> 2.002
     Most of the fixes aim to solve issues with Perl smoke tests
 
     * Application changes:

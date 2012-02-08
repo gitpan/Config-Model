@@ -60,7 +60,6 @@ my $build = Module::Build->new(
 
   'build_requires' => {
     'File::Copy::Recursive' => '0',
-    'File::Slurp' => '0',
     'Module::Build' => '0.34',
     'Path::Class' => '0',
     'Probe::Perl' => '0',
@@ -73,6 +72,7 @@ my $build = Module::Build->new(
     'Test::Warn' => '0.11'
   },
   'configure_requires' => {
+    'File::Slurp' => '0',
     'Module::Build' => '0.34'
   },
   'recommends' => {

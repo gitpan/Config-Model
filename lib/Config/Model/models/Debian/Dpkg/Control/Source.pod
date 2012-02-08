@@ -4,7 +4,7 @@ Config::Model::models::Debian::Dpkg::Control::Source - Configuration class Debia
 
 =head1 VERSION
 
-version 2.002
+version 2.003
 
 =head1 DESCRIPTION
 
