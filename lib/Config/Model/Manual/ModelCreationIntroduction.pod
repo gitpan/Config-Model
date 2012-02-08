@@ -6,7 +6,7 @@ Config::Model::Manual::ModelCreationIntroduction - Introduction to model creatio
 
 =head1 VERSION
 
-version 2.001
+version 2.002
 
 =head1 Introduction
 

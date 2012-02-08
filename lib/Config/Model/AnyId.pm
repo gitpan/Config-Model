@@ -9,7 +9,7 @@
 #
 package Config::Model::AnyId ;
 {
-  $Config::Model::AnyId::VERSION = '2.001';
+  $Config::Model::AnyId::VERSION = '2.002';
 }
 
 use Any::Moose ;
@@ -416,7 +416,6 @@ sub notify_change {
 
 sub check {
     my $self = shift;
-    carp __PACKAGE__,"check is deprecated. Use check_content";
     $self->check_content(@_) ;
 }
 
@@ -968,7 +967,7 @@ Config::Model::AnyId - Base class for hash or list element
 
 =head1 VERSION
 
-version 2.001
+version 2.002
 
 =head1 SYNOPSIS
 

@@ -9,7 +9,7 @@
 #
 package Config::Model::Tester;
 {
-  $Config::Model::Tester::VERSION = '2.001';
+  $Config::Model::Tester::VERSION = '2.002';
 }
 
 use Test::More;
@@ -109,7 +109,7 @@ sub run_model_test {
 
     if ($skip) {
         note("Skipped $model_test test ($model_test_conf)");
-        next;
+        return;
     }
 
     my $note ="$model_test uses $model_to_test model";
@@ -322,7 +322,7 @@ Config::Model::Tester - Test framework for Config::Model
 
 =head1 VERSION
 
-version 2.001
+version 2.002
 
 =head1 SYNOPSIS
 

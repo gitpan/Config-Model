@@ -88,6 +88,7 @@ my $build = Module::Build->new(
     'IO::File' => '0',
     'LWP::Simple' => '0',
     'Log::Log4perl' => '1.11',
+    'Mouse' => '0',
     'MouseX::NativeTraits' => '0',
     'MouseX::StrictConstructor' => '0',
     'Parse::RecDescent' => '1.90.0',
@@ -95,7 +96,8 @@ my $build = Module::Build->new(
     'Scalar::Util' => '0',
     'Term::ReadLine' => '0',
     'Text::Autoformat' => '0',
-    'YAML::Any' => '0.303'
+    'YAML::Any' => '0.303',
+    'namespace::autoclean' => '0'
   },
 
     meta_merge => {
