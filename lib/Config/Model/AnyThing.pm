@@ -9,7 +9,7 @@
 #
 package Config::Model::AnyThing;
 {
-  $Config::Model::AnyThing::VERSION = '2.003';
+  $Config::Model::AnyThing::VERSION = '2.004';
 }
 
 use Any::Moose ;
@@ -561,7 +561,7 @@ Config::Model::AnyThing - Base class for configuration tree item
 
 =head1 VERSION
 
-version 2.003
+version 2.004
 
 =head1 SYNOPSIS
 

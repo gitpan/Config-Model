@@ -4,7 +4,7 @@ Config::Model::models::LCDd::mdm166a - Configuration class LCDd::mdm166a
 
 =head1 VERSION
 
-version 2.003
+version 2.004
 
 =head1 DESCRIPTION
 

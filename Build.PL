@@ -58,6 +58,10 @@ my $build = Module::Build->new(
     dist_abstract => 'Describe, edit and validate configuration data',
     dist_author   => 'Dominique Dumont (ddumont at cpan dot org)',
 
+    # Build.PL runs gen_class_pod.pl which loads Config::Model from lib,
+    # hence most of the runtime dependencies are in fact 
+    # configure_requires. This should improve Perl smoke tests.
+
   'build_requires' => {
     'File::Copy::Recursive' => '0',
     'Module::Build' => '0.34',
@@ -72,22 +76,15 @@ my $build = Module::Build->new(
     'Test::Warn' => '0.11'
   },
   'configure_requires' => {
-    'File::Slurp' => '0',
-    'Module::Build' => '0.34'
-  },
-  'recommends' => {
-    'Fuse' => '0'
-  },
-  'requires' => {
     'Any::Moose' => '0',
     'Carp::Assert::More' => '0',
-    'DB_File' => '0',
     'Exception::Class' => '0',
     'File::HomeDir' => '0',
+    'File::Slurp' => '0',
     'Hash::Merge' => '0.12',
     'IO::File' => '0',
-    'LWP::Simple' => '0',
     'Log::Log4perl' => '1.11',
+    'Module::Build' => '0.34',
     'Mouse' => '0',
     'MouseX::NativeTraits' => '0',
     'MouseX::StrictConstructor' => '0',
@@ -95,9 +92,16 @@ my $build = Module::Build->new(
     'Pod::POM' => '0',
     'Scalar::Util' => '0',
     'Term::ReadLine' => '0',
-    'Text::Autoformat' => '0',
     'YAML::Any' => '0.303',
     'namespace::autoclean' => '0'
+  },
+  'recommends' => {
+    'Fuse' => '0'
+  },
+  'requires' => {
+    'DB_File' => '0',
+    'LWP::Simple' => '0',
+    'Text::Autoformat' => '0'
   },
 
     meta_merge => {

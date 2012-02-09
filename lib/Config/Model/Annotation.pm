@@ -27,7 +27,7 @@
 
 package Config::Model::Annotation;
 {
-  $Config::Model::Annotation::VERSION = '2.003';
+  $Config::Model::Annotation::VERSION = '2.004';
 }
 
 use Any::Moose ;
@@ -57,7 +57,7 @@ Config::Model::Annotation - Read and write configuration annotations
 
 =head1 VERSION
 
-version 2.003
+version 2.004
 
 =head1 SYNOPSIS
 
