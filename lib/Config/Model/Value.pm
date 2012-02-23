@@ -9,7 +9,7 @@
 #
 package Config::Model::Value ;
 {
-  $Config::Model::Value::VERSION = '2.004';
+  $Config::Model::Value::VERSION = '2.005';
 }
 
 use Any::Moose;
@@ -1626,7 +1626,7 @@ Config::Model::Value - Strongly typed configuration value
 
 =head1 VERSION
 
-version 2.004
+version 2.005
 
 =head1 SYNOPSIS
 

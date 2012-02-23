@@ -4,7 +4,7 @@ Config::Model::models::Debian::Dpkg::Meta - Configuration class Debian::Dpkg::Me
 
 =head1 VERSION
 
-version 2.004
+version 2.005
 
 =head1 DESCRIPTION
 
