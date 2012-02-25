@@ -4,7 +4,7 @@ Config::Model::models::LCDd::vlsys_m428 - Configuration class LCDd::vlsys_m428
 
 =head1 VERSION
 
-version 2.005
+version 2.006
 
 =head1 DESCRIPTION
 

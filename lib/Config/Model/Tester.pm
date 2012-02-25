@@ -9,7 +9,7 @@
 #
 package Config::Model::Tester;
 {
-  $Config::Model::Tester::VERSION = '2.005';
+  $Config::Model::Tester::VERSION = '2.006';
 }
 
 use Test::More;
@@ -200,6 +200,8 @@ sub run_model_test {
 
         print $dump if $trace;
 
+        local $Config::Model::Value::nowarning = $t->{no_warnings} || 0;
+
         $dump = $root->dump_tree();
         ok( $dump, "Dumped $model_test config tree in custom mode" );
 
@@ -214,7 +216,6 @@ sub run_model_test {
             }
         }
 
-        local $Config::Model::Value::nowarning = $t->{no_warnings} || 0;
 
         $inst->write_back( );
         ok( 1, "$model_test write back done" );
@@ -322,7 +323,7 @@ Config::Model::Tester - Test framework for Config::Model
 
 =head1 VERSION
 
-version 2.005
+version 2.006
 
 =head1 SYNOPSIS
 

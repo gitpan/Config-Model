@@ -175,10 +175,6 @@ A package may specify an architecture wildcard. Architecture wildcards are in th
       {
         'value_type' => 'uniline',
         'warn_if_match' => {
-          '^[A-Z]' => {
-            'msg' => 'short description should start with a small letter',
-            'fix' => '$_ = lcfirst($_) ;'
-          },
           '.{60,}' => {
             'msg' => 'Synopsis is too long. '
           }

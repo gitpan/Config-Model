@@ -9,7 +9,7 @@
 #
 package Config::Model::Debian::Dependency ;
 {
-  $Config::Model::Debian::Dependency::VERSION = '2.005';
+  $Config::Model::Debian::Dependency::VERSION = '2.006';
 }
 
 use Any::Moose;
@@ -172,16 +172,9 @@ sub check_pkg_name {
 
     # if no pkg was found
     if (@dist_version == 0) {
-        # try to find virtual package
-        my $pkg_obj = $apt_cache->get($pkg);
-        if (defined $pkg_obj) {
-            # virtual package
-            $logger->debug("check_pkg_name: package $pkg is pure virtual") ;
-        }
-        else {
-            $logger->debug("check_pkg_name: unknown package $pkg") ;
-            push @{$self->{warning_list}} , "package $pkg is unknown. Check for typos." ;
-        }
+        # don't know how to distinguish virtual package from source package
+        $logger->debug("check_pkg_name: unknown package $pkg") ;
+        push @{$self->{warning_list}} , "package $pkg is unknown. Check for typos if not a virtual package." ;
         return ();
     }
     return @dist_version ;
@@ -362,7 +355,8 @@ sub get_available_version {
     my @res ;
     foreach my $line (split /\n/, $res) {
         my ($name,$available_v,$dist,$type) = split /\s*\|\s*/, $line ;
-        push @res , $dist,  $available_v ;
+        $type =~ s/\s//g ;
+        push @res , $dist,  $available_v unless $type eq 'source';
     }
     return "@res" ;
 }
@@ -377,7 +371,7 @@ Config::Model::Debian::Dependency - Checks Debian dependency declarations
 
 =head1 VERSION
 
-version 2.005
+version 2.006
 
 =head1 SYNOPSIS
 
