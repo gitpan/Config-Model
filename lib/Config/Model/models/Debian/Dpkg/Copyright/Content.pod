@@ -4,7 +4,7 @@ Config::Model::models::Debian::Dpkg::Copyright::Content - Configuration class De
 
 =head1 VERSION
 
-version 2.006
+version 2.007
 
 =head1 DESCRIPTION
 

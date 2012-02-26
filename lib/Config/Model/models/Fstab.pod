@@ -4,7 +4,7 @@ Config::Model::models::Fstab - Configuration class Fstab
 
 =head1 VERSION
 
-version 2.006
+version 2.007
 
 =head1 DESCRIPTION
 

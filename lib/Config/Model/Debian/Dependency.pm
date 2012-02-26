@@ -9,7 +9,7 @@
 #
 package Config::Model::Debian::Dependency ;
 {
-  $Config::Model::Debian::Dependency::VERSION = '2.006';
+  $Config::Model::Debian::Dependency::VERSION = '2.007';
 }
 
 use Any::Moose;
@@ -371,7 +371,7 @@ Config::Model::Debian::Dependency - Checks Debian dependency declarations
 
 =head1 VERSION
 
-version 2.006
+version 2.007
 
 =head1 SYNOPSIS
 

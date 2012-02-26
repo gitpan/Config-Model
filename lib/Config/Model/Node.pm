@@ -9,7 +9,7 @@
 #
 package Config::Model::Node;
 {
-  $Config::Model::Node::VERSION = '2.006';
+  $Config::Model::Node::VERSION = '2.007';
 }
 
 use Any::Moose ;
@@ -1051,8 +1051,6 @@ sub load_data {
 
 
 # TBD explain full_dump
-# Does not dump sub-tree below an AutoRead object unless full_dump is
-# set to 1.
 
 sub dump_tree {
     my $self = shift ;
@@ -1061,6 +1059,14 @@ sub dump_tree {
     $dumper->dump_tree(node => $self, @_) ;
 }
 
+sub migrate {
+    my $self = shift ;
+    $self->init ;
+    Config::Model::Dumper->new->dump_tree(node => $self, mode => 'custom', @_) ;
+
+    return $self->needs_save ;
+}
+    
 
 sub dump_annotations_as_pod {
     my $self = shift ;
@@ -1150,7 +1156,7 @@ Config::Model::Node - Class for configuration tree node
 
 =head1 VERSION
 
-version 2.006
+version 2.007
 
 =head1 SYNOPSIS
 
@@ -1696,7 +1702,12 @@ instead of returning their value.
 
 Set a value from a directory like path.
 
-=head1 Serialization
+=head1 data modification
+
+=head2 migrate
+
+Force a read of the configuration and perform all changes regarding 
+deprecated elements or values. Return 1 if data needs to be saved.
 
 =head2 load ( step => string [, experience => ... ] )
 
@@ -1715,6 +1726,8 @@ This method can also be called with a single parameter:
 Load configuration data with a hash ref (first parameter). The hash ref key must match
 the available elements of the node. The hash ref structure must match
 the structure of the configuration model.
+
+=head1 Serialization
 
 =head2 dump_tree ( ... )
 
