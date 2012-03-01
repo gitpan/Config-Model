@@ -10,7 +10,7 @@
 
 package Config::Model::Backend::Debian::Dpkg::Copyright ;
 {
-  $Config::Model::Backend::Debian::Dpkg::Copyright::VERSION = '2.007';
+  $Config::Model::Backend::Debian::Dpkg::Copyright::VERSION = '2.008';
 }
 
 use Any::Moose ;
@@ -53,7 +53,7 @@ sub read {
 
     my $check = $args{check} || 'yes';
 
-    $logger->info("Parsing $args{file} control file");
+    $logger->info("Parsing $args{file}");
 
     # load dpkgctrl file
     my $c = $self -> parse_dpkg_file ($args{io_handle}, $check) ;
@@ -113,7 +113,7 @@ sub read {
             push @license_names, $lic_name ;
         }
         else {
-            my $str = "Unknow paragraph in section $section_nb. Is is a Files or a License section ?";
+            my $str = "Unknow paragraph in section $section_nb. Is it a Files or a License section ?";
             Config::Model::Exception::Syntax -> throw ( object => $self, error => $str ) 
                 if $check eq 'yes' ;
             $logger->warn("Dropping unknown paragraph from section $section_nb");
@@ -405,7 +405,7 @@ Config::Model::Backend::Debian::Dpkg::Copyright - Read and write Debian Dpkg Lic
 
 =head1 VERSION
 
-version 2.007
+version 2.008
 
 =head1 SYNOPSIS
 

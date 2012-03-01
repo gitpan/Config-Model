@@ -226,7 +226,6 @@ lib/Config/Model/system.d/popcon
 script/cme
 script/gen_LCDd_model.pl
 script/gen_class_pod.pl
-script/sme
 t/accept.t
 t/annotation.t
 t/array_id.t
@@ -258,6 +257,7 @@ t/load.t
 t/load_model_snippets.t
 t/model.t
 t/model_tests.d/debian-dependency-cache.txt
+t/model_tests.d/debian-dpkg-control-examples/libpango-perl
 t/model_tests.d/debian-dpkg-control-examples/sdlperl
 t/model_tests.d/debian-dpkg-control-examples/t0
 t/model_tests.d/debian-dpkg-control-examples/t1

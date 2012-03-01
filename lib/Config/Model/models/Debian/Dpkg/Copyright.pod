@@ -4,7 +4,7 @@ Config::Model::models::Debian::Dpkg::Copyright - Configuration class Debian::Dpk
 
 =head1 VERSION
 
-version 2.007
+version 2.008
 
 =head1 DESCRIPTION
 
@@ -92,6 +92,10 @@ I<< Optional. Type string.  >>
 =head2 License
 
 I<< Optional. Type hash of node.  >>
+
+=head2 X-Comment
+
+I<< Optional. Type string.  >>
 
 =head1 SEE ALSO
 

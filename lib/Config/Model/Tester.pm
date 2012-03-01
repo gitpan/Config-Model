@@ -9,7 +9,7 @@
 #
 package Config::Model::Tester;
 {
-  $Config::Model::Tester::VERSION = '2.007';
+  $Config::Model::Tester::VERSION = '2.008';
 }
 
 use Test::More;
@@ -216,6 +216,13 @@ sub run_model_test {
             }
         }
 
+        if (my $annot_check = $t->{verify_annotation}) {
+            foreach my $path (keys %$annot_check) {
+                my $note = $annot_check->{$path};
+                is( $root->grab($path)->annotation, 
+                    $note, "check $path annotation" );
+            } 
+        }
 
         $inst->write_back( );
         ok( 1, "$model_test write back done" );
@@ -323,7 +330,7 @@ Config::Model::Tester - Test framework for Config::Model
 
 =head1 VERSION
 
-version 2.007
+version 2.008
 
 =head1 SYNOPSIS
 
@@ -499,6 +506,16 @@ You can run check using different check modes (See L<Config::Model::Value/"fetch
             },
 
 The mode is specified after C<check_>.
+
+=item *
+
+Verify annotation extracted from the configuration file comments:
+
+    verify_annotation => {
+            'source Build-Depends' => "do NOT add libgtk2-perl to build-deps (see bug #554704)",
+            'source Maintainer' => "what a fine\nteam this one is",
+        },
+
 
 =item *
 

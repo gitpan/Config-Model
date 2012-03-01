@@ -9,7 +9,7 @@
 #
 package Config::Model::Backend::Debian::Dpkg;
 {
-  $Config::Model::Backend::Debian::Dpkg::VERSION = '2.007';
+  $Config::Model::Backend::Debian::Dpkg::VERSION = '2.008';
 }
 
 use Carp;
@@ -50,7 +50,7 @@ sub read_patch_series {
 
     unless ( defined $ser_io ) {
         my $msg = "Dpkg::Patch error, cannot read $series_files:$!";
-        Config::Model::Exception::Syntax->throw( message => $msg )
+        Config::Model::Exception::User->throw( message => $msg )
           if $check eq 'yes';
         $logger->error($msg) if $check eq 'skip';
     }
@@ -135,7 +135,7 @@ Config::Model::Backend::Debian::Dpkg - Read and write config as plain file
 
 =head1 VERSION
 
-version 2.007
+version 2.008
 
 =head1 SYNOPSIS
 

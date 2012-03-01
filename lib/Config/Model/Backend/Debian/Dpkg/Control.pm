@@ -10,7 +10,7 @@
 
 package Config::Model::Backend::Debian::Dpkg::Control ;
 {
-  $Config::Model::Backend::Debian::Dpkg::Control::VERSION = '2.007';
+  $Config::Model::Backend::Debian::Dpkg::Control::VERSION = '2.008';
 }
 
 use Any::Moose ;
@@ -45,9 +45,9 @@ sub read {
 
     return 0 unless defined $args{io_handle} ;
 
-    $logger->info("Parsing control file");
+    $logger->info("Parsing $args{file_path}");
     # load dpkgctrl file
-    my $c = $self -> parse_dpkg_file ($args{io_handle}) ;
+    my $c = $self -> parse_dpkg_file ($args{io_handle}, $args{check}, 1 ) ;
     
     my $root = $args{object} ;
     my $check = $args{check} ;
@@ -73,7 +73,7 @@ sub read {
         
         if (not defined $package_name) {
             my $msg = "Cannot find package_name in section @$section";
-            Config::Model::Exception::User
+            Config::Model::Exception::Syntax
 	    -> throw (object => $root,  error => $msg) ;
         } 
         
@@ -120,17 +120,22 @@ sub store_section_in_tree {
     my $node  = shift;
     my $check = shift;
     my $key   = shift;
-    my $v     = shift;
+    my $maybe_v = shift;
 
-    return unless defined $v ;
+    return unless defined $maybe_v ;
 
     $logger->info( "reading key '$key' from control file (for node "
           . $node->location
           . ")" );
-    my $elt_name = 
+
+    my ($v,@c) = ref $maybe_v ? @$maybe_v : ($maybe_v) ;
+
     $logger->debug("$key value: $v");
     my $type = $node->element_type($key);
     my $elt_obj = $node->fetch_element( name => $key, check => $check );
+
+    $elt_obj->annotation(join("\n",@c)) if @c ;
+
     $v =~ s/^\s*\n//;
     chomp $v;
 
@@ -197,6 +202,9 @@ sub package_spec {
         my $type = $node->element_type($elt) ;
         my $elt_obj = $node->fetch_element($elt) ;
 
+        my $c = $elt_obj->annotation ;
+        push @section, map {'# '.$_} split /\n/,$c if $c ;
+
         if ($type eq 'hash') {
             die "package_spec: unexpected hash type in ".$node->name." element $elt\n" ;
         }
@@ -231,7 +239,7 @@ Config::Model::Backend::Debian::Dpkg::Control - Read and write Debian Dpkg contr
 
 =head1 VERSION
 
-version 2.007
+version 2.008
 
 =head1 SYNOPSIS
 

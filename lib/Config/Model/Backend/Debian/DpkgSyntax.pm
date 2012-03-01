@@ -9,7 +9,7 @@
 #
 package Config::Model::Backend::Debian::DpkgSyntax ;
 {
-  $Config::Model::Backend::Debian::DpkgSyntax::VERSION = '2.007';
+  $Config::Model::Backend::Debian::DpkgSyntax::VERSION = '2.008';
 }
 
 use Any::Moose '::Role' ;
@@ -26,35 +26,55 @@ sub parse_dpkg_file {
     my $self = shift ;
     my $fh = shift;
     my $check = shift || 'yes' ;
+    my $comment_allowed = shift || 0 ;
 
     my @lines = $fh->getlines ;
     chomp @lines ;
     $fh->close ;
     
-    $self->parse_dpkg_lines (\@lines,$check);
+    $self->parse_dpkg_lines (\@lines, $check, $comment_allowed);
 }
 
 #
 # New subroutine "parse_dpkg_lines" extracted - Tue Jul 19 17:47:58 2011.
 #
 sub parse_dpkg_lines {
-    my ($self, $lines, $check) = @_ ;
+    my ($self, $lines, $check, $comment_allowed) = @_ ;
 
     my @res ; # list of list (section, [keyword, value])
     my $field;
     my $store_ref ;       # hold field data
+    my @comments;         # hold comment data
     my $store_list = [] ; # holds sections
 
     my $key = '';
+    my $line = 1 ;
     foreach (@$lines) {
-        $logger->trace("Parsing line '$_'");
-        if (/^([\w\-]+)\s*:/) {  # keyword: 
+        $logger->trace("Parsing line $line '$_'");
+        if (/^#/) { # comment are always located before the keyword (hopefully)
+            Config::Model::Exception::Syntax->throw (
+                object => $self,
+                line => $line,
+                message => "Comments are not allowed",
+            ) unless $comment_allowed;
+            my $c = $_ ;
+            $c =~ s/#\s// ;
+            push @comments, $c ;
+        }
+        elsif (/^([\w\-]+)\s*:/) {  # keyword: 
             my ($field,$text) = split /\s*:\s*/,$_,2 ;
             $key = $field ;
             $logger->trace("start new field $key with '$text'");
 
-	    push @$store_list, $field, $text ;
-	    $store_ref = \$store_list->[$#$store_list] ;
+            if (@comments) {
+                push @$store_list, $field, [$text , @comments ] ;
+                @comments = () ;
+                $store_ref = \$store_list->[$#$store_list][0] ;
+            }
+	    else {
+                push @$store_list, $field, $text ;
+                $store_ref = \$store_list->[$#$store_list] ;
+            }
         }
         elsif ($key and /^\s*$/) {     # first empty line after a section
             $logger->trace("empty line: starting new section");
@@ -70,17 +90,18 @@ sub parse_dpkg_lines {
         } 
         elsif (/^\s+\.$/) {   # line with a single dot
             $logger->trace("dot line: adding blank line to field $key");
-            _store_line($store_ref,"",$check) ;
+            _store_line($store_ref,"",$check,$line) ;
         }
         elsif (s/^\s//) {     # non empty line
             $logger->trace("text line: adding '$_' to field $key");
-            _store_line($store_ref,$_ , $check);
+            _store_line($store_ref,$_ , $check,$line);
         }
         else {
-            my $msg = "DpkgSyntax error: Invalid line $. (missing ':' ?) : $_" ;
-            Config::Model::Exception::Syntax -> throw ( message => $msg ) if $check eq 'yes' ; 
+            my $msg = "DpkgSyntax error: Invalid line (missing ':' ?) : $_" ;
+            Config::Model::Exception::Syntax -> throw ( message => $msg, line => $line ) if $check eq 'yes' ; 
 	    $logger->error($msg) if $check eq 'skip';
         }
+        $line++;
     }
 
     # remove trailing \n of last stored value 
@@ -100,15 +121,15 @@ sub parse_dpkg_lines {
 }
 
 sub _store_line {
-    my ($store_ref,$line,$check) = @_ ;
+    my ($store_ref,$line,$check,$line_nb) = @_ ;
     
     if (defined $store_ref) {
         $$store_ref .= "\n$line" ;
     }
     else {
-        my $l = $. ;
-        my $msg = "DpkgSyntax error: missing keyword before line $l : $_";
-        Config::Model::Exception::Syntax -> throw ( message => $msg ) if $check eq 'yes' ; 
+        my $msg = "Did not find a keyword before: '$line''";
+        Config::Model::Exception::Syntax -> throw ( message => $msg, line => $line_nb ) 
+            if $check eq 'yes' ; 
         $logger->error($msg) if $check eq 'skip';
     }
     
@@ -126,6 +147,10 @@ sub write_dpkg_section {
 
     my $i = 0;
     foreach (my $i=0; $i < @$array_ref; $i += 2 ) {
+        while ($array_ref->[$i] =~ /^#/) {
+            # print comment
+            $ioh->print($array_ref->[$i++],"\n") ; 
+        }
         my $name  = $array_ref->[$i] ;
         my $value = $array_ref->[$i + 1];
         my $label = "$name:" ;
@@ -164,7 +189,7 @@ Config::Model::Backend::Debian::DpkgSyntax - Role to read and write files with D
 
 =head1 VERSION
 
-version 2.007
+version 2.008
 
 =head1 SYNOPSIS
 
@@ -220,6 +245,7 @@ written with Dpkg syntax:
  Version: 1.1
 
  Name: Bar
+ # boy, new version
  Version: 1.2
   Description: A very
   . 
@@ -229,7 +255,7 @@ Once parsed, this file will be stored in the following list of list :
 
  (
    [ Name => 'Foo', Version => '1.1' ],
-   [ Name => 'Bar', Version => '1.2', 
+   [ Name => 'Bar', Version => [ '1.2' 'boy, new version' ], 
      Description => "A very\n\nlong description"
    ]
  )
@@ -245,7 +271,7 @@ if you want this module shipped in its own distribution.
 
 =head1
 
-=head2 parse_dpkg_file ( file_handle , check )
+=head2 parse_dpkg_file ( file_handle, check, comment_allowed )
 
 Read a control file from the file_handle and returns a nested list (or a list 
 ref) containing data from the file.
@@ -262,9 +288,22 @@ The returned list is of the form :
    # etc ...
  ]
 
-check is C<yes>, C<skip> or C<no> 
+check is C<yes>, C<skip> or C<no>.  C<comment_allowed> is boolean (default 0)
 
-=head2 parse_dpkg_lines (lines, check)
+When comments are provided in the dpkg files, the returned list is of
+the form :
+
+ [
+   [ 
+     keyword1 => [ value1, 'value1 comment'] 
+     keyword2 => value2, # no comment 
+   ],
+   [ ... ]
+ ]
+
+
+
+=head2 parse_dpkg_lines (lines, check, comment_allowed )
 
 Parse the dpkg date from lines (which is an array ref) and return a data 
 structure like L<parse_dpkg_file>.
