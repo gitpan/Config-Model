@@ -4,7 +4,7 @@ Config::Model::models::LCDd::sed1520 - Configuration class LCDd::sed1520
 
 =head1 VERSION
 
-version 2.009
+version 2.010
 
 =head1 DESCRIPTION
 

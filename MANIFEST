@@ -10,7 +10,6 @@ TODO
 config-edit
 contrib/bash_completion.cme
 contrib/bash_completion.config-edit
-'do NOT add libgtk2-perl to build-deps (see bug #554704),'
 examples/fstab/README
 examples/fstab/add-ext4-workshop.txt
 examples/fstab/fstab.sample
@@ -354,5 +353,3 @@ t/warped_node.t
 t/warped_node_collateral.t
 t/warped_value.t
 t/yaml_backend.t
-'what a fine\\nteam this one is,'
-{
