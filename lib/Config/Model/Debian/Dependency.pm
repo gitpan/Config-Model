@@ -9,7 +9,7 @@
 #
 package Config::Model::Debian::Dependency ;
 {
-  $Config::Model::Debian::Dependency::VERSION = '2.008';
+  $Config::Model::Debian::Dependency::VERSION = '2.009';
 }
 
 use Any::Moose;
@@ -136,6 +136,7 @@ sub check_value {
     # wget -q -O - 'http://qa.debian.org/cgi-bin/madison.cgi?package=perl-doc&text=on'
 
     $self->SUPER::check_value(%args) ;
+    $value = $self->{data} if $apply_fix ; # check_value may modify data in this case
     my $e_list = $self->{error_list} ;
     
     if (defined $value) {
@@ -371,7 +372,7 @@ Config::Model::Debian::Dependency - Checks Debian dependency declarations
 
 =head1 VERSION
 
-version 2.008
+version 2.009
 
 =head1 SYNOPSIS
 

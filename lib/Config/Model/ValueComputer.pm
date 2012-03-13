@@ -7,15 +7,16 @@
 #
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
-
 package Config::Model::ValueComputer ;
 {
-  $Config::Model::ValueComputer::VERSION = '2.008';
+  $Config::Model::ValueComputer::VERSION = '2.009';
 }
 
-use warnings ;
-use strict;
-use Scalar::Util qw(weaken) ;
+use Any::Moose ;
+use Any::Moose 'X::StrictConstructor' ;
+use namespace::autoclean;
+
+# use Scalar::Util qw(weaken) ;
 use Carp ;
 use Parse::RecDescent ;
 use Data::Dumper () ;
@@ -25,333 +26,55 @@ use vars qw($compute_grammar $compute_parser) ;
 
 my $logger = get_logger("ValueComputer") ;
 
-=head1 NAME
-
-Config::Model::ValueComputer - Provides configuration value computation
-
-=head1 VERSION
-
-version 2.008
-
-=head1 SYNOPSIS
-
- use Config::Model;
- use Log::Log4perl qw(:easy);
- Log::Log4perl->easy_init($WARN);
-
- # define configuration tree object
- my $model = Config::Model->new;
- $model ->create_config_class (
-    name => "MyClass",
-
-    element => [ 
-
-       [qw/av bv/] => {type => 'leaf',
-                       value_type => 'integer',
-                      },
-       compute_int => { 
-	    type => 'leaf',
-            value_type => 'integer',
-            compute    => { formula   => '$a + $b', 
-                            variables => { a => '- av', b => '- bv'}
-                          },
-          },
-   ],
- ) ;
-
- my $inst = $model->instance(root_class_name => 'MyClass' );
-
- my $root = $inst->config_root ;
-
- # put data
- $root->load( step => 'av=33 bv=9' );
-
- print "Computed value is ",$root->grab_value('compute_int'),"\n";
- # Computed value is 42
-
-
-=head1 DESCRIPTION
-
-This class provides a way to compute a configuration value. This
-computation uses a formula and some other configuration values from
-the configuration tree.
-
-The computed value can be overridden, in other words, the computed
-value can be used as a default value.
-
-=head1 Computed value declaration
-
-A computed value must be declared in a 'leaf' element. The leaf element
-must have a C<compute> argument pointing to a hash ref. 
-
-This array ref contains:
-
-=over
-
-=item *
-
-A string formula that use variables and replace function.
-
-=item *
-
-A set of variable and their relative location in the tree (using the
-notation explained in 
-L<grab() method|Config::Model::AnyThing/"grab(...)">
-
-=item *
-
-An optional set of replace rules.
-
-=item *
-
-An optional parameter to force a Perl eval of a string. 
-
-=back
-
-=head2 Compute formula
-
-The first element of the C<compute> array ref must be a string that
-contains the computation algorithm (i.e. a formula for arithmetic
-computation for integer values or a string template for string
-values).
-
-This string or formula should contain variables (like C<$foo> or
-C<$bar>). Note that these variables are not interpolated by Perl.
-
-For instance:
-
-  'My cat has $nb legs'
-  '$m * $c**2'
-
-This string or formula may also contain:
-
-=over 
-
-=item *
-
-The index value of the current object : C<&index> or C<&index()>.
-
-=item *
-
-The index value of a parent object: C<&index(-)>. Ancestor index value can be retrieved
-with C<&index(-2)> or C<&index(-3)>.
-
-=item *
-
-The element name of the current object: C<&element> or C<&element()>.
-
-=item *
-
-The element name of a parent object: C<&element(-)>. Likewise, ancestor element name
-can be retrieved with C<&element(-2)> or C<&element(-3)>.
-
-=item* 
-
-The full location (path) of the current object: C<&location> or C<&location()>.
-
-=back
-
-For instance, you could have this template string:
-
-   'my element is &element, my index is &index' .
-    'upper element is &element(-), upper index is &index(-)',
-
-If you need to perform more complex operations than substitution, like
-extraction with regular expressions, you can force an eval done by
-Perl with C<< use_eval => 1 >>. In this case, the result of the eval
-will be used as the computed value.
-
-For instance:
-
-  # extract host from url
-  compute => { formula => '$old =~ m!http://[\w\.]+(?::\d+)?(/.*)!; $1 ;', 
-	       variables => { old => '- url' } ,
-	       use_eval => 1 ,
-	     },
-
-  # capitalize
-  compute => { formula => 'uc($old)',
-	       variables => { old => '- small_caps' } ,
-	       use_eval => 1 
-             }
-
-=head2 Compute variables
-
-The following arguments will be a set of C<< key => value >> to define
-the variables used in the formula. The key is a variable name used in
-the computation string. The value is a string that will be used to get
-the correct Value object.
-
-In this numeric example, C<result> default value is C<av + bv>:
-
- element => [
-  av => { 
-    type => 'leaf',
-    value_type => 'integer'
-  },
-  bv => { 
-    type => 'leaf',
-    value_type => 'integer'
-  },
-  result => { 
-    type => 'leaf',
-    value_type => 'integer', 
-    compute => { formula => '$a + $b' , 
-                 variables => { a => '- av', b => '- bv' },
-               }
-  }
-
-In this string example, the default value of the C<Comp> element is
-actually a string made of "C<macro is >" and the value of the
-"C<macro>" element of the object located 2 nodes above:
-
-   comp => { 
-    type => 'leaf',
-    value_type => 'string', 
-    compute => { formula => '"macro is $m"' ,
-                 variables => { m => '- - macro' }
-               }
-   }
-
-=head2 Compute replace
-
-Sometime, using the value of a tree leaf is not enough and you need to
-substitute a replacement for any value you can get. This replacement
-can be done using a hash like notation within the formula using the
-C<%replace> hash.
-
-For instance, if you want to display a summary of a config, you can do :
-
-       compute_with_replace 
-       => {
-            formula => '$replace{$who} is the $replace{$what} of $replace{$country}',
-            variables => {
-                           who   => '! who' ,
-                           what  => '! what' ,
-                           country => '- country',
-                         },
-            replace => {  chief => 'president', 
-                          America => 'USA'
-                       },
-
-=head2 Complex formula
-
-C<&index>, C<&element>, and replace can be combined. But the
-argument of C<&element> or C<&index> can only be a value object
-specification (I.e. something like 'C<- - foo>'), it cannot be a value
-replacement of another C<&element> or C<&index>.
-
-I.e. C<&element($foo)> is ok, but C<&element(&index($foo))> is not allowed.
-
-=head2 computed variable
-
-Compute variables can themselves be computed :
-
-   compute => {
-     formula => 'get_element is $replace{$s}, indirect value is \'$v\'',
-     variables => { 's' => '! $where',
-                     where => '! where_is_element',
-                     v => '! $replace{$s}',
-                  }
-     replace   => { m_value_element => 'm_value',
-                    compute_element => 'compute' 
-                  }
-    }
-
-Be sure not to specify a loop when doing recursive computation.
-
-=head2 compute override
-
-In some case, a computed value must be interpreted as a default value
-and the user must be able to override this computed default value.  In
-this case, you must use C<< allow_override => 1 >> with the
-compute parameter:
-
-   computed_value_with_override => { 
-    type => 'leaf',
-    value_type => 'string', 
-    compute => { formula => '"macro is $m"' , 
-                 variables => { m => '- - macro' } ,
-                 allow_override => 1,
-               }
-   }
-
-=head2 Undefined variables
-
-You may need to compute value where one of the variables (i.e. other configuration
-parameter) is undefined. By default, any formula will yield an undefined value if one 
-variable is undefined.
-
-You may change this behavior with C<undef_is> parameter. Depending on your formula and 
-whether C<use_eval> is true or not, you may specify a "fallback" value that will be 
-used in your formula.
-
-The most useful will probably be: 
-
- undef_is => "''", # for string values
- undef_is => 0   , # for integers, boolean values
-
-Example:
-
-        Source => {
-            value_type   => 'string',
-            mandatory    => 1,
-            migrate_from => {
-                use_eval  => 1,
-                formula   => '$old || $older ;',
-                undef_is => "''",
-                variables => {
-                    older => '- Original-Source-Location',
-                    old   => '- Upstream-Source'
-                }
-            },
-            type => 'leaf',
-        },
-        [qw/Upstream-Source Original-Source-Location/] => {
-            value_type => 'string',
-            status     => 'deprecated',
-            type       => 'leaf'
-        }
-
-=cut
 
 # allow_override is intercepted and handled by Value object
 
-sub new {
-    my $type = shift ;
-    my %args = @_ ;
-    my $self= {} ;
+has formula => (is => 'ro', isa => 'Str' , required => 1 ) ;
+has value_type => (is => 'ro', isa => 'Str' , required => 1 ) ;
 
-    if ($logger->is_debug) {
-	my %show = %args ;
-	delete $show{value_object} ;
-	$logger->debug(Data::Dumper->Dump([\%show],['Computed_value_new_args'])) ;
-    }
+# value_object is mostly used for error messages
+has value_object => (is => 'ro', isa => 'Config::Model::AnyThing' , required => 1, weak_ref => 1 ) ;
 
-    # value_object is mostly used for error messages
-    foreach my $k (qw/formula value_type value_object/) {
-	$self->{$k} = delete $args{$k} || 
-	  croak "Config::Model::ValueComputer:new undefined parameter $k";
-    }
+has variables => ( is => 'ro', isa => 'HashRef', default => sub {{}}) ;
+has replace   => ( is => 'ro', isa => 'HashRef', default => sub {{}}) ;
+has [qw/use_eval allow_override use_as_upstream_default/]  => (is => 'ro', isa => 'Bool', default => 0 ) ;
 
-    map { $self->{$_} = delete $args{$_}  || {} ; } qw/variables replace/;
-    map { $self->{$_} = delete $args{$_} || 0   ; } qw/use_eval/ ;
-    my $sui = delete $args{undef_is} ;
- 
-    die "Config::Model::ValueComputer:new unexpected parameter: ",
-      join(' ',keys %args) if %args ;
+has allow_user_override  => (is => 'ro', isa => 'Bool', lazy => 1 ,
+    builder => sub { my $self = shift; return $self->allow_override || $self->use_as_upstream_default ;} ) ;
+
+has need_quote => ( is => 'ro',isa => 'Bool', builder => '_need_quote', lazy => 1 ) ;
+
+sub _need_quote {
+    my $self  = shift ;
 
     my $need_quote = 0;
     $need_quote = 1 if $self->{use_eval} and $self->{value_type} !~ /(integer|number|boolean)/;
+    return $need_quote ;
+}
 
-    $self->{need_quote} = $need_quote ;
-    $self->{undef_is} = $need_quote && defined $sui && $sui eq "''" ? "''" 
-                      : $need_quote && defined $sui                 ? "'$sui'"
-                      :                defined $sui && $sui eq "''" ? ''
-                      :                defined $sui                 ? $sui
-                      :                                               undef;
-                 
-    weaken($self->{value_object}) ;
+has undef_is => (is => 'ro', isa => 'Maybe[Str]' ) ;
+
+has undef_replacement => (is => 'ro',  isa => 'Maybe[Str]', builder => '_build_undef_replacement',
+    lazy => 1) ;
+
+sub _build_undef_replacement {
+    my $self = shift;
+
+    my $sui = $self->undef_is ;
+    my $need_quote = $self->need_quote ;
+
+    return
+        $need_quote && defined $sui && $sui eq "''" ? "''"
+      : $need_quote && defined $sui                 ? "'$sui'"
+      : defined $sui && $sui eq "''"                ? ''
+      : defined $sui                                ? $sui
+      :                                               undef;
+    
+}
+
+
+sub BUILD {
+    my $self = shift ;
 
     # create parser if needed 
     $compute_parser ||= Parse::RecDescent->new($compute_grammar) ;
@@ -365,18 +88,11 @@ sub new {
 	$self->{variables},
 	$self->{replace},
 	'yes',
-	$need_quote,
+	$self->need_quote,
     ) ;
 
     $self->{pre_formula} = $$result_r ;
-    $logger->debug("done") ;
-
-    bless $self,$type ;
 }
-
-sub formula { return shift->{formula} ;}
-sub variables     { return shift->{variables} ;}
-sub value_object { return shift->{value_object} ;}
 
 sub compute {
     my $self = shift ;
@@ -392,7 +108,7 @@ sub compute {
     my $result ;
     my @parser_args = ( $self->{value_object},
             $variables, $self->{replace}, $check, $self->{need_quote},
-            $self->{undef_is} ) ;
+            $self->undef_replacement ) ;
 
     if (   $self->{use_eval}
         or $self->{value_type} =~ /(integer|number|boolean)/ )
@@ -405,7 +121,7 @@ sub compute {
             next unless index ($pre_formula,$key) > 0 ;
             my $vr = _value_from_object( $key , @parser_args);
             my $v = $$vr ;
-            $v = $self->{undef_is} unless defined $v ;
+            $v = $self->undef_replacement unless defined $v ;
             $logger->debug("compute: var $key -> ", (defined $v ? $v : '<undef>'));
             if (defined $v) { push @init, "my \$$key = $v ;\n" ; }
             else {$all_defined = 0 ;}
@@ -851,10 +567,322 @@ function: <skip:''> '&' /\w+/
 
 END_OF_GRAMMAR
 
+__PACKAGE__->meta->make_immutable;
+
 1;
 
 
 __END__
+
+
+=pod
+
+=head1 NAME
+
+Config::Model::ValueComputer - Provides configuration value computation
+
+=head1 VERSION
+
+version 2.009
+
+=head1 SYNOPSIS
+
+ use Config::Model;
+ use Log::Log4perl qw(:easy);
+ Log::Log4perl->easy_init($WARN);
+
+ # define configuration tree object
+ my $model = Config::Model->new;
+ $model ->create_config_class (
+    name => "MyClass",
+
+    element => [ 
+
+       [qw/av bv/] => {type => 'leaf',
+                       value_type => 'integer',
+                      },
+       compute_int => { 
+	    type => 'leaf',
+            value_type => 'integer',
+            compute    => { formula   => '$a + $b', 
+                            variables => { a => '- av', b => '- bv'}
+                          },
+          },
+   ],
+ ) ;
+
+ my $inst = $model->instance(root_class_name => 'MyClass' );
+
+ my $root = $inst->config_root ;
+
+ # put data
+ $root->load( step => 'av=33 bv=9' );
+
+ print "Computed value is ",$root->grab_value('compute_int'),"\n";
+ # Computed value is 42
+
+
+=head1 DESCRIPTION
+
+This class provides a way to compute a configuration value. This
+computation uses a formula and some other configuration values from
+the configuration tree.
+
+The computed value can be overridden, in other words, the computed
+value can be used as a default value.
+
+=head1 Computed value declaration
+
+A computed value must be declared in a 'leaf' element. The leaf element
+must have a C<compute> argument pointing to a hash ref. 
+
+This array ref contains:
+
+=over
+
+=item *
+
+A string formula that use variables and replace function.
+
+=item *
+
+A set of variable and their relative location in the tree (using the
+notation explained in 
+L<grab() method|Config::Model::AnyThing/"grab(...)">
+
+=item *
+
+An optional set of replace rules.
+
+=item *
+
+An optional parameter to force a Perl eval of a string. 
+
+=back
+
+=head2 Compute formula
+
+The first element of the C<compute> array ref must be a string that
+contains the computation algorithm (i.e. a formula for arithmetic
+computation for integer values or a string template for string
+values).
+
+This string or formula should contain variables (like C<$foo> or
+C<$bar>). Note that these variables are not interpolated by Perl.
+
+For instance:
+
+  'My cat has $nb legs'
+  '$m * $c**2'
+
+This string or formula may also contain:
+
+=over 
+
+=item *
+
+The index value of the current object : C<&index> or C<&index()>.
+
+=item *
+
+The index value of a parent object: C<&index(-)>. Ancestor index value can be retrieved
+with C<&index(-2)> or C<&index(-3)>.
+
+=item *
+
+The element name of the current object: C<&element> or C<&element()>.
+
+=item *
+
+The element name of a parent object: C<&element(-)>. Likewise, ancestor element name
+can be retrieved with C<&element(-2)> or C<&element(-3)>.
+
+=item* 
+
+The full location (path) of the current object: C<&location> or C<&location()>.
+
+=back
+
+For instance, you could have this template string:
+
+   'my element is &element, my index is &index' .
+    'upper element is &element(-), upper index is &index(-)',
+
+If you need to perform more complex operations than substitution, like
+extraction with regular expressions, you can force an eval done by
+Perl with C<< use_eval => 1 >>. In this case, the result of the eval
+will be used as the computed value.
+
+For instance:
+
+  # extract host from url
+  compute => { formula => '$old =~ m!http://[\w\.]+(?::\d+)?(/.*)!; $1 ;', 
+	       variables => { old => '- url' } ,
+	       use_eval => 1 ,
+	     },
+
+  # capitalize
+  compute => { formula => 'uc($old)',
+	       variables => { old => '- small_caps' } ,
+	       use_eval => 1 
+             }
+
+=head2 Compute variables
+
+The following arguments will be a set of C<< key => value >> to define
+the variables used in the formula. The key is a variable name used in
+the computation string. The value is a string that will be used to get
+the correct Value object.
+
+In this numeric example, C<result> default value is C<av + bv>:
+
+ element => [
+  av => { 
+    type => 'leaf',
+    value_type => 'integer'
+  },
+  bv => { 
+    type => 'leaf',
+    value_type => 'integer'
+  },
+  result => { 
+    type => 'leaf',
+    value_type => 'integer', 
+    compute => { formula => '$a + $b' , 
+                 variables => { a => '- av', b => '- bv' },
+               }
+  }
+
+In this string example, the default value of the C<Comp> element is
+actually a string made of "C<macro is >" and the value of the
+"C<macro>" element of the object located 2 nodes above:
+
+   comp => { 
+    type => 'leaf',
+    value_type => 'string', 
+    compute => { formula => '"macro is $m"' ,
+                 variables => { m => '- - macro' }
+               }
+   }
+
+=head2 Compute replace
+
+Sometime, using the value of a tree leaf is not enough and you need to
+substitute a replacement for any value you can get. This replacement
+can be done using a hash like notation within the formula using the
+C<%replace> hash.
+
+For instance, if you want to display a summary of a config, you can do :
+
+       compute_with_replace 
+       => {
+            formula => '$replace{$who} is the $replace{$what} of $replace{$country}',
+            variables => {
+                           who   => '! who' ,
+                           what  => '! what' ,
+                           country => '- country',
+                         },
+            replace => {  chief => 'president', 
+                          America => 'USA'
+                       },
+
+=head2 Complex formula
+
+C<&index>, C<&element>, and replace can be combined. But the
+argument of C<&element> or C<&index> can only be a value object
+specification (I.e. something like 'C<- - foo>'), it cannot be a value
+replacement of another C<&element> or C<&index>.
+
+I.e. C<&element($foo)> is ok, but C<&element(&index($foo))> is not allowed.
+
+=head2 computed variable
+
+Compute variables can themselves be computed :
+
+   compute => {
+     formula => 'get_element is $replace{$s}, indirect value is \'$v\'',
+     variables => { 's' => '! $where',
+                     where => '! where_is_element',
+                     v => '! $replace{$s}',
+                  }
+     replace   => { m_value_element => 'm_value',
+                    compute_element => 'compute' 
+                  }
+    }
+
+Be sure not to specify a loop when doing recursive computation.
+
+=head2 compute override
+
+In some case, a computed value must be interpreted as a default value
+and the user must be able to override this computed default value.  In
+this case, you must use C<< allow_override => 1 >> with the
+compute parameter:
+
+   computed_value_with_override => { 
+    type => 'leaf',
+    value_type => 'string', 
+    compute => { formula => '"macro is $m"' , 
+                 variables => { m => '- - macro' } ,
+                 allow_override => 1,
+               }
+   }
+   
+This computed default value witl be written to the configuration file.
+
+This default value may be already known by the application so the computed value
+should B<not> be written to the configuration file. The computed value is interesting 
+because it cab be shown to the user. In this case, use the C<use_as_upstream_default>
+parameter: 
+
+   compute_known_upstream => { 
+    type => 'leaf',
+    value_type => 'string', 
+    compute => { formula => '"macro is $m"' , 
+                 variables => { m => '- - macro' } ,
+                 use_as_upstream_default => 1,
+               }
+   }
+   
+C<use_as_upstream_default> implies C<allow_override>.
+ 
+
+=head2 Undefined variables
+
+You may need to compute value where one of the variables (i.e. other configuration
+parameter) is undefined. By default, any formula will yield an undefined value if one 
+variable is undefined.
+
+You may change this behavior with C<undef_is> parameter. Depending on your formula and 
+whether C<use_eval> is true or not, you may specify a "fallback" value that will be 
+used in your formula.
+
+The most useful will probably be: 
+
+ undef_is => "''", # for string values
+ undef_is => 0   , # for integers, boolean values
+
+Example:
+
+        Source => {
+            value_type   => 'string',
+            mandatory    => 1,
+            migrate_from => {
+                use_eval  => 1,
+                formula   => '$old || $older ;',
+                undef_is => "''",
+                variables => {
+                    older => '- Original-Source-Location',
+                    old   => '- Upstream-Source'
+                }
+            },
+            type => 'leaf',
+        },
+        [qw/Upstream-Source Original-Source-Location/] => {
+            value_type => 'string',
+            status     => 'deprecated',
+            type       => 'leaf'
+        }
 
 =head1 Examples
 

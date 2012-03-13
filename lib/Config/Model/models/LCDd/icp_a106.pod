@@ -4,7 +4,7 @@ Config::Model::models::LCDd::icp_a106 - Configuration class LCDd::icp_a106
 
 =head1 VERSION
 
-version 2.008
+version 2.009
 
 =head1 DESCRIPTION
 

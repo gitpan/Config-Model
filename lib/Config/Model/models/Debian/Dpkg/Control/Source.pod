@@ -4,7 +4,7 @@ Config::Model::models::Debian::Dpkg::Control::Source - Configuration class Debia
 
 =head1 VERSION
 
-version 2.008
+version 2.009
 
 =head1 DESCRIPTION
 
@@ -28,11 +28,29 @@ I<< Optional. Type list of uniline.  >>
 
 =head2 Section
 
-The packages in the archive areas main, contrib and non-free are grouped further into sections to simplify handling. 
+The packages in the archive areas main, contrib and non-free are
+grouped further into sections to simplify handling.
 
-The archive area and section for each package should be specified in the package's Section control record (see Section, Section 5.6.5). However, the maintainer of the Debian archive may override this selection to ensure the consistency of the Debian distribution. The Section field should be of the form:
- * section if the package is in the main archive area,
- * area/section if the package is in the contrib or non-free archive areas.I<< Optional. Type uniline.  >>
+The archive area and section for each package should be specified in
+the package's Section control record (see 
+L<Section 5.6.5|http://www.debian.org/doc/debian-policy/ch-controlfields.html#s-f-Section>). 
+However, the maintainer of the Debian archive may override
+this selection to ensure the consistency of the Debian
+distribution. The Section field should be of the form:
+
+=over
+
+=item * 
+
+section if the package is in the main archive area,
+
+=item *
+
+area/section if the package is in the contrib or non-free archive areas.
+
+=back
+
+I<< Optional. Type uniline.  >>
 
 =head2 Priority
 

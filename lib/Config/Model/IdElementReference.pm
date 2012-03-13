@@ -9,7 +9,7 @@
 #
 package Config::Model::IdElementReference;
 {
-  $Config::Model::IdElementReference::VERSION = '2.008';
+  $Config::Model::IdElementReference::VERSION = '2.009';
 }
 
 use Any::Moose;
@@ -119,7 +119,7 @@ sub get_choice_from_refered_to {
             my $list_obj = $obj->fetch_element($element);
             my $ct       = $list_obj->get_cargo_type;
             if ( $ct eq 'leaf' ) {
-                @choice = $list_obj->fetch_all_values();
+                @choice = $list_obj->fetch_all_values(mode => 'user');
             }
             else {
                 Config::Model::Exception::Model->throw(
@@ -196,7 +196,7 @@ Config::Model::IdElementReference - Refer to id element(s) and extract keys
 
 =head1 VERSION
 
-version 2.008
+version 2.009
 
 =head1 SYNOPSIS
 

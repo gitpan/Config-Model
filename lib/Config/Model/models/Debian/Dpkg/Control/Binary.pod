@@ -4,7 +4,7 @@ Config::Model::models::Debian::Dpkg::Control::Binary - Configuration class Debia
 
 =head1 VERSION
 
-version 2.008
+version 2.009
 
 =head1 DESCRIPTION
 
@@ -47,7 +47,7 @@ I<< Optional. Type uniline.  >>
 
 =head2 Priority
 
-I<< Optional. Type uniline.  >>
+I<< Optional. Type enum. choice: 'required', 'important', 'standard', 'optional', 'extra'.  >>
 
 =head2 Essential
 

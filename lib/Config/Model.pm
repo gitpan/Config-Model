@@ -9,7 +9,7 @@
 #
 package Config::Model;
 {
-  $Config::Model::VERSION = '2.008';
+  $Config::Model::VERSION = '2.009';
 }
 use Any::Moose ;
 use namespace::autoclean;
@@ -96,7 +96,7 @@ Config::Model - Create tools to validate, migrate and edit configuration files
 
 =head1 VERSION
 
-version 2.008
+version 2.009
 
 =head1 SYNOPSIS
 
@@ -421,7 +421,7 @@ Dedicated Config::Model::Manual pages will follow soon.
 
 =head1 Storage backend, configuration reader and writer
 
-See L<Config::Model::AutoRead> for details
+See L<Config::Model::BackendMgr> for details
 
 =head1 Validation engine
 
@@ -2504,10 +2504,6 @@ L<Config::Model::TermUI>
 =item *
 
 L<Config::Model::Iterator>
-
-=item *
-
-L<Config::Model::AutoRead>
 
 =item *
 

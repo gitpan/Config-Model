@@ -4,7 +4,7 @@ Config::Model::models::LCDd::SureElec - Configuration class LCDd::SureElec
 
 =head1 VERSION
 
-version 2.008
+version 2.009
 
 =head1 DESCRIPTION
 

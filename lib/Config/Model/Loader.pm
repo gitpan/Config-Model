@@ -27,7 +27,7 @@
 
 package Config::Model::Loader;
 {
-  $Config::Model::Loader::VERSION = '2.008';
+  $Config::Model::Loader::VERSION = '2.009';
 }
 use Carp;
 use strict;
@@ -44,7 +44,7 @@ Config::Model::Loader - Load serialized data into config tree
 
 =head1 VERSION
 
-version 2.008
+version 2.009
 
 =head1 SYNOPSIS
 
@@ -264,6 +264,11 @@ Specify the experience level used during the load (default:
 C<master>). The experience can be C<intermediate advanced master>.
 The load will raise an exception if the step of the load string tries
 to access an element with experience higher than user's experience.
+
+=item check
+
+Whether to check values while loading. Either C<yes> (default), C<no> or C<skip>.
+Loading with C<skip> will discard bad values.
 
 =back
 

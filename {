@@ -1,0 +1,7 @@
+ok 1 - compiled
+# Beginning debian-dpkg-control test (t/model_tests.d/debian-dpkg-control-test-conf.pl)
+# debian-dpkg-control uses Debian::Dpkg::Control model on file control
+# End of debian-dpkg-control test
+ok 2 - test memory cycle
+1..2
+writing back cache file

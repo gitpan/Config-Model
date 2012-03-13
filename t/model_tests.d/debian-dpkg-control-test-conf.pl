@@ -49,7 +49,7 @@ providing the following file:
 
         # t1
         check => { 'binary:seaview Recommends:0', 'clustalw', },
-        load_warnings => [ qr/standards version/, qr/too long/ ],
+        load_warnings => [ qr/dependency is deprecated/,qr/standards version/, qr/too long/ ],
         apply_fix => 1,
         load => 'binary:seaview Synopsis="multiplatform interface for sequence alignment"',
     },
@@ -92,18 +92,21 @@ providing the following file:
         # t4
         check => { 'source X-Python-Version' => ">= 2.3, << 2.5" },
         load_warnings => [ (qr/deprecated/) x 2 ],
+        dump_warnings => [ qr/empty/ ],
     },
     {
 
         # t5
         check => { 'source X-Python-Version' => ">= 2.3, << 2.6" },
         load_warnings => [ (qr/deprecated/) x 2 ],
+        dump_warnings => [ qr/empty/ ],
     },
     {
 
         # t6
         check => { 'source X-Python-Version' => ">= 2.3" },
         load_warnings => [ (qr/deprecated/) x 2 ],
+        dump_warnings => [ qr/empty/ ],
     },
     {
         name => 'sdlperl',
@@ -120,6 +123,11 @@ providing the following file:
             'source Maintainer'    => "what a fine\nteam this one is",
         },
         load_check => 'no',
+        apply_fix => 1,
+    },
+    {
+        name => 'libwx-scintilla-perl',
+        load_warnings => [ ( qr/Warning/) x 3 ],
         apply_fix => 1,
     },
 );

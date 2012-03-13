@@ -9,11 +9,14 @@
 #
 package Config::Model::AnyThing;
 {
-  $Config::Model::AnyThing::VERSION = '2.008';
+  $Config::Model::AnyThing::VERSION = '2.009';
 }
 
 use Any::Moose ;
 use namespace::autoclean;
+
+# FIXME: must cleanup warp mechanism to implement this
+# use Any::Moose 'X::StrictConstructor' ;
 
 use Pod::POM ;
 use Carp;
@@ -564,7 +567,7 @@ Config::Model::AnyThing - Base class for configuration tree item
 
 =head1 VERSION
 
-version 2.008
+version 2.009
 
 =head1 SYNOPSIS
 

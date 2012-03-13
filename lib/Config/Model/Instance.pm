@@ -9,13 +9,14 @@
 #
 package Config::Model::Instance;
 {
-  $Config::Model::Instance::VERSION = '2.008';
+  $Config::Model::Instance::VERSION = '2.009';
 }
 #use Scalar::Util qw(weaken) ;
 
 use Any::Moose ;
 use namespace::autoclean;
 use Any::Moose '::Util::TypeConstraints';
+use Any::Moose 'X::StrictConstructor' ;
 
 use File::Path;
 use Log::Log4perl qw(get_logger :levels);
@@ -396,7 +397,7 @@ Config::Model::Instance - Instance of configuration tree
 
 =head1 VERSION
 
-version 2.008
+version 2.009
 
 =head1 SYNOPSIS
 
