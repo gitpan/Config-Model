@@ -4,7 +4,7 @@ Config::Model::models::Debian::Dpkg::Control::Binary - Configuration class Debia
 
 =head1 VERSION
 
-version 2.010
+version 2.011
 
 =head1 DESCRIPTION
 

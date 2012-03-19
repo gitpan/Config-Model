@@ -28,7 +28,7 @@
 
 package Config::Model::Exception ;
 {
-  $Config::Model::Exception::VERSION = '2.010';
+  $Config::Model::Exception::VERSION = '2.011';
 }
 use warnings ;
 use strict;
@@ -37,8 +37,9 @@ use Data::Dumper ;
 use Exception::Class 
   (
    'Config::Model::Exception::Syntax' 
-   => { description => 'config error' ,
-	fields      =>  [qw/object file line/] ,
+   => { isa         => 'Config::Model::Exception::Any',
+	description => 'config error' ,
+	fields      =>  [qw/object parsed_file parsed_line/] ,
 	description => 'syntax error',
       },
 
@@ -155,14 +156,14 @@ Config::Model::Exception::Internal->Trace(1);
 
 package Config::Model::Exception::Syntax ;
 {
-  $Config::Model::Exception::Syntax::VERSION = '2.010';
+  $Config::Model::Exception::Syntax::VERSION = '2.011';
 }
 
 sub full_message {
     my $self = shift;
 
-    my $fn = $self->file || '?' ;
-    my $line = $self->line || '?' ;
+    my $fn = $self->parsed_file || '?' ;
+    my $line = $self->parsed_line || '?' ;
     my $msg = "File $fn line $line ";
     $msg .= "has a ".$self->description ;
     $msg .= ":\n\t". $self->message."\n";
@@ -172,7 +173,7 @@ sub full_message {
 
 package Config::Model::Exception::Any ;
 {
-  $Config::Model::Exception::Any::VERSION = '2.010';
+  $Config::Model::Exception::Any::VERSION = '2.011';
 }
 
 sub full_message {
@@ -204,7 +205,7 @@ sub xpath_message {
 
 package Config::Model::Exception::LoadData ;
 {
-  $Config::Model::Exception::LoadData::VERSION = '2.010';
+  $Config::Model::Exception::LoadData::VERSION = '2.011';
 }
 
 sub full_message {
@@ -224,7 +225,7 @@ sub full_message {
 
 package Config::Model::Exception::Model ;
 {
-  $Config::Model::Exception::Model::VERSION = '2.010';
+  $Config::Model::Exception::Model::VERSION = '2.011';
 }
 
 sub full_message {
@@ -250,7 +251,7 @@ sub full_message {
 
 package Config::Model::Exception::Load ;
 {
-  $Config::Model::Exception::Load::VERSION = '2.010';
+  $Config::Model::Exception::Load::VERSION = '2.011';
 }
 
 sub full_message {
@@ -272,7 +273,7 @@ sub full_message {
 
 package Config::Model::Exception::RestrictedElement ;
 {
-  $Config::Model::Exception::RestrictedElement::VERSION = '2.010';
+  $Config::Model::Exception::RestrictedElement::VERSION = '2.011';
 }
 
 sub full_message {
@@ -292,7 +293,7 @@ sub full_message {
 
 package Config::Model::Exception::UnavailableElement ;
 {
-  $Config::Model::Exception::UnavailableElement::VERSION = '2.010';
+  $Config::Model::Exception::UnavailableElement::VERSION = '2.011';
 }
 
 sub full_message {
@@ -315,7 +316,7 @@ sub full_message {
 
 package Config::Model::Exception::ObsoleteElement ;
 {
-  $Config::Model::Exception::ObsoleteElement::VERSION = '2.010';
+  $Config::Model::Exception::ObsoleteElement::VERSION = '2.011';
 }
 
 sub full_message {
@@ -337,7 +338,7 @@ sub full_message {
 
 package Config::Model::Exception::UnknownElement ;
 {
-  $Config::Model::Exception::UnknownElement::VERSION = '2.010';
+  $Config::Model::Exception::UnknownElement::VERSION = '2.011';
 }
 use Carp;
 
@@ -404,7 +405,7 @@ sub full_message {
 
 package Config::Model::Exception::UnknownId ;
 {
-  $Config::Model::Exception::UnknownId::VERSION = '2.010';
+  $Config::Model::Exception::UnknownId::VERSION = '2.011';
 }
 
 sub full_message {
@@ -433,7 +434,7 @@ sub full_message {
 
 package Config::Model::Exception::WrongType ;
 {
-  $Config::Model::Exception::WrongType::VERSION = '2.010';
+  $Config::Model::Exception::WrongType::VERSION = '2.011';
 }
 
 sub full_message {
@@ -457,7 +458,7 @@ sub full_message {
 
 package Config::Model::Exception::Xml ;
 {
-  $Config::Model::Exception::Xml::VERSION = '2.010';
+  $Config::Model::Exception::Xml::VERSION = '2.011';
 }
 
 sub full_message {
@@ -485,7 +486,7 @@ Config::Model::Exception - Exception mechanism for configuration model
 
 =head1 VERSION
 
-version 2.010
+version 2.011
 
 =head1 SYNOPSIS
 

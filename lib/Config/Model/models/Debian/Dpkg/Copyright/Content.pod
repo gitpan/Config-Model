@@ -4,7 +4,7 @@ Config::Model::models::Debian::Dpkg::Copyright::Content - Configuration class De
 
 =head1 VERSION
 
-version 2.010
+version 2.011
 
 =head1 DESCRIPTION
 
@@ -33,6 +33,10 @@ The Copyright field may contain the original copyright statement copied exactly 
 =head2 License
 
 I<< Optional. Type node.  >>
+
+=head2 License-Alias
+
+I<< Optional. Type uniline.  >>
 
 =head2 Comment
 
