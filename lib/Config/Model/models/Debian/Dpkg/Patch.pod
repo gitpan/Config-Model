@@ -4,7 +4,7 @@ Config::Model::models::Debian::Dpkg::Patch - Configuration class Debian::Dpkg::P
 
 =head1 VERSION
 
-version 2.011
+version 2.012
 
 =head1 DESCRIPTION
 
@@ -66,7 +66,7 @@ This element contains the diff that will be used to patch the source. Do not mod
 
 =item *
 
-L<config-edit>
+L<cme>
 
 =back
 

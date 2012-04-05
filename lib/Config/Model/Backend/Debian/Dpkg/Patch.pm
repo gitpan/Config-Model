@@ -10,9 +10,10 @@
 
 package Config::Model::Backend::Debian::Dpkg::Patch;
 {
-  $Config::Model::Backend::Debian::Dpkg::Patch::VERSION = '2.011';
+  $Config::Model::Backend::Debian::Dpkg::Patch::VERSION = '2.012';
 }
 
+use 5.10.1 ;
 use Any::Moose;
 
 extends 'Config::Model::Backend::Any';
@@ -59,26 +60,43 @@ sub read {
 
     my ( $header, $diff ) = ( [],[] );
     my $target = $header;
-    foreach ( $patch_io->getlines ) {
-        $target = $diff if /^---/;    # beginning of patch
-        push @$target, $_;
+    foreach my $l ( $patch_io->getlines ) {
+        given ($l) {
+            when (/^---/) { 
+                # beginning of quilt style patch
+                $target = $diff ;
+            }
+            when (/^===/) { 
+                # beginning of git diff style patch
+                push @$diff, pop @$header if $target eq $header; # get back the Index: line
+                $target = $diff ; 
+            }
+        }
+        push @$target, $l;
     }
     chomp @$header;
 
-    my $c = eval { $self->parse_dpkg_lines($header,$check); } ;
-    my $e ;
-    if ( $e = Exception::Class->caught('Config::Model::Exception::Syntax') ) {
-        # FIXME: this is naughty. Should file a bug to add info in rethrow
-        $e->{parsed_file} = $patch_file unless $e->parsed_file ;
-        $e->rethrow ;
-    }
-    elsif ( $e = Exception::Class->caught() ) {
-        ref $e ? $e->rethrow : die $e;
-    }
+    my $c = [] ;
+    $logger->trace("header: @$header") ;
     
-    Config::Model::Exception::Syntax->throw(
-        message => "More than one section in $patch_name header" )
-      if @$c > 1;
+    if (@$header) {
+        $c = eval { $self->parse_dpkg_lines( $header, $check ); };
+        my $e;
+        if ( $e = Exception::Class->caught('Config::Model::Exception::Syntax') )
+        {
+
+            # FIXME: this is naughty. Should file a bug to add info in rethrow
+            $e->{parsed_file} = $patch_file unless $e->parsed_file;
+            $e->rethrow;
+        }
+        elsif ( $e = Exception::Class->caught() ) {
+            ref $e ? $e->rethrow : die $e;
+        }
+
+        Config::Model::Exception::Syntax->throw(
+            message => "More than one section in $patch_name header" )
+          if @$c > 1;
+    }
 
     my $section = $c->[0];
     foreach ( my $i = 0 ; $i < $#$section ; $i += 2 ) {
@@ -162,7 +180,7 @@ Config::Model::Backend::Debian::Dpkg::Patch - Read and write Debian Dpkg Patch i
 
 =head1 VERSION
 
-version 2.011
+version 2.012
 
 =head1 SYNOPSIS
 

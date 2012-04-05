@@ -6,6 +6,7 @@ MANIFEST.SKIP
 META.yml
 MODELS
 README
+README.build-from-git
 TODO
 config-edit
 contrib/bash_completion.cme
@@ -306,6 +307,7 @@ t/model_tests.d/debian-dpkg-examples/t1/debian/control
 t/model_tests.d/debian-dpkg-examples/t1/debian/copyright
 t/model_tests.d/debian-dpkg-examples/t1/debian/patches/fix-man-page-spelling
 t/model_tests.d/debian-dpkg-examples/t1/debian/patches/fix-spelling
+t/model_tests.d/debian-dpkg-examples/t1/debian/patches/glib-single-include
 t/model_tests.d/debian-dpkg-examples/t1/debian/patches/series
 t/model_tests.d/debian-dpkg-examples/t1/debian/patches/use-standard-dzil-test
 t/model_tests.d/debian-dpkg-examples/t1/debian/rules
@@ -354,3 +356,4 @@ t/warped_node.t
 t/warped_node_collateral.t
 t/warped_value.t
 t/yaml_backend.t
+value.patch

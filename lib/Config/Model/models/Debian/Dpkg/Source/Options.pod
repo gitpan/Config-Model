@@ -4,7 +4,7 @@ Config::Model::models::Debian::Dpkg::Source::Options - Configuration class Debia
 
 =head1 VERSION
 
-version 2.011
+version 2.012
 
 =head1 DESCRIPTION
 
@@ -28,7 +28,7 @@ The perl regular expression specified will extend the default regular expression
 
 =item *
 
-L<config-edit>
+L<cme>
 
 =back
 

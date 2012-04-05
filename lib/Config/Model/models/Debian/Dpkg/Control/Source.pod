@@ -4,7 +4,7 @@ Config::Model::models::Debian::Dpkg::Control::Source - Configuration class Debia
 
 =head1 VERSION
 
-version 2.011
+version 2.012
 
 =head1 DESCRIPTION
 
@@ -180,7 +180,7 @@ This field specifies the versions of Python 3 supported by the package. For more
 
 =item *
 
-L<config-edit>
+L<cme>
 
 =back
 

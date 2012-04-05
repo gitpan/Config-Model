@@ -9,7 +9,7 @@
 #
 package Config::Model::Node;
 {
-  $Config::Model::Node::VERSION = '2.011';
+  $Config::Model::Node::VERSION = '2.012';
 }
 
 use Any::Moose ;
@@ -1166,7 +1166,7 @@ Config::Model::Node - Class for configuration tree node
 
 =head1 VERSION
 
-version 2.011
+version 2.012
 
 =head1 SYNOPSIS
 
@@ -1736,6 +1736,10 @@ This method can also be called with a single parameter:
 Load configuration data with a hash ref (first parameter). The hash ref key must match
 the available elements of the node. The hash ref structure must match
 the structure of the configuration model.
+
+=head2 needs_save
+
+return 1 if one of the elements of the node's sub-tree has been modified.
 
 =head1 Serialization
 

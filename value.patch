@@ -1,0 +1,27 @@
+diff --git a/config-model-core/lib/Config/Model/Value.pm b/config-model-core/lib/Config/Model/Value.pm
+index 19d3439..e990c97 100644
+--- a/config-model-core/lib/Config/Model/Value.pm
++++ b/config-model-core/lib/Config/Model/Value.pm
+@@ -997,8 +997,20 @@ sub apply_fixes {
+     if ($logger->is_debug) {
+         $logger->debug( "called for ".$self->location ) ;
+     }
+-
+-    $self->check_value(value => $self->{data}, fix => 1);
++    
++    my $count = 0; 
++    my $old_value;
++    my $ok ;
++
++    do {
++	$old_value = $self->{data} ;
++        $ok = $self->check_value(value => $old_value, fix => 1);
++	if ($count++ > 100){
++	    croak "apply_fixes on ".$self->location." has been applied more than 100 times. Bailing out" 
++	}
++    }
++    while (not $ok and $old_value||'' ne $self->{data}||'') ;
++    	
+     $self->notify_change ;
+ }
+ 

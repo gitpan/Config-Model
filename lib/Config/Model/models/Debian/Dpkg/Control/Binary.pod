@@ -4,7 +4,7 @@ Config::Model::models::Debian::Dpkg::Control::Binary - Configuration class Debia
 
 =head1 VERSION
 
-version 2.011
+version 2.012
 
 =head1 DESCRIPTION
 
@@ -111,7 +111,7 @@ I<< Mandatory. Type string.  >>
 
 =item *
 
-L<config-edit>
+L<cme>
 
 =back
 

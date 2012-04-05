@@ -9,7 +9,7 @@
 #
 package Config::Model::Tester;
 {
-  $Config::Model::Tester::VERSION = '2.011';
+  $Config::Model::Tester::VERSION = '2.012';
 }
 
 use Test::More;
@@ -240,7 +240,7 @@ sub run_model_test {
             my @new_file_list = list_test_files($debian_dir) ;
             $t->{file_check_sub}->( \@file_list )
               if defined $t->{file_check_sub};
-            eq_or_diff( \@new_file_list, \@file_list,
+            eq_or_diff( \@new_file_list, [ sort @file_list ],
                 "check added or removed files" );
         }
 
@@ -337,7 +337,7 @@ Config::Model::Tester - Test framework for Config::Model
 
 =head1 VERSION
 
-version 2.011
+version 2.012
 
 =head1 SYNOPSIS
 
@@ -358,7 +358,7 @@ version 2.011
 =head1 DESCRIPTION
 
 This class provides a way to test configuration models with tests files. 
-This class was designed to tests several models and severals tests 
+This class was designed to tests several models and several tests 
 cases per model.
 
 A specific layout for test files must be followed
@@ -459,6 +459,8 @@ Check for config data warning. You should pass the list of expected warnings.
 E.g.  
 
     load_warnings => [ qr/Missing/, (qr/deprecated/) x 3 , ],
+    
+Use an empty array_ref to masks load warnings.
 
 =item *
 

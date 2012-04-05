@@ -9,7 +9,7 @@
 #
 package Config::Model::Value ;
 {
-  $Config::Model::Value::VERSION = '2.011';
+  $Config::Model::Value::VERSION = '2.012';
 }
 
 use Any::Moose;
@@ -30,6 +30,7 @@ extends qw/Config::Model::AnyThing/ ;
 
 my $logger = get_logger("Tree::Element::Value") ;
 my $change_logger = get_logger("Anything::Change") ;
+my $fix_logger = get_logger("Anything::Fix") ;
 
 our $nowarning = 0; # global variable to silence warnings. Only used for tests
 
@@ -1007,7 +1008,7 @@ sub apply_fixes {
     my $self = shift ; 
 
     if ($logger->is_debug) {
-        $logger->debug( "called for ".$self->location ) ;
+        $fix_logger->debug( "called for ".$self->location ) ;
     }
 
     $self->check_value(value => $self->{data}, fix => 1);
@@ -1019,9 +1020,14 @@ sub apply_fixes {
 sub apply_fix {
     my ( $self, $fix, $value ) = @_;
 
-    local $_ = $value;
+    local $_ = $value; # used inside $fix sub ref
 
-    $logger->info( $self->location . ": Applying fix '$fix'" );
+    if ($fix_logger->is_debug){ 
+	my $str = $fix ;
+	$str =~ s/\n/ /g ;
+	$fix_logger->info( $self->location . ": Applying fix '$str'" );
+    }
+    
     eval($fix);
     if ($@) {
         Config::Model::Exception::Model->throw(
@@ -1031,6 +1037,12 @@ sub apply_fix {
     }
 
     $self->{data}  = $_ ;
+
+    if ($fix_logger->is_trace){ 
+	$fix_logger->trace( "fix change: '" . ($value // '<undef>') ."' -> '"
+	    . ($self->{data} // '<undef>'). "'" );
+    }
+    
     $self->notify_change ;
     # $self->store(value => $_, check => 'no');  # will update $self->{fixes}
 }
@@ -1610,7 +1622,7 @@ Config::Model::Value - Strongly typed configuration value
 
 =head1 VERSION
 
-version 2.011
+version 2.012
 
 =head1 SYNOPSIS
 
@@ -1849,9 +1861,9 @@ String. Issue a warning to user with the specified string any time a value is se
 
 =item warn_unless
 
-A bit like C<warn_if_match>. The hash key is not a regexp but a label to help users.
-The hash ref containd some Perl code that is evaluated to perform the test. A warning will be issued if 
-the code returns false. 
+A bit like C<warn_if_match>. The hash key is not a regexp but a label to
+help users. The hash ref contains some Perl code that is evaluated to
+perform the test. A warning will be issued if the code returns false.
 
 C<$_> will contains the value to check. C<$self> will contain the C<Config::Model::Value> object.
 

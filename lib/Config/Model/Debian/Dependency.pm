@@ -9,7 +9,7 @@
 #
 package Config::Model::Debian::Dependency ;
 {
-  $Config::Model::Debian::Dependency::VERSION = '2.011';
+  $Config::Model::Debian::Dependency::VERSION = '2.012';
 }
 
 use Any::Moose;
@@ -286,7 +286,7 @@ sub check_dep {
     my $src_pkg_name = $self->grab_value("!Debian::Dpkg::Control source Source") ;
         
     my $filter = $test_filter || $self->grab_value(
-        step => qq{!Debian::Dpkg meta package-dependency-filter:"$src_pkg_name"},
+        step => qq{!Debian::Dpkg my_config package-dependency-filter:"$src_pkg_name"},
         mode => 'loose',
     ) || '';
     return $self->has_older_version_than ($pkg, $vers,  $filter, \@dist_version );
@@ -372,7 +372,7 @@ Config::Model::Debian::Dependency - Checks Debian dependency declarations
 
 =head1 VERSION
 
-version 2.011
+version 2.012
 
 =head1 SYNOPSIS
 

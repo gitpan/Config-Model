@@ -4,7 +4,7 @@ Config::Model::models::Debian::Dpkg::Control - Configuration class Debian::Dpkg:
 
 =head1 VERSION
 
-version 2.011
+version 2.012
 
 =head1 DESCRIPTION
 
@@ -26,7 +26,7 @@ I<< Optional. Type hash of node.  >>
 
 =item *
 
-L<config-edit>
+L<cme>
 
 =item *
 

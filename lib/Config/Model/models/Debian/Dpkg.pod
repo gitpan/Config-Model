@@ -4,7 +4,7 @@ Config::Model::models::Debian::Dpkg - Configuration class Debian::Dpkg
 
 =head1 VERSION
 
-version 2.011
+version 2.012
 
 =head1 DESCRIPTION
 
@@ -14,9 +14,9 @@ Model of Debian source package files (e.g debian/control, debian/copyright...)
 
 =head1 Elements
 
-=head2 meta
+=head2 my_config
 
-Specify meta parameters that will tune the behavior of this dpkg model. I<< Optional. Type node.  >>
+This element contains a set of parameters to tune the behavior of this dpkg editor. You can for instance specify e-mail replacements. These parameters are stored in ~/.dpkg-meta.yml or ~/.local/share/.dpkg-meta.yml. These parameters can be applied to all Debian packages you maintain in this unix account.I<< Optional. Type node.  >>
 
 =head2 control
 
@@ -73,7 +73,7 @@ By default, it will include all existing files in the top-level source directory
 
 =item *
 
-L<config-edit>
+L<cme>
 
 =item *
 

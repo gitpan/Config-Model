@@ -4,7 +4,7 @@ Config::Model::models::Debian::Dpkg::Meta - Configuration class Debian::Dpkg::Me
 
 =head1 VERSION
 
-version 2.011
+version 2.012
 
 =head1 DESCRIPTION
 
@@ -42,7 +42,7 @@ Dependency filter tuned by package. Use this to override the main dependency-fil
 
 =item *
 
-L<config-edit>
+L<cme>
 
 =back
 

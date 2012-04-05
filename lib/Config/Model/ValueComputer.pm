@@ -9,7 +9,7 @@
 #
 package Config::Model::ValueComputer ;
 {
-  $Config::Model::ValueComputer::VERSION = '2.011';
+  $Config::Model::ValueComputer::VERSION = '2.012';
 }
 
 use Any::Moose ;
@@ -583,7 +583,7 @@ Config::Model::ValueComputer - Provides configuration value computation
 
 =head1 VERSION
 
-version 2.011
+version 2.012
 
 =head1 SYNOPSIS
 
@@ -828,7 +828,7 @@ compute parameter:
                }
    }
    
-This computed default value witl be written to the configuration file.
+This computed default value will be written to the configuration file.
 
 This default value may be already known by the application so the computed value
 should B<not> be written to the configuration file. The computed value is interesting 

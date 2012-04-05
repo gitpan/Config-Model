@@ -9,7 +9,7 @@
 #
 package Config::Model::Instance;
 {
-  $Config::Model::Instance::VERSION = '2.011';
+  $Config::Model::Instance::VERSION = '2.012';
 }
 #use Scalar::Util qw(weaken) ;
 
@@ -37,6 +37,7 @@ use Carp qw/carp croak confess cluck/;
 
 my $logger = get_logger("Instance") ;
 my $change_logger = get_logger("Anything::Change") ;
+my $fix_logger = get_logger("Anything::Fix") ;
 
 has [qw/root_class_name/] => (is => 'ro', isa => 'Str', required => 1) ;
 
@@ -78,6 +79,11 @@ has needs_save => (
     is => 'rw',
     isa => 'Bool' ,
     default => 0,
+);
+
+has on_change_cb => (
+    is => 'rw',
+    isa => 'Maybe[CodeRef]',
 );
 
 # initial_load mode: when data is loaded the first time
@@ -301,6 +307,8 @@ sub write_root_dir {
 sub notify_change {
     my $self = shift ;
     $change_logger->debug("called for  instance ",$self->name) if $change_logger->is_debug ;
+    my $cb = $self->on_change_cb ;
+    $cb->(@_) if $cb ;
     $self->{needs_save} = 1;
 }
 
@@ -378,7 +386,9 @@ sub apply_fixes {
         check => 'no',
     ) ;
 
+    $fix_logger->debug("apply fix started") ;
     $scan->scan_node(undef, $self->config_root) ;
+    $fix_logger->debug("apply fix done") ;
 }
 
 __PACKAGE__->meta->make_immutable;
@@ -397,7 +407,7 @@ Config::Model::Instance - Instance of configuration tree
 
 =head1 VERSION
 
-version 2.011
+version 2.012
 
 =head1 SYNOPSIS
 
@@ -468,6 +478,11 @@ configuration tree.
 =item check
 
 'yes', 'skip' or 'no'
+
+=item on_change_cb
+
+Call back this function whenever C<notify_change> is called. Called with
+arguments: C<< name => <root node element name>, index => <index_value> >>
 
 =back
 

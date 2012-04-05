@@ -9,7 +9,7 @@
 #
 package Config::Model::HashId ;
 {
-  $Config::Model::HashId::VERSION = '2.011';
+  $Config::Model::HashId::VERSION = '2.012';
 }
 use Any::Moose ;
 use namespace::autoclean;
@@ -417,7 +417,7 @@ Config::Model::HashId - Handle hash element for configuration model
 
 =head1 VERSION
 
-version 2.011
+version 2.012
 
 =head1 SYNOPSIS
 

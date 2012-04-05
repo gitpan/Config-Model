@@ -4,7 +4,7 @@ Config::Model::models::LCDd::MtxOrb - Configuration class LCDd::MtxOrb
 
 =head1 VERSION
 
-version 2.011
+version 2.012
 
 =head1 DESCRIPTION
 

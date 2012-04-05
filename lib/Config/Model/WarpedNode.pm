@@ -9,7 +9,7 @@
 #
 package Config::Model::WarpedNode ;
 {
-  $Config::Model::WarpedNode::VERSION = '2.011';
+  $Config::Model::WarpedNode::VERSION = '2.012';
 }
 use Any::Moose ;
 
@@ -301,7 +301,7 @@ Config::Model::WarpedNode - Node that change config class properties
 
 =head1 VERSION
 
-version 2.011
+version 2.012
 
 =head1 SYNOPSIS
 

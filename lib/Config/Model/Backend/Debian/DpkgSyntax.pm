@@ -9,7 +9,7 @@
 #
 package Config::Model::Backend::Debian::DpkgSyntax ;
 {
-  $Config::Model::Backend::Debian::DpkgSyntax::VERSION = '2.011';
+  $Config::Model::Backend::Debian::DpkgSyntax::VERSION = '2.012';
 }
 
 use Any::Moose '::Role' ;
@@ -190,7 +190,7 @@ Config::Model::Backend::Debian::DpkgSyntax - Role to read and write files with D
 
 =head1 VERSION
 
-version 2.011
+version 2.012
 
 =head1 SYNOPSIS
 

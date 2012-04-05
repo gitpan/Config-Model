@@ -9,7 +9,7 @@
 #
 package Config::Model;
 {
-  $Config::Model::VERSION = '2.011';
+  $Config::Model::VERSION = '2.012';
 }
 use Any::Moose ;
 use namespace::autoclean;
@@ -96,7 +96,7 @@ Config::Model - Create tools to validate, migrate and edit configuration files
 
 =head1 VERSION
 
-version 2.011
+version 2.012
 
 =head1 SYNOPSIS
 
@@ -2015,7 +2015,7 @@ sub get_model_doc {
         }
 
         my @see_also =  (
-            "=head1 SEE ALSO",'',"=over",'',"=item *",'',"L<config-edit>",'',
+            "=head1 SEE ALSO",'',"=over",'',"=item *",'',"L<cme>",'',
             ( map { ( "=item *",'',"L<Config::Model::models::$_>",'') ; } sort keys %see_also ),
             "=back",'') ;
 

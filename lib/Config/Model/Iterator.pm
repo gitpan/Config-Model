@@ -28,7 +28,7 @@
 
 package Config::Model::Iterator ;
 {
-  $Config::Model::Iterator::VERSION = '2.011';
+  $Config::Model::Iterator::VERSION = '2.012';
 }
 use Carp;
 use strict;
@@ -45,7 +45,7 @@ Config::Model::Iterator - Iterates forward or backward a configuration tree
 
 =head1 VERSION
 
-version 2.011
+version 2.012
 
 =head1 SYNOPSIS
 
