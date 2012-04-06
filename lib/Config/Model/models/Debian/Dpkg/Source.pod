@@ -4,7 +4,7 @@ Config::Model::models::Debian::Dpkg::Source - Configuration class Debian::Dpkg::
 
 =head1 VERSION
 
-version 2.012
+version 2.013
 
 =head1 DESCRIPTION
 
@@ -23,34 +23,34 @@ Here are some explanations on the possible values:
 
 =over
 
-=item 1.0
+=item '1.0'
 
 A source package in this format consists either of a .orig.tar.gz associated to a .diff.gz or a single .tar.gz (in that case the package is said to be native).
 
-=item 2.0
+=item '2.0'
 
-Wig&pen was the first specification of a new-generation source package format. This format is not recommended for wide-spread usage, the format "3.0 (quilt)" replaces it.
+was the first specification of a new-generation source package format. This format is not recommended for wide-spread usage, the format "3.0 (quilt)" replaces it.
 
-=item 3.0 (bzr)
+=item '3.0 (bzr)'
 
 This format is experimental. It generates a single tarball containing the bzr repository.
 
 
-=item 3.0 (custom)
+=item '3.0 (custom)'
 
 This format is particular. It doesn't represent a real source package format but can be used to create source packages with arbitrary files.
 
 
-=item 3.0 (git)
+=item '3.0 (git)'
 
 This format is experimental. A source package in this format consists of a single bundle of a git repository .git to hold the source of a package. 
 There may also be a .git shallow file listing revisions for a shallow git clone.
 
-=item 3.0 (native)
+=item '3.0 (native)'
 
 extension of the native package format as defined in the 1.0 format.
 
-=item 3.0 (quilt)
+=item '3.0 (quilt)'
 
 A source package in this format contains at least an original tarball (.orig.tar.ext where ext can be gz, bz2, lzma and xz) and a debian tarball (.debian.tar.ext). It can also contain additional original tarballs (.orig-component.tar.ext).
 

@@ -9,7 +9,7 @@
 #
 package Config::Model;
 {
-  $Config::Model::VERSION = '2.012';
+  $Config::Model::VERSION = '2.013';
 }
 use Any::Moose ;
 use namespace::autoclean;
@@ -96,7 +96,7 @@ Config::Model - Create tools to validate, migrate and edit configuration files
 
 =head1 VERSION
 
-version 2.012
+version 2.013
 
 =head1 SYNOPSIS
 
@@ -2065,7 +2065,7 @@ sub get_element_value_help {
     
     my $help_text = "\n\nHere are some explanations on the possible values:\n\n=over\n\n" ;
     foreach my $v (sort keys %$help) {
-        $help_text .= "=item $v\n\n$help->{$v}\n\n" ;
+        $help_text .= "=item '$v'\n\n$help->{$v}\n\n" ;
     }
     
     return $help_text."=back\n\n" ;

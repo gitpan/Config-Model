@@ -4,7 +4,7 @@ Config::Model::models::LCDd::serialVFD - Configuration class LCDd::serialVFD
 
 =head1 VERSION
 
-version 2.012
+version 2.013
 
 =head1 DESCRIPTION
 
@@ -76,7 +76,7 @@ enable ISO 8859 1 compatibility I<< Optional. Type enum. choice: 'yes', 'no'. up
 
 =item *
 
-L<config-edit>
+L<cme>
 
 =back
 

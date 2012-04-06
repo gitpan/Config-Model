@@ -4,7 +4,7 @@ Config::Model::models::LCDd::bayrad - Configuration class LCDd::bayrad
 
 =head1 VERSION
 
-version 2.012
+version 2.013
 
 =head1 DESCRIPTION
 
@@ -26,7 +26,7 @@ Set the communication speed I<< Optional. Type enum. choice: '1200', '2400', '96
 
 =item *
 
-L<config-edit>
+L<cme>
 
 =back
 

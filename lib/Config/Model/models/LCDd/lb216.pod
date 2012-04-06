@@ -4,7 +4,7 @@ Config::Model::models::LCDd::lb216 - Configuration class LCDd::lb216
 
 =head1 VERSION
 
-version 2.012
+version 2.013
 
 =head1 DESCRIPTION
 
@@ -34,7 +34,7 @@ Reinitialize the LCD's BIOS I<< Optional. Type enum. choice: 'yes', 'no'. upstre
 
 =item *
 
-L<config-edit>
+L<cme>
 
 =back
 

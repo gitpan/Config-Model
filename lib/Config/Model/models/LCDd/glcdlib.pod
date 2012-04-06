@@ -4,7 +4,7 @@ Config::Model::models::LCDd::glcdlib - Configuration class LCDd::glcdlib
 
 =head1 VERSION
 
-version 2.012
+version 2.013
 
 =head1 DESCRIPTION
 
@@ -91,7 +91,7 @@ I<< Optional. Type uniline. default: '2'.  >>
 
 =item *
 
-L<config-edit>
+L<cme>
 
 =back
 

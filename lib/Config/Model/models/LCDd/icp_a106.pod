@@ -4,7 +4,7 @@ Config::Model::models::LCDd::icp_a106 - Configuration class LCDd::icp_a106
 
 =head1 VERSION
 
-version 2.012
+version 2.013
 
 =head1 DESCRIPTION
 
@@ -22,7 +22,7 @@ I<< Optional. Type uniline. default: '/dev/ttyS1'.  >>
 
 =item *
 
-L<config-edit>
+L<cme>
 
 =back
 

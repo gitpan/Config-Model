@@ -4,7 +4,7 @@ Config::Model::models::PopCon - Configuration class PopCon
 
 =head1 VERSION
 
-version 2.012
+version 2.013
 
 =head1 DESCRIPTION
 
@@ -54,7 +54,7 @@ Only run on the given day, to spread the load on the server a bit. 0 is Sunday, 
 
 =item *
 
-L<config-edit>
+L<cme>
 
 =back
 

@@ -4,7 +4,7 @@ Config::Model::models::LCDd::CFontzPacket - Configuration class LCDd::CFontzPack
 
 =head1 VERSION
 
-version 2.012
+version 2.013
 
 =head1 DESCRIPTION
 
@@ -65,7 +65,7 @@ Default value depends on model I<< Optional. Type enum. choice: '19200', '115200
 
 =item *
 
-L<config-edit>
+L<cme>
 
 =back
 

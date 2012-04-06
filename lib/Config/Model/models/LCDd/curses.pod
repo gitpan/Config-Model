@@ -4,7 +4,7 @@ Config::Model::models::LCDd::curses - Configuration class LCDd::curses
 
 =head1 VERSION
 
-version 2.012
+version 2.013
 
 =head1 DESCRIPTION
 
@@ -52,7 +52,7 @@ draw Border I<< Optional. Type enum. choice: 'yes', 'no'. upstream_default: 'yes
 
 =item *
 
-L<config-edit>
+L<cme>
 
 =back
 

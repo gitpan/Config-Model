@@ -4,7 +4,7 @@ Config::Model::models::LCDd::shuttleVFD - Configuration class LCDd::shuttleVFD
 
 =head1 VERSION
 
-version 2.012
+version 2.013
 
 =head1 DESCRIPTION
 
@@ -18,7 +18,7 @@ Configuration classes used by L<Config::Model>
 
 =item *
 
-L<config-edit>
+L<cme>
 
 =back
 

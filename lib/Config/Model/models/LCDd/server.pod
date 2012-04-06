@@ -4,7 +4,7 @@ Config::Model::models::LCDd::server - Configuration class LCDd::server
 
 =head1 VERSION
 
-version 2.012
+version 2.013
 
 =head1 DESCRIPTION
 
@@ -134,7 +134,7 @@ I<< Optional. Type uniline. default: 'Down'.  >>
 
 =item *
 
-L<config-edit>
+L<cme>
 
 =back
 

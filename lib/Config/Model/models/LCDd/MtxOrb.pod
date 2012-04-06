@@ -4,7 +4,7 @@ Config::Model::models::LCDd::MtxOrb - Configuration class LCDd::MtxOrb
 
 =head1 VERSION
 
-version 2.012
+version 2.013
 
 =head1 DESCRIPTION
 
@@ -90,7 +90,7 @@ keypad_set_mode to no again.I<< Optional. Type uniline. default: 'no'.  >>
 
 =item *
 
-L<config-edit>
+L<cme>
 
 =back
 

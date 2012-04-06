@@ -4,7 +4,7 @@ Config::Model::models::Debian::Dpkg::Control::Binary - Configuration class Debia
 
 =head1 VERSION
 
-version 2.012
+version 2.013
 
 =head1 DESCRIPTION
 
@@ -25,15 +25,15 @@ Here are some explanations on the possible values:
 
 =over
 
-=item allowed
+=item 'allowed'
 
 allows reverse-dependencies to indicate in their Depends field that they need a package from a foreign architecture, but has no effect otherwise.
 
-=item foreign
+=item 'foreign'
 
 the package is not co-installable with itself, but should be allowed to satisfy the dependency of a package of a different arch from itself.
 
-=item same
+=item 'same'
 
 the package is co-installable with itself, but it must not be used to satisfy the dependency of any package of a different architecture from itself.
 

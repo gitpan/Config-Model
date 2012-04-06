@@ -4,7 +4,7 @@ Config::Model::models::LCDd::mdm166a - Configuration class LCDd::mdm166a
 
 =head1 VERSION
 
-version 2.012
+version 2.013
 
 =head1 DESCRIPTION
 
@@ -31,7 +31,7 @@ Dim display in case LCDd is inactive I<< Optional. Type uniline. upstream_defaul
 
 =item *
 
-L<config-edit>
+L<cme>
 
 =back
 

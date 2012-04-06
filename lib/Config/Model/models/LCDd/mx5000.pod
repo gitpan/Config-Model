@@ -4,7 +4,7 @@ Config::Model::models::LCDd::mx5000 - Configuration class LCDd::mx5000
 
 =head1 VERSION
 
-version 2.012
+version 2.013
 
 =head1 DESCRIPTION
 
@@ -26,7 +26,7 @@ Time to wait in ms after the refresh screen has been sent I<< Optional. Type uni
 
 =item *
 
-L<config-edit>
+L<cme>
 
 =back
 

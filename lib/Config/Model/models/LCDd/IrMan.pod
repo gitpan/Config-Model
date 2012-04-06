@@ -4,7 +4,7 @@ Config::Model::models::LCDd::IrMan - Configuration class LCDd::IrMan
 
 =head1 VERSION
 
-version 2.012
+version 2.013
 
 =head1 DESCRIPTION
 
@@ -27,7 +27,7 @@ Select the configuration file to use. I<< Optional. Type uniline. default: '/etc
 
 =item *
 
-L<config-edit>
+L<cme>
 
 =back
 

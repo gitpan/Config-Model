@@ -4,7 +4,7 @@ Config::Model::models::LCDd::CFontz - Configuration class LCDd::CFontz
 
 =head1 VERSION
 
-version 2.012
+version 2.013
 
 =head1 DESCRIPTION
 
@@ -53,7 +53,7 @@ normally you shouldn't need this. I<< Optional. Type enum. choice: 'yes', 'no'. 
 
 =item *
 
-L<config-edit>
+L<cme>
 
 =back
 

@@ -4,7 +4,7 @@ Config::Model::models::LCDd::glk - Configuration class LCDd::glk
 
 =head1 VERSION
 
-version 2.012
+version 2.013
 
 =head1 DESCRIPTION
 
@@ -30,7 +30,7 @@ set the serial port speed I<< Optional. Type enum. choice: '9600', '19200', '384
 
 =item *
 
-L<config-edit>
+L<cme>
 
 =back
 

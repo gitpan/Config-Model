@@ -224,6 +224,8 @@ lib/Config/Model/models/PopCon.pod
 lib/Config/Model/system.d/fstab
 lib/Config/Model/system.d/lcdproc
 lib/Config/Model/system.d/popcon
+pod2htmd.tmp
+pod2htmi.tmp
 script/cme
 script/gen_LCDd_model.pl
 script/gen_class_pod.pl

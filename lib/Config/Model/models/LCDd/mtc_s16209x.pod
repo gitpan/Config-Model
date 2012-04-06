@@ -4,7 +4,7 @@ Config::Model::models::LCDd::mtc_s16209x - Configuration class LCDd::mtc_s16209x
 
 =head1 VERSION
 
-version 2.012
+version 2.013
 
 =head1 DESCRIPTION
 
@@ -30,7 +30,7 @@ Reinitialize the LCD's BIOS I<< Optional. Type enum. choice: 'yes', 'no'. upstre
 
 =item *
 
-L<config-edit>
+L<cme>
 
 =back
 

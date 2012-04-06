@@ -4,7 +4,7 @@ Config::Model::models::LCDd::SureElec - Configuration class LCDd::SureElec
 
 =head1 VERSION
 
-version 2.012
+version 2.013
 
 =head1 DESCRIPTION
 
@@ -45,7 +45,7 @@ switched off in case LCDd is inactive. I<< Optional. Type integer. upstream_defa
 
 =item *
 
-L<config-edit>
+L<cme>
 
 =back
 

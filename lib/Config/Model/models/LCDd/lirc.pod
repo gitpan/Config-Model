@@ -4,7 +4,7 @@ Config::Model::models::LCDd::lirc - Configuration class LCDd::lirc
 
 =head1 VERSION
 
-version 2.012
+version 2.013
 
 =head1 DESCRIPTION
 
@@ -26,7 +26,7 @@ Must be the same as in your lircrc. I<< Optional. Type uniline. default: 'lcdd'.
 
 =item *
 
-L<config-edit>
+L<cme>
 
 =back
 

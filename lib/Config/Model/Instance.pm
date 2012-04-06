@@ -9,7 +9,7 @@
 #
 package Config::Model::Instance;
 {
-  $Config::Model::Instance::VERSION = '2.012';
+  $Config::Model::Instance::VERSION = '2.013';
 }
 #use Scalar::Util qw(weaken) ;
 
@@ -407,7 +407,7 @@ Config::Model::Instance - Instance of configuration tree
 
 =head1 VERSION
 
-version 2.012
+version 2.013
 
 =head1 SYNOPSIS
 
