@@ -9,6 +9,7 @@
 #
 [
   {
+    'class_description' => 'generated from LCDd.conf',
     'name' => 'LCDd::EyeboxOne',
     'element' => [
       'Device',

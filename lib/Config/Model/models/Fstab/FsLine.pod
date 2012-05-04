@@ -4,7 +4,7 @@ Config::Model::models::Fstab::FsLine - Configuration class Fstab::FsLine
 
 =head1 VERSION
 
-version 2.013
+version 2.014
 
 =head1 DESCRIPTION
 
@@ -30,39 +30,39 @@ Here are some explanations on the possible values:
 
 =over
 
-=item C<auto>
+=item 'auto'
 
 file system type is probed by the kernel when mounting the device
 
-=item C<davfs>
+=item 'davfs'
 
 WebDav access
 
-=item C<ext2>
+=item 'ext2'
 
 Common Linux file system.
 
-=item C<ext3>
+=item 'ext3'
 
 Common Linux file system with journaling 
 
-=item C<ignore>
+=item 'ignore'
 
 unused disk partition
 
-=item C<iso9660>
+=item 'iso9660'
 
 CD-ROM or DVD file system
 
-=item C<proc>
+=item 'proc'
 
 Kernel info through a special file system
 
-=item C<usbfs>
+=item 'usbfs'
 
 USB pseudo file system. Gives a file system view of kernel data related to usb
 
-=item C<vfat>
+=item 'vfat'
 
 Older Windows file system often used on removable media
 

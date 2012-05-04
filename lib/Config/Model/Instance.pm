@@ -9,7 +9,7 @@
 #
 package Config::Model::Instance;
 {
-  $Config::Model::Instance::VERSION = '2.013';
+  $Config::Model::Instance::VERSION = '2.014';
 }
 #use Scalar::Util qw(weaken) ;
 
@@ -18,6 +18,7 @@ use namespace::autoclean;
 use Any::Moose '::Util::TypeConstraints';
 use Any::Moose 'X::StrictConstructor' ;
 
+use Text::Diff ;
 use File::Path;
 use Log::Log4perl qw(get_logger :levels);
 
@@ -75,11 +76,35 @@ has [qw/preset layered/] => (
     default => 0,
 );
 
-has needs_save => (
-    is => 'rw',
-    isa => 'Bool' ,
-    default => 0,
+has changes => (
+    is =>'ro',
+    isa => 'ArrayRef',
+    traits => ['Array'],
+    default => sub { [] },
+    handles => {
+        add_change => 'push',
+        c_count => 'count' ,
+        #needs_save => 'count' ,
+        clear_changes => 'clear' ,
+    }
 );
+
+sub needs_save {
+    my $self = shift;
+    my $arg = shift ;
+    if (defined $arg) {
+        if ($arg) {
+            carp "replace needs_save(1) call with add_change" ;
+            $self->add_change() ; # may not work
+        }
+        else {
+            carp "replace needs_save(0) call with clear_changes" ;
+            $self->clear_changes ;
+        }
+    }
+    return $self->c_count ;
+}
+
 
 has on_change_cb => (
     is => 'rw',
@@ -306,10 +331,41 @@ sub write_root_dir {
 # FIXME: record changes to implement undo/redo ?
 sub notify_change {
     my $self = shift ;
-    $change_logger->debug("called for  instance ",$self->name) if $change_logger->is_debug ;
+    my %args = @_ ;
+    if ($change_logger->is_debug) {
+        $change_logger->debug("in instance ",$self->name, 'for path ',$args{path}) ;
+    }
+    $self->add_change( \%args ) ;
     my $cb = $self->on_change_cb ;
     $cb->(@_) if $cb ;
-    $self->{needs_save} = 1;
+}
+
+sub list_changes {
+    my $self = shift;
+    my $l = $self->changes ;
+    my @all ;
+
+    foreach my $c (@$l) {
+        my $path = $c->{path} ;
+        
+        # don't list change without further info (like nodes)
+        next unless keys %$c > 1 ;
+        my $vt = $c->{value_type} || '' ;
+        my ($o,$n) =  map { $_ || '<undef>' ;} ($c->{old},$c->{new}) ;
+        
+        if ($vt eq 'string' and ($o =~ /\n/ or $n =~ /\n/) ) {
+            # append \n if needed so diff works as expected
+            map { $_ .= "\n" unless /\n$/ ;} ($o,$n) ;
+            my $diff = diff \$o, \$n ;
+            push @all, "$path :" . ($c->{note} ? " # $c->{note}" : ''). "\n". $diff;
+        }
+        elsif (exists $c->{old} or exists $c->{new}) {
+            map { s/\n.*/.../s; } ($o,$n) ;
+            push @all, "$path: '$o' -> '$n'" . ($c->{note} ? " # $c->{note}" : '');
+        }
+    }
+
+    return wantarray ? @all : join("\n",@all) ;
 }
 
 
@@ -345,7 +401,7 @@ sub write_back {
             force => $force_write,
         );
     }
-    $self->needs_save(0) ;
+    $self-> clear_changes;
 }
 
 
@@ -407,7 +463,7 @@ Config::Model::Instance - Instance of configuration tree
 
 =head1 VERSION
 
-version 2.013
+version 2.014
 
 =head1 SYNOPSIS
 
@@ -609,20 +665,16 @@ configuration model, then load all configuration data.
 
 This feature enables you to declare with the model a way to load
 configuration data (and to write it back). See
-L<Config::Model::AutoRead> for details.
-
-=head2 read_root_dir()
-
-Returns root directory where configuration data is read from.
+L<Config::Model::BackendMgr> for details.
 
 =head2 backend()
 
 Get the preferred backend method for this instance (as passed to the
 constructor).
 
-=head2 write_root_dir()
+=head2 root_dir()
 
-Returns root directory where configuration data is written to.
+Returns root directory where configuration data is read from or written to.
 
 =head2 register_write_back ( node_location )
 
@@ -655,6 +707,15 @@ C<write_back> will croak if no write call-back are known.
 
 Scan the tree and apply fixes that are attached to warning specifications. 
 See C<warn_if_match> or C<warn_unless_match> in L<Config::Model::Value/>.
+
+=head2 needs_save
+
+Returns 1 (or more) if the instance contains data that needs to be saved.
+
+=head2 list_changes
+
+In list context, returns a array ref of strings describing the changes. 
+In scalar context, returns a big string. Useful to print.
 
 =head1 AUTHOR
 

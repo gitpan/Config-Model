@@ -9,6 +9,7 @@
 #
 [
   {
+    'class_description' => 'generated from LCDd.conf',
     'name' => 'LCDd::sli',
     'element' => [
       'Device',

@@ -9,6 +9,7 @@
 #
 [
   {
+    'class_description' => 'generated from LCDd.conf',
     'name' => 'LCDd::hd44780',
     'element' => [
       'ConnectionType',

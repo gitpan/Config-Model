@@ -9,7 +9,7 @@
 #
 package Config::Model::AnyThing;
 {
-  $Config::Model::AnyThing::VERSION = '2.013';
+  $Config::Model::AnyThing::VERSION = '2.014';
 }
 
 use Any::Moose ;
@@ -68,12 +68,15 @@ sub notify_change {
     my $self = shift ;
     my %args =  @_ ;
 
-    $change_logger->debug("called for  ",$self->name) if $change_logger->is_debug ;
+    return if $self->instance->initial_load  and not $args{really};
+
+    $change_logger->debug("called for ",$self->name) if $change_logger->is_debug ;
 
     # needs_save may be overridden by caller
     $args{needs_save} //= 1 ;
-    $args{name} = $self->element_name if $self->element_name ;
-    $args{index} = $self->index_value if $self->index_value ;
+    $args{path} //= $self->location ;
+    $args{name} //= $self->element_name if $self->element_name ;
+    $args{index} //= $self->index_value if $self->index_value ;
     
     # beter use %args instead of @_ to forward arguments. %args eliminates duplicated keys
     $self->container->notify_change(%args);
@@ -570,7 +573,7 @@ Config::Model::AnyThing - Base class for configuration tree item
 
 =head1 VERSION
 
-version 2.013
+version 2.014
 
 =head1 SYNOPSIS
 

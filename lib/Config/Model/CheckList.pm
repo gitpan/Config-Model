@@ -9,7 +9,7 @@
 #
 package Config::Model::CheckList ;
 {
-  $Config::Model::CheckList::VERSION = '2.013';
+  $Config::Model::CheckList::VERSION = '2.014';
 }
 use Any::Moose ;
 
@@ -241,7 +241,11 @@ sub check {
 	$self->{ref_object}->get_choice_from_refered_to ;
     }
 
-    map {$self->store($_ , 1, $check ) } @list ;
+    my @changed ;
+    map {push @changed,$_ if $self->store($_ , 1, $check ) } @list ;
+
+    $self->notify_change(note => "check @changed") 
+        unless $self->instance->initial_load;
 }
 
 # internal
@@ -259,22 +263,22 @@ sub store {
     }
 
     my $ok = $self->{choice_hash}{$choice} || 0 ;
+    my $changed = 0;
 
     if ($ok ) {
-	if ($inst->preset) {
-	    $self->{preset}{$choice} = $value ;
-	}
-	elsif ($inst->layered) {
-	    $self->{layered}{$choice} = $value ;
-	}
-	else {
-	    $self->{data}{$choice} = $value ;
-	}
+	my $data_name = $inst->preset  ? 'preset'
+                      : $inst->layered ? 'layered' 
+                      : 'data';
+        my $old_v = $self->{$data_name}{$choice} ;
+        if ( not defined $old_v or $old_v ne $value) {
+            $changed = 1;
+            $self->{$data_name}{$choice} = $value ;
+        }
+	
 	if ($self->{ordered} and $value) {
 	    my $ord = $self->{ordered_data} ;
 	    push @$ord,$choice unless scalar grep {$choice eq $_} @$ord ;
 	}
-	$self->notify_change unless $self->instance->initial_load;
     }
     elsif ($check eq 'yes')  {
 	my $err_str = "Unknown check_list item '$choice'. Expected '"
@@ -284,6 +288,8 @@ sub store {
         Config::Model::Exception::WrongValue 
 	    -> throw ( error =>  $err_str , object => $self) ;
     }
+    
+    return $changed ;
 }
 
 
@@ -297,7 +303,11 @@ sub uncheck {
 	$self->{ref_object}->get_choice_from_refered_to ;
     }
 
-    map {$self->store($_ , 0 , $check) } @list ;
+    my @changed  ;
+    map { push @changed, $_ if $self->store($_ , 0, $check ) } @list ;
+
+    $self->notify_change(note => "uncheck @changed") 
+        unless $self->instance->initial_load;
 }
 
 
@@ -655,7 +665,7 @@ Config::Model::CheckList - Handle check list element
 
 =head1 VERSION
 
-version 2.013
+version 2.014
 
 =head1 SYNOPSIS
 

@@ -33,10 +33,11 @@ configure_requires:
   Pod::POM: 0
   Scalar::Util: 0
   Term::ReadLine: 0
+  Text::Diff: 0
   YAML::Any: 0.303
   namespace::autoclean: 0
 dynamic_config: 0
-generated_by: 'Dist::Zilla version 4.300013, CPAN::Meta::Converter version 2.120630'
+generated_by: 'Dist::Zilla version 4.300015, CPAN::Meta::Converter version 2.120921'
 license: lgpl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
@@ -52,4 +53,4 @@ resources:
   bugtracker: http://rt.cpan.org/NoAuth/Bugs.html?Dist=Config-Model
   homepage: https://github.com/dod38fr/config-model/wiki
   repository: git://github.com/dod38fr/config-model.git
-version: 2.013
+version: 2.014

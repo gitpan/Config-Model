@@ -9,7 +9,7 @@
 #
 package Config::Model::ListId ;
 {
-  $Config::Model::ListId::VERSION = '2.013';
+  $Config::Model::ListId::VERSION = '2.014';
 }
 use Any::Moose ;
 use namespace::autoclean;
@@ -354,7 +354,7 @@ Config::Model::ListId - Handle list element for configuration model
 
 =head1 VERSION
 
-version 2.013
+version 2.014
 
 =head1 SYNOPSIS
 

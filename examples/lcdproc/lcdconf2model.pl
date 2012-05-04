@@ -31,7 +31,7 @@ use warnings;
 # 3/ Write the resulting LCDd model
 
 use Config::Model;
-use Config::Model::Itself 1.225;    # to create the model
+use Config::Model::Itself ;    # to create the model
 use Config::Model::Backend::IniFile;
 
 use 5.010;
@@ -251,7 +251,7 @@ foreach my $ini_class (@ini_classes) {
     my $config_class   = "LCDd::$ini_class";
 
     # create config class in case there's no parameter in INI file
-    $meta_root->load(qq!class:"LCDd::$ini_class"!);
+    $meta_root->load(qq!class:"LCDd::$ini_class" class_description="generated from LCDd.conf"!);
 
     # loop over all INI parameters and create LCDd::$ini_class elements
     foreach my $ini_param ( $ini_obj->get_element_name ) {
@@ -313,11 +313,17 @@ foreach my $ini_class (@ini_classes) {
 
 
 # Itself constructor returns an object to read or write the data
-# structure containing the model to be edited
-my $rw_obj = Config::Model::Itself->new( model_object => $meta_root );
+# structure containing the model to be edited. force_write is required
+# because writer object, being created *after* loading the model in the
+# instance, is not aware of these changes.
+my $rw_obj = Config::Model::Itself->new( 
+    model_object => $meta_root,
+    model_dir => 'lib/Config/Model/models/',
+    force_write => 1,
+);
 
 say "Writing all models in file (please wait)";
-$rw_obj->write_all( model_dir => 'lib/Config/Model/models/' );
+$rw_obj->write_all;
 
 say "Done";
 

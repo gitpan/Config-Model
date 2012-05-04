@@ -4,11 +4,13 @@ Config::Model::models::LCDd::stv5730 - Configuration class LCDd::stv5730
 
 =head1 VERSION
 
-version 2.013
+version 2.014
 
 =head1 DESCRIPTION
 
 Configuration classes used by L<Config::Model>
+
+generated from LCDd.conf
 
 =head1 Elements
 

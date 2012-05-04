@@ -94,6 +94,7 @@ my $build = Module::Build->new(
     'Pod::POM' => '0',
     'Scalar::Util' => '0',
     'Term::ReadLine' => '0',
+    'Text::Diff' => '0',
     'YAML::Any' => '0.303',
     'namespace::autoclean' => '0'
   },

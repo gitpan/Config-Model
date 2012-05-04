@@ -3,7 +3,7 @@
 use warnings FATAL => qw(all);
 
 use ExtUtils::testlib;
-use Test::More tests => 160;
+use Test::More tests => 162;
 use Test::Exception;
 use Test::Warn;
 use Test::Memory::Cycle;
@@ -12,6 +12,8 @@ use Config::Model::Value;
 use Log::Log4perl qw(:easy :levels) ;
 
 use strict;
+
+binmode STDOUT, ':utf8' ;
 
 my $arg = shift || '';
 my ($log,$show) = (0) x 2 ;
@@ -300,6 +302,14 @@ print "normal error:\n", $@, "\n" if $trace;
 
 is( $ms->store('toto'), 'toto', "mandatory_string: store" );
 is( $ms->fetch,         'toto', "and read" );
+
+my $toto_str = "a\nbig\ntext\nabout\ntoto" ;
+$ms->store($toto_str) ;
+$toto_str =~ s/text/string/ ;
+$ms->store($toto_str) ;
+
+print  join("\n", $inst->list_changes("\n")),"\n" if $trace;
+$inst->clear_changes ;
 
 my $mb = $root->fetch_element('mandatory_boolean');
 ok( $mb, "created mandatory_boolean" );
@@ -615,23 +625,26 @@ warning_like { $aw->store('whatever'); } qr/always/i, "test unconditional warn";
 
 # test unicode
 my $smiley = "\x{263A}";    # See programming perl chapter 15
+$wip->store(':-)'); # to test list_changes just below
 $wip->store($smiley);
 is( $wip->fetch, $smiley, "check utf-8 string" );
 
+print  join("\n", $inst->list_changes("\n")),"\n" if $trace;
+
 # test replace_follow
 my $wrf = $root->fetch_element('with_replace_follow');
-$inst->needs_save(0);
+$inst->clear_changes;
 
 $wrf->store('foo');
 is($inst->needs_save,1,"check needs_save after store") ;
-$inst->needs_save(0);
+$inst->clear_changes;
 
 is( $wrf->fetch, 'foo', "check replacement_hash with foo (before replacement)" );
 is($inst->needs_save,0,"check needs_save after simple fetch") ;
 
 $root->load('replacement_hash:foo=repfoo replacement_hash:bar=repbar');
-is($inst->needs_save,1,"check needs_save after load") ;
-$inst->needs_save(0);
+is($inst->needs_save,2,"check needs_save after load") ;
+$inst->clear_changes;
 
 is( $wrf->fetch, 'repfoo', "check replacement_hash with foo (after replacement)" );
 is($inst->needs_save,1,"check needs_save after fetch with replacement") ;
@@ -647,9 +660,13 @@ ok(
     "check that replacement hash was not changed by missed substitution"
 );
 
+$inst->clear_changes;
 my $sv = $root->fetch_element('Standards-Version') ;
 warning_like { $sv->store('3.9.1') ; } qr/Current/ , "store old standard version";
+is($inst->needs_save,1,"check needs_save after load") ;
 $sv->apply_fixes ;
+is($inst->needs_save,2,"check needs_save after load") ;
+print  join("\n", $inst->list_changes("\n")),"\n" if $trace;
 
 is($sv->fetch,'3.9.2',"check fixed standard version");
 

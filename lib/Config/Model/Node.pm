@@ -9,7 +9,7 @@
 #
 package Config::Model::Node;
 {
-  $Config::Model::Node::VERSION = '2.013';
+  $Config::Model::Node::VERSION = '2.014';
 }
 
 use Any::Moose ;
@@ -394,12 +394,13 @@ sub read_config_data {
 
 sub notify_change {	
     my $self = shift ;
+    my %args = @_ ;
 
-    return if $self->instance->initial_load ;
+    return if $self->instance->initial_load  and not $args{really};
 
-    # $logger->debug("called while needs_write is ",$self->needs_save,
-	# " for ",$self->name) 
-	# if $logger->is_debug ;
+    $logger->debug("called while needs_write is ",$self->needs_save,
+	" for ",$self->name) 
+	if $logger->is_debug ;
 
     if (defined $self->{bmgr}) {
         $self->needs_save(1) ; # will trigger a save in config_file
@@ -1166,7 +1167,7 @@ Config::Model::Node - Class for configuration tree node
 
 =head1 VERSION
 
-version 2.013
+version 2.014
 
 =head1 SYNOPSIS
 

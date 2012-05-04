@@ -9,7 +9,7 @@
 #
 package Config::Model::AnyId ;
 {
-  $Config::Model::AnyId::VERSION = '2.013';
+  $Config::Model::AnyId::VERSION = '2.014';
 }
 
 use Any::Moose ;
@@ -408,7 +408,7 @@ sub notify_change {
         $self->set_data_mode($idx,$imode) if $mode_move{$old_mode}{$imode} ; 
     }
     
-    return if $self->instance->initial_load ;
+    return if $self->instance->initial_load  and not $args{really};
 
     $self->needs_check(1) ;
     $self->SUPER::notify_change(@_) ;
@@ -894,7 +894,8 @@ sub delete {
 
     delete $self->{warning_hash}{$idx}  ;
     my $ret = $self->_delete($idx);
-    $self->notify_change( index => $idx ) ;
+    $self->notify_change( note => "deleted entry $idx" ) ;
+    return $ret ;
 }
 
 
@@ -967,7 +968,7 @@ Config::Model::AnyId - Base class for hash or list element
 
 =head1 VERSION
 
-version 2.013
+version 2.014
 
 =head1 SYNOPSIS
 
