@@ -1,0 +1,1 @@
+rm -rf Config-Model-* libconfig-* ; dzil build && cp -r debian/ Config-Model-*/ && cd Config-Model-*/ && dpkg-buildpackage -us -uc && cd - && sudo dpkg -i libconfig-model*_all.deb

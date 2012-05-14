@@ -9,7 +9,7 @@
 #
 package Config::Model::IdElementReference;
 {
-  $Config::Model::IdElementReference::VERSION = '2.014';
+  $Config::Model::IdElementReference::VERSION = '2.015';
 }
 
 use Any::Moose;
@@ -113,7 +113,7 @@ sub get_choice_from_refered_to {
             @choice = $obj->fetch_element($element)->get_checked_list();
         }
         elsif ( $type eq 'hash' ) {
-            @choice = $obj->fetch_element($element)->get_all_indexes();
+            @choice = $obj->fetch_element($element)->fetch_all_indexes();
         }
         elsif ( $type eq 'list' ) {
             my $list_obj = $obj->fetch_element($element);
@@ -196,7 +196,7 @@ Config::Model::IdElementReference - Refer to id element(s) and extract keys
 
 =head1 VERSION
 
-version 2.014
+version 2.015
 
 =head1 SYNOPSIS
 

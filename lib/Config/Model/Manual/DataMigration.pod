@@ -1,0 +1,86 @@
+package Config::Model::Manual::DataMigration;
+
+=pod
+
+=head1 NAME
+
+Config::Model::Manual::DataMigration - My author was too lazy to write an abstract
+
+=head1 VERSION
+
+version 2.015
+
+=head1 Introduction
+
+The content of a configuration file may change, not only when user wants to change the 
+configuration content. When the change is imposed (or proposed) by the software, one must 
+strive to make the B<migration> task as easy as possible for the end user.
+
+This migration may be triggered for several reasons:
+
+=over
+
+=item *
+
+Software evolve and new parameters are introduced with new functionalities
+
+=item *
+
+Or some functionalities are removed and the corresponding parameters becomes obsolete
+
+=item *
+
+Or the original parameter name was confuding and had to be changed
+
+=item *
+
+Which holds true for configuration values.
+
+=back
+
+L<Config::Model> proposes some ways to setup a model to facilitate configuration migrations.
+
+This page will show the most common cases. Let the author know about the not so commons cases...
+
+=head1 Leaf changes
+
+=head2 Simple value change
+
+For instance, if the C<foo> parameter value must be changed from C<bien> or C<mauvais> to
+C<good> or C<bad> and disallow anything else.
+
+ foo => { 
+   type => leaf,
+   value_type => 'enum',
+   choice => [ qw/good bad/ ],
+   replace => { 
+     bon => 'good',
+     mauvais => 'bad'
+   }
+ }
+
+=head2 Name change
+
+One difficulty about value change is to decide, when reading a file, if the value is
+the old value or the new ones.
+
+
+=head2 Split parameter
+
+=head1 Array changes
+
+=head1 SEE ALSO
+
+=over
+
+=item *
+
+L<http://wiki.debian.org/PackageConfigUpgrade>
+
+=back
+
+=head1 AUTHOR
+
+Copyright 2012 Dominique Dumont ( ddumont at cpan.org )
+
+=cut

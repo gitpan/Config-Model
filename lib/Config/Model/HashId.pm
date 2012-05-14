@@ -9,7 +9,7 @@
 #
 package Config::Model::HashId ;
 {
-  $Config::Model::HashId::VERSION = '2.014';
+  $Config::Model::HashId::VERSION = '2.015';
 }
 use Any::Moose ;
 use namespace::autoclean;
@@ -31,6 +31,13 @@ has [qw/morph ordered/] => (is => 'ro', isa => 'Bool' ) ;
 
 sub BUILD {
     my $self = shift;
+
+    # foreach my $wrong (qw/migrate_values_from/) {
+        # Config::Model::Exception::Model->throw (
+            # object => $self,
+            # error =>  "Cannot use $wrong with ".$self->get_type." element"
+        # ) if defined $self->{$wrong};
+    # }
 
     # could use "required", but we'd get a Moose error instead of a Config::Model
     # error
@@ -74,6 +81,35 @@ sub set_properties {
     }
 }
 
+sub _migrate {
+    my $self = shift;
+
+    return if $self->{migration_done};
+    
+    # migration must be done *after* initial load to make sure that all data
+    # were retrieved from the file before migration. 
+    return if $self->instance->initial_load ;
+    $self->{migration_done} = 1;
+    
+    if ($self->{migrate_keys_from}) { 
+        my $followed = $self->safe_typed_grab(param => 'migrate_keys_from', check => 'no') ;
+        if ($logger->is_debug) {
+            $logger ->debug($self->name," migrate keys from ",$followed->name);
+        }
+
+        map { $self->_store($_, undef) unless $self->_defined($_) } $followed -> fetch_all_indexes ;
+    }
+    elsif ( $self->{migrate_values_from}) {
+        my $followed = $self->safe_typed_grab(param => 'migrate_values_from', check => 'no') ;
+        $logger ->debug($self->name," migrate values from ",$followed->name) if $logger->is_debug;
+        foreach my $item ( $followed -> fetch_all_indexes ) {
+            next if $self->exists($item) ; # don't clobber existing entries
+            my $data = $followed->fetch_with_id($item) -> dump_as_data(check => 'no') ;
+            $self->fetch_with_id($item)->load_data($data) ;
+        }
+    }
+
+}
 
 sub get_type {
     my $self = shift;
@@ -81,12 +117,13 @@ sub get_type {
 }
 
 
+# important: return the actual size (not taking into account auto-created stuff)
 sub fetch_size {
     my $self = shift;
     return scalar keys %{$self->{data}} ;
 }
 
-sub _get_all_indexes {
+sub _fetch_all_indexes {
     my $self = shift;
     return $self->{ordered} ? @{$self->{list}}
       :                    sort keys %{$self->{data}} ;
@@ -173,7 +210,7 @@ sub firstkey {
     $self->create_default if defined $self->{default};
 
     # reset "each" iterator (to be sure, map is also an iterator)
-    my @list = $self->_get_all_indexes ;
+    my @list = $self->_fetch_all_indexes ;
     $self->{each_list} = \@list ;
     return shift @list ;
 }
@@ -191,7 +228,7 @@ sub nextkey {
     return $res if defined $res ;
 
     # reset list for next call to next_keys
-    $self->{each_list} = [ $self->_get_all_indexes  ] ;
+    $self->{each_list} = [ $self->_fetch_all_indexes  ] ;
 
     return ;
 }
@@ -419,7 +456,7 @@ Config::Model::HashId - Handle hash element for configuration model
 
 =head1 VERSION
 
-version 2.014
+version 2.015
 
 =head1 SYNOPSIS
 

@@ -4,7 +4,7 @@ Config::Model::models::LCDd::picolcd - Configuration class LCDd::picolcd
 
 =head1 VERSION
 
-version 2.014
+version 2.015
 
 =head1 DESCRIPTION
 

@@ -29,7 +29,7 @@
 
 package Config::Model::SimpleUI ;
 {
-  $Config::Model::SimpleUI::VERSION = '2.014';
+  $Config::Model::SimpleUI::VERSION = '2.015';
 }
 
 use Carp;
@@ -43,7 +43,7 @@ Config::Model::SimpleUI - Simple interface for Config::Model
 
 =head1 VERSION
 
-version 2.014
+version 2.015
 
 =head1 SYNOPSIS
 
@@ -426,7 +426,7 @@ sub list_cd_path {
 	if ($t eq 'list' or $t eq 'hash') {
 	    push @result, 
 	      map { "$elt_name:$_" }
-		$c_node->fetch_element($elt_name)->get_all_indexes ;
+		$c_node->fetch_element($elt_name)->fetch_all_indexes ;
 	}
 	else {
 	    push @result, $elt_name ;

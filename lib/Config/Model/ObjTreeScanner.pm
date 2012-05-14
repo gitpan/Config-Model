@@ -27,7 +27,7 @@
 
 package Config::Model::ObjTreeScanner ;
 {
-  $Config::Model::ObjTreeScanner::VERSION = '2.014';
+  $Config::Model::ObjTreeScanner::VERSION = '2.015';
 }
 use strict ;
 use Config::Model::Exception ;
@@ -45,7 +45,7 @@ Config::Model::ObjTreeScanner - Scan config tree and perform call-backs
 
 =head1 VERSION
 
-version 2.014
+version 2.015
 
 =head1 SYNOPSIS
 
@@ -694,7 +694,7 @@ sub get_keys {
     my $element_type = $node->element_type($element_name);
     my $item = $node->fetch_element(name => $element_name, check => $self->{check}) ;
 
-    return $item->get_all_indexes 
+    return $item->fetch_all_indexes 
       if    $element_type eq 'hash' 
 	 || $element_type eq 'list' ;
 

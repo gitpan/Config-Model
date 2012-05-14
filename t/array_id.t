@@ -12,20 +12,16 @@ use Config::Model;
 use Config::Model::AnyId;
 use Log::Log4perl qw(:easy :levels) ;
 
-BEGIN { plan tests => 106; }
+BEGIN { plan tests => 105; }
 
 use strict;
 
 my $arg = shift || '';
-my $test_only_model = shift || '';
-my $do = shift ;
 
-my ($log,$show) = (0) x 2 ;
+my $log = 0 ;
 
 my $trace = $arg =~ /t/ ? 1 : 0 ;
-$::debug            = 1 if $arg =~ /d/;
 $log                = 1 if $arg =~ /l/;
-$show               = 1 if $arg =~ /s/;
 
 my $home = $ENV{HOME} || "";
 my $log4perl_user_conf_file = "$home/.log4config-model";
@@ -71,11 +67,6 @@ $model->create_config_class(
             type            => 'list',
             auto_create_ids => 4,
             @element
-        },
-        list_with_migrate_keys_from => {
-            type => 'list',
-            @element,
-            migrate_keys_from => '- list_with_auto_created_id',
         },
         olist => {
             type  => 'list',
@@ -155,7 +146,7 @@ $inst->initial_load_stop ;
 
 my $root = $inst->config_root;
 
-eq_or_diff( [ $root->fetch_element('olist')->get_all_indexes ],
+eq_or_diff( [ $root->fetch_element('olist')->fetch_all_indexes ],
     [], "check index list of empty list" );
 
 is($inst->needs_save,0,"verify instance needs_save status after creation") ;
@@ -177,7 +168,7 @@ my $bogus_root = $model->instance( root_class_name => 'Bogus' )->config_root;
 throws_ok { $bogus_root->fetch_element('list_with_wrong_auto_create'); }
 qr/Wrong auto_create argument for list/, 'wrong auto_create caught';
 
-eq_or_diff( [ $b->get_all_indexes ], [ 0, 1, 2 ], "check ids" );
+eq_or_diff( [ $b->fetch_all_indexes ], [ 0, 1, 2 ], "check ids" );
 
 $b->delete(1);
 is( $b->fetch_with_id(1)->fetch, undef, "check deleted id" );
@@ -215,7 +206,7 @@ eq_or_diff( \@all, [qw/baz bar toto titi toto titi toto2/], "check fetch_all_val
 
 my $lac = $root->fetch_element('list_with_auto_created_id');
 eq_or_diff(
-    [ $lac->get_all_indexes ],
+    [ $lac->fetch_all_indexes ],
     [ 0 .. 3 ],
     "check list_with_auto_created_id"
 );
@@ -329,23 +320,16 @@ eq_or_diff(
 eq_or_diff( [ $pl->fetch_all_values( mode => 'custom' ) ],
     ['bar'], "check that custom values are read" );
 
-# test key migration
-my $lwmkf = $root->fetch_element('list_with_migrate_keys_from');
-my @to_migrate =
-  $root->fetch_element('list_with_auto_created_id')->get_all_indexes;
-eq_or_diff( [ $lwmkf->get_all_indexes ],
-    \@to_migrate, "check migrated ids (@to_migrate)" );
-    
 # test default_with_init on leaf
 my $lwdwil = $root->fetch_element('list_with_default_with_init_leaf');
-# note: calling get_all_indexes is required to trigger creation of default_with_init keys
-eq_or_diff([$lwdwil->get_all_indexes],[0,1],"check default keys");
+# note: calling fetch_all_indexes is required to trigger creation of default_with_init keys
+eq_or_diff([$lwdwil->fetch_all_indexes],[0,1],"check default keys");
 is($lwdwil->fetch_with_id(0)->fetch,'def_1 stuff',"test default_with_init leaf 0") ;
 is($lwdwil->fetch_with_id(1)->fetch,'def_2 stuff',"test default_with_init leaf 1") ;
 
 # test default_with_init on node
 my $lwdwin = $root->fetch_element('list_with_default_with_init_node');
-eq_or_diff([$lwdwin->get_all_indexes],[0,1],"check default keys");
+eq_or_diff([$lwdwin->fetch_all_indexes],[0,1],"check default keys");
 is($lwdwin->fetch_with_id(0)->fetch_element('X')->fetch,'Bv',"test default_with_init node 0") ;
 is($lwdwin->fetch_with_id(0)->fetch_element('Y')->fetch,'Cv',"test default_with_init node 0") ;
 is($lwdwin->fetch_with_id(1)->fetch_element('X')->fetch,'Av',"test default_with_init node 0") ;
@@ -393,16 +377,16 @@ foreach my $what (qw/forbid warn suppress/) {
 # done after auto_create_ids tests, because preset_clear or layered_clear
 # also clean up auto_create_ids (if there's no data in there)
 $pl->clear ;
-eq_or_diff( [ $pl->get_all_indexes ], [ ] ,"check that preset stuff was cleared");
+eq_or_diff( [ $pl->fetch_all_indexes ], [ ] ,"check that preset stuff was cleared");
 
 $inst->preset_start;
 $pl->fetch_with_id(0)->store('prefoo');
 $pl->fetch_with_id(1)->store('prebar');
 $inst->preset_stop;
-eq_or_diff( [ $pl->get_all_indexes ], [0,1] ,"check preset indexes");
+eq_or_diff( [ $pl->fetch_all_indexes ], [0,1] ,"check preset indexes");
 $pl->fetch_with_id(1)->store('bar');
 $inst->preset_clear ;
-eq_or_diff( [ $pl->get_all_indexes ], [0] ,"check that only preset stuff was cleared");
+eq_or_diff( [ $pl->fetch_all_indexes ], [0] ,"check that only preset stuff was cleared");
 is($pl->fetch_with_id(0)->fetch,'bar',"check that bar was moved from 1 to 0");
 
 # test layered stuff
@@ -411,10 +395,10 @@ $inst->layered_start;
 $pl->fetch_with_id(0)->store('prefoo');
 $pl->fetch_with_id(1)->store('prebar');
 $inst->layered_stop;
-eq_or_diff( [ $pl->get_all_indexes ], [0,1] ,"check layered indexes");
+eq_or_diff( [ $pl->fetch_all_indexes ], [0,1] ,"check layered indexes");
 $pl->fetch_with_id(1)->store('bar');
 $inst->layered_clear ;
-eq_or_diff( [ $pl->get_all_indexes ], [0] ,"check that only layered stuff was cleared");
+eq_or_diff( [ $pl->fetch_all_indexes ], [0] ,"check that only layered stuff was cleared");
 is($pl->fetch_with_id(0)->fetch,'bar',"check that bar was moved from 1 to 0");
 $pl->clear ;
 memory_cycle_ok($model);

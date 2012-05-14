@@ -9,11 +9,12 @@
 #
 package Config::Model::Value ;
 {
-  $Config::Model::Value::VERSION = '2.014';
+  $Config::Model::Value::VERSION = '2.015';
 }
 
 use Any::Moose;
 use Any::Moose '::Util::TypeConstraints' ;
+use Any::Moose 'X::StrictConstructor' ;
 use namespace::autoclean;
 
 use Data::Dumper ();
@@ -293,14 +294,18 @@ sub set_migrate_from {
 sub migrate_value {
     my $self = shift ;
 
-    my $i = $self->instance;
+    return if $self->{migration_done} ;
+    return if $self->instance->initial_load ;
+    $self->{migration_done} =1 ;
 
     # avoid warning when reading deprecated values
     my $result = $self->{_migrate_from} -> compute (check => 'no');
 
+    return undef unless defined $result;
+
     # check if the migrated result fits with the constraints of the
     # Value object
-    my $ok = $self->check_value(value => $result, mode => 'allow_undef') ;
+    my $ok = $self->check_value(value => $result) ;
 
     #print "check result: $ok\n";
     if (not $ok) {
@@ -314,6 +319,8 @@ sub migrate_value {
 		     );
     }
 
+    # old value is always undef when this method is called
+    $self->notify_change(note =>'migrated value', new => $result );
     $self->{data} = $result ;
 
     return $ok ? $result : undef ;
@@ -1047,8 +1054,8 @@ sub apply_fix {
     }
     
     $self->notify_change(
-        old => $value // $self->_pre_fetch, 
-        new => $self->{data} // $self->_pre_fetch,
+        old => $value // $self->_fetch_std, 
+        new => $self->{data} // $self->_fetch_std,
         note => 'applied fix'
     ) ;
     # $self->store(value => $_, check => 'no');  # will update $self->{fixes}
@@ -1144,8 +1151,8 @@ sub store {
 	    no warnings 'uninitialized';
 	    $self->notify_change(
                 check_done => 1,
-                old => $self->{data} // $self->_pre_fetch, 
-                new => $value // $self->_pre_fetch
+                old => $self->{data} // $self->_fetch_std, 
+                new => $value // $self->_fetch_std
             ) if $notify_change;
 	    $self->{data} = $value ; # may be undef
 	}
@@ -1299,7 +1306,7 @@ sub fetch_custom {
 
 sub fetch_standard {
     my $self = shift ;
-    my $pre_fetch = $self->_pre_fetch ;
+    my $pre_fetch = $self->_fetch_std ;
     my $v = defined $pre_fetch                 ? $pre_fetch 
           : defined $self->{layered}           ? $self->{layered}
           : $self->compute_is_upstream_default ? $self->perform_compute
@@ -1323,7 +1330,7 @@ sub _init {
 
 # returns something that needs to be written to config file
 # unless overridden by user data
-sub _pre_fetch {
+sub _fetch_std {
     my ($self, $mode, $check) = @_ ;
 
     #$self->_init ;
@@ -1372,16 +1379,23 @@ sub _fetch {
     $logger->debug("called for ".$self->location) if $logger->is_debug ;
 
     # always call to perform submit_to_warp
-    my $pref = $self->_pre_fetch($mode, $check) ;
+    my $pref = $self->_fetch_std($mode, $check) ;
+
+    my $data = $self->{data} ;
+    my $std_backup = $self->{_std_backup} ;
+    if (defined $pref 
+        and (not defined $data or not defined $std_backup or $data ne $std_backup)) {
+        $self->{_std_backup} = $pref ;
+        $self->notify_change(old => $data // $std_backup, new => $pref, note => "use standard value") ;
+    }
+
     my $known_upstream = defined $self->{layered} ? $self->{layered}
 		       : $self->compute_is_upstream_default ? $self->perform_compute 
                        :                            $self->{upstream_default} ;
     my $std = defined $pref ? $pref : $known_upstream ;
-    my $data = $self->{data} ;
 
     if (not defined $data and defined $self->{_migrate_from}) {
 	$data =  $self->migrate_value ;
-	$self->notify_change(note =>'migrated value', new => $data ) ;
     }
 
     foreach my $k (keys %old_mode) {
@@ -1634,7 +1648,7 @@ Config::Model::Value - Strongly typed configuration value
 
 =head1 VERSION
 
-version 2.014
+version 2.015
 
 =head1 SYNOPSIS
 

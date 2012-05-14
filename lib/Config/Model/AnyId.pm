@@ -9,7 +9,7 @@
 #
 package Config::Model::AnyId ;
 {
-  $Config::Model::AnyId::VERSION = '2.014';
+  $Config::Model::AnyId::VERSION = '2.015';
 }
 
 use Any::Moose ;
@@ -58,7 +58,8 @@ has \@common_hash_params => (is => 'ro', isa => 'Maybe[HashRef]') ;
 my @common_list_params = qw/allow_keys default_keys auto_create_keys/;
 has \@common_list_params => (is => 'ro', isa => 'Maybe[ArrayRef]') ;
 
-my @common_str_params  = qw/allow_keys_from allow_keys_matching follow_keys_from migrate_keys_from 
+my @common_str_params  = qw/allow_keys_from allow_keys_matching follow_keys_from 
+                        migrate_keys_from migrate_values_from
                             duplicates warn_if_key_match warn_unless_key_match/;
 has \@common_str_params => (is => 'ro', isa => 'Maybe[Str]') ;
 
@@ -148,7 +149,7 @@ sub set_properties {
                 ) unless ($self->{index_type} eq 'integer' or 
                           $self->{index_type} eq 'string');
 
-    my @current_idx = $self->_get_all_indexes( );
+    my @current_idx = $self->_fetch_all_indexes( );
     if (@current_idx) {
         my $first_idx = shift @current_idx ;
         my $last_idx  = pop   @current_idx ;
@@ -264,7 +265,7 @@ sub cargo_type { goto &get_cargo_type; }
 
 sub get_cargo_type {
     my $self = shift ;
-    #my @ids = $self->get_all_indexes ;
+    #my @ids = $self->fetch_all_indexes ;
     # the returned cargo type might be different from collected type
     # when collected type is 'warped_node'. 
     #return @ids ? $self->fetch_with_id($ids[0])->get_cargo_type
@@ -312,16 +313,11 @@ sub get_default_keys {
 
     if ($self->{follow_keys_from}) {
         my $followed = $self->safe_typed_grab(param => 'follow_keys_from') ;
-        my @res = $followed -> get_all_indexes ;
+        my @res = $followed -> fetch_all_indexes ;
         return wantarray ? @res : \@res ;
     }
 
     my @res ;
-
-    if ($self->{migrate_keys_from}) {
-        my $followed = $self->safe_typed_grab(param => 'migrate_keys_from', check => 'no') ;
-        push @res , $followed -> get_all_indexes ;
-    }
 
     push @res , @{ $self->{default_keys} }
       if defined $self->{default_keys} ;
@@ -515,7 +511,7 @@ sub check_idx {
         if defined $self->{max_nb} and $new_nb > $self->{max_nb};
 
     if (scalar @error) {
-        my @a = $self->get_all_indexes ;
+        my @a = $self->_fetch_all_indexes ;
         push @error, "Instance ids are '".join(',', @a)."'" ,
           $self->warp_error  ;
     }
@@ -541,7 +537,7 @@ sub check_follow_keys_from {
     return if $followed->exists($idx) ;
 
     push @$error, "key '$idx' does not exists in '".$followed->name 
-              . "'. Expected '" . join("', '", $followed->get_all_indexes) . "'" ;
+              . "'. Expected '" . join("', '", $followed->fetch_all_indexes) . "'" ;
 }
 
 #internal
@@ -569,14 +565,14 @@ sub check_allow_keys_from {
     my ($self,$idx,$error) = @_ ; 
 
     my $from = $self->safe_typed_grab(param => 'allow_keys_from');
-    my $ok = grep { $_ eq $idx } $from->get_all_indexes ;
+    my $ok = grep { $_ eq $idx } $from->fetch_all_indexes ;
 
     return if $ok ;
 
     push @$error, "key '$idx' does not exists in '"
                       . $from->name 
                       . "'. Expected '"
-                      . join( "', '", $from->get_all_indexes). "'"  ;
+                      . join( "', '", $from->fetch_all_indexes). "'"  ;
 
 }
 
@@ -604,7 +600,7 @@ sub check_duplicates {
     my %h;
     my @issues;
     my @to_delete ;
-    foreach my $i ( $self->get_all_indexes ) {
+    foreach my $i ( $self->fetch_all_indexes ) {
         my $v = $self->fetch_with_id(index => $i, check => 'no')->fetch;
         next unless $v ;
         $h{$v} = 0 unless defined $h{$v} ;
@@ -640,17 +636,19 @@ sub check_duplicates {
     }
 }
 
-
-
-
 sub fetch_with_id {
     my $self = shift ;
     my %args = @_ > 1 ? @_ : ( index => shift ) ;
     my $check = $self->_check_check($args{check}) ;    
     my $idx = $args{index} ;
 
+    $logger->debug($self->name," called for idx $idx") if $logger->is_debug ;
+    
     $idx = $self->{convert_sub}($idx) 
       if (defined $self->{convert_sub} and defined $idx) ;
+
+    # try migration only once
+    $self->_migrate unless $self->{migration_done};
 
     my $ok = 1 ;
     # check index only if it's unknown
@@ -732,7 +730,7 @@ sub copy {
 
 sub fetch_all {
     my $self = shift ;
-    my @keys  = $self->get_all_indexes ;
+    my @keys  = $self->fetch_all_indexes ;
     return map { $self->fetch_with_id($_) ;} @keys ;
 }
 
@@ -743,7 +741,7 @@ sub fetch_all_values {
     my $mode = $args{mode};
     my $check = $self->_check_check($args{check}) ;
     
-    my @keys  = $self->get_all_indexes ;
+    my @keys  = $self->fetch_all_indexes ;
 
     if ( $self->{cargo}{type} eq 'leaf' ) {
         my $ok = $check eq 'no' ? 1 : $self->check_content( );
@@ -780,16 +778,22 @@ sub fetch_all_values {
 }
 
 
-sub get_all_indexes {
+sub fetch_all_indexes {
     my $self = shift;
     $self->create_default ; # will check itself if creation is necessary
-    return $self->_get_all_indexes ;
+    $self->_migrate ;
+    return $self->_fetch_all_indexes ;
 }
 
+sub get_all_indexes {
+    my $self = shift;
+    carp "get_all_indexes is deprecated. use fetch_all_indexes" ;
+    return $self->fetch_all_indexes ;
+}
 
 sub children {
     my $self = shift ;
-    return $self->get_all_indexes ;
+    return $self->fetch_all_indexes ;
 }
 
 
@@ -923,7 +927,7 @@ sub clear_values {
 
 
     # this will trigger a notify_change
-    map {$self->fetch_with_id($_)->store(undef)} $self->get_all_indexes ;
+    map {$self->fetch_with_id($_)->store(undef)} $self->fetch_all_indexes ;
     $self->notify_change ;
   }
 
@@ -968,7 +972,7 @@ Config::Model::AnyId - Base class for hash or list element
 
 =head1 VERSION
 
-version 2.014
+version 2.015
 
 =head1 SYNOPSIS
 
@@ -1152,10 +1156,19 @@ When the hash contains leaves, you can also use:
 
 =item migrate_keys_from
 
-Specifies that the keys of the hash or list are copied from another hash or list in
-the configuration tree only when the hash is created. 
+Specifies that the keys of the hash are copied from another hash in
+the configuration tree only when the hash is read for the first time after
+initial load (i.e. once the configuration files are completely read). 
 
-   migrate_keys_from => '- another_hash_or_list'
+   migrate_keys_from => '- another_hash'
+
+=item migrate_values_from
+
+Specifies that the values of the hash (or list) are copied from another hash (or list) in
+the configuration tree only when the hash (or list) is read for the first time after
+initial load (i.e. once the configuration files are completely read). 
+
+   migrate_values_from => '- another_hash_or_list'
 
 =item follow_keys_from
 
@@ -1409,14 +1422,14 @@ The default value (defined by the configuration model)
 
 =back
 
-=head2 get_all_indexes()
+=head2 fetch_all_indexes()
 
 Returns an array containing all indexes of the hash or list. Hash keys
 are sorted alphabetically, except for ordered hashed.
 
 =head2 children 
 
-Like get_all_indexes. This method is
+Like fetch_all_indexes. This method is
 polymorphic for all non-leaf objects of the configuration tree.
 
 =head2 defined ( index )

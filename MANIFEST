@@ -7,6 +7,7 @@ META.yml
 MODELS
 README
 TODO
+build_pkg
 config-edit
 contrib/bash_completion.cme
 contrib/bash_completion.config-edit
@@ -55,6 +56,7 @@ lib/Config/Model/Iterator.pm
 lib/Config/Model/ListId.pm
 lib/Config/Model/Lister.pm
 lib/Config/Model/Loader.pm
+lib/Config/Model/Manual/DataMigration.pod
 lib/Config/Model/Manual/ModelCreationAdvanced.pod
 lib/Config/Model/Manual/ModelCreationIntroduction.pod
 lib/Config/Model/Node.pm
@@ -229,6 +231,7 @@ script/gen_class_pod.pl
 t/accept.t
 t/annotation.t
 t/array_id.t
+t/array_with_data_migration.t
 t/augment_class.t
 t/auto_load_model.t
 t/auto_read.t
@@ -250,6 +253,7 @@ t/fuse_ui.t
 t/grab.t
 t/hash_id_of_node.t
 t/hash_id_of_values.t
+t/hash_with_data_migration.t
 t/include.t
 t/instance.t
 t/iterator.t

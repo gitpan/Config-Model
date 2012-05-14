@@ -28,7 +28,7 @@
 
 package Config::Model::Dumper;
 {
-  $Config::Model::Dumper::VERSION = '2.014';
+  $Config::Model::Dumper::VERSION = '2.015';
 }
 use Carp;
 use strict;
@@ -43,7 +43,7 @@ Config::Model::Dumper - Serialize data of config tree
 
 =head1 VERSION
 
-version 2.014
+version 2.015
 
 =head1 SYNOPSIS
 
@@ -288,7 +288,7 @@ sub dump_tree {
         }
         else {
             # write value comments
-            foreach my $idx ($list_obj->get_all_indexes) {
+            foreach my $idx ($list_obj->fetch_all_indexes) {
                 my $note = $list_obj->fetch_with_id($idx)->annotation ;
                 $$data_r .= "\n$pad$element:$idx#".note_quote($note) if $note ;
             }

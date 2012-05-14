@@ -10,7 +10,7 @@
 
 package Config::Model::Backend::Debian::Dpkg::Control ;
 {
-  $Config::Model::Backend::Debian::Dpkg::Control::VERSION = '2.014';
+  $Config::Model::Backend::Debian::Dpkg::Control::VERSION = '2.015';
 }
 
 use Any::Moose ;
@@ -183,7 +183,7 @@ sub write {
     my @sections = [ $self-> package_spec($node->fetch_element('source')) ];
 
     my $binary_hash = $node->fetch_element('binary') ;
-    foreach my $binary_name ( $binary_hash -> get_all_indexes ) {
+    foreach my $binary_name ( $binary_hash -> fetch_all_indexes ) {
         my $ref = [ Package => $binary_name ,
                     $self->package_spec($binary_hash->fetch_with_id($binary_name)) ];
         
@@ -241,7 +241,7 @@ Config::Model::Backend::Debian::Dpkg::Control - Read and write Debian Dpkg contr
 
 =head1 VERSION
 
-version 2.014
+version 2.015
 
 =head1 SYNOPSIS
 

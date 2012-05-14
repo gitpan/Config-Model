@@ -9,7 +9,7 @@
 #
 package Config::Model::Tester;
 {
-  $Config::Model::Tester::VERSION = '2.014';
+  $Config::Model::Tester::VERSION = '2.015';
 }
 
 use Test::More;
@@ -48,7 +48,7 @@ sub setup_test {
     rmtree($wr_root);
     mkpath( $wr_root, { mode => 0755 } );
 
-    my $wr_dir    = $wr_root . '/test-' . $t_name;
+    my $wr_dir    = $wr_root . '/test-' . $t_name.'/';
     my $conf_file ;
     $conf_file = "$wr_dir/$conf_dir/$conf_file_name" if defined $conf_file_name;
 
@@ -231,6 +231,18 @@ sub run_model_test {
             } 
         }
 
+        if (my $fc = $t->{file_contents_like}) {
+            foreach my $f (keys %$fc) {
+                file_contents_like $wr_dir.$f,  $fc->{$f},  "check that $f matches regexp";
+            } 
+        }
+
+        if (my $fc = $t->{file_contents_unlike}) {
+            foreach my $f (keys %$fc) {
+                file_contents_unlike $wr_dir.$f,  $fc->{$f},  "check that $f does not match regexp";
+            } 
+        }
+
         my @new_file_list;
         if ( -d $ex_data ) {
 
@@ -245,7 +257,8 @@ sub run_model_test {
         }
 
         # create another instance to read the conf file that was just written
-        my $wr_dir2 = $wr_dir . '-w';
+        my $wr_dir2 = $wr_dir ;
+        $wr_dir2 =~ s!/$!-w/!;
         dircopy( $wr_dir, $wr_dir2 )
           or die "can't copy from $wr_dir to $wr_dir2: $!";
 
@@ -337,7 +350,7 @@ Config::Model::Tester - Test framework for Config::Model
 
 =head1 VERSION
 
-version 2.014
+version 2.015
 
 =head1 SYNOPSIS
 
@@ -542,6 +555,14 @@ Check the content of the written files(s) with L<Test::File::Contents>:
    file_content => { 
             "/home/foo/my_arm.conf" => "really big string" ,
         }
+   
+   file_contents_like => {
+            "/home/foo/my_arm.conf" => qw/should be there/ ,
+   }
+
+   file_contents_unlike => {
+            "/home/foo/my_arm.conf" => qw/should NOT be there/ ,
+   }
 
 =item *
 

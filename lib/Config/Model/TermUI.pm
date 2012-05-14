@@ -29,7 +29,7 @@
 
 package Config::Model::TermUI ;
 {
-  $Config::Model::TermUI::VERSION = '2.014';
+  $Config::Model::TermUI::VERSION = '2.015';
 }
 
 use Carp;
@@ -47,7 +47,7 @@ Config::Model::TermUI - Provides Config::Model UI à la Term::ReadLine
 
 =head1 VERSION
 
-version 2.014
+version 2.015
 
 =head1 SYNOPSIS
 
@@ -225,7 +225,7 @@ my $cd_completion_sub = sub {
 	}
     }
     elsif ($new_type eq 'hash' or $new_type eq 'list') {
-	my @idx = $new_item -> get_all_indexes ;
+	my @idx = $new_item -> fetch_all_indexes ;
 	if (@idx) {
 	    my $quote = $line =~ /"$/ ? '' : '"';
 	    my @tmp = map { /\s/ ? qq($quote$_" ) : qq($_ ); } @idx ;

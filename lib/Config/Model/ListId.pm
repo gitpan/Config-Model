@@ -9,7 +9,7 @@
 #
 package Config::Model::ListId ;
 {
-  $Config::Model::ListId::VERSION = '2.014';
+  $Config::Model::ListId::VERSION = '2.015';
 }
 use Any::Moose ;
 use namespace::autoclean;
@@ -32,11 +32,15 @@ sub BUILD {
     my $self = shift;
 
     foreach my $wrong (qw/max_nb min_index default_keys/) {
-        Config::Model::Exception::Model->throw 
-            (
+        Config::Model::Exception::Model->throw (
             object => $self,
             error =>  "Cannot use $wrong with ".$self->get_type." element"
         ) if defined $self->{$wrong};
+    }
+
+    if (defined $self->{migrate_keys_from}) {
+        warn $self->name, "Using migrate_keys_from with list element is deprecated.",
+            " Use migrate_values_from\n" ;
     }
 
     # Supply the mandatory parameter
@@ -63,20 +67,47 @@ sub set_properties {
     }
 }
 
+sub _migrate {
+    my $self = shift;
+
+    return if $self->{migration_done};
+    
+    # migration must be done *after* initial load to make sure that all data
+    # were retrieved from the file before migration. 
+    return if $self->instance->initial_load ;
+    
+    $self->{migration_done} = 1;
+    
+    if ( $self->{migrate_values_from}) {
+        my $followed = $self->safe_typed_grab(param => 'migrate_values_from', check => 'no') ;
+        $logger ->debug($self->name," migrate values from ",$followed->name) if $logger->is_debug;
+        my $idx   = $self->fetch_size ;
+        foreach my $item ( $followed -> fetch_all_indexes ) {
+            my $data = $followed->fetch_with_id($item) -> dump_as_data(check => 'no') ;
+            $self->fetch_with_id( $idx++ )->load_data($data) ;
+        }
+    }
+    elsif ($self->{migrate_keys_from}) {
+        # FIXME: remove this deprecated stuff
+        my $followed = $self->safe_typed_grab(param => 'migrate_keys_from', check => 'no') ;
+        map { $self->_store($_, undef) unless $self->_defined($_) } $followed -> fetch_all_indexes ;
+    }
+
+
+}
 
 sub get_type {
     my $self = shift;
     return 'list' ;
 }
 
-
+# important: return the actual size (not taking into account auto-created stuff)
 sub fetch_size {
     my $self =shift ;
-    confess "Undef data " unless defined $self->{data} ;
     return scalar @{$self->{data}} ;
 }
 
-sub _get_all_indexes {
+sub _fetch_all_indexes {
     my $self = shift ;
     my $data = $self->{data} ;
     return scalar @$data ? (0 .. $#$data ) : () ;
@@ -171,6 +202,7 @@ sub _store {
 
 sub _defined {
     my ($self,$key) = @_ ;
+    croak "argument '$key' is not numeric" unless $key =~ /^\d+$/;
     return defined $self->{data}[$key];
 }
 
@@ -222,7 +254,7 @@ sub move {
 # list only methods
 sub push {
     my $self = shift ;
-    my $idx   = scalar @{$self->{data}};
+    my $idx   = $self->fetch_size ;
     map { $self->fetch_with_id( $idx++ )->store( $_ ) ; } @_ ;
 }
 
@@ -232,7 +264,6 @@ sub push_x {
     my $self = shift ;
     my %args = @_ ;
     my $check = delete $args{check} || 'yes'; 
-    my $idx   = scalar @{$self->{data}};
     my $v_arg = delete $args{values} ;
     my @v = ref ($v_arg) ? @$v_arg : ($v_arg)  ;
     my $anno = delete $args{annotation} ;
@@ -240,6 +271,7 @@ sub push_x {
     
     croak("push_x: unexpected parameter ",join(' ',keys %args)) if %args ;
     
+    my $idx   = $self->fetch_size ;
     while (@v) {
         my $val = shift @v ;
         my $obj = $self->fetch_with_id( $idx++ );
@@ -288,7 +320,7 @@ sub auto_create_elements {
     my $auto_nb = $self->auto_create_ids ;
     return unless defined $auto_nb ;
     
-    $logger->debug("auto-creating $auto_nb elements");
+    $logger->debug($self->name," auto-creating $auto_nb elements");
 
     Config::Model::Exception::Model
         ->throw (
@@ -354,7 +386,7 @@ Config::Model::ListId - Handle list element for configuration model
 
 =head1 VERSION
 
-version 2.014
+version 2.015
 
 =head1 SYNOPSIS
 

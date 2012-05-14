@@ -31,7 +31,7 @@
 
 package Config::Model::Backend::IniFile ;
 {
-  $Config::Model::Backend::IniFile::VERSION = '2.014';
+  $Config::Model::Backend::IniFile::VERSION = '2.015';
 }
 
 use Carp;
@@ -269,7 +269,7 @@ sub _write {
         my $obj_note = $obj->annotation ;
         
         if ($type eq 'hash') {
-            foreach my $key ($obj->get_all_indexes) {
+            foreach my $key ($obj->fetch_all_indexes) {
                 my $hash_obj = $obj->fetch_with_id($key) ;
                 my $note = $hash_obj->annotation;
                 $logger->debug("writing hash elt $elt key $key");
@@ -317,7 +317,7 @@ Config::Model::Backend::IniFile - Read and write config as a INI file
 
 =head1 VERSION
 
-version 2.014
+version 2.015
 
 =head1 SYNOPSIS
 
