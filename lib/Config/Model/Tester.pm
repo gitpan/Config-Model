@@ -9,7 +9,7 @@
 #
 package Config::Model::Tester;
 {
-  $Config::Model::Tester::VERSION = '2.015';
+  $Config::Model::Tester::VERSION = '2.016';
 }
 
 use Test::More;
@@ -350,7 +350,7 @@ Config::Model::Tester - Test framework for Config::Model
 
 =head1 VERSION
 
-version 2.015
+version 2.016
 
 =head1 SYNOPSIS
 
@@ -557,11 +557,11 @@ Check the content of the written files(s) with L<Test::File::Contents>:
         }
    
    file_contents_like => {
-            "/home/foo/my_arm.conf" => qw/should be there/ ,
+            "/home/foo/my_arm.conf" => qr/should be there/ ,
    }
 
    file_contents_unlike => {
-            "/home/foo/my_arm.conf" => qw/should NOT be there/ ,
+            "/home/foo/my_arm.conf" => qr/should NOT be there/ ,
    }
 
 =item *
