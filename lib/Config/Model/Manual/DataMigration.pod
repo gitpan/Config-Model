@@ -8,7 +8,7 @@ Config::Model::Manual::DataMigration - My author was too lazy to write an abstra
 
 =head1 VERSION
 
-version 2.016
+version 2.017
 
 =head1 Introduction
 

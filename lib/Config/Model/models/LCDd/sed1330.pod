@@ -4,7 +4,7 @@ Config::Model::models::LCDd::sed1330 - Configuration class LCDd::sed1330
 
 =head1 VERSION
 
-version 2.016
+version 2.017
 
 =head1 DESCRIPTION
 

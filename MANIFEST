@@ -7,7 +7,6 @@ META.yml
 MODELS
 README
 TODO
-build_pkg
 config-edit
 contrib/bash_completion.cme
 contrib/bash_completion.config-edit
