@@ -9,7 +9,7 @@
 #
 package Config::Model::AnyThing;
 {
-  $Config::Model::AnyThing::VERSION = '2.017';
+  $Config::Model::AnyThing::VERSION = '2.018';
 }
 
 use Any::Moose ;
@@ -70,7 +70,8 @@ sub notify_change {
 
     return if $self->instance->initial_load  and not $args{really};
 
-    $change_logger->debug("called for ",$self->name) if $change_logger->is_debug ;
+    $change_logger->debug("called for ",$self->name, " from ", join(' ',caller) ) 
+        if $change_logger->is_debug ;
 
     # needs_save may be overridden by caller
     $args{needs_save} //= 1 ;
@@ -573,7 +574,7 @@ Config::Model::AnyThing - Base class for configuration tree item
 
 =head1 VERSION
 
-version 2.017
+version 2.018
 
 =head1 SYNOPSIS
 

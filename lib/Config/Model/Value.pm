@@ -9,8 +9,10 @@
 #
 package Config::Model::Value ;
 {
-  $Config::Model::Value::VERSION = '2.017';
+  $Config::Model::Value::VERSION = '2.018';
 }
+
+use 5.10.1 ;
 
 use Any::Moose;
 use Any::Moose '::Util::TypeConstraints' ;
@@ -1096,10 +1098,21 @@ sub check {
     }
 
     my $warn = $self->{warning_list};
-    map {
-	my $str = defined $value ? "'$value'" : '<undef>';
-	warn "Warning in '" . $self->location . "' value $str: $_\n";
-    } @$warn if @$warn and not $nowarning and not $silent;
+    
+    # old_warn is used to avoid warning the user several times for the 
+    # same reason. We take care to clean up this hash each time this routine
+    # is run
+    my $old_warn = $self->{old_warning_hash} || {} ;
+    my %warn_h ;
+    if (@$warn and not $nowarning and not $silent) {
+        foreach my $w (@$warn) {
+            $warn_h{$w} = 1 ;
+            next if $old_warn->{$w} ;
+            my $str = defined $value ? "'$value'" : '<undef>';
+            warn "Warning in '" . $self->location . "' value $str: $w\n";
+        }
+    }
+    $self->{old_warning_hash} = \%warn_h ;
 
     my $e = $self->{error_list} ;
     return wantarray ? @$e : not scalar @$e ;
@@ -1382,11 +1395,10 @@ sub _fetch {
     my $pref = $self->_fetch_std($mode, $check) ;
 
     my $data = $self->{data} ;
-    my $std_backup = $self->{_std_backup} ;
-    if (defined $pref 
-        and (not defined $data or not defined $std_backup or $data ne $std_backup)) {
+    my $old_data = $data // $self->{_std_backup} ;
+    if (defined $pref  and not defined $old_data) {
         $self->{_std_backup} = $pref ;
-        $self->notify_change(old => $data // $std_backup, new => $pref, note => "use standard value") ;
+        $self->notify_change(old => $old_data, new => $pref, note => "use standard value") ;
     }
 
     my $known_upstream = defined $self->{layered} ? $self->{layered}
@@ -1648,7 +1660,7 @@ Config::Model::Value - Strongly typed configuration value
 
 =head1 VERSION
 
-version 2.017
+version 2.018
 
 =head1 SYNOPSIS
 

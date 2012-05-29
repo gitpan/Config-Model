@@ -9,7 +9,7 @@
 #
 package Config::Model;
 {
-  $Config::Model::VERSION = '2.017';
+  $Config::Model::VERSION = '2.018';
 }
 use Any::Moose ;
 use namespace::autoclean;
@@ -96,7 +96,7 @@ Config::Model - Create tools to validate, migrate and edit configuration files
 
 =head1 VERSION
 
-version 2.017
+version 2.018
 
 =head1 SYNOPSIS
 

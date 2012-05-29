@@ -55,7 +55,6 @@ lib/Config/Model/Iterator.pm
 lib/Config/Model/ListId.pm
 lib/Config/Model/Lister.pm
 lib/Config/Model/Loader.pm
-lib/Config/Model/Manual/DataMigration.pod
 lib/Config/Model/Manual/ModelCreationAdvanced.pod
 lib/Config/Model/Manual/ModelCreationIntroduction.pod
 lib/Config/Model/Node.pm

@@ -9,7 +9,7 @@
 #
 package Config::Model::Node;
 {
-  $Config::Model::Node::VERSION = '2.017';
+  $Config::Model::Node::VERSION = '2.018';
 }
 
 use Any::Moose ;
@@ -342,8 +342,9 @@ sub init {
     return
       unless defined $model->{read_config}
           or defined $model->{write_config};
-          
-    $self->instance->initial_load_start ;
+    
+    my $initial_load_backup = $self->instance->initial_load ;      
+    $self->instance->initial_load_start;
     
     $self->{bmgr} ||= Config::Model::BackendMgr->new( node => $self );
 
@@ -368,7 +369,7 @@ sub init {
         );
     }
 
-    $self->instance->initial_load_stop ;
+    $self->instance->initial_load( $initial_load_backup );
 }
 
 sub read_config_data {
@@ -1167,7 +1168,7 @@ Config::Model::Node - Class for configuration tree node
 
 =head1 VERSION
 
-version 2.017
+version 2.018
 
 =head1 SYNOPSIS
 

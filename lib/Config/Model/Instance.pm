@@ -9,7 +9,7 @@
 #
 package Config::Model::Instance;
 {
-  $Config::Model::Instance::VERSION = '2.017';
+  $Config::Model::Instance::VERSION = '2.018';
 }
 #use Scalar::Util qw(weaken) ;
 
@@ -113,10 +113,21 @@ has on_change_cb => (
 
 # initial_load mode: when data is loaded the first time
 has initial_load => ( 
-    is => 'ro',
+    is => 'rw',
     isa => 'Bool' ,
-    default => 1,
+    default => 0,
+    trigger => \&_trace_initial_load,
+    traits => [qw/Bool/],
+    handles => {
+        initial_load_start => 'set',
+        initial_load_stop => 'unset',
+    }
 ) ;
+
+sub _trace_initial_load { 
+    my ($self,$n,$o) = @_;
+    $logger->debug("switched to $n") ;
+}
 
 # This array holds a set of sub ref that will be invoked when
 # the users requires to write all configuration tree in their
@@ -262,18 +273,6 @@ sub _stuff_clear {
 
     $wiper->scan_node(undef,$self->config_root) ;
 
-}
-
-sub initial_load_start {
-    my $self = shift ;
-    $logger->info("Start initial_load mode");
-    $self->{initial_load} = 1;
-}
-
-sub initial_load_stop {
-    my $self = shift ;
-    $logger->info("Stopping initial_load mode");
-    $self->{initial_load} = 0;
 }
 
 
@@ -463,7 +462,7 @@ Config::Model::Instance - Instance of configuration tree
 
 =head1 VERSION
 
-version 2.017
+version 2.018
 
 =head1 SYNOPSIS
 

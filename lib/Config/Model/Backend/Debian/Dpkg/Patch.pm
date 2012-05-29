@@ -10,7 +10,7 @@
 
 package Config::Model::Backend::Debian::Dpkg::Patch;
 {
-  $Config::Model::Backend::Debian::Dpkg::Patch::VERSION = '2.017';
+  $Config::Model::Backend::Debian::Dpkg::Patch::VERSION = '2.018';
 }
 
 use 5.10.1 ;
@@ -180,7 +180,7 @@ Config::Model::Backend::Debian::Dpkg::Patch - Read and write Debian Dpkg Patch i
 
 =head1 VERSION
 
-version 2.017
+version 2.018
 
 =head1 SYNOPSIS
 
