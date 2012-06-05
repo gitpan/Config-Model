@@ -8,7 +8,7 @@
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
 
-#    Copyright (c) 2006-2008 Dominique Dumont.
+#    Copyright (c) 2006-2012 Dominique Dumont.
 #
 #    This file is part of Config-Model.
 #
@@ -29,7 +29,7 @@
 
 package Config::Model::TermUI ;
 {
-  $Config::Model::TermUI::VERSION = '2.018';
+  $Config::Model::TermUI::VERSION = '2.019';
 }
 
 use Carp;
@@ -40,6 +40,7 @@ use Term::ReadLine;
 
 use base qw/Config::Model::SimpleUI/ ;
 
+=encoding utf8
 
 =head1 NAME
 
@@ -47,7 +48,7 @@ Config::Model::TermUI - Provides Config::Model UI à la Term::ReadLine
 
 =head1 VERSION
 
-version 2.018
+version 2.019
 
 =head1 SYNOPSIS
 

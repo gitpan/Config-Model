@@ -9,7 +9,7 @@
 #
 package Config::Model::Tester;
 {
-  $Config::Model::Tester::VERSION = '2.018';
+  $Config::Model::Tester::VERSION = '2.019';
 }
 
 use Test::More;
@@ -191,7 +191,7 @@ sub run_model_test {
         {
             local $Config::Model::Value::nowarning = 1;
             &$risky;
-            ok( 1, "Ran dump_tree (no warning check" );
+            ok( 1, "Ran dump_tree (no warning check)" );
         }
         else {
             warnings_like { &$risky; } $t->{dump_warnings}, "Ran dump_tree";
@@ -311,7 +311,7 @@ sub run_tests {
     $log  = 1 if $arg =~ /l/;
     $show = 1 if $arg =~ /s/;
 
-    my $log4perl_user_conf_file = $ENV{HOME} . '/.log4config-model';
+    my $log4perl_user_conf_file = ($ENV{HOME} || '') . '/.log4config-model';
 
     if ( $log and -e $log4perl_user_conf_file ) {
         Log::Log4perl::init($log4perl_user_conf_file);
@@ -350,7 +350,7 @@ Config::Model::Tester - Test framework for Config::Model
 
 =head1 VERSION
 
-version 2.018
+version 2.019
 
 =head1 SYNOPSIS
 

@@ -4,7 +4,7 @@ Config::Model::models::LCDd::IOWarrior - Configuration class LCDd::IOWarrior
 
 =head1 VERSION
 
-version 2.018
+version 2.019
 
 =head1 DESCRIPTION
 

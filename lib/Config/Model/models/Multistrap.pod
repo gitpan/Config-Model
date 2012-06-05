@@ -4,7 +4,7 @@ Config::Model::models::Multistrap - Configuration class Multistrap
 
 =head1 VERSION
 
-version 2.018
+version 2.019
 
 =head1 DESCRIPTION
 
@@ -36,7 +36,7 @@ the bootstrap option determines which repository is used to calculate the list o
 
 =head2 debootstrap
 
-Replaced by bootstrap parameter. I<< Optional. Type list of reference.  >>
+Replaced by bootstrap parameter. B<Deprecated> I<< Optional. Type list of reference.  >>
 
 =head2 omitrequired
 
@@ -70,13 +70,15 @@ whether to add the /suite to be explicit about where apt needs to look for packa
 
 I<< Optional. Type boolean. upstream_default: '1'.  >>
 
+Note: unpack is migrated with 'C<$old>' and with $old => "C<- forceunpack>"
+
 =head2 sections
 
 I<< Optional. Type hash of node.  >>
 
 =head2 forceunpack - extract all downloaded archives
 
-deprecated. Replaced by unpack. I<< Optional. Type boolean. upstream_default: '1'.  >>
+deprecated. Replaced by unpack. B<Deprecated> I<< Optional. Type boolean. upstream_default: '1'.  >>
 
 =head1 SEE ALSO
 

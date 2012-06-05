@@ -4,7 +4,7 @@ Config::Model::models::Debian::Dpkg::Copyright::Content - Configuration class De
 
 =head1 VERSION
 
-version 2.018
+version 2.019
 
 =head1 DESCRIPTION
 
@@ -36,15 +36,17 @@ I<< Optional. Type node.  >>
 
 =head2 License-Alias
 
-I<< Optional. Type uniline.  >>
+B<Deprecated> I<< Optional. Type uniline.  >>
 
 =head2 Comment
 
 This field can provide additional information. For example, it might quote an e-mail from upstream justifying why the license is acceptable to the main archive, or an explanation of how this version of the package has been forked from a version known to be DFSG-free, even though the current upstream version is not.I<< Optional. Type string.  >>
 
+Note: Comment is migrated with 'C<$old>' and with $old => "C<- X-Comment>"
+
 =head2 X-Comment
 
-I<< Optional. Type string.  >>
+B<Deprecated> I<< Optional. Type string.  >>
 
 =head1 SEE ALSO
 
