@@ -9,7 +9,7 @@
 #
 package Config::Model::ListId ;
 {
-  $Config::Model::ListId::VERSION = '2.019';
+  $Config::Model::ListId::VERSION = '2.020';
 }
 use Any::Moose ;
 use namespace::autoclean;
@@ -264,7 +264,7 @@ sub push_x {
     my $self = shift ;
     my %args = @_ ;
     my $check = delete $args{check} || 'yes'; 
-    my $v_arg = delete $args{values} ;
+    my $v_arg = delete $args{values} || delete $args{value};
     my @v = ref ($v_arg) ? @$v_arg : ($v_arg)  ;
     my $anno = delete $args{annotation} ;
     my @a = ref ($anno) ? @$anno : $anno ? ($anno) : () ;
@@ -279,6 +279,12 @@ sub push_x {
         $obj->annotation(shift @a) if @a ;
     }
 }
+
+sub store {
+    my $self = shift;
+    $self->push_x(@_) ;
+}
+
 
 
 sub swap {
@@ -386,7 +392,7 @@ Config::Model::ListId - Handle list element for configuration model
 
 =head1 VERSION
 
-version 2.019
+version 2.020
 
 =head1 SYNOPSIS
 
@@ -443,6 +449,30 @@ push some values at the end of the list.
 =head2 push_x ( values => [ v1','v2', ...] , [ ... ] )
 
 Like push with extended options. Options are:
+
+=over
+
+=item check
+
+Check value validaty. Either C<yes> (default), C<no>, C<skip> 
+
+=item values
+
+Values to push (array_ref)
+
+=item value
+
+Single value to push
+
+=item annotation
+
+=back
+
+=head2 store
+
+Equivalent to push_x. This method is provided to help write
+configuration parser, so the call is the same when dealing with leaf or
+list values. Prefer C<push_x> when practical.
 
 =over 4
 

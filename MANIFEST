@@ -314,6 +314,8 @@ t/model_tests.d/debian-dpkg-examples/t1/debian/patches/use-standard-dzil-test
 t/model_tests.d/debian-dpkg-examples/t1/debian/rules
 t/model_tests.d/debian-dpkg-examples/t1/debian/source/format
 t/model_tests.d/debian-dpkg-examples/t1/debian/watch
+t/model_tests.d/debian-dpkg-patch-examples/libperl5i
+t/model_tests.d/debian-dpkg-patch-test-conf.pl
 t/model_tests.d/debian-dpkg-test-conf.pl
 t/model_tests.d/fstab-examples/t0
 t/model_tests.d/fstab-examples/t1

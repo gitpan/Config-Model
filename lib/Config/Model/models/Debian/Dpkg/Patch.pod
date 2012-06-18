@@ -4,7 +4,7 @@ Config::Model::models::Debian::Dpkg::Patch - Configuration class Debian::Dpkg::P
 
 =head1 VERSION
 
-version 2.019
+version 2.020
 
 =head1 DESCRIPTION
 
@@ -22,11 +22,11 @@ verbose explanation of the patch and its history.I<< Optional. Type string.  >>
 
 =head2 Subject
 
-I<< Optional. Type uniline.  >>
+I<< Optional. Type string.  >>
 
 =head2 Bug
 
-I<< Optional. Type uniline.  >>
+I<< Optional. Type list of uniline.  >>
 
 =head2 Forwarded
 
@@ -35,6 +35,10 @@ I<< Optional. Type uniline.  >>
 =head2 Author
 
 I<< Optional. Type uniline.  >>
+
+=head2 Origin
+
+I<< Optional. Type string.  >>
 
 =head2 From
 

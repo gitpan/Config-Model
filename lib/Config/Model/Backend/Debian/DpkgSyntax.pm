@@ -9,7 +9,7 @@
 #
 package Config::Model::Backend::Debian::DpkgSyntax ;
 {
-  $Config::Model::Backend::Debian::DpkgSyntax::VERSION = '2.019';
+  $Config::Model::Backend::Debian::DpkgSyntax::VERSION = '2.020';
 }
 
 use Any::Moose '::Role' ;
@@ -39,7 +39,7 @@ sub parse_dpkg_file {
 # New subroutine "parse_dpkg_lines" extracted - Tue Jul 19 17:47:58 2011.
 #
 sub parse_dpkg_lines {
-    my ($self, $lines, $check, $comment_allowed) = @_ ;
+    my ($self, $lines, $check, $comment_allowed, $handle_garbage) = @_ ;
 
     my $field;
     my $store_ref ;       # hold field data
@@ -47,19 +47,19 @@ sub parse_dpkg_lines {
     my $store_list = [] ; # holds sections
 
     my $key = '';
-    my $line = 1 ;
+    my $line_nb = 1 ;
     my $section_line = 1 ;
     
-    # list of list ( $line_nb, section, ... ) wheere section is
+    # list of list ( $line_nb_nb, section, ... ) wheere section is
     # [keyword, [ value, line_nb, altered , comment ] ])
     my @res ; 
     
     foreach (@$lines) {
-        $logger->trace("Parsing line $line '$_'");
+        $logger->trace("Parsing line $line_nb '$_'");
         if (/^#/) { # comment are always located before the keyword (hopefully)
             Config::Model::Exception::Syntax->throw (
                 object => $self,
-                parsed_line => $line,
+                parsed_line => $line_nb,
                 message => "Comments are not allowed",
             ) unless $comment_allowed;
             my $c = $_ ;
@@ -69,12 +69,12 @@ sub parse_dpkg_lines {
         elsif (/^([\w\-]+)\s*:/) {  # keyword: 
             my ($field,$text) = split /\s*:\s*/,$_,2 ;
             $key = $field ;
-            $logger->trace("line $line start new field $key with '$text'");
+            $logger->trace("line $line_nb start new field $key with '$text'");
 
             # @$store_list will be used in a hash, where the $field is key
             # store value found, file line number, is value altered (used later, o for now)
             # and comments
-            push @$store_list, $field, [ $text , $line, '', @comments ] ;
+            push @$store_list, $field, [ $text , $line_nb, '', @comments ] ;
             @comments = () ;
             $store_ref = \$store_list->[$#$store_list][0] ;
         }
@@ -83,29 +83,33 @@ sub parse_dpkg_lines {
             $key = '';
             push @res, $section_line, $store_list if @$store_list ; # don't store empty sections 
             $store_list = [] ;
-            $section_line = $line + 1; # next line, will be clobbered if next line is empty
+            $section_line = $line_nb + 1; # next line, will be clobbered if next line is empty
 	    chomp $$store_ref if defined $$store_ref; # remove trailing \n 
             undef $store_ref ; # to ensure that next line contains a keyword
         }
         elsif (/^\s*$/) {     # "extra" empty line
+            $handle_garbage->($_) if $handle_garbage ;
             $logger->trace("extra empty line: skipped");
             # just skip it
         } 
         elsif (/^\s+\.$/) {   # line with a single dot
             $logger->trace("dot line: adding blank line to field $key");
-            _store_line($store_ref,"",$check,$line) ;
+            _store_line($store_ref,"",$check,$line_nb) ;
         }
         elsif (s/^\s//) {     # non empty line
             $logger->trace("text line: adding '$_' to field $key");
-            _store_line($store_ref,$_ , $check,$line);
+            _store_line($store_ref,$_ , $check,$line_nb);
+        }
+        elsif ($handle_garbage) {
+            $handle_garbage->($_) ; 
         }
         else {
             my $msg = "DpkgSyntax error: Invalid line (missing ':' ?) : $_" ;
-            Config::Model::Exception::Syntax -> throw ( message => $msg, parsed_line => $line ) 
+            Config::Model::Exception::Syntax -> throw ( message => $msg, parsed_line => $line_nb ) 
                 if $check eq 'yes' ; 
 	    $logger->error($msg) if $check eq 'skip';
         }
-        $line++;
+        $line_nb++;
     }
 
     # remove trailing \n of last stored value 
@@ -202,7 +206,7 @@ Config::Model::Backend::Debian::DpkgSyntax - Role to read and write files with D
 
 =head1 VERSION
 
-version 2.019
+version 2.020
 
 =head1 SYNOPSIS
 
