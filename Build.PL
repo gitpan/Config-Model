@@ -105,6 +105,8 @@ my $build = Module::Build->new(
   },
   'requires' => {
     'Any::Moose' => '0',
+    'AnyEvent' => '0',
+    'AnyEvent::HTTP' => '0',
     'Carp::Assert::More' => '0',
     'DB_File' => '0',
     'Exception::Class' => '0',
@@ -112,7 +114,6 @@ my $build = Module::Build->new(
     'File::Path' => '2.07',
     'Hash::Merge' => '0.12',
     'IO::File' => '0',
-    'LWP::Simple' => '0',
     'List::MoreUtils' => '0',
     'Log::Log4perl' => '1.11',
     'Mouse' => '0',

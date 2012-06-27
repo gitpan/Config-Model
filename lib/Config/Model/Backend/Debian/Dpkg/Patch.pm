@@ -10,7 +10,7 @@
 
 package Config::Model::Backend::Debian::Dpkg::Patch;
 {
-  $Config::Model::Backend::Debian::Dpkg::Patch::VERSION = '2.020';
+  $Config::Model::Backend::Debian::Dpkg::Patch::VERSION = '2.021_01';
 }
 
 use 5.10.1 ;
@@ -162,7 +162,7 @@ sub write {
               : ();
 
         foreach my $v (@v) {
-            say "write $elt -> $v" ;
+            # say "write $elt -> $v" ;
             next unless defined $v and $v;
         
             if ($elt eq 'Synopsis') {
@@ -195,7 +195,7 @@ Config::Model::Backend::Debian::Dpkg::Patch - Read and write Debian Dpkg Patch i
 
 =head1 VERSION
 
-version 2.020
+version 2.021_01
 
 =head1 SYNOPSIS
 
