@@ -9,7 +9,7 @@
 #
 package Config::Model::Debian::Dependency ;
 {
-  $Config::Model::Debian::Dependency::VERSION = '2.021_01';
+  $Config::Model::Debian::Dependency::VERSION = '2.021';
 }
 
 use 5.10.1;
@@ -461,7 +461,7 @@ Config::Model::Debian::Dependency - Checks Debian dependency declarations
 
 =head1 VERSION
 
-version 2.021_01
+version 2.021
 
 =head1 SYNOPSIS
 

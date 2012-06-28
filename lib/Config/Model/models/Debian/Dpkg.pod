@@ -4,7 +4,7 @@ Config::Model::models::Debian::Dpkg - Configuration class Debian::Dpkg
 
 =head1 VERSION
 
-version 2.021_01
+version 2.021
 
 =head1 DESCRIPTION
 
@@ -51,7 +51,7 @@ I<< Optional. Type hash of node.  >>
 
 =head2 compat
 
-compat file defines the debhelper compatibility level. I<< Optional. Type integer. default: '8'.  >>
+compat file defines the debhelper compatibility level. I<< Optional. Type integer. default: '9'.  >>
 
 =head2 dirs - Extra directories
 

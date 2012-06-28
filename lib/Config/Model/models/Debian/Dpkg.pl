@@ -88,7 +88,7 @@
       'compat',
       {
         'value_type' => 'integer',
-        'default' => '8',
+        'default' => '9',
         'type' => 'leaf',
         'description' => 'compat file defines the debhelper compatibility level'
       },
