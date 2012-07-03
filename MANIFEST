@@ -6,6 +6,7 @@ MANIFEST.SKIP
 META.yml
 MODELS
 README
+README.pod
 TODO
 config-edit
 contrib/bash_completion.cme
@@ -228,6 +229,7 @@ script/gen_LCDd_model.pl
 script/gen_class_pod.pl
 t/accept.t
 t/annotation.t
+t/apply_fix.t
 t/array_id.t
 t/array_with_data_migration.t
 t/augment_class.t

@@ -4,7 +4,7 @@ Config::Model::models::LCDd::CFontzPacket - Configuration class LCDd::CFontzPack
 
 =head1 VERSION
 
-version 2.021
+version 2.022
 
 =head1 DESCRIPTION
 
