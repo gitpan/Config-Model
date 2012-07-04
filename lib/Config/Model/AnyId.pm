@@ -9,7 +9,7 @@
 #
 package Config::Model::AnyId ;
 {
-  $Config::Model::AnyId::VERSION = '2.022';
+  $Config::Model::AnyId::VERSION = '2.023';
 }
 
 use Any::Moose ;
@@ -615,7 +615,7 @@ sub check_duplicates {
     return unless @issues ;
     
     if ($apply_fix) {
-        $logger->debug("Fixing duplicates @issues");
+        $logger->debug("Fixing duplicates @issues, removing @to_delete");
         map { $self->remove($_) } reverse @to_delete ;
     }
     elsif ($dup eq 'forbid') {
@@ -972,7 +972,7 @@ Config::Model::AnyId - Base class for hash or list element
 
 =head1 VERSION
 
-version 2.022
+version 2.023
 
 =head1 SYNOPSIS
 
