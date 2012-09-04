@@ -261,6 +261,8 @@ t/load.t
 t/load_model_snippets.t
 t/model.t
 t/model_tests.d/debian-dependency-cache.txt
+t/model_tests.d/debian-dpkg-control-examples/libclass-meta-perl
+t/model_tests.d/debian-dpkg-control-examples/libmodule-metadata-perl
 t/model_tests.d/debian-dpkg-control-examples/libpango-perl
 t/model_tests.d/debian-dpkg-control-examples/libwx-scintilla-perl
 t/model_tests.d/debian-dpkg-control-examples/sdlperl

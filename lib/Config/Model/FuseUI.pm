@@ -9,7 +9,7 @@
 #
 package Config::Model::FuseUI ;
 {
-  $Config::Model::FuseUI::VERSION = '2.023';
+  $Config::Model::FuseUI::VERSION = '2.024';
 }
 
 # there's no Singleton with Mouse
@@ -27,13 +27,17 @@ has mountpoint    => ( is => 'ro', isa => 'Str'          , required => 1 );
 
 my $logger = get_logger("FuseUI") ;
 
+has dir_char_mockup => ( is => 'ro', isa => 'Str', default => '<slash>') ; 
+
 our $fuseui ;
+my $dir_char_mockup ;
 
 sub BUILD {
     my $self = shift ;
     croak (__PACKAGE__," singleton constructed twice" )
         if defined $fuseui and $fuseui ne $self;
     $fuseui = $self ; # store singleton object in global variable
+    $dir_char_mockup = $self->dir_char_mockup ;
 }
 
 # nodes, list and hashes are directories
@@ -41,10 +45,11 @@ sub getdir {
     my $name = shift ;
     $logger->debug("FuseUI getdir called with $name");
 
-    my $obj = $fuseui->root->get(path => $name, check => 'skip', get_obj => 1, autoadd=>0) ;
+    my $obj = get_object($name) ;
     return -EINVAL() unless (ref $obj and $obj->can('children')) ;
     
     my @c = ('..','.', $obj->children ) ;
+    map { s(/)($dir_char_mockup)g} @c ;
     $logger->debug("FuseUI getdir return @c , wantarray is ".(wantarray ? 1 : 0) );
     return ( @c , 0 ) ;
 }
@@ -61,11 +66,35 @@ sub fetch_as_line {
     return $v ;
 }
 
+sub get_object {
+    my $name = shift;
+    return _get_object($name, 0 ) ;
+}
+
+sub get_or_create_object {
+    my $name = shift;
+    return _get_object($name, 1 ) ;
+}
+
+sub _get_object {
+    my ($name,$autoadd) = @_ ;
+    
+    my $obj = $fuseui->root->get(
+        path => $name, 
+        check => 'skip', 
+        get_obj => 1, 
+        autoadd => $autoadd, 
+        dir_char_mockup => $dir_char_mockup
+    ) ;
+    $logger->debug("FuseUI _get_object on $name returns ", (defined $obj ? $obj->name : '<undef>'));
+    return $obj ;
+    
+}
 
 sub getattr {
     my $name = shift ;
     $logger->debug("FuseUI getattr called with $name");
-    my $obj = $fuseui->root->get(path => $name, check => 'skip', get_obj => 1, autoadd=>0) ;
+    my $obj = get_object($name) ;
 
     return -&ENOENT() unless ref $obj ;
 
@@ -79,6 +108,7 @@ sub getattr {
     }
     else {
         my @c = $obj->children ; 
+        map { s(/)($dir_char_mockup)g} @c ;
         $size = @c; 
     }
     
@@ -122,7 +152,7 @@ sub read {
     my ($name,$buf,$off) = @_;
  
     $logger->debug("FuseUI read called on $name");
-    my $obj = $fuseui->root->get(path => $name, check => 'skip', get_obj => 1) ;
+    my $obj = get_or_create_object($name) ;
     my $type = $obj->get_type ;
 
     return -ENOENT() unless defined $obj;
@@ -145,7 +175,7 @@ sub truncate {
     my ($name,$off) = @_;
 
     $logger->debug("FuseUI truncate called on $name with length $off");
-    my $obj = $fuseui->root->get(path => $name, check => 'skip', get_obj => 1) ;
+    my $obj = get_or_create_object($name) ;
     my $type = $obj->get_type ;
 
     return -ENOENT() unless defined $obj;
@@ -167,7 +197,7 @@ sub write {
         $logger->debug("FuseUI write called on $name with '$str' offset $off");
     }
     
-    my $obj = $fuseui->root->get(path => $name, check => 'skip', get_obj => 1) ;
+    my $obj = get_or_create_object($name) ;
     my $type = $obj->get_type ;
 
     return -ENOENT() unless defined $obj;
@@ -189,7 +219,7 @@ sub mkdir {
     my ($name,$mode) = @_;
  
     $logger->debug("FuseUI mkdir called on $name with mode $mode");
-    my $obj = $fuseui->root->get(path => $name, check => 'skip', get_obj => 1) ;
+    my $obj = get_or_create_object($name) ;
     return -ENOENT() unless defined $obj;
 
     my $type = $obj->container_type ;
@@ -204,7 +234,7 @@ sub rmdir {
     my ($name) = @_;
  
     $logger->debug("FuseUI rmdir called on $name");
-    my $obj = $fuseui->root->get(path => $name, check => 'skip', get_obj => 1, autoadd=>0) ;
+    my $obj = get_object($name) ;
     return -ENOENT() unless defined $obj;
 
     my $type = $obj->get_type ;
@@ -229,7 +259,7 @@ sub unlink {
     my ($name) = @_;
 
     $logger->debug("FuseUI unlink called on $name");
-    my $obj = $fuseui->root->get(path => $name, check => 'skip', get_obj => 1, autoadd=>0) ;
+    my $obj = get_object($name) ;
     my $type = $obj->get_type ;
 
     return -ENOENT() unless defined $obj;
@@ -250,6 +280,8 @@ sub unlink {
     return 0 ;
 }
  
+
+
 sub statfs { return 255, 1, 1, 1, 1, 2 }
 
 my @methods = map { ( $_ => __PACKAGE__."::$_" ) } 
@@ -278,7 +310,7 @@ Config::Model::FuseUI - Fuse virtual file interface for Config::Model
 
 =head1 VERSION
 
-version 2.023
+version 2.024
 
 =head1 SYNOPSIS
 

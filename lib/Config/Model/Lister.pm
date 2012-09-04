@@ -9,7 +9,7 @@
 #
 package Config::Model::Lister;
 {
-  $Config::Model::Lister::VERSION = '2.023';
+  $Config::Model::Lister::VERSION = '2.024';
 }
 
 =pod
@@ -20,7 +20,7 @@ Config::Model::Lister - List available models and applications
 
 =head1 VERSION
 
-version 2.023
+version 2.024
 
 =head1 SYNOPSIS
 
@@ -71,12 +71,13 @@ application => model_name
 =cut
 
 sub available_models {
+    my $test = shift || 0 ;
    
-    my $path = $INC{"Config/Model/Lister.pm"} ;
-    $path =~ s!/Lister\.pm!! ;
     my (%categories, %appli_info, %applications ) ;
+    my %done_cat ;
+    my @dir_to_scan = $test ? qw/lib/ : @INC ;
 
-    foreach my $dir (glob("$path/*.d")) {
+    foreach my $dir (map { glob("$_/Config/Model/*.d") } @dir_to_scan ) {
         my ($cat) = ( $dir =~ m!.*/([\w\-]+)\.d! );
 
         if ($cat !~ /^user|system|application$/) {
@@ -95,7 +96,11 @@ sub available_models {
                 s/#.*// ;
                 my ($k,$v) = split /\s*=\s*/ ;
                 next unless $v ;
-                push @{$categories{$cat}} , $appli if $k =~ /model/i;
+                if ($k =~ /model/i) {
+                    push @{$categories{$cat}} , $appli unless $done_cat{$cat}{$appli} ;
+                    $done_cat{$cat}{$appli} = 1 ;
+                }
+                
                 $appli_info{$appli}{$k} = $v ; 
                 $applications{$appli} = $v if $k =~ /model/i; 
             }

@@ -9,7 +9,7 @@
 #
 package Config::Model::ListId ;
 {
-  $Config::Model::ListId::VERSION = '2.023';
+  $Config::Model::ListId::VERSION = '2.024';
 }
 use Any::Moose ;
 use namespace::autoclean;
@@ -234,6 +234,7 @@ sub move {
     if ($ok or $check eq 'no') {
         $self->_store($to, $moved) ;
         $moved->index_value($to) ;
+        $self->notify_change(note => "moved from index $from to $to") ;
         my $imode = $self->instance->get_data_mode ;
         $self->set_data_mode( $to, $imode ) ;
     }
@@ -304,8 +305,7 @@ sub swap {
     $self->{data}[$ida] = $objb ;
     $self->{data}[$idb] = $obja ;
     
-    $self->notify_change(index => $ida) ;
-    $self->notify_change(index => $idb) ;
+    $self->notify_change(note => "swapped index $ida and $idb") ;
 }
 
 #die "check index number after wap";
@@ -392,7 +392,7 @@ Config::Model::ListId - Handle list element for configuration model
 
 =head1 VERSION
 
-version 2.023
+version 2.024
 
 =head1 SYNOPSIS
 

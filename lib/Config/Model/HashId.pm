@@ -9,7 +9,7 @@
 #
 package Config::Model::HashId ;
 {
-  $Config::Model::HashId::VERSION = '2.023';
+  $Config::Model::HashId::VERSION = '2.024';
 }
 use Any::Moose ;
 use namespace::autoclean;
@@ -280,6 +280,8 @@ sub move {
         delete $self->{warning_hash}{$from} ;
         # update index_value attribute in moved objects
         $self->{data}{$to}->index_value($to) ;
+        
+        $self->notify_change(note => "rename key from $from to $to");
 
         # data_mode is preset or layered or user. Actually only user
         # mode makes sense here
@@ -319,6 +321,11 @@ sub move_after {
     my $self = shift ;
     my ($key_to_move,$ref_key) = @_ ;
 
+    if (not $self->ordered) {
+        $logger->warn("called move_after on unordered hash") ;
+        return ;
+    }
+
     foreach my $k (@_) {
         Config::Model::Exception::User
             -> throw (
@@ -333,6 +340,7 @@ sub move_after {
 
     my $list = $self->{list} ;
 
+    my $msg ;
     if (defined $ref_key) {
         for (my $idx = 0; $idx <= $#$list; $idx ++ ) {
             if ($list->[$idx] eq $ref_key) {
@@ -340,15 +348,27 @@ sub move_after {
                 last;
             }
         }
+
+        $msg = "moved key $key_to_move after $ref_key" ;
     } else {
         unshift @$list , $key_to_move ;
+        $msg = "moved key $key_to_move at beginning" ;
     }
+
+
+    $self->notify_change( note => $msg ) ;
+
 }
 
 
 sub move_up {
     my $self = shift ;
     my ($key) = @_ ;
+
+    if (not $self->ordered) {
+        $logger->warn("called move_up on unordered hash") ;
+        return ;
+    }
 
     Config::Model::Exception::User
         -> throw (
@@ -363,15 +383,24 @@ sub move_up {
         if ($list->[$idx] eq $key) {
             $list->[$idx]   = $list->[$idx-1];
             $list->[$idx-1] = $key ;
+            $self->notify_change(note => "moved up key $key") ;
             last ;
         }
     }
+
+    # notify_change is placed in the loop so the notification
+    # is not sent if the user tries to move up idx 0
 }
 
 
 sub move_down {
     my $self = shift ;
     my ($key) = @_ ;
+
+    if (not $self->ordered) {
+        $logger->warn("called move_down on unordered hash") ;
+        return ;
+    }
 
     Config::Model::Exception::User
         -> throw (
@@ -386,9 +415,13 @@ sub move_down {
         if ($list->[$idx] eq $key) {
             $list->[$idx]   = $list->[$idx+1];
             $list->[$idx+1] = $key ;
+            $self->notify_change(note => "moved down key $key") ;
             last ;
         }
     }
+
+    # notify_change is placed in the loop so the notification
+    # is not sent if the user tries to move past last idx
 }
 
 
@@ -456,7 +489,7 @@ Config::Model::HashId - Handle hash element for configuration model
 
 =head1 VERSION
 
-version 2.023
+version 2.024
 
 =head1 SYNOPSIS
 

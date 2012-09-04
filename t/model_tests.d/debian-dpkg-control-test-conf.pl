@@ -111,7 +111,7 @@ providing the following file:
     {
         name => 'sdlperl',
         load => 'source Uploaders:2="Sam Hocevar (Debian packages) <sam@zoy.org>"',
-        load_warnings => [ ( qr/Warning/) x 7 ],
+        load_warnings => [ ( qr/Warning/) x 9 ],
         load_check => 'no',
         check => { 'binary:libsdl-perl Depends:2' => '${misc:Depends}' },
         apply_fix => 1,
@@ -129,6 +129,18 @@ providing the following file:
     {
         name => 'libwx-scintilla-perl',
         load_warnings => [ ( qr/Warning/) x 3 ],
+        apply_fix => 1,
+    },
+    {
+        # test for #683861
+        name => 'libmodule-metadata-perl',
+        load_warnings => [ ( qr/Warning/) x 3 ],
+        apply_fix => 1,
+    },
+    {
+        # test for #682730
+        name => 'libclass-meta-perl',
+        check => { 'source Build-Depends-Indep:1' => 'libclass-isa-perl | perl (<< 5.10.1-13)' },
         apply_fix => 1,
     },
 );
