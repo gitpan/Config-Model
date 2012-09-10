@@ -31,7 +31,7 @@
 
 package Config::Model::Backend::IniFile ;
 {
-  $Config::Model::Backend::IniFile::VERSION = '2.024';
+  $Config::Model::Backend::IniFile::VERSION = '2.025';
 }
 
 use Carp;
@@ -317,7 +317,7 @@ Config::Model::Backend::IniFile - Read and write config as a INI file
 
 =head1 VERSION
 
-version 2.024
+version 2.025
 
 =head1 SYNOPSIS
 
