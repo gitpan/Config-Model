@@ -9,7 +9,7 @@
 #
 package Config::Model::Value ;
 {
-  $Config::Model::Value::VERSION = '2.025';
+  $Config::Model::Value::VERSION = '2.026_1';
 }
 
 use 5.10.1 ;
@@ -1455,7 +1455,7 @@ sub _fetch {
          : $mode eq 'backend'                   ? defined $data ? $data : $pref 
          :                                      die "unexpected mode $mode " ;
 
-    $logger->debug("done in '$mode' mode for ".$self->location." -> $res") 
+    $logger->debug("done in '$mode' mode for ".$self->location." -> ". ($res // '<undef>')) 
         if $logger->is_debug ;
 
     return $res ;
@@ -1660,7 +1660,7 @@ Config::Model::Value - Strongly typed configuration value
 
 =head1 VERSION
 
-version 2.025
+version 2.026_1
 
 =head1 SYNOPSIS
 

@@ -9,7 +9,7 @@
 #
 package Config::Model::CheckList ;
 {
-  $Config::Model::CheckList::VERSION = '2.025';
+  $Config::Model::CheckList::VERSION = '2.026_1';
 }
 use Any::Moose ;
 
@@ -671,7 +671,7 @@ Config::Model::CheckList - Handle check list element
 
 =head1 VERSION
 
-version 2.025
+version 2.026_1
 
 =head1 SYNOPSIS
 

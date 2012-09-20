@@ -30,27 +30,36 @@ use Module::Build;
 
 use warnings FATAL => qw(all);
 use strict;
-use File::Slurp qw/slurp/;
-use Log::Log4perl qw(:easy) ;
-
-Log::Log4perl->easy_init($WARN);
 
 require 5.010001 ;
 
 print "\nIf you want to use the TermUI interface, you should install\n",
   "Term::ReadLine::Perl or Term::ReadLine::Gnu\n\n";
 
-# check that pod docs are up-to-date
-# this is redundant with work done by dzil. But this enable to re-build the 
-# docs downstream.
-# Use $^X as requested in https://rt.cpan.org/Public/Bug/Display.html?id=74891
-system("$^X -Ilib script/gen_class_pod.pl");
+# check that pod docs are up-to-date this is redundant with work done by
+# dzil. But this enable to re-build the docs downstream.
+# Use $^X in there as requested in 
+# https://rt.cpan.org/Public/Bug/Display.html?id=74891
+my $class = Module::Build->subclass(
+    class => "Module::Build::Custom",
+    code => <<'SUBCLASS' );
+
+sub ACTION_build {
+    my $self = shift;
+    # below requires Config::Model 2.026
+    system ($^X, qw!-Ilib script/cme gen-class-pod!) ;
+    $self->SUPER::ACTION_build;
+}
+SUBCLASS
+
+
+# system("$^X -Ilib script/cme gen-class-pod.pl");
 
 my @version_info = @ARGV ? ( dist_version => $ARGV[0] ) : ();
 
 my %appli_files = map { ( $_, $_ ) } glob("lib/Config/Model/*.d/*");
 
-my $build = Module::Build->new(
+my $build = $class->new(
     module_name => 'Config::Model',
     @version_info,
     license       => 'lgpl',
@@ -77,27 +86,7 @@ my $build = Module::Build->new(
     'Test::Warn' => '0.11'
   },
   'configure_requires' => {
-    'Any::Moose' => '0',
-    'Carp::Assert::More' => '0',
-    'Exception::Class' => '0',
-    'File::HomeDir' => '0',
-    'File::Path' => '2.07',
-    'File::Slurp' => '0',
-    'Hash::Merge' => '0.12',
-    'IO::File' => '0',
-    'List::MoreUtils' => '0',
-    'Log::Log4perl' => '1.11',
-    'Module::Build' => '0.34',
-    'Mouse' => '0',
-    'MouseX::NativeTraits' => '0',
-    'MouseX::StrictConstructor' => '0',
-    'Parse::RecDescent' => 'v1.90.0',
-    'Pod::POM' => '0',
-    'Scalar::Util' => '0',
-    'Term::ReadLine' => '0',
-    'Text::Diff' => '0',
-    'YAML::Any' => '0.303',
-    'namespace::autoclean' => '0'
+    'Module::Build' => '0.34'
   },
   'recommends' => {
     'Fuse' => '0',
@@ -106,12 +95,9 @@ my $build = Module::Build->new(
   'requires' => {
     'Any::Moose' => '0',
     'AnyEvent' => '0',
-    'AnyEvent::HTTP' => '0',
     'Carp::Assert::More' => '0',
-    'DB_File' => '0',
     'Exception::Class' => '0',
     'File::HomeDir' => '0',
-    'File::Path' => '2.07',
     'Hash::Merge' => '0.12',
     'IO::File' => '0',
     'List::MoreUtils' => '0',
@@ -123,7 +109,6 @@ my $build = Module::Build->new(
     'Pod::POM' => '0',
     'Scalar::Util' => '0',
     'Term::ReadLine' => '0',
-    'Text::Autoformat' => '0',
     'Text::Diff' => '0',
     'namespace::autoclean' => '0'
   },

@@ -4,7 +4,7 @@ Config::Model::models::LCDd - Configuration class LCDd
 
 =head1 VERSION
 
-version 2.025
+version 2.026_1
 
 =head1 DESCRIPTION
 
