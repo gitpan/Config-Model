@@ -4,7 +4,7 @@ Config::Model::models::LCDd::ea65 - Configuration class LCDd::ea65
 
 =head1 VERSION
 
-version 2.026_1
+version 2.026_2
 
 =head1 DESCRIPTION
 

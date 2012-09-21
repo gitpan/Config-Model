@@ -9,7 +9,7 @@
 #
 package Config::Model::IdElementReference;
 {
-  $Config::Model::IdElementReference::VERSION = '2.026_1';
+  $Config::Model::IdElementReference::VERSION = '2.026_2';
 }
 
 use Any::Moose;
@@ -196,7 +196,7 @@ Config::Model::IdElementReference - Refer to id element(s) and extract keys
 
 =head1 VERSION
 
-version 2.026_1
+version 2.026_2
 
 =head1 SYNOPSIS
 

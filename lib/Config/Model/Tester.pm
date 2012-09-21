@@ -9,7 +9,7 @@
 #
 package Config::Model::Tester;
 {
-  $Config::Model::Tester::VERSION = '2.026_1';
+  $Config::Model::Tester::VERSION = '2.026_2';
 }
 
 use Test::More;
@@ -350,7 +350,7 @@ Config::Model::Tester - Test framework for Config::Model
 
 =head1 VERSION
 
-version 2.026_1
+version 2.026_2
 
 =head1 SYNOPSIS
 

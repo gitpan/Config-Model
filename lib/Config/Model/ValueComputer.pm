@@ -9,7 +9,7 @@
 #
 package Config::Model::ValueComputer ;
 {
-  $Config::Model::ValueComputer::VERSION = '2.026_1';
+  $Config::Model::ValueComputer::VERSION = '2.026_2';
 }
 
 use Any::Moose ;
@@ -583,7 +583,7 @@ Config::Model::ValueComputer - Provides configuration value computation
 
 =head1 VERSION
 
-version 2.026_1
+version 2.026_2
 
 =head1 SYNOPSIS
 

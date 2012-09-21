@@ -83,7 +83,8 @@ my $build = $class->new(
     'Test::File::Contents' => '0',
     'Test::Memory::Cycle' => '0',
     'Test::More' => '0',
-    'Test::Warn' => '0.11'
+    'Test::Warn' => '0.11',
+    'YAML::Any' => '0.303'
   },
   'configure_requires' => {
     'Module::Build' => '0.34'
