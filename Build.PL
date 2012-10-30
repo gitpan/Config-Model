@@ -59,6 +59,9 @@ my @version_info = @ARGV ? ( dist_version => $ARGV[0] ) : ();
 
 my %appli_files = map { ( $_, $_ ) } glob("lib/Config/Model/*.d/*");
 
+# add extensions
+do { $appli_files{$_}=$_ ;} for glob("lib/Config/Model/extensions/cme-*") ;
+
 my $build = $class->new(
     module_name => 'Config::Model',
     @version_info,
@@ -107,6 +110,7 @@ my $build = $class->new(
     'MouseX::NativeTraits' => '0',
     'MouseX::StrictConstructor' => '0',
     'Parse::RecDescent' => 'v1.90.0',
+    'Path::Class' => '0',
     'Pod::POM' => '0',
     'Scalar::Util' => '0',
     'Term::ReadLine' => '0',

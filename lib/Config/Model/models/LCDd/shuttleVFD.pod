@@ -4,7 +4,7 @@ Config::Model::models::LCDd::shuttleVFD - Configuration class LCDd::shuttleVFD
 
 =head1 VERSION
 
-version 2.026
+version 2.027
 
 =head1 DESCRIPTION
 

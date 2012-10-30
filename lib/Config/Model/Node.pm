@@ -9,7 +9,7 @@
 #
 package Config::Model::Node;
 {
-  $Config::Model::Node::VERSION = '2.026';
+  $Config::Model::Node::VERSION = '2.027';
 }
 
 use Any::Moose ;
@@ -1083,7 +1083,7 @@ sub dump_tree {
 sub migrate {
     my $self = shift ;
     $self->init ;
-    Config::Model::Dumper->new->dump_tree(node => $self, mode => 'custom', @_) ;
+    Config::Model::Dumper->new->dump_tree(node => $self, mode => 'full', @_) ;
 
     return $self->needs_save ;
 }
@@ -1220,7 +1220,7 @@ Config::Model::Node - Class for configuration tree node
 
 =head1 VERSION
 
-version 2.026
+version 2.027
 
 =head1 SYNOPSIS
 

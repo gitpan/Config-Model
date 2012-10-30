@@ -28,7 +28,7 @@
 
 package Config::Model::Exception ;
 {
-  $Config::Model::Exception::VERSION = '2.026';
+  $Config::Model::Exception::VERSION = '2.027';
 }
 use warnings ;
 use strict;
@@ -156,7 +156,7 @@ Config::Model::Exception::Internal->Trace(1);
 
 package Config::Model::Exception::Syntax ;
 {
-  $Config::Model::Exception::Syntax::VERSION = '2.026';
+  $Config::Model::Exception::Syntax::VERSION = '2.027';
 }
 
 sub full_message {
@@ -173,7 +173,7 @@ sub full_message {
 
 package Config::Model::Exception::Any ;
 {
-  $Config::Model::Exception::Any::VERSION = '2.026';
+  $Config::Model::Exception::Any::VERSION = '2.027';
 }
 
 sub full_message {
@@ -205,7 +205,7 @@ sub xpath_message {
 
 package Config::Model::Exception::LoadData ;
 {
-  $Config::Model::Exception::LoadData::VERSION = '2.026';
+  $Config::Model::Exception::LoadData::VERSION = '2.027';
 }
 
 sub full_message {
@@ -225,7 +225,7 @@ sub full_message {
 
 package Config::Model::Exception::Model ;
 {
-  $Config::Model::Exception::Model::VERSION = '2.026';
+  $Config::Model::Exception::Model::VERSION = '2.027';
 }
 
 sub full_message {
@@ -251,7 +251,7 @@ sub full_message {
 
 package Config::Model::Exception::Load ;
 {
-  $Config::Model::Exception::Load::VERSION = '2.026';
+  $Config::Model::Exception::Load::VERSION = '2.027';
 }
 
 sub full_message {
@@ -273,7 +273,7 @@ sub full_message {
 
 package Config::Model::Exception::RestrictedElement ;
 {
-  $Config::Model::Exception::RestrictedElement::VERSION = '2.026';
+  $Config::Model::Exception::RestrictedElement::VERSION = '2.027';
 }
 
 sub full_message {
@@ -293,7 +293,7 @@ sub full_message {
 
 package Config::Model::Exception::UnavailableElement ;
 {
-  $Config::Model::Exception::UnavailableElement::VERSION = '2.026';
+  $Config::Model::Exception::UnavailableElement::VERSION = '2.027';
 }
 
 sub full_message {
@@ -316,7 +316,7 @@ sub full_message {
 
 package Config::Model::Exception::ObsoleteElement ;
 {
-  $Config::Model::Exception::ObsoleteElement::VERSION = '2.026';
+  $Config::Model::Exception::ObsoleteElement::VERSION = '2.027';
 }
 
 sub full_message {
@@ -338,7 +338,7 @@ sub full_message {
 
 package Config::Model::Exception::UnknownElement ;
 {
-  $Config::Model::Exception::UnknownElement::VERSION = '2.026';
+  $Config::Model::Exception::UnknownElement::VERSION = '2.027';
 }
 use Carp;
 
@@ -405,7 +405,7 @@ sub full_message {
 
 package Config::Model::Exception::UnknownId ;
 {
-  $Config::Model::Exception::UnknownId::VERSION = '2.026';
+  $Config::Model::Exception::UnknownId::VERSION = '2.027';
 }
 
 sub full_message {
@@ -434,7 +434,7 @@ sub full_message {
 
 package Config::Model::Exception::WrongType ;
 {
-  $Config::Model::Exception::WrongType::VERSION = '2.026';
+  $Config::Model::Exception::WrongType::VERSION = '2.027';
 }
 
 sub full_message {
@@ -458,7 +458,7 @@ sub full_message {
 
 package Config::Model::Exception::Xml ;
 {
-  $Config::Model::Exception::Xml::VERSION = '2.026';
+  $Config::Model::Exception::Xml::VERSION = '2.027';
 }
 
 sub full_message {
@@ -486,7 +486,7 @@ Config::Model::Exception - Exception mechanism for configuration model
 
 =head1 VERSION
 
-version 2.026
+version 2.027
 
 =head1 SYNOPSIS
 

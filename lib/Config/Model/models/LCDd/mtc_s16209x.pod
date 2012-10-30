@@ -4,7 +4,7 @@ Config::Model::models::LCDd::mtc_s16209x - Configuration class LCDd::mtc_s16209x
 
 =head1 VERSION
 
-version 2.026
+version 2.027
 
 =head1 DESCRIPTION
 
