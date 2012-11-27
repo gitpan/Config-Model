@@ -31,13 +31,12 @@
 
 package Config::Model::Backend::IniFile ;
 {
-  $Config::Model::Backend::IniFile::VERSION = '2.027';
+  $Config::Model::Backend::IniFile::VERSION = '2.028';
 }
 
 use Carp;
 use Any::Moose ;
 use Config::Model::Exception ;
-use UNIVERSAL ;
 use File::Path;
 use Log::Log4perl qw(get_logger :levels);
 
@@ -317,7 +316,7 @@ Config::Model::Backend::IniFile - Read and write config as a INI file
 
 =head1 VERSION
 
-version 2.027
+version 2.028
 
 =head1 SYNOPSIS
 

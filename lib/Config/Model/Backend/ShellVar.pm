@@ -27,13 +27,12 @@
 
 package Config::Model::Backend::ShellVar ;
 {
-  $Config::Model::Backend::ShellVar::VERSION = '2.027';
+  $Config::Model::Backend::ShellVar::VERSION = '2.028';
 }
 
 use Carp;
 use Any::Moose ;
 use Config::Model::Exception ;
-use UNIVERSAL ;
 use File::Path;
 use Log::Log4perl qw(get_logger :levels);
 
@@ -128,7 +127,7 @@ Config::Model::Backend::ShellVar - Read and write config as a C<SHELLVAR> data s
 
 =head1 VERSION
 
-version 2.027
+version 2.028
 
 =head1 SYNOPSIS
 

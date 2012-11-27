@@ -4,7 +4,7 @@ Config::Model::models::LCDd::serialPOS - Configuration class LCDd::serialPOS
 
 =head1 VERSION
 
-version 2.027
+version 2.028
 
 =head1 DESCRIPTION
 

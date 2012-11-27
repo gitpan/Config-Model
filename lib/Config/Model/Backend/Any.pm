@@ -9,7 +9,7 @@
 #
 package Config::Model::Backend::Any ;
 {
-  $Config::Model::Backend::Any::VERSION = '2.027';
+  $Config::Model::Backend::Any::VERSION = '2.028';
 }
 
 use Carp;
@@ -162,7 +162,7 @@ Config::Model::Backend::Any - Virtual class for other backends
 
 =head1 VERSION
 
-version 2.027
+version 2.028
 
 =head1 SYNOPSIS
 
@@ -194,7 +194,7 @@ version 2.027
 
     foreach ($args{io_handle}->getlines) {
         chomp ;
-        s/#.*/ ;
+        s/#.*// ;
         next unless /\S/; # skip blank line
 
         # $data is 'foo=bar' which is compatible with load 

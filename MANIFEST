@@ -3,9 +3,9 @@ ChangeLog
 LICENSE
 MANIFEST
 MANIFEST.SKIP
+META.json
 META.yml
 MODELS
-README
 README.pod
 TODO
 config-edit

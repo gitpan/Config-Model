@@ -27,13 +27,12 @@
 
 package Config::Model::Backend::PlainFile;
 {
-  $Config::Model::Backend::PlainFile::VERSION = '2.027';
+  $Config::Model::Backend::PlainFile::VERSION = '2.028';
 }
 
 use Carp;
 use Any::Moose;
 use Config::Model::Exception;
-use UNIVERSAL;
 use File::Path;
 use Log::Log4perl qw(get_logger :levels);
 
@@ -205,7 +204,7 @@ Config::Model::Backend::PlainFile - Read and write config as plain file
 
 =head1 VERSION
 
-version 2.027
+version 2.028
 
 =head1 SYNOPSIS
 

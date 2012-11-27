@@ -10,14 +10,13 @@
 
 package Config::Model::Backend::Yaml ;
 {
-  $Config::Model::Backend::Yaml::VERSION = '2.027';
+  $Config::Model::Backend::Yaml::VERSION = '2.028';
 }
 
 use Carp;
 use strict;
 use warnings ;
 use Config::Model::Exception ;
-use UNIVERSAL ;
 use File::Path;
 use Log::Log4perl qw(get_logger :levels);
 
@@ -93,7 +92,7 @@ Config::Model::Backend::Yaml - Read and write config as a YAML data structure
 
 =head1 VERSION
 
-version 2.027
+version 2.028
 
 =head1 SYNOPSIS
 
