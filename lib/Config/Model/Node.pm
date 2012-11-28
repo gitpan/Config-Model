@@ -9,7 +9,7 @@
 #
 package Config::Model::Node;
 {
-  $Config::Model::Node::VERSION = '2.028';
+  $Config::Model::Node::VERSION = '2.029';
 }
 
 use Any::Moose ;
@@ -1220,7 +1220,7 @@ Config::Model::Node - Class for configuration tree node
 
 =head1 VERSION
 
-version 2.028
+version 2.029
 
 =head1 SYNOPSIS
 

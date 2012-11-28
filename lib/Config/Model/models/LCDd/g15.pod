@@ -4,7 +4,7 @@ Config::Model::models::LCDd::g15 - Configuration class LCDd::g15
 
 =head1 VERSION
 
-version 2.028
+version 2.029
 
 =head1 DESCRIPTION
 
