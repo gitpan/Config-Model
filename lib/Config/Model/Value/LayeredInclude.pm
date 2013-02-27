@@ -9,7 +9,7 @@
 #
 package Config::Model::Value::LayeredInclude;
 {
-  $Config::Model::Value::LayeredInclude::VERSION = '2.029';
+  $Config::Model::Value::LayeredInclude::VERSION = '2.030_01';
 }
 
 
@@ -34,19 +34,19 @@ use base qw/Config::Model::Value/ ;
 
 my $logger = get_logger("Tree::Element::Value::LayeredInclude") ;
 
-sub store {
+sub store_cb {
     my $self = shift ;
-    my %args = @_ == 1 ? (value => $_[0]) 
-             : @_ == 3 ? ( 'value' , @_ ) 
-             : @_ ;
+    my %args = @_ ;
 
-    my $old_data = $self->{data} ;
+    my ($value, $check, $silent, $notify_change, $ok, $callback)
+        = @args{qw/value check silent notify_change ok callback/} ;
+
+    my $old_value = $self->_fetch_no_check;
     
-    my $new_data = $self->SUPER::store(%args) ; 
-    
+    $self->SUPER::store_cb(%args) ;
     {
         no warnings 'uninitialized' ;
-        return $new_data if $new_data eq $old_data;   
+        return $value if $value eq $old_value;
     }
     
     my $i = $self->instance ;
@@ -60,13 +60,13 @@ sub store {
     
     {
         no warnings 'uninitialized';
-        $logger->debug("Loading layered config from $new_data (old_data is $old_data)") ;
+        $logger->debug("Loading layered config from $value (old_data is $old_value)") ;
     }
     
     # load included file in layered mode
     $self->root->read_config_data(
-        check => 'no', 
-        config_file => $new_data ,
+        # check => 'no',
+        config_file => $value ,
         auto_create => 0, # included file must exist
     );
 
@@ -75,9 +75,9 @@ sub store {
     }
     
     # test if already in layered mode -> if no, clear layered, 
-    $logger->debug("Done loading layered config from $new_data") ;
+    $logger->debug("Done loading layered config from $value") ;
     
-    return $new_data ;
+    return $value ;
 }
 
 sub _check_value {
@@ -117,7 +117,7 @@ Config::Model::Value::LayeredInclude - Include a sub layer configuration
 
 =head1 VERSION
 
-version 2.029
+version 2.030_01
 
 =head1 SYNOPSIS
 

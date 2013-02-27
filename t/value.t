@@ -3,9 +3,10 @@
 use warnings FATAL => qw(all);
 
 use ExtUtils::testlib;
-use Test::More tests => 166;
+use Test::More ;
 use Test::Exception;
 use Test::Warn;
+use Test::Differences ;
 use Test::Memory::Cycle;
 use Config::Model;
 use Config::Model::Value;
@@ -251,6 +252,24 @@ my $inst = $model->instance(
 ok( $inst, "created dummy instance" );
 $inst->initial_load_stop ;
 
+my %error_stash ;
+
+sub check_store_error {
+    my ($obj, $v, $qr) = @_ ;
+    my $path = $obj->location ;
+    $error_stash{$path} = '' ;
+    $obj->store(value => $v, silent => 1);
+    is_deeply( $inst->errors, \%error_stash,"store error in $path is tracked") ;
+    like( scalar $inst->error_messages,$qr,"check $path error message") ;
+}
+
+sub check_error {
+    my ($obj, $v, $qr) = @_ ;
+    my $old_v = $obj->fetch ;
+    check_store_error(@_) ;
+    is($obj->fetch, $old_v,"check that wrong value $v was not stored") ;
+}
+
 my $root = $inst->config_root;
 
 my $i = $root->fetch_element('scalar');
@@ -260,35 +279,29 @@ is($inst->needs_save,0,"verify instance needs_save status after creation") ;
 
 is($i->needs_check,1,"verify check status after creation") ;
 
-ok( $i->store(1), "store test" );
-is($i->needs_check,0,"store not trigger a check (check done during store)") ;
+$i->store(1);
+ok( 1, "store test done" );
+is($i->needs_check,0,"store does not trigger a check (check done during store)") ;
 is($inst->needs_save,1,"verify instance needs_save status after store") ;
 
 is( $i->fetch, 1, "fetch test" );
 is($i->needs_check,0,"check was done during fetch") ;
 is($inst->needs_save,1,"verify instance needs_save status after fetch") ;
 
-throws_ok { $i->store(5); } 'Config::Model::Exception::User',
-  "bounded integer: max error";
-print "normal error:\n", $@, "\n" if $trace;
+check_error($i, 5, qr/max limit/) ;
 
-throws_ok { $i->store('toto'); } 'Config::Model::Exception::User',
-  "bounded integer: string error";
-print "normal error:\n", $@, "\n" if $trace;
+# FIXME: dying during a callback is not a good idea
+# FIXME: may need to change the treatment of user errors
 
-throws_ok { $i->store(1.5); } 'Config::Model::Exception::User',
-  "bounded integer: number error";
-print "normal error:\n", $@, "\n" if $trace;
+check_error($i, 'toto', qr/not of type/) ;
+
+check_error($i, 1.5, qr/number but not an integer/) ;
 
 my $nb = $root->fetch_element('bounded_number');
 ok( $nb, "created " . $nb->name );
 
-ok( $nb->store(1),   "assign 1" );
-ok( $nb->store(1.5), "assign 1.5" );
-
-throws_ok { $i->store('toto'); } 'Config::Model::Exception::User',
-  "bounded integer: string error";
-print "normal error:\n", $@, "\n" if $trace;
+$nb->store(value => 1, callback => sub { is($nb->fetch, 1,  "assign 1" ); });
+$nb->store(value => 1.5, callback => sub { is($nb->fetch, 1.5,  "assign 1.5" ); });
 
 $nb->store(undef);
 ok( defined $nb->fetch() ? 0 : 1, "store undef" );
@@ -300,8 +313,8 @@ throws_ok { my $v = $ms->fetch; } 'Config::Model::Exception::User',
   "mandatory string: undef error";
 print "normal error:\n", $@, "\n" if $trace;
 
-is( $ms->store('toto'), 'toto', "mandatory_string: store" );
-is( $ms->fetch,         'toto', "and read" );
+$ms->store('toto') ;
+is( $ms->fetch,         'toto', "mandatory_string: store and read" );
 
 my $toto_str = "a\nbig\ntext\nabout\ntoto" ;
 $ms->store($toto_str) ;
@@ -318,41 +331,20 @@ throws_ok { my $v = $mb->fetch; } 'Config::Model::Exception::User',
   "mandatory bounded: undef error";
 print "normal error:\n", $@, "\n" if $trace;
 
-throws_ok { $mb->store('toto'); } 'Config::Model::Exception::User',
-  "mandatory bounded: store string error";
-print "normal error:\n", $@, "\n" if $trace;
+check_store_error($mb, 'toto',qr/boolean error/);
 
-throws_ok { $mb->store(2); } 'Config::Model::Exception::User',
-  "mandatory bounded: store 2 error";
-print "normal error:\n", $@, "\n" if $trace;
+check_store_error($mb, 2,qr/boolean error/);
 
-ok( $mb->store(1), "mandatory boolean: set to 1" );
+my @bool_test = ( 1, 1, yes => 1, Yes => 1 , no => 0, Nope => 0 , true => 1, False => 0) ;
 
-ok( $mb->fetch, "mandatory boolean: read" );
+while (@bool_test) {
+    my $store = shift @bool_test ;
+    my $read  = shift @bool_test ;
 
-print "mandatory boolean: set to yes\n" if $trace;
-ok( $mb->store('yes'), "mandatory boolean: set to yes" );
-is( $mb->fetch, 1, "and read" );
+    $mb->store($store);
 
-print "mandatory boolean: set to Yes\n" if $trace;
-ok( $mb->store('Yes'), "mandatory boolean: set to Yes" );
-is( $mb->fetch, 1, "and read" );
-
-print "mandatory boolean: set to no\n" if $trace;
-is( $mb->store('no'), 0, "mandatory boolean: set to no" );
-is( $mb->fetch,       0, "and read" );
-
-print "mandatory boolean: set to Nope\n" if $trace;
-is( $mb->store('Nope'), 0, "mandatory boolean: set to Nope" );
-is( $mb->fetch,         0, "and read" );
-
-print "mandatory boolean: set to true\n" if $trace;
-is( $mb->store('true'), 1, "mandatory boolean: set to true" );
-is( $mb->fetch,         1, "and read" );
-
-print "mandatory boolean: set to False\n" if $trace;
-is( $mb->store('False'), 0, "mandatory boolean: set to False" );
-is( $mb->fetch,          0, "and read" );
+    is( $mb->fetch, $read, "mandatory boolean: store $store and read $read value" );
+}
 
 my $bwwa = $root->fetch_element('boolean_with_write_as');
 is($bwwa->fetch, undef, "boolean_with_write_as reads undef");
@@ -369,10 +361,6 @@ print "normal error:\n", $@, "\n" if $trace;
 my $de = $root->fetch_element('enum');
 ok( $de, "Created enum with correct default" );
 
-throws_ok { $mb->store('toto'); } 'Config::Model::Exception::User',
-  "enum: store 'toto' error";
-print "normal error:\n", $@, "\n" if $trace;
-
 $inst->clear_changes ;
 
 is( $de->fetch, 'A', "enum with default: read default value" );
@@ -388,7 +376,8 @@ is($inst->needs_save,0,"check needs_save after reading a default value") ;
 print "enum with default: read custom\n" if $trace;
 is( $de->fetch_custom, undef, "enum with default: read custom value" );
 
-is( $de->store('B'),     'B', "enum: store B" );
+$de->store('B');
+is( $de->fetch,          'B', "enum: store and read B" );
 is( $de->fetch_custom,   'B', "enum: read custom value" );
 is( $de->fetch_standard, 'A', "enum: read standard value" );
 
@@ -419,19 +408,20 @@ is( $de->default(), undef, "enum: check that new default value is undef" );
 
 is( $de->fetch, undef, "enum: check that new current value is undef" );
 
-is( $de->store('H'), 'H', "enum:  set a new value" );
+$de->store('H');
+is( $de->fetch(), 'H', "enum: set and read a new value" );
 
 ###
 
 my $uc_c = $root->fetch_element('uc_convert');
 ok( $uc_c, "testing convert => uc" );
-is( $uc_c->store('coucou'), 'COUCOU', "uc_convert: testing store" );
-is( $uc_c->fetch(),         'COUCOU', "uc_convert: testing read" );
+$uc_c->store('coucou');
+is( $uc_c->fetch(),         'COUCOU', "uc_convert: testing" );
 
 my $lc_c = $root->fetch_element('lc_convert');
 ok( $lc_c, "testing convert => lc" );
-is( $lc_c->store('coUcOu'), 'coucou', "lc_convert: testing store" );
-is( $lc_c->fetch(),         'coucou', "lc_convert: testing read" );
+$lc_c->store('coUcOu');
+is( $lc_c->fetch(),         'coucou', "lc_convert: testing" );
 
 print "Testing integrated help\n" if $trace;
 
@@ -465,12 +455,14 @@ is( $up_def->fetch('standard'),
 ###
 
 my $uni = $root->fetch_element('a_uniline');
-throws_ok { $uni->store("foo\nbar"); } 'Config::Model::Exception::User',
-  "uniline: tried to store a multi line";
-print "normal error:\n", $@, "\n" if $trace;
+check_error($uni,  "foo\nbar", qr/value must not contain embedded newlines/) ;
 
 $uni->store("foo bar");
 is( $uni->fetch, "foo bar", "tested uniline value" );
+
+$uni->store('') ;
+is( $uni->fetch, '', "tested empty value" );
+
 
 ### test replace feature
 my $wrepl = $root->fetch_element('with_replace');
@@ -519,10 +511,6 @@ is( $p_enum->fetch_standard, 'B', "enum: read preset value as standard_value" );
 is( $p_enum->fetch_custom,   'C', "enum: read custom_value" );
 is( $p_enum->default,        'A', "enum: read default_value" );
 
-warning_like { $p_enum->store( 'foobar', check => 'skip' ); }
-qr/skipping value/,
-  "test that errors are displayed as warnings with check = skip";
-
 ### test layered feature
 
 my $layer_inst = $model->instance(
@@ -563,37 +551,20 @@ is( $l_enum->fetch('layered'), 'B', "enum: read layered value as layered_value" 
 is( $l_enum->fetch_standard, 'B', "enum: read layered value as standard_value" );
 is( $l_enum->fetch_custom,   'C', "enum: read custom_value" );
 
-warning_like { $l_enum->store( 'foobar', check => 'skip' ); }
-qr/skipping value/,
-  "test that errors are displayed as warnings with check = skip";
-
 ### test match regexp
 my $match = $root->fetch_element('match');
-throws_ok { $match->store('bar'); } 'Config::Model::Exception::WrongValue',
-  'match value: test for non matching value';
+
+check_error($match, 'bar' , qr/does not match/);
 
 $match->store('foo42');
 is( $match->fetch, 'foo42', "test stored matching value" );
 
-### test match and check stuff
-is( $match->store(qw/value bar check no/),
-    'bar', "force storage of wrong value" );
-is( $match->fetch(qw/check no silent 1/), 'bar', "read forced wrong value" );
-
 ### test Parse::RecDescent validation
 my $prd_match = $root->fetch_element('prd_match');
-throws_ok { $prd_match->store('bar'); } 'Config::Model::Exception::WrongValue',
-  'match value: test for non matching grammar';
-throws_ok { $prd_match->store('Perl'); } 'Config::Model::Exception::WrongValue',
-  'match value: test for non matching grammar';
-$root->fetch_element('prd_test_action')->store('Perl CC-BY Apache');
 
-throws_ok { $prd_match->store('bar'); } 'Config::Model::Exception::WrongValue',
-  'match value: test for non matching grammar';
-is( $prd_match->store(qw/value bar check no/),
-    'bar', "force storage of wrong value" );
-is( $prd_match->fetch(qw/check no silent 1/), 'bar',
-    "read forced wrong value" );
+check_error($prd_match, 'bar' , qr/does not match grammar/) ;
+check_error($prd_match, 'Perl' , qr/does not match grammar/) ;
+$root->fetch_element('prd_test_action')->store('Perl CC-BY Apache');
 
 foreach
   my $prd_test ( ( 'Perl', 'Perl and CC-BY', 'Perl and CC-BY or Apache' ) )
@@ -702,3 +673,5 @@ ok(1,"warn_unless apply_fixes called");
 is($warn_unless->fetch,'foobar',"check fixed warn_unless pb");
 
 memory_cycle_ok($model,"check memory cycles");
+
+done_testing ;

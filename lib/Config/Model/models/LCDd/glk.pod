@@ -4,7 +4,7 @@ Config::Model::models::LCDd::glk - Configuration class LCDd::glk
 
 =head1 VERSION
 
-version 2.029
+version 2.030_01
 
 =head1 DESCRIPTION
 

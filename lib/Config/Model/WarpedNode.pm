@@ -9,7 +9,7 @@
 #
 package Config::Model::WarpedNode ;
 {
-  $Config::Model::WarpedNode::VERSION = '2.029';
+  $Config::Model::WarpedNode::VERSION = '2.030_01';
 }
 use Any::Moose ;
 
@@ -186,17 +186,17 @@ sub set_properties {
     # create a new object from scratch
     my $new_object = $self->create_node($config_class_name,@args) ;
 
+    $self->{config_class_name} = $config_class_name ;
+    $self->{data} = $new_object ;
+
     if (defined $old_object and $self->{morph}) {
         # there an old object that we need to translate
         $logger->debug("WarpedNode: morphing ",$old_object->name," to ",$new_object->name)
           if $logger->is_debug ;
 
-        $new_object->copy_from($old_object) ;
+        $new_object->copy_from(from => $old_object,check => 'skip') ;
     }
 
-    $self->{config_class_name} = $config_class_name ;
-    $self->{data} = $new_object ;
-    
     # bringing a new object does not really modify the content of the config tree.
     # only changes underneath will change the tree. And these changes below will trigger
     # their own change notif. SO there's no need to call notify_change when transitioning
@@ -236,18 +236,20 @@ sub clear {
 
 sub load_data {
     my $self = shift ;
-    my $h = shift ;
+    my %args = @_ > 1 ? @_ : ( data => shift) ;
+    my $data       = $args{data};
+    my $check = $self->_check_check($args{check}) ;
 
-    if (ref ($h) ne 'HASH') {
+    if (ref ($data) ne 'HASH') {
 	Config::Model::Exception::LoadData
 	    -> throw (
 		      object => $self,
 		      message => "load_data called with non hash ref arg",
-		      wrong_data => $h,
+		      wrong_data => $data,
 		     ) ;
     }
 
-    $self->get_actual_node->load_data($h,@_) ;
+    $self->get_actual_node->load_data(%args) ;
 
 }
 
@@ -311,7 +313,7 @@ Config::Model::WarpedNode - Node that change config class properties
 
 =head1 VERSION
 
-version 2.029
+version 2.030_01
 
 =head1 SYNOPSIS
 

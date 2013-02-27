@@ -9,7 +9,7 @@
 #
 package Config::Model::CheckList ;
 {
-  $Config::Model::CheckList::VERSION = '2.029';
+  $Config::Model::CheckList::VERSION = '2.030_01';
 }
 use Any::Moose ;
 use 5.010 ;
@@ -584,7 +584,10 @@ sub set_checked_list_as_hash {
 
 sub load_data {
     my $self = shift ;
-    my $data  = shift ;
+
+    my %args = @_ > 1 ? @_ : ( data => shift) ;
+    my $data       = $args{data};
+    my $check = $self->_check_check($args{check}) ;
 
     if (ref ($data)  eq 'ARRAY') {
 	$self->set_checked_list(@$data) ;
@@ -683,7 +686,7 @@ Config::Model::CheckList - Handle check list element
 
 =head1 VERSION
 
-version 2.029
+version 2.030_01
 
 =head1 SYNOPSIS
 

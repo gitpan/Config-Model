@@ -355,27 +355,27 @@ my $macro = $root->fetch_element('macro');
 
 my @macro_slaves = ('Warper of Master m_value_out');
 
-eq_or_diff( 
+eq_or_diff(
     [ map { $_->name } $macro->get_depend_slave ] ,
     \@macro_slaves,
     "check m_value_out warper"
     );
-    
+
 my $mvo2 = $root->fetch_element('m2_value_out');
 isa_ok($mvo2->{warper},'Config::Model::Warper',"check warper object");
 
 push @macro_slaves , 'Warper of Master m2_value_out', 'Warper of Master macro2' ;
 
-eq_or_diff( 
+eq_or_diff(
     [ sort map { $_->name } $macro->get_depend_slave ] ,
     [ sort @macro_slaves ],
     "check m_value_out and m2_value_out warper"
     );
-    
+
 eq_or_diff(
     [ $root->get_element_name( for => 'beginner' ) ],
     [
-        qw'get_element where_is_element macro m_value_out m2_value_out 
+        qw'get_element where_is_element macro m_value_out m2_value_out
         compute var_path class bar foo foo2 ClientAliveCheck'
     ],
     "Elements of Master"
@@ -408,7 +408,7 @@ print "normal error: $@" if $trace;
 
 is( $slave->fetch_element('X')->fetch, undef, "reading slave->X (undef)" );
 
-is( $macro->store('B'), 'B', "setting master->macro to B" );
+is( $macro->store('B'), 1, "setting master->macro to B" );
 
 eq_or_diff(
     [ $root->get_element_name( for => 'beginner' ) ],
@@ -421,7 +421,7 @@ eq_or_diff(
 );
 
 is( $root->fetch_element('macro2')->store('A'),
-    'A', "setting master->macro2 to A" );
+    1, "setting master->macro2 to A" );
 
 is_deeply(
     [ $root->get_element_name( for => 'beginner' ) ],
@@ -437,16 +437,16 @@ $root->fetch_element('class')->fetch_with_id('foo')->store('foo_v');
 $root->fetch_element('class')->fetch_with_id('bar')->store('bar_v');
 
 is( $root->fetch_element('warped_out_ref')->store('foo'),
-    'foo', "setting master->warped_out_ref to foo" );
+    1, "setting master->warped_out_ref to foo" );
 
 is( $root->fetch_element('macro')->store('A'),
-    'A', "setting master->macro to A" );
+    1, "setting master->macro to A" );
 
 map { is( $slave->fetch_element($_)->fetch, 'Av', "reading slave->$_ (Av)" ); }
   qw/X Y Z/;
 
 is( $root->fetch_element('macro')->store('C'),
-    'C', "setting master->macro to C" );
+    1, "setting master->macro to C" );
 
 is( $root->fetch_element('m_value')->get_help('Cv'),
     'Cv help', 'test m_value help with macro=C' );
@@ -456,10 +456,10 @@ is( $slave->fetch_element('X')->fetch, undef, "reading slave->X (undef)" );
 $root->fetch_element('macro')->store('A');
 
 is( $root->fetch_element('m_value')->store('Av'),
-    'Av', 'test m_value with macro=A' );
+    1, 'test m_value with macro=A' );
 
 is( $root->fetch_element('m_value_old')->store('Av'),
-    'Av', 'test m_value_old with macro=A' );
+    1, 'test m_value_old with macro=A' );
 
 is( $root->fetch_element('m_value')->get_help('Av'),
     'Av help', 'test m_value help with macro=A' );
@@ -497,7 +497,7 @@ is_deeply(
 map { is( $slave->fetch_element($_)->fetch, 'Bv', "reading slave->$_ (Bv)" ); }
   qw/X Y Z/;
 
-is( $slave->fetch_element('Y')->store('Cv'), 'Cv', 'Set slave->Y to Cv' );
+is( $slave->fetch_element('Y')->store('Cv'), 1, 'Set slave->Y to Cv' );
 
 # testing warp in warp out
 $root->fetch_element('macro')->store('C');
@@ -516,7 +516,7 @@ is( $slave->fetch_element('Y')->fetch, 'Cv', "reading slave->Y (Cv)" );
 
 is( $slave->fetch_element('Comp')->fetch, 'macro is C', "reading slave->Comp" );
 
-is( $root->fetch_element('m_value')->store('Cv'), 'Cv', 'set m_value to Cv' );
+is( $root->fetch_element('m_value')->store('Cv'), 1, 'set m_value to Cv' );
 
 my $rslave1 = $slave->fetch_element('recursive_slave')->fetch_with_id('l1');
 my $rslave2 = $rslave1->fetch_element('recursive_slave')->fetch_with_id('l2');
@@ -659,7 +659,7 @@ is( $root->fetch_element('ClientAliveInterval')->fetch,
 
 my %loc_h = (
     qw/bar slaved foo2 slaved/,
-    'bar recursive_slave:l1 foo2' => 'rslaved', 
+    'bar recursive_slave:l1 foo2' => 'rslaved',
     'bar recursive_slave:l1 recursive_slave:l2 foo2' => 'rslaved'
 );
 

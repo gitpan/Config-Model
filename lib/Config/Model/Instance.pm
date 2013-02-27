@@ -9,7 +9,7 @@
 #
 package Config::Model::Instance;
 {
-  $Config::Model::Instance::VERSION = '2.029';
+  $Config::Model::Instance::VERSION = '2.030_01';
 }
 #use Scalar::Util qw(weaken) ;
 
@@ -104,6 +104,29 @@ sub needs_save {
     return $self->c_count ;
 }
 
+has errors => (
+    is => 'ro',
+    isa => 'HashRef',
+    traits => ['Hash'],
+    default => sub { {} },
+    handles => {
+        _set_error => 'set',
+        has_error => 'count' ,
+        clear_errors => 'clear' ,
+        error_paths => 'keys'
+    }
+) ;
+
+sub add_error {
+    my $self = shift;
+    $self->_set_error(shift, '') ;
+}
+
+sub error_messages {
+    my $self = shift ;
+    my @errs = map {"$_: " . $self->config_root->grab($_)->error_msg} $self->error_paths ;
+    return wantarray ? @errs : join("\n", @errs) ;
+}
 
 has on_change_cb => (
     is => 'rw',
@@ -175,7 +198,8 @@ sub reset_config {
         config_class_name => $self->{root_class_name},
         instance          => $self,
         container         => $self,
-        skip_read         => $self->{skip_read},
+        skip_read         => $self->skip_read,
+        check             => $self->read_check,
         config_file       => $self->{config_file} ,
     );
 }
@@ -421,7 +445,7 @@ Config::Model::Instance - Instance of configuration tree
 
 =head1 VERSION
 
-version 2.029
+version 2.030_01
 
 =head1 SYNOPSIS
 
@@ -497,6 +521,14 @@ configuration tree.
 
 Call back this function whenever C<notify_change> is called. Called with
 arguments: C<< name => <root node element name>, index => <index_value> >>
+
+=item error_paths
+
+Returns a list of tree items that currently have an error.
+
+=item error_messages
+
+Returns a list of error messages from the tree content.
 
 =back
 

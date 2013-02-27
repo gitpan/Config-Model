@@ -9,7 +9,7 @@
 #
 package Config::Model::Value ;
 {
-  $Config::Model::Value::VERSION = '2.029';
+  $Config::Model::Value::VERSION = '2.030_01';
 }
 
 use 5.10.1 ;
@@ -28,10 +28,12 @@ use Log::Log4perl qw(get_logger :levels);
 use Scalar::Util qw/weaken/ ;
 use Carp ;
 use Storable qw/dclone/;
+use AnyEvent ;
 
 extends qw/Config::Model::AnyThing/ ;
 
 my $logger = get_logger("Tree::Element::Value") ;
+my $async_logger = get_logger("Async::Value") ;
 my $change_logger = get_logger("Anything::Change") ;
 my $fix_logger = get_logger("Anything::Fix") ;
 
@@ -89,6 +91,59 @@ sub _compute_is_default {
     return ! $self->compute_obj->use_as_upstream_default ;
 }
 
+has _pending_store => (
+    traits  => ['Counter'],
+    is      => 'ro',
+    isa     => 'Int',
+    default => 0,
+    handles => {
+        inc_pending_store   => 'inc',
+        dec_pending_store   => 'dec',
+    },
+    trigger => sub {
+        my ($self,$count) = @_ ;
+        my $cb = $self->_pending_fetch or return ;
+        return if $count ;
+        $cb->() ;
+        $self->_fetch_done;
+    }
+);
+
+has _pending_fetch => (
+    is => 'rw',
+    isa => 'Maybe[CodeRef]',
+    clearer => '_fetch_done'
+);
+
+has error_list => (
+    is => 'ro',
+    isa => 'ArrayRef',
+    default => sub { [] },
+    traits => ['Array'] ,
+    handles => {
+        add_error => 'push',
+        clear_errors  => 'clear',
+        error_msg => [ join => "\n\t" ],
+        has_error => 'count',
+        all_errors => 'elements' ,
+        is_ok => 'is_empty'
+    }
+) ;
+
+has warning_list => (
+    is => 'ro',
+    isa => 'ArrayRef',
+    default => sub { [] },
+    traits => ['Array'] ,
+    handles => {
+        add_warning => 'push',
+        clear_warnings  => 'clear',
+        warning_msg => [ join => "\n\t" ],
+        has_warning => 'count',
+        all_warnings => 'elements' ,
+    }
+) ;
+
 # as some information like experience must be backed up even though they are not
 # attributes, we cannot move below code in BUILD. (experience is actually used by node)
 around BUILDARGS => sub {
@@ -129,6 +184,11 @@ sub notify_change {
 	" for ",$self->name) 
 	if $change_logger->is_debug ;
     $self->needs_check(1) unless $check_done;
+    {
+        no warnings 'uninitialized';
+        croak "needless change with $args{new}" if defined $args{old}
+            and defined $args{new} and $args{old} eq $args{new} ;
+    }
     $self->SUPER::notify_change(%args, value_type => $self->value_type) ;
 
     # notify all warped or computed objects that depends on me 
@@ -166,11 +226,11 @@ sub set_default {
 	next unless defined $def ;
 
 	# will check default value
-	my @error = $self->check_value(value => $def) ;
+	$self->check_value(value => $def) ;
 	Config::Model::Exception::Model->throw(
 	    object => $self,
-	    error  => "Wrong $item value\n\t" . join( "\n\t", @error )
-	) if @error;
+	    error  => "Wrong $item value\n\t" . $self->error_msg
+	) if $self->has_error;
 
 	$logger->debug( "Set $item value for ", $self->name, "" );
 
@@ -236,11 +296,11 @@ sub perform_compute {
     #print "compute: result $result\n" ;
     # check if the computed result fits with the constraints of the
     # Value object
-    my $ok = $self->check_value($result) ;
+    my $ok = $self->check_fetched_value($result) ;
 
     #print "check result: $ok\n";
     if (not $ok) {
-        my $error =  join("\n\t",@{$self->{error_list}}) .
+        my $error =  $self->error_msg.
           "\n\t".$self->compute_info;
 
         Config::Model::Exception::WrongValue
@@ -311,7 +371,7 @@ sub migrate_value {
 
     #print "check result: $ok\n";
     if (not $ok) {
-        my $error =  join("\n\t",@{$self->{error_list}}) .
+        my $error =  $self->error_msg .
           "\n\t".$self->{_migrate_from}->compute_info;
 
         Config::Model::Exception::WrongValue
@@ -760,20 +820,6 @@ sub get_help {
     return ;
 }
 
-
-sub error_msg {
-    my $self = shift ;
-    return unless $self->{error_list} ;
-    return wantarray ? @{$self->{error_list}} : join("\n\t",@{ $self ->{error_list}}) ;
-}
-
-
-sub warning_msg {
-    my $self = shift ;
-    return unless $self->{warning_list} ;
-    return wantarray ? @{$self->{warning_list}} : join("\n",@{ $self ->{warning_list}})
-}
-
 # construct an error message for enum types
 sub enum_error {
     my ($self,$value) = @_ ;
@@ -798,17 +844,18 @@ sub enum_error {
     return @error ;
 }
 
-
+# asynchronous if a call-back is passed
 sub check_value {
     my $self = shift ;
-    croak "check_value needs a value to check" unless @_ ;
-    
-    my %args = @_ > 1 ? @_ : (value => $_[0]) ;
+    croak "check_value needs a value to check" unless @_ > 1;
+
+    my %args = @_ ;
     my $value = $args{value} ;
     my $quiet = $args{quiet} || 0 ;
     my $check = $args{check} || 'yes' ;
     my $apply_fix = $args{fix} || 0 ;
     my $mode = $args{mode} || 'backend' ;
+    my $cb = delete $args{callback} ;
 
     #croak "Cannot specify a value with fix = 1" if $apply_fix and exists $args{value} ;
 
@@ -910,19 +957,19 @@ sub check_value {
     if ($mode ne 'custom') {
         if ($self->{warn_if_match}) {
             my $test_sub = sub {my ($v,$r) = @_ ; $v =~ /$r/ ? 0 : 1;} ;
-            $self->run_regexp_set_on_value($value, $apply_fix, \@warn, 'not ',$test_sub, $self->{warn_if_match}) ; 
+            $self->run_regexp_set_on_value(\$value, $apply_fix, \@warn, 'not ',$test_sub, $self->{warn_if_match}) ; 
         }
     
         if ($self->{warn_unless_match}) {
             my $test_sub = sub {my ($v,$r) = @_ ; $v =~ /$r/ ? 1 : 0 ;} ;
-            $self->run_regexp_set_on_value($value, $apply_fix, \@warn, '',$test_sub, $self->{warn_unless_match}) ; 
+            $self->run_regexp_set_on_value(\$value, $apply_fix, \@warn, '',$test_sub, $self->{warn_unless_match}) ; 
         }
     
-        $self->run_code_set_on_value( $value, $apply_fix, \@error,
+        $self->run_code_set_on_value( \$value, $apply_fix, \@error,
             "assert failure",
             $self->{assert} )
           if $self->{assert};
-        $self->run_code_set_on_value( $value, $apply_fix, \@warn,
+        $self->run_code_set_on_value( \$value, $apply_fix, \@warn,
             "warn_unless code check returned false",
             $self->{warn_unless} )
           if $self->{warn_unless};
@@ -944,19 +991,25 @@ sub check_value {
     }
 
     $logger->debug("check_value returns ",scalar @error," errors and ", scalar @warn," warnings");
-    $self->{error_list} = \@error ;
-    $self->{warning_list} = \@warn ;
+    $self->clear_errors;
+    $self->clear_warnings;
+    $self->add_error( @error ) if @error;
+    $self->add_warning( @warn ) if @warn;
+
+    $args{value} = $value ; # may be updated by apply_fix
 
     $logger->debug("done") ;
-    return wantarray ? @error : scalar @error ? 0 : 1 ;
+
+    $cb->(%args, ok => not @error) if $cb ;
+    return not @error ;
 }
 
 sub run_code_on_value {
-    my ($self,$value, $apply_fix, $array, $label, $sub, $msg, $fix) = @_;
+    my ($self,$value_r, $apply_fix, $array, $label, $sub, $msg, $fix) = @_;
 
     $logger->info( $self->location . ": run_code_on_value called (apply_fix $apply_fix)" );
 
-    my $ret = $sub->($value) ;
+    my $ret = $sub->($$value_r) ;
     if ($logger->is_debug) {
         my $str = defined $ret ? $ret : '<undef>';
         $logger->debug( "run_code_on_value sub returned '$str'" );
@@ -966,12 +1019,12 @@ sub run_code_on_value {
         $logger->debug( "run_code_on_value sub returned false" );
         push @$array, $msg unless $apply_fix ;
         $self->{nb_of_fixes}++ if (defined $fix and not $apply_fix);
-        $self->apply_fix($fix,$value) if (defined $fix and $apply_fix);
+        $self->apply_fix($fix,$value_r) if (defined $fix and $apply_fix);
     }
 }
 
 sub run_code_set_on_value {
-    my ($self,$value, $apply_fix, $array, $msg, $w_info) = @_ ; ; 
+    my ($self,$value_r, $apply_fix, $array, $msg, $w_info) = @_ ;
         
     foreach my $label ( keys %$w_info ) {
         my $code = $w_info->{$label}{code} ;
@@ -991,21 +1044,21 @@ sub run_code_set_on_value {
             return $ret ;
         };
         
-        $self->run_code_on_value($value,$apply_fix,$array,$label,$sub,$msg,$fix) ;
+        $self->run_code_on_value($value_r,$apply_fix,$array,$label,$sub,$msg,$fix) ;
     }
 }
 
 sub run_regexp_set_on_value {
-    my ($self,$value, $apply_fix, $array, $msg, $test_sub, $w_info) = @_ ; ; 
+    my ($self,$value_r, $apply_fix, $array, $msg, $test_sub, $w_info) = @_ ;
 
     # no need to check default or computed values
-    return unless defined $value;
+    return unless defined $$value_r;
 
     foreach my $rxp ( keys %$w_info ) {
         my $sub = sub { $test_sub->($_[0], $rxp) } ;
-        my $msg = $w_info->{$rxp}{msg} || "value '$value' should $msg"."match regexp $rxp";
+        my $msg = $w_info->{$rxp}{msg} || "value '$$value_r' should $msg"."match regexp $rxp";
         my $fix = $w_info->{$rxp}{fix} ;
-        $self->run_code_on_value($value,$apply_fix,$array,'regexp',$sub,$msg,$fix) ;
+        $self->run_code_on_value($value_r,$apply_fix,$array,'regexp',$sub,$msg,$fix) ;
     }
 }
     
@@ -1023,16 +1076,29 @@ sub apply_fixes {
         $fix_logger->debug( "called for ".$self->location ) ;
     }
 
-    $self->check_value(value => $self->{data}, fix => 1);
-    # $self->notify_change ;
+    my ($old, $new) ;
+    my $i = 0;
+    do {
+        $old = $self->{nb_of_fixes} ;
+        $self->check_value(value => $self->{data}, fix => 1);
+        $new = $self->{nb_of_fixes} ;
+        $self->check_value(value => $self->{data});
+        if ($i++ > 100) {
+            Config::Model::Exception::Model->throw(
+                object => $self,
+                error  => "Too many fix loops: check with fix code or regexp"
+            ) ;
+        }
+    }
+    while ($self->{nb_of_fixes} and $old > $new);
 }
 
 
 # internal: called by check when a fix is required
 sub apply_fix {
-    my ( $self, $fix, $value ) = @_;
+    my ( $self, $fix, $value_r ) = @_;
 
-    local $_ = $value; # used inside $fix sub ref
+    local $_ = $$value_r; # used inside $fix sub ref
 
     if ($fix_logger->is_debug){ 
 	my $str = $fix ;
@@ -1048,29 +1114,44 @@ sub apply_fix {
         );
     }
 
-    $self->{data}  = $_ ;
+    no warnings "uninitialized";
+    $self->_store_fix($$value_r, $_) if ($_ ne $$value_r);
+}
+
+sub _store_fix {
+    my ( $self, $old, $new ) = @_;
+
+    $self->{data} = $new ;
 
     if ($fix_logger->is_trace){ 
-	$fix_logger->trace( "fix change: '" . ($value // '<undef>') ."' -> '"
-	    . ($self->{data} // '<undef>'). "'" );
+	$fix_logger->trace( "fix change: '" . ($old // '<undef>') ."' -> '"
+	    . ($new // '<undef>'). "'" );
     }
     
     $self->notify_change(
-        old => $value // $self->_fetch_std, 
-        new => $self->{data} // $self->_fetch_std,
+        old => $old // $self->_fetch_std,
+        new => $new // $self->_fetch_std,
         note => 'applied fix'
     ) ;
     # $self->store(value => $_, check => 'no');  # will update $self->{fixes}
 }
 
+# read checks should be blocking
+# store checks should be async
+
 
 sub check {
+    goto &check_fetched_value ;
+}
+
+sub check_fetched_value {
     my $self = shift;
 
-    $logger->debug(
-        "called for " . $self->location . " from " . join( ' ', caller ),
-        " with @_" )
-      if $logger->is_debug;
+    if ($logger->is_debug) {
+        no warnings 'uninitialized' ;
+        $logger->debug( "called for " . $self->location
+            . " from " . join( ' ', caller ), " with @_" );
+    }
 
     my %args =
         @_ == 0 ? ( value => $self->{data} )
@@ -1081,31 +1162,45 @@ sub check {
     my $silent = $args{silent} || 0;
     my $check = $args{check} || 'yes' ;
 
-    if ($self->needs_check) {
-	my @error = $self->check_value(%args);
+    if ($self->_pending_store) {
+        my $w = AnyEvent->condvar ;
+        $async_logger->debug("blocks on pending store, count: ", $self->_pending_store);
+        $self->_pending_fetch( sub { $w->send; }) ;
+        $w->recv ;
+        $async_logger->debug("unblocked after pending store");
+    }
 
-	$self->{error_list} = \@error;
-	$logger->debug("check done");
+    if ($self->needs_check) {
+        my $w = AnyEvent->condvar ;
+        my $cb = sub { $w->send } ;
+
+	$self->check_value(%args, callback => $cb );
+
+        $async_logger->debug("blocks on check_value");
+        $w->recv ;
+        $async_logger->debug("unblocked after check_value");
+
+	my $err_count = $self->has_error;
+	my $warn_count = $self->has_warning;
+	$logger->debug("done with $err_count errors and $warn_count warnings");
 
 	# some se case like idElementReference are too complex to propagate
 	# a change notification back to the value using them. So an error or
 	# warning must always be rechecked.
-	my $warn = $self->{warning_list};
-	$self->needs_check(0) unless @error or @$warn ;
+	$self->needs_check(0) unless $err_count or $warn_count ;
     }	
     else {
-	$logger->debug("check is not needed");
+	$logger->debug("is not needed");
     }
 
-    my $warn = $self->{warning_list};
-    
     # old_warn is used to avoid warning the user several times for the 
     # same reason. We take care to clean up this hash each time this routine
     # is run
     my $old_warn = $self->{old_warning_hash} || {} ;
     my %warn_h ;
-    if (@$warn and not $nowarning and not $silent) {
-        foreach my $w (@$warn) {
+
+    if ($self->has_warning and not $nowarning and not $silent) {
+        foreach my $w ($self->all_warnings) {
             $warn_h{$w} = 1 ;
             next if $old_warn->{$w} ;
             my $str = defined $value ? "'$value'" : '<undef>';
@@ -1114,11 +1209,17 @@ sub check {
     }
     $self->{old_warning_hash} = \%warn_h ;
 
-    my $e = $self->{error_list} ;
-    return wantarray ? @$e : not scalar @$e ;
+    return wantarray ? $self->all_errors : $self->is_ok ;
 }
 
 
+# callback with ($value, $error_ref, $warning_ref) ?
+
+# create a callback that wraps:
+# actual store in internal structure
+# user callback
+# notify_change
+# call to warp master
 
 sub store {
     my $self = shift ;
@@ -1128,58 +1229,108 @@ sub store {
     my $check = $self->_check_check($args{check}) ;
     my $silent = $args{silent} || 0 ;
 
+    # store with check skip makes sense when force loading data: bad value
+    # is discarded, partially consistent values are stored so the user may
+    # salvage them before next save check discard them
+
     my $old_value = $self->_fetch_no_check ;
 
-    my $value = $self->pre_store(value => $args{value}, check => $check ) ;
+    my $value = $self->transform_value(value => $args{value}, check => $check ) ;
 
-    $self->needs_check(1) ;
-    my $ok = $self->store_check($value) ;
-
-    if ($logger->is_debug) {
-	my $i = $self->instance ;
-	my $msg = "value store $value, ok '$ok', check is $check";
-	map { $msg .= " $_" if $i->$_() } qw/layered preset/ ;
-	$logger->debug($msg) ; 
-    }
-    
     my $init_load = $self->instance->initial_load ;
     no warnings qw/uninitialized/;
     my $notify_change 
 	= $args{value} ne $value                ? 1 # data was transformed by model 
 	: $value ne $old_value and ! $init_load ? 1 
 	:                                         0 ;
+
+    if (defined $old_value and $value eq $old_value) {
+        $logger->info("store: skip storage of unchanged value: $value") ;
+        return 1;
+    }
+
     use warnings qw/uninitialized/;
     
+
+    $self->needs_check(1) ; # always when storing a value
+    my $user_cb = $args{callback} || sub {} ;
+
+    # record a "pending_store" status so that fetch blocks until
+    # pending_store is cleared (necessary if warp stuff is read before the store is finished)
+    $async_logger->debug("incrementing pending store for ",$self->element_name) ;
+    $self->inc_pending_store ;
+    my $my_cb = sub {
+        # must dec the counter before calling the user's cb. (which may contain a fetch call)
+        $async_logger->debug("decrementing pending store for ",$self->element_name) ;
+        $self->dec_pending_store;
+        $self->store_cb(@_ , callback => $user_cb) ;
+    };
+
+    $self->check_stored_value(
+        value => $value,
+        check => $check,
+        silent => $silent,
+        notify_change => $notify_change, 
+        callback => $my_cb
+    ) ;
+}
+
+#
+# New subroutine "_store_value" extracted - Wed Jan 16 18:46:22 2013.
+#
+sub _store_value {
+    my $self          = shift;
+    my $value         = shift;
+    my $notify_change = shift // 1;
+
+    if ( $self->instance->layered ) {
+        $self->{layered} = $value;
+    }
+    elsif ( $self->instance->preset ) {
+        $self->notify_change( check_done => 1, old => $self->{data}, new => $value )
+          if $notify_change;
+        $self->{preset} = $value;
+    }
+    else {
+        no warnings 'uninitialized';
+        my $old = $self->{data} // $self->_fetch_std ;
+        my $new = $value // $self->_fetch_std ;
+        $self->notify_change(
+            check_done => 1,
+            old        => $old,
+            new        => $new
+        ) if $notify_change and ($old ne $new);
+        $self->{data} = $value;    # may be undef
+    }
+    return $value ;
+}
+
+sub store_cb {
+    my $self = shift;
+    my %args = @_ ;
+
+    my ($value, $check, $silent, $notify_change, $ok, $callback) 
+        = @args{qw/value check silent notify_change ok callback/} ;
+
+    if ($logger->is_debug) {
+	my $i = $self->instance ;
+	my $msg = "value store $value, ok '$ok', check is $check";
+	map { $msg .= " $_" if $i->$_() } qw/layered preset/ ;
+	$logger->debug($msg) ;
+    }
+
+    my $old_value = $self->_fetch_no_check ;
+
+    # FIXME: storing wrong value does not make sense
     # we let store the value even if wrong when check is disabled
     if ($ok or $check eq 'no') {
-        if ($self->instance->layered) {
-	    $self->{layered} = $value ;
-	} 
-	elsif ($self->instance->preset) {
-	    $self->notify_change(check_done => 1,old => $self->{data}, new => $value)
-                if $notify_change;
-	    $self->{preset} = $value ;
-	} 
-	else {
-	    no warnings 'uninitialized';
-	    $self->notify_change(
-                check_done => 1,
-                old => $self->{data} // $self->_fetch_std, 
-                new => $value // $self->_fetch_std
-            ) if $notify_change;
-	    $self->{data} = $value ; # may be undef
-	}
-	
+        $self-> _store_value ( $value,$notify_change) ;
     }
-    elsif ($check eq 'skip') {
+    else {
+        $self->instance->add_error($self->location) ;
         my $msg = $self->error_msg;
         warn "Warning: skipping value $value because of the following errors:\n$msg\n\n"
           if not $silent and $msg;
-    }
-    else {
-        Config::Model::Exception::WrongValue 
-	    -> throw ( error => join("\n\t",@{$self->{error_list}}),
-		       object => $self) ;
     }
 
     if (    $ok 
@@ -1191,12 +1342,12 @@ sub store {
 	$self->trigger_warp($value) ;
     }
 
-    return $value;
+    $callback->(%args) ;
 }
 
-# internal. return ( 1|0, value)
+# internal. return ( undef, value)
 # May return an undef value if actual store should be skipped
-sub pre_store {
+sub transform_value {
     my $self = shift ;
     my %args = @_ > 1 ? @_ : (value => $_[0]) ;
     my $value = $args{value} ;
@@ -1215,17 +1366,11 @@ sub pre_store {
 	Config::Model::Exception::Model
 	    -> throw (object => $self, message => $msg) 
 	      if $check eq 'yes';
-        return 1 ; 
+        return ; 
     }
 
     if (defined $self->{refer_to} or defined $self->{computed_refer_to}) {
 	$self->{ref_object}->get_choice_from_refered_to ;
-    }
-
-    # check if the object was initialized
-    if (not defined $self->{value_type}) {
-        $self->_value_type_error if $check eq 'yes';
-	return 0 ;
     }
 
     if ($self->{value_type} eq 'boolean' and defined $value) {
@@ -1256,9 +1401,56 @@ sub pre_store {
     return $value;
 }
 
-# dummy routine to enable special store check in inherited classes
-sub store_check {
-    goto &check ;
+# store check must be async
+sub check_stored_value {
+    my $self = shift;
+
+    $async_logger->debug(
+        "called for " . $self->location . " from " . join( ' ', caller ),
+        " with @_" )
+      if $async_logger->is_debug;
+
+    my %args = @_;
+
+    my $cb = delete $args{callback} || croak "check_stored_value: no callback" ;
+    my $my_cb = sub {
+        $self->check_stored_value_cb(@_, callback => $cb) ;
+    } ;
+
+
+    $self->check_value(%args, callback => $my_cb);
+}
+
+sub check_stored_value_cb {
+    my $self = shift;
+    my %args = @_ ;
+
+    my ($value, $check, $silent, $notify_change, $ok, $callback) 
+        = @args{qw/value check silent notify_change ok callback/} ;
+
+    $async_logger->debug("check_stored_value_cb called");
+
+    # some se case like idElementReference are too complex to propagate
+    # a change notification back to the value using them. So an error or
+    # warning must always be rechecked.
+    $self->needs_check(0) unless $self->has_error or $self->has_warning ;
+
+    # old_warn is used to avoid warning the user several times for the
+    # same reason. We take care to clean up this hash each time this routine
+    # is run
+    my $old_warn = $self->{old_warning_hash} || {} ;
+    my %warn_h ;
+    if ($self->has_warning and not $nowarning and not $silent) {
+        foreach my $w ($self->all_warnings) {
+            $warn_h{$w} = 1 ;
+            next if $old_warn->{$w} ;
+            my $str = defined $value ? "'$value'" : '<undef>';
+            warn "Warning in '" . $self->location . "' value $str: $w\n";
+        }
+    }
+    $self->{old_warning_hash} = \%warn_h ;
+
+    $callback->(%args) ;
 }
 
 # print a hopefully helpful error message when value_type is not
@@ -1286,7 +1478,10 @@ sub _value_type_error {
 
 sub load_data {
     my $self = shift ;
-    my $data  = shift ;
+
+    my %args = @_ > 1 ? @_ : ( data => shift) ;
+    my $data       = $args{data};
+    my $check = $self->_check_check($args{check}) ;
 
     if (ref $data) {
 	Config::Model::Exception::LoadData
@@ -1511,8 +1706,10 @@ sub fetch {
             mode => 'loose',
             autoadd => 0,
         ); 
-        # stire replaced value to trigger notify_change         
-        $value = $self->store($rep) if defined $rep ;
+        # store replaced value to trigger notify_change
+        if (defined $rep  and $rep ne $value) {
+             $value = $self->_store_value($rep) ;
+        };
     }
 
     # check and subsequent storage of fixes instruction must be done only
@@ -1538,7 +1735,7 @@ sub fetch {
     
     Config::Model::Exception::WrongValue->throw(
         object => $self,
-        error  => join( "\n\t", @{ $self->{error_list} } )
+        error  => $self->error_msg
     );
 
     return;
@@ -1660,7 +1857,7 @@ Config::Model::Value - Strongly typed configuration value
 
 =head1 VERSION
 
-version 2.029
+version 2.030_01
 
 =head1 SYNOPSIS
 
@@ -2452,7 +2649,7 @@ regular expression.
   
 =head2 Enforce value to match a L<Parse::RecDescent> grammar
 
-  prd_match => {
+  match_with_parse_recdescent => {
     type       => 'leaf',
     value_type => 'string',
     grammar    => q{ 

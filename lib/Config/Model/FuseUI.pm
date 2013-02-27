@@ -9,7 +9,7 @@
 #
 package Config::Model::FuseUI ;
 {
-  $Config::Model::FuseUI::VERSION = '2.029';
+  $Config::Model::FuseUI::VERSION = '2.030_01';
 }
 
 # there's no Singleton with Mouse
@@ -183,8 +183,10 @@ sub truncate {
 
     my $v = substr fetch_as_line($obj) , 0, $off ;
 
-    $logger->debug("FuseUI truncate stores '$v'");
-    $obj->store(value => $v, check => 'no') ;
+    $logger->debug("FuseUI truncate stores '$v' of length ",length($v));
+    # store the value without any check. Check will be done in write()
+    # the second parameter will trigger a notif_change.
+    $obj->_store_value( $v, 1 ) ;
     return 0 ;
 }
 
@@ -209,7 +211,7 @@ sub write {
     substr $v,$off,length($buf),$buf ;
     chomp $v unless ($type eq 'leaf' and $obj->value_type eq 'string') ;
     $logger->debug("FuseUI write stores '$v'");
-    $obj->store(value => $v, skip => 'check' ) ;
+    $obj->store(value => $v ) ;
     return length($buf) ;
 }
 
@@ -310,7 +312,7 @@ Config::Model::FuseUI - Fuse virtual file interface for Config::Model
 
 =head1 VERSION
 
-version 2.029
+version 2.030_01
 
 =head1 SYNOPSIS
 

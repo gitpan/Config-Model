@@ -10,7 +10,7 @@
 
 package Config::Model::Backend::Yaml ;
 {
-  $Config::Model::Backend::Yaml::VERSION = '2.029';
+  $Config::Model::Backend::Yaml::VERSION = '2.030_01';
 }
 
 use Carp;
@@ -54,7 +54,7 @@ sub read {
     }
 
     # load perl data in tree
-    $self->{node}->load_data($perl_data, $args{check} || 'yes' ) ;
+    $self->{node}->load_data(data => $perl_data, check => $args{check} || 'yes' ) ;
     return 1 ;
 }
 
@@ -92,7 +92,7 @@ Config::Model::Backend::Yaml - Read and write config as a YAML data structure
 
 =head1 VERSION
 
-version 2.029
+version 2.030_01
 
 =head1 SYNOPSIS
 

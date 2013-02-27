@@ -9,7 +9,7 @@
 #
 package Config::Model::Node;
 {
-  $Config::Model::Node::VERSION = '2.029';
+  $Config::Model::Node::VERSION = '2.030_01';
 }
 
 use Any::Moose ;
@@ -102,8 +102,7 @@ sub _config_model {
 }
 
 has skip_read => ( is => 'ro', isa => 'Bool') ;
-has check => ( is => 'ro', isa => 'Str', builder => '_check_check', lazy => 1) ;
-has auto_read => ( is => 'rw' , isa => 'HashRef' ) ;
+has check => ( is => 'ro', isa => 'Str', default => 'yes') ;
 has model => ( is => 'rw' , isa => 'HashRef' ) ;
 has needs_save => ( is => 'rw', isa => 'Bool', default => 0 ) ;
 
@@ -119,8 +118,6 @@ sub BUILD {
               : $req_check eq 'skip' || $read_check eq 'skip' ? 'skip' 
               :                                                 'yes' ;
     
-    
-    $self->auto_read( { skip => $self->skip_read, check => $check } );
     
     my $caller_class = defined $self->parent 
       ? $self->parent->name : 'user' ;
@@ -351,12 +348,8 @@ sub init {
     
     $self->{backend_mgr} ||= Config::Model::BackendMgr->new( node => $self );
 
-    my $ar = $self->{auto_read};
-
-    my $check = $ar->{check};
-    if ( defined $model->{read_config} and not $ar->{skip_read} ) {
-        $ar->{done} = 1;
-        $self->read_config_data(check => $check) ;
+    if ( defined $model->{read_config} and not $self->skip_read ) {
+        $self->read_config_data(check => $self->check) ;
     }
 
     # use read_config data if write_config is missing
@@ -981,8 +974,6 @@ sub load {
     my %args = @_ eq 1 ? (step => $_[0]) : @_ ;
     if (defined $args{step}) {
         $loader->load(node => $self, %args) ;
-#    } elsif (defined $args{ref}) {
-#        $self->load_data($args{ref}) ; # 
     }
     else {
         Config::Model::Exception::Load
@@ -995,9 +986,10 @@ sub load {
 
 sub load_data {
     my $self                = shift ;
-    my $raw_perl_data       = shift ;
 
-    my $check = $self->_check_check(shift) ;
+    my %args = @_ > 1 ? @_ : ( data => shift) ;
+    my $raw_perl_data       = delete $args{data};
+    my $check = $self->_check_check($args{check}) ;
 
     if (    not defined $raw_perl_data 
         or (ref($raw_perl_data) ne 'HASH' 
@@ -1034,7 +1026,7 @@ sub load_data {
             my $obj = $self->fetch_element(name => $elt, experience => 'master', 
                                            check => $check) ;
 
-            $obj -> load_data(delete $perl_data->{$elt}) ;
+            $obj -> load_data(%args, data => delete $perl_data->{$elt}) ;
         } elsif ($check ne 'skip')  {
             Config::Model::Exception::LoadData 
                 -> throw (
@@ -1055,7 +1047,7 @@ sub load_data {
             #TODO: annotations
             my $obj = $self->fetch_element(name => $elt, experience => 'master', check => $check) ;
             $logger->debug("Node load_data: accepting element $elt");
-            $obj ->load_data(delete $perl_data->{$elt}) if defined $obj;
+            $obj ->load_data(%args, data => delete $perl_data->{$elt}) if defined $obj;
             }
     }
 
@@ -1126,10 +1118,12 @@ sub audit {
 
 sub copy_from {
     my $self = shift ;
-    my $from = shift ;
+    my %args = @_ > 1 ? @_ : (from => shift) ;
+    my $from = $args{from} || croak "copy_from: missing from argument";
+    my $check = $args{check} || 'yes' ;
     $logger->debug("node ".$self->location." copy from ".$from->location);
     my $dump = $from->dump_tree(check => 'no') ;
-    $self->load( step => $dump, check => 'skip' ) ;
+    $self->load( step => $dump, check => $check ) ;
 }
 
 
@@ -1220,7 +1214,7 @@ Config::Model::Node - Class for configuration tree node
 
 =head1 VERSION
 
-version 2.029
+version 2.030_01
 
 =head1 SYNOPSIS
 
@@ -1809,11 +1803,15 @@ This method can also be called with a single parameter:
 
   $node->load("some data:to be=loaded");
 
-=head2 load_data ( hash_ref, [ $check  ])
+=head2 load_data ( data => hash_ref, [ check => $check, ...  ])
 
-Load configuration data with a hash ref (first parameter). The hash ref key must match
-the available elements of the node. The hash ref structure must match
+Load configuration data with a hash ref. The hash ref key must match
+the available elements of the node (or accepted element). The hash ref structure must match
 the structure of the configuration model.
+
+Use C<< check => skip >> to make data loading more tolerant: bad data will be discarded.
+
+C<load_data> can be called with a single hash ref parameter.
 
 =head2 needs_save
 
@@ -1850,11 +1848,12 @@ Provides a text audit on the content of the configuration below this
 node. This audit will show only value different from their default
 value.
 
-=head2 copy_from ( another_node_object )
+=head2 copy_from ( from => another_node_object, [ check => ... ] )
 
 Copy configuration data from another node into this node and its
-siblings. The copy is made in a I<tolerant> mode where invalid data
-are simply discarded.
+siblings. The copy can be made in a I<tolerant> mode where invalid data
+is discarded with C<< check => skip >>. This method can be called with
+a single argument: C<< copy_from($another_node) >>
 
 =head1 Help management
 
