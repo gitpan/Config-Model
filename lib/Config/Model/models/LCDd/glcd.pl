@@ -12,35 +12,22 @@
     'class_description' => 'generated from LCDd.conf',
     'name' => 'LCDd::glcd',
     'element' => [
-      'ConnectionType',
+      'normal_font',
       {
         'value_type' => 'uniline',
-        'default' => 't6963',
+        'default' => '/usr/local/lib/X11/fonts/TTF/andalemo.ttf',
         'type' => 'leaf',
-        'description' => 'Select what type of connection. See documentation for types.'
+        'description' => 'Path to font file to use for FreeType rendering. This font must be monospace
+and should contain some special Unicode characters like arrows (Andale Mono
+is recommended and can be fetched at http://corefonts.sf.net).'
       },
-      'Size',
-      {
-        'value_type' => 'uniline',
-        'upstream_default' => '128x64',
-        'type' => 'leaf',
-        'description' => 'Width and height of the display in pixel. The supported sizes may depend on
-the ConnectionType. '
-      },
-      'Port',
-      {
-        'value_type' => 'uniline',
-        'upstream_default' => '0x378',
-        'type' => 'leaf',
-        'description' => 't6963: Parallel port to use '
-      },
-      'bidirectional',
+      'useFT2',
       {
         'value_type' => 'enum',
         'upstream_default' => 'yes',
         'type' => 'leaf',
-        'description' => 't6963: Use LPT port in bi-directional mode. This should work on most LPT port
-and is required for proper timing! ',
+        'description' => 'If LCDproc has been compiled with FreeType 2 support this option can be used
+to turn if off intentionally. ',
         'choice' => [
           'yes',
           'no'
@@ -57,26 +44,39 @@ and is required for proper timing! ',
           'no'
         ]
       },
-      'useFT2',
+      'Port',
+      {
+        'value_type' => 'uniline',
+        'upstream_default' => '0x378',
+        'type' => 'leaf',
+        'description' => 't6963: Parallel port to use '
+      },
+      'ConnectionType',
+      {
+        'value_type' => 'uniline',
+        'default' => 't6963',
+        'type' => 'leaf',
+        'description' => 'Select what type of connection. See documentation for types.'
+      },
+      'bidirectional',
       {
         'value_type' => 'enum',
         'upstream_default' => 'yes',
         'type' => 'leaf',
-        'description' => 'If LCDproc has been compiled with FreeType 2 support this option can be used
-to turn if off intentionally. ',
+        'description' => 't6963: Use LPT port in bi-directional mode. This should work on most LPT port
+and is required for proper timing! ',
         'choice' => [
           'yes',
           'no'
         ]
       },
-      'normal_font',
+      'Size',
       {
         'value_type' => 'uniline',
-        'default' => '/usr/local/lib/X11/fonts/TTF/andalemo.ttf',
+        'upstream_default' => '128x64',
         'type' => 'leaf',
-        'description' => 'Path to font file to use for FreeType rendering. This font must be monospace
-and should contain some special Unicode characters like arrows (Andale Mono
-is recommended and can be fetched at http://corefonts.sf.net).'
+        'description' => 'Width and height of the display in pixel. The supported sizes may depend on
+the ConnectionType. '
       },
       'fontHasIcons',
       {

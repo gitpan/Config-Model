@@ -4,7 +4,7 @@ Config::Model::models::LCDd - Configuration class LCDd
 
 =head1 VERSION
 
-version 2.030_01
+version 2.030
 
 =head1 DESCRIPTION
 
@@ -47,14 +47,6 @@ This model does not support to load several drivers. Loading several drivers is 
 
 I<< Optional. Type node.  >>
 
-=head2 menu
-
-I<< Optional. Type node.  >>
-
-=head2 bayrad
-
-I<< Optional. Type warped_node.  >>
-
 =head2 CFontz
 
 I<< Optional. Type warped_node.  >>
@@ -63,19 +55,47 @@ I<< Optional. Type warped_node.  >>
 
 I<< Optional. Type warped_node.  >>
 
-=head2 curses
-
-I<< Optional. Type warped_node.  >>
-
 =head2 CwLnx
 
 I<< Optional. Type warped_node.  >>
 
-=head2 ea65
+=head2 EyeboxOne
 
 I<< Optional. Type warped_node.  >>
 
-=head2 EyeboxOne
+=head2 IOWarrior
+
+I<< Optional. Type warped_node.  >>
+
+=head2 IrMan
+
+I<< Optional. Type warped_node.  >>
+
+=head2 MD8800
+
+I<< Optional. Type warped_node.  >>
+
+=head2 MtxOrb
+
+I<< Optional. Type warped_node.  >>
+
+=head2 NoritakeVFD
+
+I<< Optional. Type warped_node.  >>
+
+=head2 SureElec
+
+I<< Optional. Type warped_node.  >>
+
+=head2 bayrad
+
+I<< Optional. Type warped_node.  >>
+
+=head2 curses
+
+I<< Optional. Type warped_node.  >>
+
+=head2 ea65
 
 I<< Optional. Type warped_node.  >>
 
@@ -103,19 +123,11 @@ I<< Optional. Type warped_node.  >>
 
 I<< Optional. Type warped_node.  >>
 
-=head2 IOWarrior
-
-I<< Optional. Type warped_node.  >>
-
 =head2 imon
 
 I<< Optional. Type warped_node.  >>
 
 =head2 imonlcd
-
-I<< Optional. Type warped_node.  >>
-
-=head2 IrMan
 
 I<< Optional. Type warped_node.  >>
 
@@ -147,13 +159,13 @@ I<< Optional. Type warped_node.  >>
 
 I<< Optional. Type warped_node.  >>
 
-=head2 MD8800
-
-I<< Optional. Type warped_node.  >>
-
 =head2 mdm166a
 
 I<< Optional. Type warped_node.  >>
+
+=head2 menu
+
+I<< Optional. Type node.  >>
 
 =head2 ms6931
 
@@ -163,15 +175,7 @@ I<< Optional. Type warped_node.  >>
 
 I<< Optional. Type warped_node.  >>
 
-=head2 MtxOrb
-
-I<< Optional. Type warped_node.  >>
-
 =head2 mx5000
-
-I<< Optional. Type warped_node.  >>
-
-=head2 NoritakeVFD
 
 I<< Optional. Type warped_node.  >>
 
@@ -203,11 +207,11 @@ I<< Optional. Type warped_node.  >>
 
 I<< Optional. Type warped_node.  >>
 
-=head2 stv5730
+=head2 sli
 
 I<< Optional. Type warped_node.  >>
 
-=head2 SureElec
+=head2 stv5730
 
 I<< Optional. Type warped_node.  >>
 
@@ -215,11 +219,11 @@ I<< Optional. Type warped_node.  >>
 
 I<< Optional. Type warped_node.  >>
 
-=head2 text
+=head2 t6963
 
 I<< Optional. Type warped_node.  >>
 
-=head2 t6963
+=head2 text
 
 I<< Optional. Type warped_node.  >>
 
@@ -228,10 +232,6 @@ I<< Optional. Type warped_node.  >>
 I<< Optional. Type warped_node.  >>
 
 =head2 ula200
-
-I<< Optional. Type warped_node.  >>
-
-=head2 sli
 
 I<< Optional. Type warped_node.  >>
 

@@ -4,7 +4,7 @@ Config::Model::models::LCDd::curses - Configuration class LCDd::curses
 
 =head1 VERSION
 
-version 2.030_01
+version 2.030
 
 =head1 DESCRIPTION
 
@@ -14,10 +14,13 @@ generated from LCDd.conf
 
 =head1 Elements
 
-=head2 Foreground
+=head2 UseACS
 
-color settings
-foreground color I<< Optional. Type uniline. upstream_default: 'blue'.  >>
+use ASC symbols for icons & bars I<< Optional. Type enum. choice: 'yes', 'no'. upstream_default: 'no'.  >>
+
+=head2 TopLeftY
+
+I<< Optional. Type uniline. default: '7'.  >>
 
 =head2 Background
 
@@ -27,6 +30,15 @@ background color when "backlight" is off I<< Optional. Type uniline. upstream_de
 
 background color when "backlight" is on I<< Optional. Type uniline. upstream_default: 'red'.  >>
 
+=head2 DrawBorder
+
+draw Border I<< Optional. Type enum. choice: 'yes', 'no'. upstream_default: 'yes'.  >>
+
+=head2 Foreground
+
+color settings
+foreground color I<< Optional. Type uniline. upstream_default: 'blue'.  >>
+
 =head2 Size
 
 display size I<< Optional. Type uniline. upstream_default: '20x4'.  >>
@@ -35,18 +47,6 @@ display size I<< Optional. Type uniline. upstream_default: '20x4'.  >>
 
 What position (X,Y) to start the left top corner at...
 Default: (7,7)I<< Optional. Type uniline. default: '7'.  >>
-
-=head2 TopLeftY
-
-I<< Optional. Type uniline. default: '7'.  >>
-
-=head2 UseACS
-
-use ASC symbols for icons & bars I<< Optional. Type enum. choice: 'yes', 'no'. upstream_default: 'no'.  >>
-
-=head2 DrawBorder
-
-draw Border I<< Optional. Type enum. choice: 'yes', 'no'. upstream_default: 'yes'.  >>
 
 =head1 SEE ALSO
 

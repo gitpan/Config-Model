@@ -9,7 +9,7 @@
 #
 package Config::Model::Lister;
 {
-  $Config::Model::Lister::VERSION = '2.030_01';
+  $Config::Model::Lister::VERSION = '2.030';
 }
 
 =pod
@@ -20,7 +20,7 @@ Config::Model::Lister - List available models and applications
 
 =head1 VERSION
 
-version 2.030_01
+version 2.030
 
 =head1 SYNOPSIS
 

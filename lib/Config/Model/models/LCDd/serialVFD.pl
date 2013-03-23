@@ -12,6 +12,44 @@
     'class_description' => 'generated from LCDd.conf',
     'name' => 'LCDd::serialVFD',
     'element' => [
+      'use_parallel',
+      {
+        'value_type' => 'uniline',
+        'upstream_default' => 'no',
+        'type' => 'leaf',
+        'description' => '"no" if display connected serial, "yes" if connected parallel. 
+I.e. serial by default'
+      },
+      'PortWait',
+      {
+        'value_type' => 'integer',
+        'min' => '0',
+        'upstream_default' => '2',
+        'max' => '255',
+        'type' => 'leaf',
+        'description' => 'Set parallel port timing delay (us). Used in parallel mode only.'
+      },
+      'Port',
+      {
+        'value_type' => 'uniline',
+        'default' => '0x378',
+        'type' => 'leaf',
+        'description' => 'Number of Custom-Characters. default is display type dependent
+Custom-Characters=0
+Portaddress where the LPT is. Used in parallel mode only. Usual values are
+0x278, 0x378 and 0x3BC.'
+      },
+      'ISO_8859_1',
+      {
+        'value_type' => 'enum',
+        'upstream_default' => 'yes',
+        'type' => 'leaf',
+        'description' => 'enable ISO 8859 1 compatibility ',
+        'choice' => [
+          'yes',
+          'no'
+        ]
+      },
       'Type',
       {
         'value_type' => 'uniline',
@@ -29,46 +67,12 @@
 8 Nixdorf BA6x / VT100
 (* most should work, not tested yet.)'
       },
-      'use_parallel',
-      {
-        'value_type' => 'uniline',
-        'upstream_default' => 'no',
-        'type' => 'leaf',
-        'description' => '"no" if display connected serial, "yes" if connected parallel. 
-I.e. serial by default'
-      },
-      'Port',
-      {
-        'value_type' => 'uniline',
-        'default' => '0x378',
-        'type' => 'leaf',
-        'description' => 'Number of Custom-Characters. default is display type dependent
-Custom-Characters=0
-Portaddress where the LPT is. Used in parallel mode only. Usual values are
-0x278, 0x378 and 0x3BC.'
-      },
-      'PortWait',
-      {
-        'value_type' => 'integer',
-        'min' => '0',
-        'upstream_default' => '2',
-        'max' => '255',
-        'type' => 'leaf',
-        'description' => 'Set parallel port timing delay (us). Used in parallel mode only.'
-      },
       'Device',
       {
         'value_type' => 'uniline',
         'default' => '/dev/ttyS1',
         'type' => 'leaf',
         'description' => 'Device to use in serial mode. Usual values are /dev/ttyS0 and /dev/ttyS1'
-      },
-      'Size',
-      {
-        'value_type' => 'uniline',
-        'default' => '20x2',
-        'type' => 'leaf',
-        'description' => 'Specifies the size of the VFD.'
       },
       'Brightness',
       {
@@ -78,18 +82,6 @@ Portaddress where the LPT is. Used in parallel mode only. Usual values are
         'max' => '1000',
         'type' => 'leaf',
         'description' => 'Set the initial brightness 
-(4 steps 0-250, 251-500, 501-750, 751-1000)'
-      },
-      'OffBrightness',
-      {
-        'value_type' => 'integer',
-        'min' => '0',
-        'upstream_default' => '0',
-        'max' => '1000',
-        'type' => 'leaf',
-        'description' => 'Set the initial off-brightness 
-This value is used when the display is normally
-switched off in case LCDd is inactive
 (4 steps 0-250, 251-500, 501-750, 751-1000)'
       },
       'Speed',
@@ -106,16 +98,24 @@ switched off in case LCDd is inactive
           '115200'
         ]
       },
-      'ISO_8859_1',
+      'Size',
       {
-        'value_type' => 'enum',
-        'upstream_default' => 'yes',
+        'value_type' => 'uniline',
+        'default' => '20x2',
         'type' => 'leaf',
-        'description' => 'enable ISO 8859 1 compatibility ',
-        'choice' => [
-          'yes',
-          'no'
-        ]
+        'description' => 'Specifies the size of the VFD.'
+      },
+      'OffBrightness',
+      {
+        'value_type' => 'integer',
+        'min' => '0',
+        'upstream_default' => '0',
+        'max' => '1000',
+        'type' => 'leaf',
+        'description' => 'Set the initial off-brightness 
+This value is used when the display is normally
+switched off in case LCDd is inactive
+(4 steps 0-250, 251-500, 501-750, 751-1000)'
       }
     ]
   }

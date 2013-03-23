@@ -19,6 +19,13 @@
         'type' => 'leaf',
         'description' => 'Select the output device to use '
       },
+      'Size',
+      {
+        'value_type' => 'uniline',
+        'upstream_default' => '16x2',
+        'type' => 'leaf',
+        'description' => 'set display size '
+      },
       'Speed',
       {
         'value_type' => 'enum',
@@ -29,13 +36,6 @@
           '4800',
           '9600'
         ]
-      },
-      'Size',
-      {
-        'value_type' => 'uniline',
-        'upstream_default' => '16x2',
-        'type' => 'leaf',
-        'description' => 'set display size '
       }
     ]
   }

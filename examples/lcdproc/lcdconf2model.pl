@@ -74,7 +74,12 @@ my $model = Config::Model->new();
 # The class is used to store any parameter found in an INI class
 $model->create_config_class(
     name   => 'Dummy::Class',
-    accept => [ '.*' => {qw/type leaf value_type uniline/}, ],
+    accept => [
+        'Hello|GoodBye' => { type => 'list',
+            cargo => { qw/type  leaf value_type uniline/}
+        },
+        '.*' => {qw/type leaf value_type uniline/},
+    ],
 );
 
 # Store any INI class, and use Dummy::Class to hold parameters. 
@@ -161,8 +166,10 @@ $meta_root->load( qq!
 #       to split them for better clarity
 
 
-# This array contains all INI classes found in LCDd.conf
-my @ini_classes = $dummy->get_element_name;
+# This array contains all INI classes found in LCDd.conf,
+# make sure to put server in first, and sort the rest
+my @ini_classes = sort grep { $_ ne 'server'} $dummy->get_element_name;
+unshift @ini_classes, 'server' ;
 
 # Now before actually mining LCDd.conf information, we must prepare
 # subs to handle them. This is done using a dispatch table.
@@ -232,9 +239,12 @@ $dispatch{"LCDd::server"}{WaitTime} = $dispatch{"LCDd::server"}{ReportLevel} =
     return $dispatch{_default_}->( @_, 'integer' );
   };
 
+# special dispatch case
+my %override ;
+
 # ensure that default values are "Hello LCDproc" (or "GoodBye LCDproc")
-$dispatch{"LCDd::server"}{GoodBye} = $dispatch{"LCDd::server"}{Hello} = sub {
-    my ( $class, $elt, $info_r, $ini_v ) = @_;
+$override{"LCDd::server"}{GoodBye} = $override{"LCDd::server"}{Hello} = sub {
+    my ( $class, $elt ) = @_;
     my $ret = qq( class:"$class" element:$elt type=list ) ;
     $ret .= 'cargo type=leaf value_type=uniline - ' ;  
     $ret .= 'default_with_init:0="\"    '.$elt.'\"" ' ; 
@@ -255,25 +265,34 @@ foreach my $ini_class (@ini_classes) {
 
     # loop over all INI parameters and create LCDd::$ini_class elements
     foreach my $ini_param ( $ini_obj->get_element_name ) {
-        # retrieve INI value
-        my $ini_v    = $ini_obj->grab_value($ini_param);
+        my ($model_spec) ;
 
-        # retrieve INI comment attached to $ini_param
-        my $ini_comment = $ini_obj->grab($ini_param)->annotation;
+        # test for override
+        if (my $sub = $override{$config_class}{$ini_param}) {
+            # runs the override sub to get the model string
+            $model_spec = $sub->($config_class, $ini_param) ;
+        }
+        else {
+            # retrieve the correct sub from the orveride or dispatch table
+            my $sub = $dispatch{$config_class}{$ini_param} || $dispatch{_default_};
 
-        # retrieve the correct sub from the dispatch table
-        my $sub = $dispatch{$config_class}{$ini_param} || $dispatch{_default_};
-        
-        # runs the sub to get the model string
-        my $model_spec = $sub->( $config_class, $ini_param, \$ini_comment, $ini_v );
+            # retrieve INI value
+            my $ini_v    = $ini_obj->grab_value($ini_param);
+
+            # retrieve INI comment attached to $ini_param
+            my $ini_comment = $ini_obj->grab($ini_param)->annotation;
+
+            # runs the sub to get the model string
+            $model_spec = $sub->($config_class, $ini_param, \$ini_comment, $ini_v) ;
+
+            # escape embedded quotes
+            $ini_comment =~ s/"/\\"/g;
+            $ini_comment =~ s/\n*$//;
+            $model_spec .= qq! description="$ini_comment"! if length($ini_comment);
+        }
 
         # show the model without the doc (too verbose)
         say "load -> $model_spec" if $show_model ;
-
-        # escape embedded quotes
-        $ini_comment =~ s/"/\\"/g;
-        $ini_comment =~ s/\n*$//;
-        $model_spec .= qq! description="$ini_comment"! if length($ini_comment);
 
         # load class specification in model
         $meta_root->load($model_spec);

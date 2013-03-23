@@ -4,7 +4,7 @@ Config::Model::models::LCDd::svga - Configuration class LCDd::svga
 
 =head1 VERSION
 
-version 2.030_01
+version 2.030
 
 =head1 DESCRIPTION
 
@@ -14,10 +14,9 @@ generated from LCDd.conf
 
 =head1 Elements
 
-=head2 Mode
+=head2 Brightness
 
-svgalib mode to use 
-legal values are supported svgalib modes. I<< Optional. Type uniline. upstream_default: 'G320x240x256'.  >>
+Set the initial brightness I<< Optional. Type integer. upstream_default: '1000'.  >>
 
 =head2 Size
 
@@ -28,9 +27,10 @@ set display size I<< Optional. Type uniline. upstream_default: '20x4'.  >>
 Set the initial contrast 
 Can be set but does not change anything internally. I<< Optional. Type integer. upstream_default: '500'.  >>
 
-=head2 Brightness
+=head2 Mode
 
-Set the initial brightness I<< Optional. Type integer. upstream_default: '1000'.  >>
+svgalib mode to use 
+legal values are supported svgalib modes. I<< Optional. Type uniline. upstream_default: 'G320x240x256'.  >>
 
 =head2 OffBrightness
 

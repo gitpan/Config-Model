@@ -9,7 +9,7 @@
 #
 package Config::Model::Value ;
 {
-  $Config::Model::Value::VERSION = '2.030_01';
+  $Config::Model::Value::VERSION = '2.030';
 }
 
 use 5.10.1 ;
@@ -1229,11 +1229,15 @@ sub store {
     my $check = $self->_check_check($args{check}) ;
     my $silent = $args{silent} || 0 ;
 
+    my $str = $args{value} // '<undef>' ;
+    $logger->debug("called with '$str' on ", $self->element_name) ;
+
     # store with check skip makes sense when force loading data: bad value
     # is discarded, partially consistent values are stored so the user may
     # salvage them before next save check discard them
 
-    my $old_value = $self->_fetch_no_check ;
+    # $self->{data} represents what written in the file
+    my $old_value = $self->{data} ;
 
     my $value = $self->transform_value(value => $args{value}, check => $check ) ;
 
@@ -1245,7 +1249,7 @@ sub store {
 	:                                         0 ;
 
     if (defined $old_value and $value eq $old_value) {
-        $logger->info("store: skip storage of unchanged value: $value") ;
+        $logger->info("skip storage of ",$self->element_name," unchanged value: $value") ;
         return 1;
     }
 
@@ -1329,6 +1333,7 @@ sub store_cb {
     else {
         $self->instance->add_error($self->location) ;
         my $msg = $self->error_msg;
+        no warnings 'uninitialized';
         warn "Warning: skipping value $value because of the following errors:\n$msg\n\n"
           if not $silent and $msg;
     }
@@ -1343,6 +1348,7 @@ sub store_cb {
     }
 
     $callback->(%args) ;
+    $logger->debug("store_cb done on ",$self->element_name) ;
 }
 
 # internal. return ( undef, value)
@@ -1398,6 +1404,15 @@ sub transform_value {
         }
     }
     
+    # using default or computed value is normally done on fetch. Except that an undefined
+    # value cannot be stored in a mandatory value. Storing undef is used when resetting a 
+    # value to default. If a value is mandatory, we must store the default (or best equivalent)
+    # instead
+    if ((not defined $value or not length($value)) and $self->mandatory) {
+        delete $self->{data} ; # avoiding recycling the old stored value
+        $value = $self->_fetch_no_check ;
+    }
+
     return $value;
 }
 
@@ -1590,10 +1605,9 @@ sub _fetch {
     my $pref = $self->_fetch_std($mode, $check) ;
 
     my $data = $self->{data} ;
-    my $old_data = $data // $self->{_std_backup} ;
-    if (defined $pref  and not defined $old_data) {
-        $self->{_std_backup} = $pref ;
-        $self->notify_change(old => $old_data, new => $pref, note => "use standard value") ;
+    if (defined $pref  and not $self->{notified_change_for_default} and not defined $data) {
+        $self->{notified_change_for_default} = 1 ;
+        $self->notify_change(old => undef, new => $pref, note => "use standard value") ;
     }
 
     my $known_upstream = defined $self->{layered} ? $self->{layered}
@@ -1857,7 +1871,7 @@ Config::Model::Value - Strongly typed configuration value
 
 =head1 VERSION
 
-version 2.030_01
+version 2.030
 
 =head1 SYNOPSIS
 

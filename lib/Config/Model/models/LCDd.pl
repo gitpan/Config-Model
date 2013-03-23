@@ -58,26 +58,6 @@ This model does not support to load several drivers. Loading several drivers is 
         'type' => 'node',
         'config_class_name' => 'LCDd::server'
       },
-      'menu',
-      {
-        'type' => 'node',
-        'config_class_name' => 'LCDd::menu'
-      },
-      'bayrad',
-      {
-        'follow' => {
-          'selected' => '- server Driver'
-        },
-        'level' => 'hidden',
-        'type' => 'warped_node',
-        'rules' => [
-          '$selected eq \'bayrad\'',
-          {
-            'level' => 'normal'
-          }
-        ],
-        'config_class_name' => 'LCDd::bayrad'
-      },
       'CFontz',
       {
         'follow' => {
@@ -108,21 +88,6 @@ This model does not support to load several drivers. Loading several drivers is 
         ],
         'config_class_name' => 'LCDd::CFontzPacket'
       },
-      'curses',
-      {
-        'follow' => {
-          'selected' => '- server Driver'
-        },
-        'level' => 'hidden',
-        'type' => 'warped_node',
-        'rules' => [
-          '$selected eq \'curses\'',
-          {
-            'level' => 'normal'
-          }
-        ],
-        'config_class_name' => 'LCDd::curses'
-      },
       'CwLnx',
       {
         'follow' => {
@@ -138,21 +103,6 @@ This model does not support to load several drivers. Loading several drivers is 
         ],
         'config_class_name' => 'LCDd::CwLnx'
       },
-      'ea65',
-      {
-        'follow' => {
-          'selected' => '- server Driver'
-        },
-        'level' => 'hidden',
-        'type' => 'warped_node',
-        'rules' => [
-          '$selected eq \'ea65\'',
-          {
-            'level' => 'normal'
-          }
-        ],
-        'config_class_name' => 'LCDd::ea65'
-      },
       'EyeboxOne',
       {
         'follow' => {
@@ -167,6 +117,141 @@ This model does not support to load several drivers. Loading several drivers is 
           }
         ],
         'config_class_name' => 'LCDd::EyeboxOne'
+      },
+      'IOWarrior',
+      {
+        'follow' => {
+          'selected' => '- server Driver'
+        },
+        'level' => 'hidden',
+        'type' => 'warped_node',
+        'rules' => [
+          '$selected eq \'IOWarrior\'',
+          {
+            'level' => 'normal'
+          }
+        ],
+        'config_class_name' => 'LCDd::IOWarrior'
+      },
+      'IrMan',
+      {
+        'follow' => {
+          'selected' => '- server Driver'
+        },
+        'level' => 'hidden',
+        'type' => 'warped_node',
+        'rules' => [
+          '$selected eq \'IrMan\'',
+          {
+            'level' => 'normal'
+          }
+        ],
+        'config_class_name' => 'LCDd::IrMan'
+      },
+      'MD8800',
+      {
+        'follow' => {
+          'selected' => '- server Driver'
+        },
+        'level' => 'hidden',
+        'type' => 'warped_node',
+        'rules' => [
+          '$selected eq \'MD8800\'',
+          {
+            'level' => 'normal'
+          }
+        ],
+        'config_class_name' => 'LCDd::MD8800'
+      },
+      'MtxOrb',
+      {
+        'follow' => {
+          'selected' => '- server Driver'
+        },
+        'level' => 'hidden',
+        'type' => 'warped_node',
+        'rules' => [
+          '$selected eq \'MtxOrb\'',
+          {
+            'level' => 'normal'
+          }
+        ],
+        'config_class_name' => 'LCDd::MtxOrb'
+      },
+      'NoritakeVFD',
+      {
+        'follow' => {
+          'selected' => '- server Driver'
+        },
+        'level' => 'hidden',
+        'type' => 'warped_node',
+        'rules' => [
+          '$selected eq \'NoritakeVFD\'',
+          {
+            'level' => 'normal'
+          }
+        ],
+        'config_class_name' => 'LCDd::NoritakeVFD'
+      },
+      'SureElec',
+      {
+        'follow' => {
+          'selected' => '- server Driver'
+        },
+        'level' => 'hidden',
+        'type' => 'warped_node',
+        'rules' => [
+          '$selected eq \'SureElec\'',
+          {
+            'level' => 'normal'
+          }
+        ],
+        'config_class_name' => 'LCDd::SureElec'
+      },
+      'bayrad',
+      {
+        'follow' => {
+          'selected' => '- server Driver'
+        },
+        'level' => 'hidden',
+        'type' => 'warped_node',
+        'rules' => [
+          '$selected eq \'bayrad\'',
+          {
+            'level' => 'normal'
+          }
+        ],
+        'config_class_name' => 'LCDd::bayrad'
+      },
+      'curses',
+      {
+        'follow' => {
+          'selected' => '- server Driver'
+        },
+        'level' => 'hidden',
+        'type' => 'warped_node',
+        'rules' => [
+          '$selected eq \'curses\'',
+          {
+            'level' => 'normal'
+          }
+        ],
+        'config_class_name' => 'LCDd::curses'
+      },
+      'ea65',
+      {
+        'follow' => {
+          'selected' => '- server Driver'
+        },
+        'level' => 'hidden',
+        'type' => 'warped_node',
+        'rules' => [
+          '$selected eq \'ea65\'',
+          {
+            'level' => 'normal'
+          }
+        ],
+        'config_class_name' => 'LCDd::ea65'
       },
       'g15',
       {
@@ -258,21 +343,6 @@ This model does not support to load several drivers. Loading several drivers is 
         ],
         'config_class_name' => 'LCDd::icp_a106'
       },
-      'IOWarrior',
-      {
-        'follow' => {
-          'selected' => '- server Driver'
-        },
-        'level' => 'hidden',
-        'type' => 'warped_node',
-        'rules' => [
-          '$selected eq \'IOWarrior\'',
-          {
-            'level' => 'normal'
-          }
-        ],
-        'config_class_name' => 'LCDd::IOWarrior'
-      },
       'imon',
       {
         'follow' => {
@@ -302,21 +372,6 @@ This model does not support to load several drivers. Loading several drivers is 
           }
         ],
         'config_class_name' => 'LCDd::imonlcd'
-      },
-      'IrMan',
-      {
-        'follow' => {
-          'selected' => '- server Driver'
-        },
-        'level' => 'hidden',
-        'type' => 'warped_node',
-        'rules' => [
-          '$selected eq \'IrMan\'',
-          {
-            'level' => 'normal'
-          }
-        ],
-        'config_class_name' => 'LCDd::IrMan'
       },
       'irtrans',
       {
@@ -423,21 +478,6 @@ This model does not support to load several drivers. Loading several drivers is 
         ],
         'config_class_name' => 'LCDd::lis'
       },
-      'MD8800',
-      {
-        'follow' => {
-          'selected' => '- server Driver'
-        },
-        'level' => 'hidden',
-        'type' => 'warped_node',
-        'rules' => [
-          '$selected eq \'MD8800\'',
-          {
-            'level' => 'normal'
-          }
-        ],
-        'config_class_name' => 'LCDd::MD8800'
-      },
       'mdm166a',
       {
         'follow' => {
@@ -452,6 +492,11 @@ This model does not support to load several drivers. Loading several drivers is 
           }
         ],
         'config_class_name' => 'LCDd::mdm166a'
+      },
+      'menu',
+      {
+        'type' => 'node',
+        'config_class_name' => 'LCDd::menu'
       },
       'ms6931',
       {
@@ -483,21 +528,6 @@ This model does not support to load several drivers. Loading several drivers is 
         ],
         'config_class_name' => 'LCDd::mtc_s16209x'
       },
-      'MtxOrb',
-      {
-        'follow' => {
-          'selected' => '- server Driver'
-        },
-        'level' => 'hidden',
-        'type' => 'warped_node',
-        'rules' => [
-          '$selected eq \'MtxOrb\'',
-          {
-            'level' => 'normal'
-          }
-        ],
-        'config_class_name' => 'LCDd::MtxOrb'
-      },
       'mx5000',
       {
         'follow' => {
@@ -512,21 +542,6 @@ This model does not support to load several drivers. Loading several drivers is 
           }
         ],
         'config_class_name' => 'LCDd::mx5000'
-      },
-      'NoritakeVFD',
-      {
-        'follow' => {
-          'selected' => '- server Driver'
-        },
-        'level' => 'hidden',
-        'type' => 'warped_node',
-        'rules' => [
-          '$selected eq \'NoritakeVFD\'',
-          {
-            'level' => 'normal'
-          }
-        ],
-        'config_class_name' => 'LCDd::NoritakeVFD'
       },
       'picolcd',
       {
@@ -633,6 +648,21 @@ This model does not support to load several drivers. Loading several drivers is 
         ],
         'config_class_name' => 'LCDd::shuttleVFD'
       },
+      'sli',
+      {
+        'follow' => {
+          'selected' => '- server Driver'
+        },
+        'level' => 'hidden',
+        'type' => 'warped_node',
+        'rules' => [
+          '$selected eq \'sli\'',
+          {
+            'level' => 'normal'
+          }
+        ],
+        'config_class_name' => 'LCDd::sli'
+      },
       'stv5730',
       {
         'follow' => {
@@ -647,21 +677,6 @@ This model does not support to load several drivers. Loading several drivers is 
           }
         ],
         'config_class_name' => 'LCDd::stv5730'
-      },
-      'SureElec',
-      {
-        'follow' => {
-          'selected' => '- server Driver'
-        },
-        'level' => 'hidden',
-        'type' => 'warped_node',
-        'rules' => [
-          '$selected eq \'SureElec\'',
-          {
-            'level' => 'normal'
-          }
-        ],
-        'config_class_name' => 'LCDd::SureElec'
       },
       'svga',
       {
@@ -678,21 +693,6 @@ This model does not support to load several drivers. Loading several drivers is 
         ],
         'config_class_name' => 'LCDd::svga'
       },
-      'text',
-      {
-        'follow' => {
-          'selected' => '- server Driver'
-        },
-        'level' => 'hidden',
-        'type' => 'warped_node',
-        'rules' => [
-          '$selected eq \'text\'',
-          {
-            'level' => 'normal'
-          }
-        ],
-        'config_class_name' => 'LCDd::text'
-      },
       't6963',
       {
         'follow' => {
@@ -707,6 +707,21 @@ This model does not support to load several drivers. Loading several drivers is 
           }
         ],
         'config_class_name' => 'LCDd::t6963'
+      },
+      'text',
+      {
+        'follow' => {
+          'selected' => '- server Driver'
+        },
+        'level' => 'hidden',
+        'type' => 'warped_node',
+        'rules' => [
+          '$selected eq \'text\'',
+          {
+            'level' => 'normal'
+          }
+        ],
+        'config_class_name' => 'LCDd::text'
       },
       'tyan',
       {
@@ -737,21 +752,6 @@ This model does not support to load several drivers. Loading several drivers is 
           }
         ],
         'config_class_name' => 'LCDd::ula200'
-      },
-      'sli',
-      {
-        'follow' => {
-          'selected' => '- server Driver'
-        },
-        'level' => 'hidden',
-        'type' => 'warped_node',
-        'rules' => [
-          '$selected eq \'sli\'',
-          {
-            'level' => 'normal'
-          }
-        ],
-        'config_class_name' => 'LCDd::sli'
       },
       'vlsys_m428',
       {

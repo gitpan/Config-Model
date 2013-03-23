@@ -12,46 +12,6 @@
     'class_description' => 'generated from LCDd.conf',
     'name' => 'LCDd::CwLnx',
     'element' => [
-      'Model',
-      {
-        'value_type' => 'enum',
-        'upstream_default' => '12232',
-        'type' => 'leaf',
-        'description' => 'Select the LCD model ',
-        'choice' => [
-          '12232',
-          '12832',
-          '1602'
-        ]
-      },
-      'Device',
-      {
-        'value_type' => 'uniline',
-        'upstream_default' => '/dev/lcd',
-        'type' => 'leaf',
-        'description' => 'Select the output device to use '
-      },
-      'Size',
-      {
-        'value_type' => 'uniline',
-        'default' => '20x4',
-        'type' => 'leaf',
-        'description' => 'Select the LCD size. Default depends on model:
-12232: 20x4
-12832: 21x4
-1602: 16x2'
-      },
-      'Speed',
-      {
-        'value_type' => 'enum',
-        'upstream_default' => '19200',
-        'type' => 'leaf',
-        'description' => 'Set the communication speed ',
-        'choice' => [
-          '9600',
-          '19200'
-        ]
-      },
       'Reboot',
       {
         'value_type' => 'enum',
@@ -64,13 +24,12 @@ normally you shouldn\'t need this',
           'no'
         ]
       },
-      'Keypad',
+      'Device',
       {
         'value_type' => 'uniline',
-        'default' => 'yes',
+        'upstream_default' => '/dev/lcd',
         'type' => 'leaf',
-        'description' => 'If you have a keypad connected. Keypad layout is currently not
-configureable from the config file.'
+        'description' => 'Select the output device to use '
       },
       'keypad_test_mode',
       {
@@ -93,6 +52,47 @@ KeyMap_E=Enter
 KeyMap_F=Escape
 keypad_test_mode permits one to test keypad assignment
 Default value is no'
+      },
+      'Keypad',
+      {
+        'value_type' => 'uniline',
+        'default' => 'yes',
+        'type' => 'leaf',
+        'description' => 'If you have a keypad connected. Keypad layout is currently not
+configureable from the config file.'
+      },
+      'Speed',
+      {
+        'value_type' => 'enum',
+        'upstream_default' => '19200',
+        'type' => 'leaf',
+        'description' => 'Set the communication speed ',
+        'choice' => [
+          '9600',
+          '19200'
+        ]
+      },
+      'Size',
+      {
+        'value_type' => 'uniline',
+        'default' => '20x4',
+        'type' => 'leaf',
+        'description' => 'Select the LCD size. Default depends on model:
+12232: 20x4
+12832: 21x4
+1602: 16x2'
+      },
+      'Model',
+      {
+        'value_type' => 'enum',
+        'upstream_default' => '12232',
+        'type' => 'leaf',
+        'description' => 'Select the LCD model ',
+        'choice' => [
+          '12232',
+          '12832',
+          '1602'
+        ]
       }
     ]
   }

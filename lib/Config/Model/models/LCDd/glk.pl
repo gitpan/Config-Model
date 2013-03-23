@@ -19,15 +19,6 @@
         'type' => 'leaf',
         'description' => 'select the serial device to use '
       },
-      'Contrast',
-      {
-        'value_type' => 'integer',
-        'min' => '0',
-        'upstream_default' => '560',
-        'max' => '1000',
-        'type' => 'leaf',
-        'description' => 'set the initial contrast value '
-      },
       'Speed',
       {
         'value_type' => 'enum',
@@ -39,6 +30,15 @@
           '19200',
           '38400'
         ]
+      },
+      'Contrast',
+      {
+        'value_type' => 'integer',
+        'min' => '0',
+        'upstream_default' => '560',
+        'max' => '1000',
+        'type' => 'leaf',
+        'description' => 'set the initial contrast value '
       }
     ]
   }

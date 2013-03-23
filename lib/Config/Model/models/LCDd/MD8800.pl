@@ -12,6 +12,15 @@
     'class_description' => 'generated from LCDd.conf',
     'name' => 'LCDd::MD8800',
     'element' => [
+      'Brightness',
+      {
+        'value_type' => 'integer',
+        'min' => '0',
+        'upstream_default' => '1000',
+        'max' => '1000',
+        'type' => 'leaf',
+        'description' => 'Set the initial brightness '
+      },
       'Device',
       {
         'value_type' => 'uniline',
@@ -25,15 +34,6 @@
         'upstream_default' => '16x2',
         'type' => 'leaf',
         'description' => 'display size '
-      },
-      'Brightness',
-      {
-        'value_type' => 'integer',
-        'min' => '0',
-        'upstream_default' => '1000',
-        'max' => '1000',
-        'type' => 'leaf',
-        'description' => 'Set the initial brightness '
       },
       'OffBrightness',
       {

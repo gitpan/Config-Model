@@ -12,13 +12,14 @@
     'class_description' => 'generated from LCDd.conf',
     'name' => 'LCDd::svga',
     'element' => [
-      'Mode',
+      'Brightness',
       {
-        'value_type' => 'uniline',
-        'upstream_default' => 'G320x240x256',
+        'value_type' => 'integer',
+        'min' => '1',
+        'upstream_default' => '1000',
+        'max' => '1000',
         'type' => 'leaf',
-        'description' => 'svgalib mode to use 
-legal values are supported svgalib modes'
+        'description' => 'Set the initial brightness '
       },
       'Size',
       {
@@ -37,14 +38,13 @@ legal values are supported svgalib modes'
         'description' => 'Set the initial contrast 
 Can be set but does not change anything internally'
       },
-      'Brightness',
+      'Mode',
       {
-        'value_type' => 'integer',
-        'min' => '1',
-        'upstream_default' => '1000',
-        'max' => '1000',
+        'value_type' => 'uniline',
+        'upstream_default' => 'G320x240x256',
         'type' => 'leaf',
-        'description' => 'Set the initial brightness '
+        'description' => 'svgalib mode to use 
+legal values are supported svgalib modes'
       },
       'OffBrightness',
       {

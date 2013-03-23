@@ -12,19 +12,16 @@
     'class_description' => 'generated from LCDd.conf',
     'name' => 'LCDd::CFontz',
     'element' => [
-      'Device',
+      'NewFirmware',
       {
-        'value_type' => 'uniline',
-        'upstream_default' => '/dev/lcd',
+        'value_type' => 'enum',
+        'upstream_default' => 'no',
         'type' => 'leaf',
-        'description' => 'Select the output device to use '
-      },
-      'Size',
-      {
-        'value_type' => 'uniline',
-        'upstream_default' => '20x4',
-        'type' => 'leaf',
-        'description' => 'Select the LCD size '
+        'description' => 'Set the firmware version (New means >= 2.0) ',
+        'choice' => [
+          'yes',
+          'no'
+        ]
       },
       'Contrast',
       {
@@ -35,6 +32,25 @@
         'type' => 'leaf',
         'description' => 'Set the initial contrast '
       },
+      'Reboot',
+      {
+        'value_type' => 'enum',
+        'upstream_default' => 'no',
+        'type' => 'leaf',
+        'description' => 'Reinitialize the LCD\'s BIOS 
+normally you shouldn\'t need this',
+        'choice' => [
+          'yes',
+          'no'
+        ]
+      },
+      'Device',
+      {
+        'value_type' => 'uniline',
+        'upstream_default' => '/dev/lcd',
+        'type' => 'leaf',
+        'description' => 'Select the output device to use '
+      },
       'Brightness',
       {
         'value_type' => 'integer',
@@ -44,16 +60,12 @@
         'type' => 'leaf',
         'description' => 'Set the initial brightness '
       },
-      'OffBrightness',
+      'Size',
       {
-        'value_type' => 'integer',
-        'min' => '0',
-        'upstream_default' => '0',
-        'max' => '1000',
+        'value_type' => 'uniline',
+        'upstream_default' => '20x4',
         'type' => 'leaf',
-        'description' => 'Set the initial off-brightness 
-This value is used when the display is normally
-switched off in case LCDd is inactive'
+        'description' => 'Select the LCD size '
       },
       'Speed',
       {
@@ -69,28 +81,16 @@ switched off in case LCDd is inactive'
           '115200'
         ]
       },
-      'NewFirmware',
+      'OffBrightness',
       {
-        'value_type' => 'enum',
-        'upstream_default' => 'no',
+        'value_type' => 'integer',
+        'min' => '0',
+        'upstream_default' => '0',
+        'max' => '1000',
         'type' => 'leaf',
-        'description' => 'Set the firmware version (New means >= 2.0) ',
-        'choice' => [
-          'yes',
-          'no'
-        ]
-      },
-      'Reboot',
-      {
-        'value_type' => 'enum',
-        'upstream_default' => 'no',
-        'type' => 'leaf',
-        'description' => 'Reinitialize the LCD\'s BIOS 
-normally you shouldn\'t need this',
-        'choice' => [
-          'yes',
-          'no'
-        ]
+        'description' => 'Set the initial off-brightness 
+This value is used when the display is normally
+switched off in case LCDd is inactive'
       }
     ]
   }

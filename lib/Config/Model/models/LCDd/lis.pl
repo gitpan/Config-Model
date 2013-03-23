@@ -29,20 +29,20 @@
         'type' => 'leaf',
         'description' => 'Columns by lines '
       },
-      'VendorID',
-      {
-        'value_type' => 'uniline',
-        'upstream_default' => '0x0403',
-        'type' => 'leaf',
-        'description' => 'USB Vendor ID 
-Change only if testing a compatible device.'
-      },
       'ProductID',
       {
         'value_type' => 'uniline',
         'upstream_default' => '0x6001',
         'type' => 'leaf',
         'description' => 'USB Product ID 
+Change only if testing a compatible device.'
+      },
+      'VendorID',
+      {
+        'value_type' => 'uniline',
+        'upstream_default' => '0x0403',
+        'type' => 'leaf',
+        'description' => 'USB Vendor ID 
 Change only if testing a compatible device.'
       }
     ]

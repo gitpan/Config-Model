@@ -69,7 +69,7 @@
          }
       }
    },
-   "release_status" : "testing",
+   "release_status" : "stable",
    "resources" : {
       "bugtracker" : {
          "mailto" : "bug-project@rt.cpan.org",
@@ -82,6 +82,6 @@
          "web" : "http://github.com/dod38fr/config-model"
       }
    },
-   "version" : "2.030_01"
+   "version" : "2.030"
 }
 

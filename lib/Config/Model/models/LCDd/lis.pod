@@ -4,7 +4,7 @@ Config::Model::models::LCDd::lis - Configuration class LCDd::lis
 
 =head1 VERSION
 
-version 2.030_01
+version 2.030
 
 =head1 DESCRIPTION
 
@@ -23,15 +23,15 @@ Set the initial brightness
 
 Columns by lines I<< Optional. Type uniline. upstream_default: '20x2'.  >>
 
-=head2 VendorID
-
-USB Vendor ID 
-Change only if testing a compatible device.I<< Optional. Type uniline. upstream_default: '0x0403'.  >>
-
 =head2 ProductID
 
 USB Product ID 
 Change only if testing a compatible device.I<< Optional. Type uniline. upstream_default: '0x6001'.  >>
+
+=head2 VendorID
+
+USB Vendor ID 
+Change only if testing a compatible device.I<< Optional. Type uniline. upstream_default: '0x0403'.  >>
 
 =head1 SEE ALSO
 

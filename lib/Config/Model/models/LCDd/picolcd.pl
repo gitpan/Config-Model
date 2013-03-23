@@ -12,6 +12,27 @@
     'class_description' => 'generated from LCDd.conf',
     'name' => 'LCDd::picolcd',
     'element' => [
+      'Key4Light',
+      {
+        'value_type' => 'uniline',
+        'default' => 'on',
+        'type' => 'leaf'
+      },
+      'Key3Light',
+      {
+        'value_type' => 'uniline',
+        'default' => 'on',
+        'type' => 'leaf'
+      },
+      'Contrast',
+      {
+        'value_type' => 'integer',
+        'min' => '0',
+        'upstream_default' => '1000',
+        'max' => '1000',
+        'type' => 'leaf',
+        'description' => 'Set the initial contrast '
+      },
       'KeyTimeout',
       {
         'value_type' => 'integer',
@@ -24,6 +45,37 @@ cycling through other duties.  Higher values make LCDd use less CPU time and
 make key presses more detectable.  Lower values make LCDd more responsive
 but a little prone to missing key presses.  500 (.5 second) is the default
 and a balanced value. '
+      },
+      'LircHost',
+      {
+        'value_type' => 'uniline',
+        'default' => '127.0.0.1',
+        'type' => 'leaf',
+        'description' => 'Host name or IP address of the LIRC instance that is to receive IR codes
+If not set, or set to an empty value, IR support is disabled.'
+      },
+      'Key1Light',
+      {
+        'value_type' => 'uniline',
+        'default' => 'on',
+        'type' => 'leaf'
+      },
+      'Keylights',
+      {
+        'value_type' => 'enum',
+        'upstream_default' => 'on',
+        'type' => 'leaf',
+        'description' => 'Light the keys? ',
+        'choice' => [
+          'on',
+          'off'
+        ]
+      },
+      'Key5Light',
+      {
+        'value_type' => 'uniline',
+        'default' => 'on',
+        'type' => 'leaf'
       },
       'Backlight',
       {
@@ -46,35 +98,15 @@ and a balanced value. '
         'description' => 'Set the initial brightness . Works only
 with the 20x4 device'
       },
-      'OffBrightness',
+      'LircFlushThreshold',
       {
         'value_type' => 'integer',
-        'min' => '0',
-        'upstream_default' => '0',
-        'max' => '1000',
+        'upstream_default' => '100',
+        'max' => '32767',
         'type' => 'leaf',
-        'description' => 'Set the brightness while the backlight is \'off\' .
-Works only with the 20x4 device.'
-      },
-      'Contrast',
-      {
-        'value_type' => 'integer',
-        'min' => '0',
-        'upstream_default' => '1000',
-        'max' => '1000',
-        'type' => 'leaf',
-        'description' => 'Set the initial contrast '
-      },
-      'Keylights',
-      {
-        'value_type' => 'enum',
-        'upstream_default' => 'on',
-        'type' => 'leaf',
-        'description' => 'Light the keys? ',
-        'choice' => [
-          'on',
-          'off'
-        ]
+        'description' => 'Threshold in jiffies of synthesized gap that triggers flushing the IR data
+to lirc 
+100 means 6.1ms. legal: 16 - 32767; Use 0 to disable.'
       },
       'Key0Light',
       {
@@ -90,43 +122,21 @@ which keys are disabled.  ',
           'off'
         ]
       },
-      'Key1Light',
-      {
-        'value_type' => 'uniline',
-        'default' => 'on',
-        'type' => 'leaf'
-      },
       'Key2Light',
       {
         'value_type' => 'uniline',
         'default' => 'on',
         'type' => 'leaf'
       },
-      'Key3Light',
+      'OffBrightness',
       {
-        'value_type' => 'uniline',
-        'default' => 'on',
-        'type' => 'leaf'
-      },
-      'Key4Light',
-      {
-        'value_type' => 'uniline',
-        'default' => 'on',
-        'type' => 'leaf'
-      },
-      'Key5Light',
-      {
-        'value_type' => 'uniline',
-        'default' => 'on',
-        'type' => 'leaf'
-      },
-      'LircHost',
-      {
-        'value_type' => 'uniline',
-        'default' => '127.0.0.1',
+        'value_type' => 'integer',
+        'min' => '0',
+        'upstream_default' => '0',
+        'max' => '1000',
         'type' => 'leaf',
-        'description' => 'Host name or IP address of the LIRC instance that is to receive IR codes
-If not set, or set to an empty value, IR support is disabled.'
+        'description' => 'Set the brightness while the backlight is \'off\' .
+Works only with the 20x4 device.'
       },
       'LircPort',
       {
@@ -136,16 +146,6 @@ If not set, or set to an empty value, IR support is disabled.'
         'max' => '65535',
         'type' => 'leaf',
         'description' => 'UDP port on which LIRC is listening '
-      },
-      'LircFlushThreshold',
-      {
-        'value_type' => 'integer',
-        'upstream_default' => '100',
-        'max' => '32767',
-        'type' => 'leaf',
-        'description' => 'Threshold in jiffies of synthesized gap that triggers flushing the IR data
-to lirc 
-100 means 6.1ms. legal: 16 - 32767; Use 0 to disable.'
       }
     ]
   }

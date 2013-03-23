@@ -18,20 +18,6 @@
         'default' => '/dev/ttyS1',
         'type' => 'leaf'
       },
-      'PauseKey',
-      {
-        'value_type' => 'uniline',
-        'default' => 'LeftKey',
-        'type' => 'leaf',
-        'description' => 'keypad settings
-Keyname      Function
-             Normal context              Menu context
--------      --------------              ------------
-PauseKey     Pause/Continue              Enter/select
-BackKey      Back(Go to previous screen) Up/Left
-ForwardKey   Forward(Go to next screen)  Down/Right
-MainMenuKey  Open main menu              Exit/Cancel'
-      },
       'BackKey',
       {
         'value_type' => 'uniline',
@@ -49,6 +35,20 @@ MainMenuKey  Open main menu              Exit/Cancel'
         'value_type' => 'uniline',
         'default' => 'RightKey',
         'type' => 'leaf'
+      },
+      'PauseKey',
+      {
+        'value_type' => 'uniline',
+        'default' => 'LeftKey',
+        'type' => 'leaf',
+        'description' => 'keypad settings
+Keyname      Function
+             Normal context              Menu context
+-------      --------------              ------------
+PauseKey     Pause/Continue              Enter/select
+BackKey      Back(Go to previous screen) Up/Left
+ForwardKey   Forward(Go to next screen)  Down/Right
+MainMenuKey  Open main menu              Exit/Cancel'
       }
     ]
   }

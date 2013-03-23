@@ -12,24 +12,10 @@
     'class_description' => 'generated from LCDd.conf',
     'name' => 'LCDd::joy',
     'element' => [
-      'Device',
+      'Map_Axis2pos',
       {
         'value_type' => 'uniline',
-        'upstream_default' => '/dev/js0',
-        'type' => 'leaf',
-        'description' => 'Select the input device to use '
-      },
-      'Map_Axis1neg',
-      {
-        'value_type' => 'uniline',
-        'default' => 'Left',
-        'type' => 'leaf',
-        'description' => 'set the axis map'
-      },
-      'Map_Axis1pos',
-      {
-        'value_type' => 'uniline',
-        'default' => 'Right',
+        'default' => 'Down',
         'type' => 'leaf'
       },
       'Map_Axis2neg',
@@ -38,11 +24,25 @@
         'default' => 'Up',
         'type' => 'leaf'
       },
-      'Map_Axis2pos',
+      'Device',
       {
         'value_type' => 'uniline',
-        'default' => 'Down',
+        'upstream_default' => '/dev/js0',
+        'type' => 'leaf',
+        'description' => 'Select the input device to use '
+      },
+      'Map_Button2',
+      {
+        'value_type' => 'uniline',
+        'default' => 'Escape',
         'type' => 'leaf'
+      },
+      'Map_Axis1neg',
+      {
+        'value_type' => 'uniline',
+        'default' => 'Left',
+        'type' => 'leaf',
+        'description' => 'set the axis map'
       },
       'Map_Button1',
       {
@@ -51,10 +51,10 @@
         'type' => 'leaf',
         'description' => 'set the button map'
       },
-      'Map_Button2',
+      'Map_Axis1pos',
       {
         'value_type' => 'uniline',
-        'default' => 'Escape',
+        'default' => 'Right',
         'type' => 'leaf'
       }
     ]

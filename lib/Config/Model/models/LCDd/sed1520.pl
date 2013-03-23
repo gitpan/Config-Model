@@ -12,13 +12,6 @@
     'class_description' => 'generated from LCDd.conf',
     'name' => 'LCDd::sed1520',
     'element' => [
-      'Port',
-      {
-        'value_type' => 'uniline',
-        'default' => '0x378',
-        'type' => 'leaf',
-        'description' => 'Port where the LPT is. Usual values are 0x278, 0x378 and 0x3BC'
-      },
       'InterfaceType',
       {
         'value_type' => 'enum',
@@ -42,6 +35,13 @@
         'description' => 'On fast machines it may be necessary to slow down transfer to the display.
 If this value is set to zero, delay is disabled. Any value greater than
 zero slows down each write by one microsecond. '
+      },
+      'Port',
+      {
+        'value_type' => 'uniline',
+        'default' => '0x378',
+        'type' => 'leaf',
+        'description' => 'Port where the LPT is. Usual values are 0x278, 0x378 and 0x3BC'
       }
     ]
   }

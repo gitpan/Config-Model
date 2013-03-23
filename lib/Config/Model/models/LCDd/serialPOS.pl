@@ -12,20 +12,6 @@
     'class_description' => 'generated from LCDd.conf',
     'name' => 'LCDd::serialPOS',
     'element' => [
-      'Device',
-      {
-        'value_type' => 'uniline',
-        'upstream_default' => '/dev/lcd',
-        'type' => 'leaf',
-        'description' => 'Device to use in serial mode '
-      },
-      'Size',
-      {
-        'value_type' => 'uniline',
-        'upstream_default' => '16x2',
-        'type' => 'leaf',
-        'description' => 'Specifies the size of the display in characters. '
-      },
       'Type',
       {
         'value_type' => 'enum',
@@ -41,6 +27,13 @@
           'Ultimate'
         ]
       },
+      'Device',
+      {
+        'value_type' => 'uniline',
+        'upstream_default' => '/dev/lcd',
+        'type' => 'leaf',
+        'description' => 'Device to use in serial mode '
+      },
       'Speed',
       {
         'value_type' => 'enum',
@@ -53,6 +46,13 @@
           '19200',
           '115200'
         ]
+      },
+      'Size',
+      {
+        'value_type' => 'uniline',
+        'upstream_default' => '16x2',
+        'type' => 'leaf',
+        'description' => 'Specifies the size of the display in characters. '
       }
     ]
   }

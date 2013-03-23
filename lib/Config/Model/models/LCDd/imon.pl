@@ -12,20 +12,6 @@
     'class_description' => 'generated from LCDd.conf',
     'name' => 'LCDd::imon',
     'element' => [
-      'Device',
-      {
-        'value_type' => 'uniline',
-        'default' => '/dev/lcd0',
-        'type' => 'leaf',
-        'description' => 'select the device to use'
-      },
-      'Size',
-      {
-        'value_type' => 'uniline',
-        'default' => '16x2',
-        'type' => 'leaf',
-        'description' => 'display dimensions'
-      },
       'CharMap',
       {
         'value_type' => 'enum',
@@ -43,6 +29,20 @@ charmaps)',
           'hd44780_cp1251',
           'hd44780_8859_5'
         ]
+      },
+      'Device',
+      {
+        'value_type' => 'uniline',
+        'default' => '/dev/lcd0',
+        'type' => 'leaf',
+        'description' => 'select the device to use'
+      },
+      'Size',
+      {
+        'value_type' => 'uniline',
+        'default' => '16x2',
+        'type' => 'leaf',
+        'description' => 'display dimensions'
       }
     ]
   }

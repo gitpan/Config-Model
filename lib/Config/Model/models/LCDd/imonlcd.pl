@@ -12,19 +12,39 @@
     'class_description' => 'generated from LCDd.conf',
     'name' => 'LCDd::imonlcd',
     'element' => [
-      'Protocol',
+      'Backlight',
       {
         'value_type' => 'enum',
-        'upstream_default' => '0',
+        'upstream_default' => 'on',
         'type' => 'leaf',
-        'description' => 'Specify which iMon protocol should be used
-
-Choose 0 for 15c2:ffdc device,
-Choose 1 for 15c2:0038 device',
+        'description' => 'Set the backlight state ',
         'choice' => [
-          '0',
-          '1'
+          'on',
+          'off'
         ]
+      },
+      'Device',
+      {
+        'value_type' => 'uniline',
+        'upstream_default' => '/dev/lcd0',
+        'type' => 'leaf',
+        'description' => 'Select the output device to use '
+      },
+      'Size',
+      {
+        'value_type' => 'uniline',
+        'upstream_default' => '96x16',
+        'type' => 'leaf',
+        'description' => 'Specify the size of the display in pixels '
+      },
+      'Contrast',
+      {
+        'value_type' => 'integer',
+        'min' => '0',
+        'upstream_default' => '200',
+        'max' => '1000',
+        'type' => 'leaf',
+        'description' => 'Select the displays contrast '
       },
       'OnExit',
       {
@@ -38,38 +58,18 @@ Choose 1 for 15c2:0038 device',
 1 means show the big clock,
 2 means blank device'
       },
-      'Device',
-      {
-        'value_type' => 'uniline',
-        'upstream_default' => '/dev/lcd0',
-        'type' => 'leaf',
-        'description' => 'Select the output device to use '
-      },
-      'Contrast',
-      {
-        'value_type' => 'integer',
-        'min' => '0',
-        'upstream_default' => '200',
-        'max' => '1000',
-        'type' => 'leaf',
-        'description' => 'Select the displays contrast '
-      },
-      'Size',
-      {
-        'value_type' => 'uniline',
-        'upstream_default' => '96x16',
-        'type' => 'leaf',
-        'description' => 'Specify the size of the display in pixels '
-      },
-      'Backlight',
+      'Protocol',
       {
         'value_type' => 'enum',
-        'upstream_default' => 'on',
+        'upstream_default' => '0',
         'type' => 'leaf',
-        'description' => 'Set the backlight state ',
+        'description' => 'Specify which iMon protocol should be used
+
+Choose 0 for 15c2:ffdc device,
+Choose 1 for 15c2:0038 device',
         'choice' => [
-          'on',
-          'off'
+          '0',
+          '1'
         ]
       },
       'DiscMode',

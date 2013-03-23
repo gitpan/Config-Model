@@ -1,3 +1,14 @@
+2013-03-23 - 2.030
+
+  Framework Changes:
+    * Value: fix reset value for mandatory with default value
+    * Node load_data: added kludge to avoid breaking C::M::Itself
+
+  Application changes:
+    * LCDproc model generator: Added a more special treatment for
+      Hello and GoodBye parameters to cope with new INI backend
+      (which is more strict than previous versions)
+
 2013-02-27 - 2.030_01
 
   The main change of this release is to provide asynchronous store
@@ -5,8 +16,11 @@
   value against a remote resource in a non-blocking way. This is
   currently used by Dpkg model to check the validity of package
   names with Debian server through several concurent http
-  requests. This change is mostly backward compatible. Only classes
-  inheriting Config::Model::Value will be impacted.
+  requests. This change is backward compatible except for Value
+  store method: it returns now 1 instead of the stored value. OTOH,
+  that feature was not documented. Classes inheriting
+  Config::Model::Value may be impacted, although old version
+  of Config::Model::Dpkg::Dependency is still working.
 
   In more details...
 
