@@ -97,7 +97,6 @@ my $build = $class->new(
     'YAML::Any' => '0.303'
   },
   'requires' => {
-    'Any::Moose' => '0',
     'AnyEvent' => '0',
     'Carp::Assert::More' => '0',
     'Exception::Class' => '0',

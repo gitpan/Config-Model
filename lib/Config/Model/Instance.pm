@@ -9,14 +9,14 @@
 #
 package Config::Model::Instance;
 {
-  $Config::Model::Instance::VERSION = '2.030';
+  $Config::Model::Instance::VERSION = '2.031';
 }
 #use Scalar::Util qw(weaken) ;
 
-use Any::Moose ;
+use Mouse ;
 use namespace::autoclean;
-use Any::Moose '::Util::TypeConstraints';
-use Any::Moose 'X::StrictConstructor' ;
+use Mouse::Util::TypeConstraints;
+use MouseX::StrictConstructor;
 
 use Text::Diff ;
 use File::Path;
@@ -445,7 +445,7 @@ Config::Model::Instance - Instance of configuration tree
 
 =head1 VERSION
 
-version 2.030
+version 2.031
 
 =head1 SYNOPSIS
 

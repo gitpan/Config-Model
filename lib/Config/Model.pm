@@ -9,12 +9,12 @@
 #
 package Config::Model;
 {
-  $Config::Model::VERSION = '2.030';
+  $Config::Model::VERSION = '2.031';
 }
-use Any::Moose ;
+use Mouse ;
 use namespace::autoclean;
-use Any::Moose '::Util::TypeConstraints';
-use Any::Moose 'X::StrictConstructor' ;
+use Mouse::Util::TypeConstraints;
+use MouseX::StrictConstructor;
 
 use Carp;
 use Storable ('dclone') ;
@@ -96,7 +96,7 @@ Config::Model - Create tools to validate, migrate and edit configuration files
 
 =head1 VERSION
 
-version 2.030
+version 2.031
 
 =head1 SYNOPSIS
 

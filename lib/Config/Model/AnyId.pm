@@ -9,10 +9,10 @@
 #
 package Config::Model::AnyId ;
 {
-  $Config::Model::AnyId::VERSION = '2.030';
+  $Config::Model::AnyId::VERSION = '2.031';
 }
 
-use Any::Moose ;
+use Mouse ;
 use namespace::autoclean;
 
 use Config::Model::Exception ;
@@ -20,7 +20,7 @@ use Config::Model::Warper ;
 use Carp qw/cluck croak carp/;
 use Log::Log4perl qw(get_logger :levels);
 use Storable qw/dclone/;
-use Any::Moose '::Util::TypeConstraints';
+use Mouse::Util::TypeConstraints;
 
 extends qw/Config::Model::AnyThing/;
 
@@ -982,7 +982,7 @@ Config::Model::AnyId - Base class for hash or list element
 
 =head1 VERSION
 
-version 2.030
+version 2.031
 
 =head1 SYNOPSIS
 

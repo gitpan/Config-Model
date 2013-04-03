@@ -9,11 +9,11 @@
 #
 package Config::Model::ValueComputer ;
 {
-  $Config::Model::ValueComputer::VERSION = '2.030';
+  $Config::Model::ValueComputer::VERSION = '2.031';
 }
 
-use Any::Moose ;
-use Any::Moose 'X::StrictConstructor' ;
+use Mouse ;
+use MouseX::StrictConstructor;
 use namespace::autoclean;
 
 # use Scalar::Util qw(weaken) ;
@@ -583,7 +583,7 @@ Config::Model::ValueComputer - Provides configuration value computation
 
 =head1 VERSION
 
-version 2.030
+version 2.031
 
 =head1 SYNOPSIS
 

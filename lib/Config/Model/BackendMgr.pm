@@ -9,10 +9,10 @@
 #
 package Config::Model::BackendMgr ;
 {
-  $Config::Model::BackendMgr::VERSION = '2.030';
+  $Config::Model::BackendMgr::VERSION = '2.031';
 }
 
-use Any::Moose ;
+use Mouse ;
 use namespace::autoclean;
 
 use Carp;
@@ -675,7 +675,7 @@ Config::Model::BackendMgr - Load configuration node on demand
 
 =head1 VERSION
 
-version 2.030
+version 2.031
 
 =head1 SYNOPSIS
 

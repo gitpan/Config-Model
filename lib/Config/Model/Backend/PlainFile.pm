@@ -27,11 +27,11 @@
 
 package Config::Model::Backend::PlainFile;
 {
-  $Config::Model::Backend::PlainFile::VERSION = '2.030';
+  $Config::Model::Backend::PlainFile::VERSION = '2.031';
 }
 
 use Carp;
-use Any::Moose;
+use Mouse;
 use Config::Model::Exception;
 use File::Path;
 use Log::Log4perl qw(get_logger :levels);
@@ -191,7 +191,7 @@ sub write {
     return 1;
 }
 
-no Any::Moose;
+no Mouse;
 __PACKAGE__->meta->make_immutable;
 
 1;
@@ -204,7 +204,7 @@ Config::Model::Backend::PlainFile - Read and write config as plain file
 
 =head1 VERSION
 
-version 2.030
+version 2.031
 
 =head1 SYNOPSIS
 

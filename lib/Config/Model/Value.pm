@@ -9,14 +9,14 @@
 #
 package Config::Model::Value ;
 {
-  $Config::Model::Value::VERSION = '2.030';
+  $Config::Model::Value::VERSION = '2.031';
 }
 
 use 5.10.1 ;
 
-use Any::Moose;
-use Any::Moose '::Util::TypeConstraints' ;
-use Any::Moose 'X::StrictConstructor' ;
+use Mouse;
+use Mouse::Util::TypeConstraints;
+use MouseX::StrictConstructor;
 use namespace::autoclean;
 
 use Data::Dumper ();
@@ -1871,7 +1871,7 @@ Config::Model::Value - Strongly typed configuration value
 
 =head1 VERSION
 
-version 2.030
+version 2.031
 
 =head1 SYNOPSIS
 

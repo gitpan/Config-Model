@@ -31,11 +31,11 @@
 
 package Config::Model::Backend::IniFile ;
 {
-  $Config::Model::Backend::IniFile::VERSION = '2.030';
+  $Config::Model::Backend::IniFile::VERSION = '2.031';
 }
 
 use Carp;
-use Any::Moose ;
+use Mouse ;
 use 5.10.0;
 use Config::Model::Exception ;
 use File::Path;
@@ -317,7 +317,7 @@ sub _write {
     return $res ;
 }
 
-no Any::Moose ;
+no Mouse ;
 __PACKAGE__->meta->make_immutable ;
 
 
@@ -331,7 +331,7 @@ Config::Model::Backend::IniFile - Read and write config as a INI file
 
 =head1 VERSION
 
-version 2.030
+version 2.031
 
 =head1 SYNOPSIS
 

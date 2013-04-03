@@ -27,10 +27,10 @@
 
 package Config::Model::Annotation;
 {
-  $Config::Model::Annotation::VERSION = '2.030';
+  $Config::Model::Annotation::VERSION = '2.031';
 }
 
-use Any::Moose ;
+use Mouse ;
 use English ;
 
 use File::Path;
@@ -57,7 +57,7 @@ Config::Model::Annotation - Read and write configuration annotations
 
 =head1 VERSION
 
-version 2.030
+version 2.031
 
 =head1 SYNOPSIS
 
@@ -293,7 +293,7 @@ sub load {
     }
 }
 
-no Any::Moose ;
+no Mouse ;
 
 __PACKAGE__ -> meta->make_immutable;
 
