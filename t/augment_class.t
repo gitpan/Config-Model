@@ -6,21 +6,33 @@ use ExtUtils::testlib;
 use Test::More;
 use Test::Exception ;
 use Test::Memory::Cycle;
+use Test::Differences ;
 use Config::Model;
 use Data::Dumper ;
+use Log::Log4perl qw(:easy :levels) ;
 
 BEGIN { plan tests => 8; }
 
 use strict;
 
 my $arg = shift || '';
+my ($log,$show) = (0) x 2 ;
 
 my $trace = $arg =~ /t/ ? 1 : 0 ;
-$::debug            = 1 if $arg =~ /d/;
-Config::Model::Exception::Any->Trace(1) if $arg =~ /e/;
+$log                = 1 if $arg =~ /l/;
+$show               = 1 if $arg =~ /s/;
 
-use Log::Log4perl qw(:easy) ;
-Log::Log4perl->easy_init($arg =~ /l/ ? $TRACE: $WARN);
+my $home = $ENV{HOME} || "";
+my $log4perl_user_conf_file = "$home/.log4config-model";
+
+if ($log and -e $log4perl_user_conf_file ) {
+    Log::Log4perl::init($log4perl_user_conf_file);
+}
+else {
+    Log::Log4perl->easy_init($log ? $WARN: $ERROR);
+}
+
+Config::Model::Exception::Any->Trace(1) if $arg =~ /e/;
 
 ok(1,"Compilation done");
 
@@ -71,6 +83,7 @@ $model ->create_config_class (
 $model->augment_config_class(
     name    => "Master",
     include => 'Two',
+    include_after => 'fs_mntopts',
 
     accept => [
         '.*'   => { description => "catchall" },
@@ -95,6 +108,15 @@ $model->augment_config_class(
     ]
 );
 
+
+# augment a class which is inherited
+$model ->augment_config_class (
+    name => "Two",
+    element => [ two_and_a_half => { type => 'leaf', value_type => 'string', }, ]
+) ;
+
+# use Tk::ObjScanner; Tk::ObjScanner::scan_object($model) ;
+
 my $inst = $model->instance (root_class_name => 'Master', 
 			     instance_name => 'test1');
 ok($inst,"created dummy instance") ;
@@ -106,13 +128,13 @@ print Dumper ($augmented_model) if $trace;
 
 my @elt = $root->get_element_name() ;
 print "element list: @elt\n" if $trace ;
-is_deeply(\@elt,[qw/one fs_vfstype two three/],"check augmented class") ;
+eq_or_diff(\@elt,[qw/one fs_vfstype two two_and_a_half three/],"check augmented class") ;
 
 my $fstype = $root->fetch_element('fs_vfstype');
 my @fs_choices = $fstype->get_choice ;
-is_deeply(\@fs_choices, [qw/auto ext2 ext3 ext4/], "check augmented choices") ;
+eq_or_diff(\@fs_choices, [qw/auto ext2 ext3 ext4/], "check augmented choices") ;
 
-is_deeply($augmented_model->{element}{fs_mntopts}{rules}, 
+eq_or_diff($augmented_model->{element}{fs_mntopts}{rules},
     [
         '$f1 eq \'auto\'', { 'config_class_name' => 'Fstab::CommonOptions' },
         '$f1 eq \'ext2\'', { 'config_class_name' => 'Fstab::Ext2FsOpt' }, 
@@ -122,6 +144,6 @@ is_deeply($augmented_model->{element}{fs_mntopts}{rules},
     "test augmented rules"
 );
 
-is_deeply($augmented_model->{accept_list},['.*','ip.*'],"test accept_list");
+eq_or_diff($augmented_model->{accept_list},['.*','ip.*'],"test accept_list");
 is($augmented_model->{accept}{'.*'}{description},'catchall',"test augmented rules");
 memory_cycle_ok($model);

@@ -9,7 +9,7 @@
 #
 package Config::Model::Node;
 {
-  $Config::Model::Node::VERSION = '2.031';
+  $Config::Model::Node::VERSION = '2.032';
 }
 
 use Mouse ;
@@ -125,7 +125,8 @@ sub BUILD {
     my $class_name = $self->config_class_name ;
     $logger->info( "New $class_name requested by $caller_class");
 
-    $self->model( dclone ( $self->config_model->get_model($class_name) ) );
+    # get_model returns a cloned data structure
+    $self->model( $self->config_model->get_model($class_name) );
         
     $self->check_properties ;
 
@@ -1224,7 +1225,7 @@ Config::Model::Node - Class for configuration tree node
 
 =head1 VERSION
 
-version 2.031
+version 2.032
 
 =head1 SYNOPSIS
 
@@ -1446,7 +1447,7 @@ Example:
 The model snippet above will ensure that C<Bug-Debian> will be shown right after C<bug>.
 
 =for html
-<p>For more information, see <a href="http://ddumont.wordpress.com/2010/05/19/improve-config-upgrade-ep-02-minimal-model-for-opensshs-sshd_config/">this blog<\a>.</p>
+<p>For more information, see <a href="http://ddumont.wordpress.com/2010/05/19/improve-config-upgrade-ep-02-minimal-model-for-opensshs-sshd_config/">this blog</a>.</p>
 
 =back
 

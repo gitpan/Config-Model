@@ -9,12 +9,14 @@
 #
 package Config::Model;
 {
-  $Config::Model::VERSION = '2.031';
+  $Config::Model::VERSION = '2.032';
 }
 use Mouse ;
 use namespace::autoclean;
 use Mouse::Util::TypeConstraints;
 use MouseX::StrictConstructor;
+
+use 5.10.1;
 
 use Carp;
 use Storable ('dclone') ;
@@ -44,35 +46,71 @@ has model_dir    => ( isa => 'Str',  is => 'ro', default => 'Config/Model/models
 has legacy       => ( isa => 'LegacyTreament', is => 'ro', default => 'warn' ) ;
 has instances    => ( isa => 'HashRef[Config::Model::Instance]', is => 'ro', default => sub { {} } ) ;
 
-has models => ( 
-    isa => 'HashRef', 
-    is => 'ro' , 
-    default => sub { {} } ,
-    traits  => [ 'Hash' ],
-    handles => {
-        model_exists => 'exists',
-        model_defined => 'defined',
-        model => 'get',
-    },
-)  ;
+# Config::Model stores 3 versions of each model
 
-has raw_models => ( 
-    isa => 'HashRef', 
-    is => 'ro' , 
+# raw_model is the model exactly as passed by the user. Since the format is quite
+# liberal (e.g legacy parameters, grouped declaration of elements like '[qw/foo bar/] => {}}',
+# element description in class or in element declaration)), this raw format is not
+# usable without normalization (done by normalize_class_parameters)
+
+has raw_models => (
+    isa => 'HashRef',
+    is => 'ro' ,
     default => sub { {} } ,
     traits  => [ 'Hash' ],
     handles => {
         raw_model_exists => 'exists',
         raw_model_defined => 'defined',
         raw_model => 'get',
+        store_raw_model => 'set',
         raw_model_names => 'keys',
     },
 )  ;
 
+sub get_raw_model {
+    my $self = shift;
+    return $self->raw_model(@_) ;
+}
 
-has skip_inheritance => ( 
+# the result of normalization is stored here. Normalized model aggregate user models and
+# augmented features (the one found in Foo.d directory). inclusion of other class is NOT
+# yet done. normalized_models are created while loading files (load method) or creating
+# configuration classes (create_config_class)
+has normalized_models => (
+    isa => 'HashRef',
+    is => 'ro' ,
+    default => sub { {} } ,
+    traits  => [ 'Hash' ],
+    handles => {
+        normalized_model_exists => 'exists',
+        normalized_model_defined => 'defined',
+        normalized_model => 'get',
+        store_normalized_model => 'set',
+        normalized_model_names => 'keys',
+    },
+)  ;
+
+# This attribute contain the model that will be used by Config::Model::Node. They
+# are created on demand when get_model is called. When created the inclusion of
+# other classes is done according to the class 'include' parameter. Note that get_model
+# will try call load if the required normalized_model is not known (lazy loading)
+has models => (
+    isa => 'HashRef',
+    is => 'ro' ,
+    default => sub { {} } ,
+    traits  => [ 'Hash' ],
+    handles => {
+        model_exists => 'exists',
+        model_defined => 'defined',
+        model => 'get',
+        _store_model => 'set',
+    },
+)  ;
+
+
+has skip_inheritance => (
     isa => 'Bool', is => 'ro', default => 0,
-    trigger => sub { 
+    trigger => sub {
         my $self = shift ;
         $self->show_legacy_issue("skip_inheritance is deprecated, use skip_include") ;
         $self->skip_include = $self->skip_inheritance ;
@@ -90,364 +128,6 @@ around BUILDARGS => sub {
   };
 
 
-=head1 NAME
-
-Config::Model - Create tools to validate, migrate and edit configuration files
-
-=head1 VERSION
-
-version 2.031
-
-=head1 SYNOPSIS
-
-=head2 Perl program
-
- use Config::Model;
- use Log::Log4perl qw(:easy) ;
- Log::Log4perl->easy_init($WARN);
-
- # create new Model object
- my $model = Config::Model->new() ; # Config::Model object
-
- # create config model. Most users will want to store the model
- # in lib/Config/Model/models and run "config-edit -model MiniModel"
- # See below for details
- $model ->create_config_class (
-   name => "MiniModel",
-   element => [ [qw/foo bar baz/ ] => { type => 'leaf', value_type => 'uniline' }, ],
-   read_config => { backend => 'IniFile', auto_create => 1,
-                    config_dir => '.', file => 'mini.ini',
-                  }
- ) ;
-
- # create instance (Config::Model::Instance object)
- my $instance = $model->instance (root_class_name => 'MiniModel');
-
- # get configuration tree root
- my $cfg_root = $instance -> config_root ; # C::M:Node object
-
- # load some dummy data
- $cfg_root -> load("bar=BARV foo=FOOV baz=BAZV") ;
-
- # write new ini file
- $instance -> write_back;
-
- # now look for new mini.ini file un current directory
-
-=head2 More convenient
-
- $ mkdir -p lib/Config/Model/models/
- $ echo "[ { name => 'MiniModel',
-             element => [ [qw/foo bar baz/ ] => { type => 'leaf', value_type => 'uniline' }, ],
-             read_config => { backend => 'IniFile', auto_create => 1,
-                              config_dir => '.', file => 'mini.ini',
-                            }
-           }
-         ] ; " > lib/Config/Model/models/MiniModel.pl
- $ config-edit -model MiniModel -model_dir lib/Config/Model/models/ -ui none bar=BARV foo=FOOV baz=BAZV
- $ cat mini.ini
-
-=head2 Look Ma, no Perl
-
- $ echo "Make sure that Config::Model::Itself is installed"
- $ mkdir -p lib/Config/Model/models/
- $ config-model-edit -model MiniModel -save \
-   class:MiniModel element:foo type=leaf value_type=uniline - \
-                   element:bar type=leaf value_type=uniline - \
-                   element:baz type=leaf value_type=uniline - \
-   read_config:0 backend=IniFile file=mini.ini config_dir=. auto_create=1 - - -
- $ config-edit -model MiniModel -model_dir lib/Config/Model/models/ -ui none bar=BARV foo=FOOV baz=BAZV
- $ cat mini.ini
-
-=head1 DESCRIPTION
-
-Config::Model enables a project developer to provide an interactive
-configuration editor (graphical, curses based or plain terminal) to
-his users. For this he must:
-
-=over 
-
-=item *
-
-Describe the structure and constraints of his project's configuration
-(fear not, a GUI is available)
-
-=item *
-
-Find a way to read and write configuration data using read/write backend
-provided by Config::Model or other Perl modules.
-
-=back
-
-With the elements above, Config::Model will generate interactive
-configuration editors (with integrated help and data validation).
-These editors can be graphical (with L<Config::Model::TkUI>), curses
-based (with L<Config::Model::CursesUI>) or based on ReadLine.
-
-Smaller models targeted for configuration upgrades can also be created:
-
-=over
-
-=item *
-
-only upgrade and migration specifications are required
-
-=item *
-
-unknown parameters can be accepted 
-
-=back
-
-A command line is provided to perform configuration upgrade with a
-single command.
-
-=head2 How does this work ?
-
-Using this project, a typical configuration editor/validator/upgrader
-will be made of 3 parts :
-
-
-
-  GUI <--------> |---------------|
-  CursesUI <---> | |---------|   |
-                 | | Model   |   |
-  ShellUI <----> | |---------|   |<-----read-backend------- |-------------|
-                 |               |----write-backend-------> | config file |
-  FuseUI <-----> | Config::Model |                          |-------------|
-                 |---------------|
-
-=over
-
-=item 1.
-
-A reader and writer that will parse the configuration file and transform
-in a tree representation within Config::Model. The values contained in this
-configuration tree can be written back in the configuration file(s).
-
-=item 2.
-
-A validation engine which is in charge of validating the content and
-structure of configuration stored in the configuration tree. This
-validation engine will follow the structure and constraint declared in
-a configuration model. This model is a kind of schema for the
-configuration tree.
-
-=item 3.
-
-A user interface to modify the content of the configuration tree. A
-modification will be validated instantly by the validation engine.
-
-=back
-
-The important part is the configuration model used by the validation
-engine. This model can be created or modified with a graphical editor
-(Config::Model::Iself).
-
-=head1 Question you may ask yourself
-
-=head2 Don't we already have some configuration validation tools ?
-
-You're probably thinking of tools like webmin. Yes, these tools exist
-and work fine, but they have their set of drawbacks.
-
-Usually, the validation of configuration data is done with a script
-which performs semantic validation and often ends up being quite
-complex (e.g. 2500 lines for Debian's xserver-xorg.config script which
-handles C<xorg.conf> file).
-
-In most cases, the configuration model is expressed in instructions
-(whatever programming language is used) and interspersed with a lot of
-processing to handle the actual configuration data.
-
-=head2 What's the advantage of this project ?
-
-Config::Model projects provide a way to get a validation engine where
-the configuration model is completely separated from the actual
-processing instructions.
-
-A configuration model can be created and modified with the graphical
-interface provide by L<Config::Model::Itself>. The model is saved in a
-declarative form (currently, a Perl data structure). Such a model is
-easier to maintain than a lot of code.
-
-The model specifies:
-
-=over 
-
-=item *
-
-The structure of the configuration data (which can be queried by
-generic user interfaces)
-
-=item *
-
-The properties of each element (boundaries check, integer or string,
-enum like type, default value ...)
-
-=item *
-
-The targeted audience (beginner, advanced, master)
-
-=item *
-
-The on-line help
-
-=back
-
-So, in the end:
-
-=over
-
-=item *
-
-Maintenance and evolution of the configuration content is easier
-
-=item *
-
-User will see a *common* interface for *all* programs using this
-project.
-
-=item *
-
-Beginners will not see advanced parameters (advanced and master
-parameters are hidden from beginners)
-
-=item *
-
-Upgrade of configuration data is easier and sanity check is
-performed during the upgrade.
-
-=item *
-
-Audit of configuration is possible to check what was modified by the
-user compared to default values
-
-=back
-
-=head2 What about the user interface ?
-
-L<Config::Model> interface can be:
-
-=over
-
-=item *
-
-a shell-like interface (plain or based on Term::ReadLine).
-
-=item *
-
-Graphical with L<Config::Model::TkUI> (Perl/Tk interface).
-
-=item *
-
-based on curses with L<Config::Model::CursesUI>. This interface can be
-handy if your X server is down.
-
-=item *
-
-Through a virtual file system where every configuration parameter is mapped to a file.
-(Linux only)
-
-=back
-
-All these interfaces are generated from the configuration model.
-
-And configuration model can be created or modified with a graphical
-user interface (with Config::Model::Itself)
-
-=head2 What about configuration data storage ?
-
-Since the syntax of configuration files vary wildly form one application
-to another, people who want to use this framework may have to
-provide a dedicated parser/writer.
-
-To help with this task, this project provides writer/parsers for common
-format: INI style file and perl file. With the additional
-Config::Model::Backend::Augeas, Augeas library can be used to read and
-write some configuration files. See http://augeas.net for more
-details.
-
-=head2 Is there an example of a configuration model ?
-
-The "example" directory contains a configuration model example for
-C</etc/fstab> file. This example includes a small program that use
-this model to show some ways to extract configuration information.
-
-=head1 Mailing lists
-
-For more question, please send a mail to:
-
- config-model-users at lists.sourceforge.net
-
-=head1 Suggested reads to start
-
-=head2 Beginners
-
-=over
-
-=item *
-
-L<Config::Model::Manual::ModelCreationIntroduction>:
-
-=item *
-
-L<Config::Model::Cookbook::CreateModelFromDoc>
-
-=back
-
-=head2 Advanced 
-
-=over
-
-=item *
-
-L<Config::Model::Manual::ModelCreationAdvanced>
-
-=back
-
-=head2 Masters
-
-use the source, Luke
-
-=head1 STOP
-
-The documentation below is quite detailed and is more a reference doc regarding
-C<Config::Model> class.
-
-For an introduction to model creation, please check:
-L<http://sourceforge.net/apps/mediawiki/config-model/index.php?title=Creating_a_model>
-
-Dedicated Config::Model::Manual pages will follow soon.
-
-=head1 Storage backend, configuration reader and writer
-
-See L<Config::Model::BackendMgr> for details
-
-=head1 Validation engine
-
-C<Config::Model> provides a way to get a validation engine from a set
-of rules. This set of rules is called the configuration model.
-
-=head1 User interface
-
-The user interface will use some parts of the API to set and get
-configuration values. More importantly, a generic user interface will
-need to explore the configuration model to be able to generate at
-run-time relevant configuration screens.
-
-Simple text interface if provided in this module. Curses and Tk
-interfaces are provided by L<Config::Model::CursesUI> and
-L<Config::Model::TkUI>.
-
-=head1 Constructor
-
-Simply call new without parameters:
-
- my $model = Config::Model -> new ;
-
-This will create an empty shell for your model.
-
-=cut
 
 sub show_legacy_issue {
     my $self = shift ;
@@ -461,204 +141,6 @@ sub show_legacy_issue {
     }
 }
 
-=head1 Configuration Model
-
-To validate a configuration tree, we must create a configuration model
-that will set all the properties of the validation engine you want to
-create.
-
-The configuration model is expressed in a declarative form (i.e. a
-Perl data structure which is always easier to maintain than a lot of
-code)
-
-Each configuration class contains a set of:
-
-=over
-
-=item *
-
-node element that will refer to another configuration class
-
-=item *
-
-value element that will contains actual configuration data
-
-=item *
-
-List or hash of node or value elements
-
-=back
-
-By declaring a set of configuration classes and referring them in node
-element, you will shape the structure of your configuration tree.
-
-The structure of the configuration data must be based on a tree
-structure. This structure has several advantages:
-
-=over
-
-=item *
-
-Unique path to get to a node or a leaf.
-
-=item *
-
-Simpler exploration and query
-
-=item *
-
-Simple hierarchy. Deletion of configuration items is simpler to grasp:
-when you cut a branch, all the leaves attaches to that branch go down.
-
-=back
-
-But using a tree has also some drawbacks:
-
-=over 4
-
-=item *
-
-A complex configuration cannot be mapped on a simple tree.  Some more
-relation between nodes and leaves must be added.
-
-=item *
-
-Some configuration part are actually graph instead of a tree (for
-instance, any configuration that will map a service to a
-resource). The graph relation must be decomposed in a tree with
-special I<reference> relation. See L<Config::Model::Value/Value Reference>
-
-=back
-
-Note: a configuration tree is a tree of objects. The model is declared
-with classes. The classes themselves have relations that closely match
-the relation of the object of the configuration tree. But the class
-need not to be declared in a tree structure (always better to reuse
-classes). But they must be declared as a DAG (directed acyclic graph).
-
-=begin html
-
-<a href="http://en.wikipedia.org/wiki/Directed_acyclic_graph">More on DAGs</a>
-
-=end html
-
-Each configuration class declaration specifies:
-
-=over
-
-=item *
-
-The C<name> of the class (mandatory)
-
-=item *
-
-A C<class_description> used in user interfaces (optional)
-
-=item *
-
-Optional include specification to avoid duplicate declaration of elements.
-
-=item *
-
-The class elements
-
-=back
-
-Each element will specify:
-
-=over
-
-=item *
-
-Most importantly, the type of the element (mostly C<leaf>, or C<node>)
-
-=item *
-
-The properties of each element (boundaries, check, integer or string,
-enum like type ...)
-
-=item *
-
-The default values of parameters (if any)
-
-=item *
-
-Whether the parameter is mandatory
-
-=item *
-
-Targeted audience (beginner, advance, master), i.e. the level of
-expertise required to tinker a parameter (to hide expert parameters
-from newbie eyes)
-
-=item *
-
-On-line help (for each parameter or value of parameter)
-
-=back
-
-See L<Config::Model::Node> for details on how to declare a
-configuration class.
-
-Example:
-
- $ cat lib/Config/Model/models/Xorg.pl
- [
-   {
-     name => 'Xorg',
-     class_description => 'Top level Xorg configuration.',
-     include => [ 'Xorg::ConfigDir'],
-     element => [
-                 Files => {
-                           type => 'node',
-                           description => 'File pathnames',
-                           config_class_name => 'Xorg::Files'
-                          },
-                 # snip
-                ]
-   },
-   {
-     name => 'Xorg::DRI',
-     element => [
-                 Mode => {
-                          type => 'leaf',
-                          value_type => 'uniline',
-                          description => 'DRI mode, usually set to 0666'
-                         }
-                ]
-   }
- ];
-
-=head1 Configuration instance
-
-A configuration instance if the staring point of a configuration tree.
-When creating a model instance, you must specify the root class name, I.e. the
-configuration class that is used by the root node of the tree.
-
- my $model = Config::Model->new() ;
- $model ->create_config_class
-  (
-   name => "SomeRootClass",
-   element => [ ...  ]
-  ) ;
-
- # instance name is 'default'
- my $inst = $model->instance (root_class_name => 'SomeRootClass');
-
-You can create several separated instances from a model using
-C<name> option:
-
- # instance name is 'default'
- my $inst = $model->instance (root_class_name => 'SomeRootClass',
-                              name            => 'test1');
-
-
-Usually, model files will be loaded automatically depending on
-C<root_class_name>. But you can choose to specify the file containing
-the model with C<model_file> parameter. This is mostly useful for
-tests.
-
-=cut
 
 sub instance {
     my $self = shift ;
@@ -698,23 +180,6 @@ sub instance_names {
     return keys %{$self->instances} ;
 }
 
-=head1 Configuration class
-
-A configuration class is made of series of elements which are detailed
-in L<Config::Model::Node>.
-
-Whatever its type (node, leaf,... ), each element of a node has
-several other properties:
-
-=over
-
-=item experience
-
-By using the C<experience> parameter, you can change the experience
-level of each element. Possible experience levels are C<master>,
-C<advanced> and C<beginner> (default).
-
-=cut
 
 @experience_list = qw/beginner advanced master/;
 {
@@ -722,47 +187,12 @@ C<advanced> and C<beginner> (default).
   map ($experience_index{$_}=$idx++, @experience_list);
 }
 
-=item level
-
-Level is C<important>, C<normal> or C<hidden>.
-
-The level is used to set how configuration data is presented to the
-user in browsing mode. C<Important> elements will be shown to the user
-no matter what. C<hidden> elements will be explained with the I<warp>
-notion.
-
-=cut
 
 @level = qw/hidden normal important/;
 
-=item status
-
-Status is C<obsolete>, C<deprecated> or C<standard> (default).
-
-Using a deprecated element will issue a warning. Using an obsolete
-element will raise an exception.
-
-=cut
 
 @status = qw/obsolete deprecated standard/;
 
-=item description
-
-Description of the element. This description will be used when
-generating user interfaces.
-
-=item summary
-
-Summary of the element. This description will be used when generating
-user interfaces and may be used in comments when writing the
-configuration file.
-
-=item class_description
-
-Description of the configuration class. This description will be used
-when generating user interfaces.
-
-=cut
 
 
 # unpacked model is:
@@ -776,26 +206,21 @@ when generating user interfaces.
 # description, experience, summary, level, status are moved
 # into element description.
 
-=item generated_by
-
-Mention with a descriptive string if this class was generated by a
-program.  This parameter is currently reserved for
-L<Config::Model::Itself> model editor.
-
-=cut
 
 my @legal_params = qw/element experience status description summary level
                       config_dir
                       read_config read_config_dir write_config
                       write_config_dir accept/;
-my @static_legal_params = qw/class_description copyright author license generated_by/ ;                      
+my @static_legal_params = qw/class_description copyright author license generated_by/ ;
 
+# keep as external API. All internal call go through _store_model
+#  See comments around raw_models attribute for explanations
 sub create_config_class {
     my $self=shift ;
     my %raw_model = @_ ;
 
     my $config_class_name = delete $raw_model{name} or
-        croak "create_config_class: no config class name" ; 
+        croak "create_config_class: no config class name" ;
 
     get_logger("Model")->info("Creating class $config_class_name") ;
 
@@ -807,91 +232,53 @@ sub create_config_class {
             );
     }
 
-    if (defined $raw_model{inherit_after}) {
-        $self->show_legacy_issue("Model $config_class_name: inherit_after is deprecated ",
-          "in favor of include_after" );
-        $raw_model{include_after} = delete $raw_model{inherit_after} ;
-    }
-    if (defined $raw_model{inherit}) {
-        $self->show_legacy_issue("Model $config_class_name: inherit is deprecated in favor of include");
-        $raw_model{include} = delete $raw_model{inherit} ;
-    }
+    $self->store_raw_model($config_class_name, dclone(\%raw_model)) ;
 
-    my ($model, $raw_copy) = $self->load_raw_model ($config_class_name, \%raw_model);
-    $self->raw_models->{$config_class_name} = \%raw_model ;
+    my $model = $self->normalize_class_parameters($config_class_name, \%raw_model) ;
 
+    $self->store_normalized_model($config_class_name, $model) ;
 
-    $self->_create_config_class ($config_class_name, $model, $raw_copy);
     return $config_class_name ;
 }
 
-#
-# New subroutine "load_raw_model" extracted - Sat Nov 27 17:01:30 2010.
-#
-sub load_raw_model {
-    my ($self, $config_class_name, $raw_model) = @_;
-    
-    # perform some syntax and rule checks and expand compacted
-    # elements ie  [qw/foo bar/] => {...} is transformed into
-    #  foo => {...} , bar => {...} before being stored
+sub merge_included_class {
+    my ($self, $config_class_name) = @_;
 
-    my $raw_copy = dclone $raw_model ;
-
-    my %model = ( element_list => [] );
+    my $normalized_model = $self->normalized_model($config_class_name) ;
+    my $model = dclone $normalized_model ;
 
     # add included items
-    if ($self->skip_include and defined $raw_copy->{include}) {
-        my $inc = delete $raw_copy->{include} ;
-        $model{include}       =  ref $inc ? $inc : [ $inc ];
-        $model{include_after} = delete $raw_copy->{include_after}
-          if defined $raw_copy->{include_after};
+    if ($self->skip_include and defined $normalized_model->{include}) {
+        my $inc = $normalized_model->{include} ;
+        $model->{include}       =  ref $inc ? $inc : [ $inc ];
+        $model->{include_after} = $normalized_model->{include_after}
+          if defined $normalized_model->{include_after};
     }
     else {
-        # include class in raw_copy, raw_model is left as is
-        $self->include_class($config_class_name, $raw_copy ) ;
+        # include class in raw_copy, normalized_model is left as is
+        $self->include_class($config_class_name, $model ) ;
     }
-    return (\%model, $raw_copy);
+    return $model;
 }
 
-#
-# New subroutine "_create_config_class" extracted - Sat Nov 27 17:06:42 2010.
-#
-sub _create_config_class {
-    my $self = shift;
-    my $config_class_name = shift;
-    my $model = shift;
-    my $raw_copy = shift;
-
-    
-    # check config class parameters and fill %model
-    $self->check_class_parameters($config_class_name, $model, $raw_copy) ;
-
-    my @left_params = keys %$raw_copy ;
-    Config::Model::Exception::ModelDeclaration->throw
-        (
-         error=> "create class $config_class_name: unknown ".
-         "parameter '" . join("', '",@left_params)."', expected '".
-         join("', '",@legal_params, @static_legal_params)."'"
-        )
-          if @left_params ;
-
-
-    $self->models->{$config_class_name} = $model ;
-
-    return (\@left_params);
-}
-
-sub check_class_parameters {
+sub normalize_class_parameters {
     my $self  = shift;
     my $config_class_name = shift || die ;
-    my $model = shift || die ;
-    my $raw_model = shift || die ;
+    my $normalized_model = shift || die ;
 
+    my $model = {} ;
+
+    # sanity check
+    my $raw_name = delete $normalized_model->{name} ;
+    if (defined $raw_name and $config_class_name ne $raw_name) {
+        my $e = "internal: config_class_name $config_class_name ne model name $raw_name";
+        Config::Model::Exception::ModelDeclaration->throw ( error=> $e ) ;
+    }
 
     my @element_list ;
 
     # first construct the element list
-    my @compact_list = @{$raw_model->{element} || []} ;
+    my @compact_list = @{$normalized_model->{element} || []} ;
     while (@compact_list) {
         my ($item,$info) = splice @compact_list,0,2 ;
         # store the order of element as declared in 'element'
@@ -902,8 +289,8 @@ sub check_class_parameters {
     # are grouped. Although interaction with include may be tricky. Let's not advertise it.
     # yet.
 
-    if (defined $raw_model->{force_element_order}) {
-        my @forced_list = @{delete $raw_model->{force_element_order}} ;
+    if (defined $normalized_model->{force_element_order}) {
+        my @forced_list = @{delete $normalized_model->{force_element_order}} ;
         my %forced = map { ($_ => 1 ) } @forced_list ;
         foreach (@element_list) {
             next if delete $forced{$_};
@@ -921,12 +308,22 @@ sub check_class_parameters {
         }
     }
 
+    if (defined $normalized_model->{inherit_after}) {
+        $self->show_legacy_issue("Model $config_class_name: inherit_after is deprecated ",
+          "in favor of include_after" );
+        $normalized_model->{include_after} = delete $normalized_model->{inherit_after} ;
+    }
+    if (defined $normalized_model->{inherit}) {
+        $self->show_legacy_issue("Model $config_class_name: inherit is deprecated in favor of include");
+        $normalized_model->{include} = delete $normalized_model->{inherit} ;
+    }
+
 
 
     # get data read/write information (if any)
     $model->{read_config_dir} = $model->{write_config_dir}
-      = delete $raw_model->{config_dir}
-        if defined $raw_model->{config_dir};
+      = delete $normalized_model->{config_dir}
+        if defined $normalized_model->{config_dir};
 
     my @info_to_move = (
         qw/read_config  read_config_dir
@@ -935,18 +332,18 @@ sub check_class_parameters {
         # this parameter is filled by class generated by a program. It may
         # be used to avoid interactive edition of a generated model
         'generated_by',
-        qw/class_description author copyright license/
+        qw/class_description author copyright license include include_after/
     ) ;
 
     foreach my $info (@info_to_move) {
-        next unless defined $raw_model->{$info} ;
-        $model->{$info} = delete $raw_model->{$info} ;
+        next unless defined $normalized_model->{$info} ;
+        $model->{$info} = delete $normalized_model->{$info} ;
     }
 
     # handle accept parameter
     my @accept_list ;
     my %accept_hash ;
-    my $accept_info = delete $raw_model->{'accept'} || [] ;
+    my $accept_info = delete $normalized_model->{'accept'} || [] ;
     while (@$accept_info) {
         my $name_match = shift @$accept_info ; # should be a regexp
 
@@ -958,7 +355,7 @@ sub check_class_parameters {
             warn "class $config_class_name: name_match ($implicit$name_match)",
                 " in accept is deprecated\n" ;
         }
-        
+
         push @accept_list, $name_match ;
         $accept_hash{$name_match} = shift @$accept_info;
     }
@@ -978,11 +375,11 @@ sub check_class_parameters {
             ) ;
     }
 
-    $self->translate_legacy_permission($config_class_name, $raw_model, $raw_model ) ;
+    $self->translate_legacy_permission($config_class_name, $normalized_model, $normalized_model ) ;
 
     # element is handled first
     foreach my $info_name (qw/element experience status description summary level/) {
-        my $raw_compact_info = delete $raw_model->{$info_name} ;
+        my $raw_compact_info = delete $normalized_model->{$info_name} ;
 
         next unless defined $raw_compact_info ;
 
@@ -1036,21 +433,23 @@ sub check_class_parameters {
     Config::Model::Exception::ModelDeclaration->throw
         (
          error => "create class $config_class_name: unexpected "
-                . "parameters '". join (', ', keys %$raw_model) ."' "
+                . "parameters '". join (', ', keys %$normalized_model) ."' "
                 . "Expected '".join("', '",@legal_params, @static_legal_params)."'"
         )
-          if keys %$raw_model ;
+          if keys %$normalized_model ;
 
     $model->{element_list} = \@element_list;
+
+    return $model ;
 }
 
 sub translate_legacy_permission {
-    my ($self, $config_class_name, $model, $raw_model ) = @_  ;
+    my ($self, $config_class_name, $model, $normalized_model ) = @_  ;
 
-    my $raw_experience = delete $raw_model -> {permission} ;
+    my $raw_experience = delete $normalized_model -> {permission} ;
     return unless defined $raw_experience ;
 
-    print Data::Dumper->Dump([$raw_model ] , ['permission to translate' ] ) ,"\n"
+    print Data::Dumper->Dump([$normalized_model ] , ['permission to translate' ] ) ,"\n"
         if $::debug;
 
     $self->show_legacy_issue("$config_class_name: parameter permission is deprecated "
@@ -1516,12 +915,12 @@ sub translate_rules_arg {
 }
 
 sub translate_legacy_builtin {
-    my ($self, $config_class_name, $model, $raw_model ) = @_  ;
+    my ($self, $config_class_name, $model, $normalized_model ) = @_  ;
 
-    my $raw_builtin_default = delete $raw_model -> {built_in} ;
+    my $raw_builtin_default = delete $normalized_model -> {built_in} ;
     return unless defined $raw_builtin_default ;
 
-    print Data::Dumper->Dump([$raw_model ] , ['builtin to translate' ] ) ,"\n"
+    print Data::Dumper->Dump([$normalized_model ] , ['builtin to translate' ] ) ,"\n"
         if $::debug;
 
     $self->show_legacy_issue("$config_class_name: parameter 'built_in' is deprecated "
@@ -1534,12 +933,12 @@ sub translate_legacy_builtin {
 }
 
 sub translate_legacy_built_in_list {
-    my ($self, $config_class_name, $model, $raw_model ) = @_  ;
+    my ($self, $config_class_name, $model, $normalized_model ) = @_  ;
 
-    my $raw_builtin_default = delete $raw_model -> {built_in_list} ;
+    my $raw_builtin_default = delete $normalized_model -> {built_in_list} ;
     return unless defined $raw_builtin_default ;
 
-    print Data::Dumper->Dump([$raw_model ] , ['built_in_list to translate' ] ) ,"\n"
+    print Data::Dumper->Dump([$normalized_model ] , ['built_in_list to translate' ] ) ,"\n"
         if $::debug;
 
     $self->show_legacy_issue("$config_class_name: parameter 'built_in_list' is deprecated "
@@ -1550,6 +949,1191 @@ sub translate_legacy_built_in_list {
     print Data::Dumper->Dump([$model ] , ['translated_built_in_list' ] ) ,"\n"
         if $::debug;
 }
+
+
+sub include_class {
+    my $self       = shift;
+    my $class_name = shift || croak "include_class: undef includer" ;
+    my $target_model  = shift || die "include_class: undefined target_model";
+
+    my $include_class = delete $target_model->{include} ;
+
+    return () unless defined $include_class ;
+
+    my $include_after       = delete $target_model->{include_after} ;
+
+    my @includes = ref $include_class ? @$include_class : ($include_class) ;
+
+    # use reverse because included classes are *inserted* in front
+    # of the list (or inserted after $include_after
+    foreach my $inc (reverse @includes) {
+        $self->include_one_class($class_name, $target_model, $inc, $include_after) ;
+    }
+}
+
+sub include_one_class {
+    my $self          = shift;
+    my $class_name    = shift || croak "include_class: undef includer" ;
+    my $target_model  = shift || croak "include_class: undefined target_model";
+    my $include_class = shift || croak "include_class: undef include_class param" ;;
+    my $include_after = shift ;
+
+    get_logger('Model')->info("class $class_name includes $include_class");
+
+    if (defined $include_class and
+        defined $self->{included_class}{$class_name}{$include_class}) {
+        Config::Model::Exception::ModelDeclaration
+                -> throw (error => "Recursion error ? $include_class has "
+                                 . "already been included by $class_name.") ;
+    }
+    $self->{included_class}{$class_name}{$include_class} = 1;
+
+    # takes care of recursive include, because get_model will perform
+    # includes (and normalization). Is already a dclone
+    my $included_model = $self->get_model($include_class) ;
+
+    # now include element in element_list (special treatment because order is
+    # important)
+    my $target_list = $target_model->{element_list} ;
+    my $included_list = $included_model->{element_list} ;
+    my $splice_idx = 0 ;
+    if (defined $include_after and defined $included_model->{element}) {
+        my $idx = 0 ;
+        my %elt_idx = map { ( $_ , $idx++ ); } @$target_list ;
+
+        if (not defined $elt_idx{$include_after}) {
+            my $msg =  "Unknown element for 'include_after': "
+                        . "$include_after, expected ". join(' ', keys %elt_idx) ;
+            Config::Model::Exception::ModelDeclaration-> throw (error => $msg) ;
+        }
+
+        # + 1 because we splice *after* $include_after
+        $splice_idx = $elt_idx{$include_after} + 1;
+    }
+
+    splice ( @$target_list , $splice_idx, 0, @$included_list) ;
+    get_logger('Model')->debug("class $class_name new elt list: @$target_list");
+
+    # now actually include all elements
+    my $target_element = $target_model->{element} ||= {};
+    foreach my $included_elt (@$included_list) {
+        if (not defined $target_element->{$included_elt}) {
+            get_logger('Model')->debug("class $class_name includes elt $included_elt");
+            $target_element->{$included_elt} = $included_model->{element}{$included_elt};
+        }
+        else {
+            Config::Model::Exception::ModelDeclaration->throw (
+                 error => "Cannot clobber element '$included_elt' in $class_name"
+                 . " (included from $include_class)"
+            ) ;
+        }
+    }
+    get_logger('Model')->info("class $class_name include $include_class done");
+}
+
+
+
+# load a model from file. See comments around raw_models attribute for explanations
+sub load {
+    my $self = shift ;
+    my $model_name = shift ; # model name like Foo::Bar
+    my $load_file = shift ;  # model file (override model name), used for tests
+
+    my $load_path = $model_name ;
+    $load_path =~ s/::/\//g;
+
+    $load_file ||=  $self->model_dir . '/' . $load_path  . '.pl';
+
+    get_logger("Model::Loader")->debug("model $model_name from file $load_file");
+
+    # no special treatment, returns an array
+    my %models_by_name ;
+    $self->_load_model_in_hash (\%models_by_name, $load_file);
+    $self->store_raw_model($model_name,dclone(\%models_by_name)) ;
+    foreach my $name (keys %models_by_name) {
+        my $data = $self->normalize_class_parameters($name, $models_by_name{$name}) ;
+        get_logger("Model::Loader")->debug("Store normalized model $name");
+        $self->store_normalized_model($name, $data) ;
+    }
+
+    # look for additional model information
+    my %model_graft_by_name ;
+    foreach my $inc (@INC) {
+        foreach my $name (keys %models_by_name) {
+            my $snippet_path = $name ;
+            $snippet_path =~ s/::/\//g;
+            my $snippet_dir = "$inc/". $self->model_dir.'/'.$snippet_path.'.d' ;
+            get_logger("Model::Loader")->trace("looking for snippet in $snippet_dir");
+            if ( -d $snippet_dir ) {
+                foreach my $snippet_file ( glob("$snippet_dir/*.pl") ) {
+                    get_logger("Model::Loader")->info("Found snippet $snippet_file");
+                    $self->_load_model_in_hash (\%model_graft_by_name,$snippet_file);
+                }
+            }
+        }
+    }
+
+    foreach my $class_to_merge (keys %model_graft_by_name) {
+        my $data = $model_graft_by_name{$class_to_merge} ;
+        $self->augment_config_class_really($class_to_merge, $data) ;
+    }
+
+    # return the list of classes found in $load_file
+    return keys %models_by_name;
+}
+
+
+# New subroutine "_load_model_in_hash" extracted - Fri Apr 12 17:29:56 2013.
+#
+sub _load_model_in_hash {
+    my ($self, $hash_ref, $load_file) = @_;
+
+    my $model = $self->_do_model_file ($load_file);
+
+    foreach my $config_class_info (@$model) {
+        my %data = ref $config_class_info eq 'HASH' ? %$config_class_info
+                 : ref $config_class_info eq 'ARRAY' ? @$config_class_info
+                 : croak "load $load_file: config_class_info is not a ref" ;
+        my $config_class_name = $data{name} or
+            croak "load: missing config class name in $load_file" ;
+
+        # check config class parameters and fill %model
+        $hash_ref->{$config_class_name} = \%data ;
+    }
+}
+
+#
+# New subroutine "_do_model_file" extracted - Sun Nov 28 17:25:35 2010.
+#
+sub _do_model_file {
+    my ($self,$load_file) = @_ ;
+
+    get_logger("Model::Loader")-> info("load model $load_file") ;
+
+    my $err_msg = '';
+    my $model = do $load_file ;
+
+    unless ($model) {
+        if ($@) {$err_msg =  "couldn't parse $load_file: $@"; }
+        elsif (not defined $model) {$err_msg = "couldn't do $load_file: $!"}
+        else {$err_msg = "couldn't run $load_file" ;}
+    }
+    elsif (ref($model) ne 'ARRAY') {
+        $model = [ $model ];
+    }
+
+    Config::Model::Exception::ModelDeclaration
+            -> throw (message => "load error: $err_msg")
+                if $err_msg ;
+
+    return $model;
+}
+
+
+
+sub augment_config_class {
+    my ($self, %augment_data) = @_;
+    # %args must contain existing class name to augment
+
+    # plus other data to merge to raw model
+    my $config_class_name = delete $augment_data{name} ||
+        croak "augment_config_class: missing class name" ;
+
+    $self->augment_config_class_really($config_class_name, \%augment_data)
+}
+
+sub augment_config_class_really {
+    my ($self,$config_class_name, $augment_data) = @_;
+
+    my $orig_model = $self->normalized_model($config_class_name) ;
+    croak "unknown class to augment: $config_class_name" unless defined $orig_model ;
+
+    my $model_addendum = $self->normalize_class_parameters($config_class_name, $augment_data) ;
+    my $new_model = merge ( $orig_model, $model_addendum) ;
+
+    # remove duplicates in element_list and accept_list while keeping order
+    foreach my $list_name (qw/element_list accept_list/) {
+        my %seen ;
+        my @newlist ;
+        foreach (@{$new_model->{$list_name}}) {
+            push @newlist, $_ unless $seen{$_} ;
+            $seen{$_}= 1;
+        }
+
+        $new_model->{$list_name} = \@newlist;
+    }
+
+    $self->store_normalized_model($config_class_name => $new_model) ;
+}
+
+
+sub get_model {
+    my $self =shift ;
+    my $config_class_name = shift
+      || die "Model::get_model: missing config class name argument" ;
+
+    $self->load($config_class_name)
+        unless $self->normalized_model_exists($config_class_name) ;
+
+    if (not $self->model_defined($config_class_name)) {
+        get_logger("Model::Loader")->debug("creating model $config_class_name");
+
+        my $model = $self->merge_included_class ($config_class_name);
+        $self->_store_model ($config_class_name, $model);
+    }
+
+    my $model = $self->model($config_class_name) ||
+      croak "get_model error: unknown config class name: $config_class_name";
+
+    return dclone($model) ;
+}
+
+
+sub get_model_doc {
+    my ( $self, $top_class_name ) = @_;
+
+    if ( not defined $self->model($top_class_name) ) {
+        croak
+          "get_model_doc error : unknown config class name: $top_class_name";
+    }
+
+    my @classes = ($top_class_name);
+    my %result;
+
+    while (@classes) {
+        my $class_name = shift @classes;
+        next if defined $result{$class_name};
+        my $c_model   = $self->get_model($class_name)
+          || croak "get_model_doc model error : unknown config class name: $class_name";
+
+        my $full_name = "Config::Model::models::$class_name" ;
+
+        my %see_also ;
+
+        my @pod = (
+            "=head1 NAME",                                    '',
+            "$full_name - Configuration class " . $class_name,                    '',
+            "=head1 DESCRIPTION",                             '',
+            "Configuration classes used by L<Config::Model>", ''
+        );
+
+        my %legalese;
+
+        my $i = 0;
+
+        my $class_desc = $c_model->{class_description};
+        push @pod, $class_desc, '' if defined $class_desc;
+
+        my @elt = ( "=head1 Elements", '' );
+        foreach my $elt_name ( @{ $c_model->{element_list} } ) {
+            my $elt_info = $c_model->{element}{$elt_name};
+            my $summary = $elt_info->{summary} || '';
+            $summary &&= " - $summary" ;
+            push @elt, "=head2 $elt_name$summary", '';
+            push @elt, $self->get_element_description($elt_info) , '' ;
+
+            foreach ($elt_info,$elt_info->{cargo}) {
+                if (my $ccn = $_->{config_class_name}) {
+                    push @classes, $ccn ;
+                    $see_also{$ccn} = 1;
+                }
+                if (my $migr = $_->{migrate_from}) {
+                    push @elt, $self->get_migrate_doc ($elt_name,'is migrated with',$migr);
+                }
+                if (my $migr = $_->{migrate_values_from}) {
+                    push @elt, "Note: $elt_name values are migrated from '$migr'",'';
+                }
+            }
+        }
+
+        foreach my $what (qw/author copyright license/) {
+            my $item = $c_model->{$what};
+            push @{ $legalese{$what} }, $item if $item;
+        }
+
+        my @end;
+        foreach my $what (qw/author copyright license/) {
+            next unless @{ $legalese{$what} || [] };
+            push @end, "=head1 " . uc($what), '', '=over', '',
+              ( map { ( "=item $_", '' ); } map {ref $_ ? @$_ : $_ } @{ $legalese{$what} } ),
+              '', '=back', '';
+        }
+
+        my @see_also =  (
+            "=head1 SEE ALSO",'',"=over",'',"=item *",'',"L<cme>",'',
+            ( map { ( "=item *",'',"L<Config::Model::models::$_>",'') ; } sort keys %see_also ),
+            "=back",'') ;
+
+        $result{$full_name} = join( "\n", @pod, @elt, @see_also, @end,'=cut','' ) . "\n";
+    }
+    return \%result ;
+}
+
+#
+# New subroutine "get_migrate_doc" extracted - Tue Jun  5 13:31:20 2012.
+#
+sub get_migrate_doc {
+    my ( $self, $elt_name, $desc, $migr ) = @_;
+
+    my $mv    = $migr->{variables};
+    my $mform = $migr->{formula};
+
+    if ( $migr->{use_eval} ) { $mform =~ s/^/ /mg; $mform = "\n\n$mform\n\n"; }
+    else                     { $mform = "'C<$mform>' " }
+
+    my $mdoc = "Note: $elt_name $desc ${mform}and with "
+      . join( ", ", map { qq!\$$_ => "C<$mv->{$_}>"! } keys %$mv );
+    if (my $rep = $migr->{replace}) {
+        $mdoc .= ' and '.join( ", ", map { qq!'C<\$replace{$_}>' => "C<$rep->{$_}>"! } keys %$rep );
+    }
+
+    return ( $mdoc, '' );
+}
+
+sub get_element_description {
+    my ( $self, $elt_info ) = @_;
+
+    my $type  = $elt_info->{type};
+    my $cargo = $elt_info->{cargo};
+    my $vt    = $elt_info->{value_type} ;
+
+    my $of         = '';
+    my $cargo_type = $cargo->{type};
+    my $cargo_vt   = $cargo->{value_type};
+    $of = " of " . ( $cargo_vt or $cargo_type ) if defined $cargo_type;
+
+    my $desc = $elt_info->{description} || '';
+    if ($desc) {
+        $desc .= '. ' if $desc =~ /\w$/ ;
+    }
+
+    if (my $status = $elt_info->{status}) {
+        $desc .= 'B<'.ucfirst($status).'> ';
+    }
+
+
+    my $info = $elt_info->{mandatory} ? 'Mandatory. ' : 'Optional. ' ;
+
+    $info .= "Type ". ($vt || $type) . $of.'. ';
+
+    foreach (qw/choice default upstream_default/) {
+        my $item = $elt_info->{$_} ;
+        next unless defined $item ;
+        my @list = ref($item) ? @$item : ($item) ;
+        $info .= "$_: '". join("', '",@list)."'. " ;
+    }
+
+    my $elt_help = $self->get_element_value_help ($elt_info) ;
+
+    return $desc."I<< $info >>" .$elt_help;
+}
+
+sub get_element_value_help {
+    my ( $self, $elt_info ) = @_;
+
+    my $help = $elt_info->{help} ;
+    return '' unless defined $help ;
+
+    my $help_text = "\n\nHere are some explanations on the possible values:\n\n=over\n\n" ;
+    foreach my $v (sort keys %$help) {
+        $help_text .= "=item '$v'\n\n$help->{$v}\n\n" ;
+    }
+
+    return $help_text."=back\n\n" ;
+}
+
+
+sub generate_doc {
+    my ( $self, $top_class_name, $dir ) = @_;
+
+    my $res  = $self->get_model_doc($top_class_name) ;
+    my @wrote ;
+
+    if (defined $dir and $dir) {
+        foreach my $class_name (keys %$res) {
+            my $file = $class_name;
+            $file =~ s!::!/!g ;
+            my $pl_file   = $dir."/$file.pl";
+            my $pod_file  = $dir."/$file.pod";
+            my $pod_dir = $pod_file ;
+            $pod_dir =~ s!/[^/]+$!!;
+            make_path($pod_dir,{ mode => 0755} ) unless -d $pod_dir ;
+            # -M returns age of file, not date or epoch. hence greater is older
+            if (not -e $pod_file or not -e $pl_file or (-M $pl_file < -M $pod_file) ) {
+                #print "-M $pl_file: ", -M $pl_file, "-M $pod_file: ". -M $pod_file ,"\n";
+                my $fh = IO::File->new($pod_file,'>') || die "Can't open $pod_file: $!";
+                $fh->binmode(":utf8");
+                $fh->print($res->{$class_name});
+                $fh->close ;
+                print "Wrote documentation in $pod_file\n";
+                push @wrote, $pod_file ;
+            }
+        }
+    }
+    else {
+        foreach my $class_name (keys %$res) {
+            print "########## $class_name ############ \n\n";
+            print $res->{$class_name} ;
+        }
+    }
+    return @wrote ;
+}
+
+
+sub get_element_model {
+    my $self = shift ;
+    my $config_class_name = shift
+      || die "Model::get_element_model: missing config class name argument" ;
+    my $element_name = shift
+      || die "Model::get_element_model: missing element name argument" ;
+
+    my $model = $self->get_model($config_class_name) ;
+
+    my $element_m = $model->{element}{$element_name} ||
+      croak "get_element_model error: unknown element name: $element_name";
+
+    return dclone($element_m) ;
+}
+
+# returns a hash ref containing the raw model, i.e. before expansion of
+# multiple keys (i.e. [qw/a b c/] => ... )
+# internal. For now ...
+sub get_normalized_model {
+    my $self =shift ;
+    my $config_class_name = shift ;
+
+    $self->load($config_class_name)
+      unless defined $self->normalized_model($config_class_name) ;
+
+    my $normalized_model = $self->normalized_model($config_class_name) ||
+      croak "get_normalized_model error: unknown config class name: $config_class_name";
+
+    return dclone($normalized_model) ;
+}
+
+
+sub get_element_name {
+    my $self = shift ;
+    my %args = @_ ;
+
+    my $class = $args{class} ||
+      croak "get_element_name: missing 'class' parameter" ;
+    my $for = $args{for} || 'master' ;
+
+    if ($for eq 'intermediate') {
+        carp "get_element_name: 'intermediate' is deprecated in favor of beginner";
+        $for = 'beginner' ;
+    }
+
+    croak "get_element_name: wrong 'for' parameter. Expected ",
+      join (' or ', @experience_list)
+        unless defined $experience_index{$for} ;
+
+    my @experiences
+      = @experience_list[ 0 .. $experience_index{$for} ] ;
+    my @array
+      = $self->get_element_with_experience($class,@experiences);
+
+    return wantarray ? @array : join( ' ', @array );
+}
+
+# internal
+sub get_element_with_experience {
+    my $self      = shift ;
+    my $class     = shift ;
+
+    my $model = $self->get_model($class) ;
+    my @result ;
+
+    # this is a bit convoluted, but the order of the returned element
+    # must respect the order of the elements declared in the model by
+    # the user
+    foreach my $elt (@{$model->{element_list}}) {
+        my $elt_data = $model->{element}{$elt} ;
+        my $l = $elt_data->{level} || $default_property{level} ;
+        foreach my $experience (@_) {
+            my $xp = $elt_data->{experience} || $default_property{experience} ;
+            push @result, $elt if ($l ne 'hidden' and $xp eq $experience );
+        }
+    }
+
+    return @result ;
+}
+
+
+
+sub get_element_property {
+    my $self = shift ;
+    my %args = @_ ;
+
+    my $elt = $args{element} ||
+      croak "get_element_property: missing 'element' parameter";
+    my $prop = $args{property} ||
+      croak "get_element_property: missing 'property' parameter";
+    my $class = $args{class} ||
+      croak "get_element_property:: missing 'class' parameter";
+
+    my $model = $self->model($class) ;
+    # must take into account 'accept' model parameter
+    if (not defined $model->{element}{$prop} ) {
+
+        foreach my $acc_re ( @{$model->{accept_list}} ) {
+            return $model->{accept}{$acc_re}{$prop} || $default_property{$prop}
+                if $elt =~ /^$acc_re$/;
+        }
+    }
+
+    return $self->model($class)->{element}{$elt}{$prop}
+        || $default_property{$prop} ;
+}
+
+
+sub list_class_element {
+    my $self = shift ;
+    my $pad  =  shift || '' ;
+
+    my $res = '';
+    foreach my $class_name ($self->normalized_model_names) {
+        $res .= $self->list_one_class_element($class_name) ;
+    }
+    return $res ;
+}
+
+sub list_one_class_element {
+    my $self = shift ;
+    my $class_name = shift ;
+    my $pad  =  shift || '' ;
+
+    my $res = $pad."Class: $class_name\n";
+    my $c_model = $self->normalized_model($class_name);
+    my $elts = $c_model->{element_list} ; # array ref
+
+    return $res unless defined $elts and @$elts;
+
+    foreach my $elt_name (@$elts) {
+        my $type = $c_model->{element}{$elt_name}{type};
+        $res .= $pad."  - $elt_name ($type)\n";
+    }
+    return $res ;
+}
+
+
+__PACKAGE__->meta->make_immutable ;
+
+1;
+
+
+__END__
+
+=pod
+
+=head1 NAME
+
+Config::Model - Create tools to validate, migrate and edit configuration files
+
+=head1 VERSION
+
+version 2.032
+
+=head1 SYNOPSIS
+
+=head2 Perl program
+
+ use Config::Model;
+ use Log::Log4perl qw(:easy) ;
+ Log::Log4perl->easy_init($WARN);
+
+ # create new Model object
+ my $model = Config::Model->new() ; # Config::Model object
+
+ # create config model. Most users will want to store the model
+ # in lib/Config/Model/models and run "config-edit -model MiniModel"
+ # See below for details
+ $model ->create_config_class (
+   name => "MiniModel",
+   element => [ [qw/foo bar baz/ ] => { type => 'leaf', value_type => 'uniline' }, ],
+   read_config => { backend => 'IniFile', auto_create => 1,
+                    config_dir => '.', file => 'mini.ini',
+                  }
+ ) ;
+
+ # create instance (Config::Model::Instance object)
+ my $instance = $model->instance (root_class_name => 'MiniModel');
+
+ # get configuration tree root
+ my $cfg_root = $instance -> config_root ; # C::M:Node object
+
+ # load some dummy data
+ $cfg_root -> load("bar=BARV foo=FOOV baz=BAZV") ;
+
+ # write new ini file
+ $instance -> write_back;
+
+ # now look for new mini.ini file un current directory
+
+=head2 More convenient
+
+ $ mkdir -p lib/Config/Model/models/
+ $ echo "[ { name => 'MiniModel',
+             element => [ [qw/foo bar baz/ ] => { type => 'leaf', value_type => 'uniline' }, ],
+             read_config => { backend => 'IniFile', auto_create => 1,
+                              config_dir => '.', file => 'mini.ini',
+                            }
+           }
+         ] ; " > lib/Config/Model/models/MiniModel.pl
+ $ config-edit -model MiniModel -model_dir lib/Config/Model/models/ -ui none bar=BARV foo=FOOV baz=BAZV
+ $ cat mini.ini
+
+=head2 Look Ma, no Perl
+
+ $ echo "Make sure that Config::Model::Itself is installed"
+ $ mkdir -p lib/Config/Model/models/
+ $ config-model-edit -model MiniModel -save \
+   class:MiniModel element:foo type=leaf value_type=uniline - \
+                   element:bar type=leaf value_type=uniline - \
+                   element:baz type=leaf value_type=uniline - \
+   read_config:0 backend=IniFile file=mini.ini config_dir=. auto_create=1 - - -
+ $ config-edit -model MiniModel -model_dir lib/Config/Model/models/ -ui none bar=BARV foo=FOOV baz=BAZV
+ $ cat mini.ini
+
+=head1 DESCRIPTION
+
+Config::Model enables a project developer to provide an interactive
+configuration editor (graphical, curses based or plain terminal) to
+his users. For this he must:
+
+=over
+
+=item *
+
+Describe the structure and constraints of his project's configuration
+(fear not, a GUI is available)
+
+=item *
+
+Find a way to read and write configuration data using read/write backend
+provided by Config::Model or other Perl modules.
+
+=back
+
+With the elements above, Config::Model will generate interactive
+configuration editors (with integrated help and data validation).
+These editors can be graphical (with L<Config::Model::TkUI>), curses
+based (with L<Config::Model::CursesUI>) or based on ReadLine.
+
+Smaller models targeted for configuration upgrades can also be created:
+
+=over
+
+=item *
+
+only upgrade and migration specifications are required
+
+=item *
+
+unknown parameters can be accepted
+
+=back
+
+A command line is provided to perform configuration upgrade with a
+single command.
+
+=head2 How does this work ?
+
+Using this project, a typical configuration editor/validator/upgrader
+will be made of 3 parts :
+
+
+
+  GUI <--------> |---------------|
+  CursesUI <---> | |---------|   |
+                 | | Model   |   |
+  ShellUI <----> | |---------|   |<-----read-backend------- |-------------|
+                 |               |----write-backend-------> | config file |
+  FuseUI <-----> | Config::Model |                          |-------------|
+                 |---------------|
+
+=over
+
+=item 1.
+
+A reader and writer that will parse the configuration file and transform
+in a tree representation within Config::Model. The values contained in this
+configuration tree can be written back in the configuration file(s).
+
+=item 2.
+
+A validation engine which is in charge of validating the content and
+structure of configuration stored in the configuration tree. This
+validation engine will follow the structure and constraint declared in
+a configuration model. This model is a kind of schema for the
+configuration tree.
+
+=item 3.
+
+A user interface to modify the content of the configuration tree. A
+modification will be validated instantly by the validation engine.
+
+=back
+
+The important part is the configuration model used by the validation
+engine. This model can be created or modified with a graphical editor
+(Config::Model::Iself).
+
+=head1 Question you may ask yourself
+
+=head2 Don't we already have some configuration validation tools ?
+
+You're probably thinking of tools like webmin. Yes, these tools exist
+and work fine, but they have their set of drawbacks.
+
+Usually, the validation of configuration data is done with a script
+which performs semantic validation and often ends up being quite
+complex (e.g. 2500 lines for Debian's xserver-xorg.config script which
+handles C<xorg.conf> file).
+
+In most cases, the configuration model is expressed in instructions
+(whatever programming language is used) and interspersed with a lot of
+processing to handle the actual configuration data.
+
+=head2 What's the advantage of this project ?
+
+Config::Model projects provide a way to get a validation engine where
+the configuration model is completely separated from the actual
+processing instructions.
+
+A configuration model can be created and modified with the graphical
+interface provide by L<Config::Model::Itself>. The model is saved in a
+declarative form (currently, a Perl data structure). Such a model is
+easier to maintain than a lot of code.
+
+The model specifies:
+
+=over
+
+=item *
+
+The structure of the configuration data (which can be queried by
+generic user interfaces)
+
+=item *
+
+The properties of each element (boundaries check, integer or string,
+enum like type, default value ...)
+
+=item *
+
+The targeted audience (beginner, advanced, master)
+
+=item *
+
+The on-line help
+
+=back
+
+So, in the end:
+
+=over
+
+=item *
+
+Maintenance and evolution of the configuration content is easier
+
+=item *
+
+User will see a *common* interface for *all* programs using this
+project.
+
+=item *
+
+Beginners will not see advanced parameters (advanced and master
+parameters are hidden from beginners)
+
+=item *
+
+Upgrade of configuration data is easier and sanity check is
+performed during the upgrade.
+
+=item *
+
+Audit of configuration is possible to check what was modified by the
+user compared to default values
+
+=back
+
+=head2 What about the user interface ?
+
+L<Config::Model> interface can be:
+
+=over
+
+=item *
+
+a shell-like interface (plain or based on Term::ReadLine).
+
+=item *
+
+Graphical with L<Config::Model::TkUI> (Perl/Tk interface).
+
+=item *
+
+based on curses with L<Config::Model::CursesUI>. This interface can be
+handy if your X server is down.
+
+=item *
+
+Through a virtual file system where every configuration parameter is mapped to a file.
+(Linux only)
+
+=back
+
+All these interfaces are generated from the configuration model.
+
+And configuration model can be created or modified with a graphical
+user interface (with Config::Model::Itself)
+
+=head2 What about configuration data storage ?
+
+Since the syntax of configuration files vary wildly form one application
+to another, people who want to use this framework may have to
+provide a dedicated parser/writer.
+
+To help with this task, this project provides writer/parsers for common
+format: INI style file and perl file. With the additional
+Config::Model::Backend::Augeas, Augeas library can be used to read and
+write some configuration files. See http://augeas.net for more
+details.
+
+=head2 Is there an example of a configuration model ?
+
+The "example" directory contains a configuration model example for
+C</etc/fstab> file. This example includes a small program that use
+this model to show some ways to extract configuration information.
+
+=head1 Mailing lists
+
+For more question, please send a mail to:
+
+ config-model-users at lists.sourceforge.net
+
+=head1 Suggested reads to start
+
+=head2 Beginners
+
+=over
+
+=item *
+
+L<Config::Model::Manual::ModelCreationIntroduction>:
+
+=item *
+
+L<Config::Model::Cookbook::CreateModelFromDoc>
+
+=back
+
+=head2 Advanced
+
+=over
+
+=item *
+
+L<Config::Model::Manual::ModelCreationAdvanced>
+
+=back
+
+=head2 Masters
+
+use the source, Luke
+
+=head1 STOP
+
+The documentation below is quite detailed and is more a reference doc regarding
+C<Config::Model> class.
+
+For an introduction to model creation, please check:
+L<http://sourceforge.net/apps/mediawiki/config-model/index.php?title=Creating_a_model>
+
+Dedicated Config::Model::Manual pages will follow soon.
+
+=head1 Storage backend, configuration reader and writer
+
+See L<Config::Model::BackendMgr> for details
+
+=head1 Validation engine
+
+C<Config::Model> provides a way to get a validation engine from a set
+of rules. This set of rules is called the configuration model.
+
+=head1 User interface
+
+The user interface will use some parts of the API to set and get
+configuration values. More importantly, a generic user interface will
+need to explore the configuration model to be able to generate at
+run-time relevant configuration screens.
+
+Simple text interface if provided in this module. Curses and Tk
+interfaces are provided by L<Config::Model::CursesUI> and
+L<Config::Model::TkUI>.
+
+=head1 Constructor
+
+Simply call new without parameters:
+
+ my $model = Config::Model -> new ;
+
+This will create an empty shell for your model.
+
+=head1 Configuration Model
+
+To validate a configuration tree, we must create a configuration model
+that will set all the properties of the validation engine you want to
+create.
+
+The configuration model is expressed in a declarative form (i.e. a
+Perl data structure which is always easier to maintain than a lot of
+code)
+
+Each configuration class contains a set of:
+
+=over
+
+=item *
+
+node element that will refer to another configuration class
+
+=item *
+
+value element that will contains actual configuration data
+
+=item *
+
+List or hash of node or value elements
+
+=back
+
+By declaring a set of configuration classes and referring them in node
+element, you will shape the structure of your configuration tree.
+
+The structure of the configuration data must be based on a tree
+structure. This structure has several advantages:
+
+=over
+
+=item *
+
+Unique path to get to a node or a leaf.
+
+=item *
+
+Simpler exploration and query
+
+=item *
+
+Simple hierarchy. Deletion of configuration items is simpler to grasp:
+when you cut a branch, all the leaves attaches to that branch go down.
+
+=back
+
+But using a tree has also some drawbacks:
+
+=over 4
+
+=item *
+
+A complex configuration cannot be mapped on a simple tree.  Some more
+relation between nodes and leaves must be added.
+
+=item *
+
+Some configuration part are actually graph instead of a tree (for
+instance, any configuration that will map a service to a
+resource). The graph relation must be decomposed in a tree with
+special I<reference> relation. See L<Config::Model::Value/Value Reference>
+
+=back
+
+Note: a configuration tree is a tree of objects. The model is declared
+with classes. The classes themselves have relations that closely match
+the relation of the object of the configuration tree. But the class
+need not to be declared in a tree structure (always better to reuse
+classes). But they must be declared as a DAG (directed acyclic graph).
+
+=begin html
+
+<a href="http://en.wikipedia.org/wiki/Directed_acyclic_graph">More on DAGs</a>
+
+=end html
+
+Each configuration class declaration specifies:
+
+=over
+
+=item *
+
+The C<name> of the class (mandatory)
+
+=item *
+
+A C<class_description> used in user interfaces (optional)
+
+=item *
+
+Optional include specification to avoid duplicate declaration of elements.
+
+=item *
+
+The class elements
+
+=back
+
+Each element will specify:
+
+=over
+
+=item *
+
+Most importantly, the type of the element (mostly C<leaf>, or C<node>)
+
+=item *
+
+The properties of each element (boundaries, check, integer or string,
+enum like type ...)
+
+=item *
+
+The default values of parameters (if any)
+
+=item *
+
+Whether the parameter is mandatory
+
+=item *
+
+Targeted audience (beginner, advance, master), i.e. the level of
+expertise required to tinker a parameter (to hide expert parameters
+from newbie eyes)
+
+=item *
+
+On-line help (for each parameter or value of parameter)
+
+=back
+
+See L<Config::Model::Node> for details on how to declare a
+configuration class.
+
+Example:
+
+ $ cat lib/Config/Model/models/Xorg.pl
+ [
+   {
+     name => 'Xorg',
+     class_description => 'Top level Xorg configuration.',
+     include => [ 'Xorg::ConfigDir'],
+     element => [
+                 Files => {
+                           type => 'node',
+                           description => 'File pathnames',
+                           config_class_name => 'Xorg::Files'
+                          },
+                 # snip
+                ]
+   },
+   {
+     name => 'Xorg::DRI',
+     element => [
+                 Mode => {
+                          type => 'leaf',
+                          value_type => 'uniline',
+                          description => 'DRI mode, usually set to 0666'
+                         }
+                ]
+   }
+ ];
+
+=head1 Configuration instance
+
+A configuration instance if the staring point of a configuration tree.
+When creating a model instance, you must specify the root class name, I.e. the
+configuration class that is used by the root node of the tree.
+
+ my $model = Config::Model->new() ;
+ $model ->create_config_class
+  (
+   name => "SomeRootClass",
+   element => [ ...  ]
+  ) ;
+
+ # instance name is 'default'
+ my $inst = $model->instance (root_class_name => 'SomeRootClass');
+
+You can create several separated instances from a model using
+C<name> option:
+
+ # instance name is 'default'
+ my $inst = $model->instance (root_class_name => 'SomeRootClass',
+                              name            => 'test1');
+
+
+Usually, model files will be loaded automatically depending on
+C<root_class_name>. But you can choose to specify the file containing
+the model with C<model_file> parameter. This is mostly useful for
+tests.
+
+=head1 Configuration class
+
+A configuration class is made of series of elements which are detailed
+in L<Config::Model::Node>.
+
+Whatever its type (node, leaf,... ), each element of a node has
+several other properties:
+
+=over
+
+=item experience
+
+By using the C<experience> parameter, you can change the experience
+level of each element. Possible experience levels are C<master>,
+C<advanced> and C<beginner> (default).
+
+=item level
+
+Level is C<important>, C<normal> or C<hidden>.
+
+The level is used to set how configuration data is presented to the
+user in browsing mode. C<Important> elements will be shown to the user
+no matter what. C<hidden> elements will be explained with the I<warp>
+notion.
+
+=item status
+
+Status is C<obsolete>, C<deprecated> or C<standard> (default).
+
+Using a deprecated element will issue a warning. Using an obsolete
+element will raise an exception.
+
+=item description
+
+Description of the element. This description will be used when
+generating user interfaces.
+
+=item summary
+
+Summary of the element. This description will be used when generating
+user interfaces and may be used in comments when writing the
+configuration file.
+
+=item class_description
+
+Description of the configuration class. This description will be used
+when generating user interfaces.
+
+=item generated_by
+
+Mention with a descriptive string if this class was generated by a
+program.  This parameter is currently reserved for
+L<Config::Model::Itself> model editor.
 
 =item include
 
@@ -1578,121 +2162,6 @@ Now the element of your class will be:
   ( bar , foo , xyz , baz )
 
 =back
-
-=cut
-
-sub include_class {
-    my $self       = shift;
-    my $class_name = shift || croak "include_class: undef includer" ;
-    my $raw_model  = shift || die "include_class: undefined raw_model";
-
-    my $include_class = delete $raw_model->{include} ;
-
-    return () unless defined $include_class ;
-
-    my $include_after       = delete $raw_model->{include_after} ;
-
-    my @includes = ref $include_class ? @$include_class : ($include_class) ;
-
-    # use reverse because included classes are *inserted* in front
-    # of the list (or inserted after $include_after
-    foreach my $inc (reverse @includes) {
-        $self->include_one_class($class_name, $raw_model, $inc, $include_after) ;
-    }
-}
-
-sub include_one_class {
-    my $self          = shift;
-    my $class_name    = shift || croak "include_class: undef includer" ;
-    my $raw_model     = shift || croak "include_class: undefined raw_model";
-    my $include_class = shift || croak "include_class: undef include_class param" ;;
-    my $include_after = shift ;
-
-    if (defined $include_class and
-        defined $self->{included_class}{$class_name}{$include_class}) {
-        Config::Model::Exception::ModelDeclaration
-                -> throw (error => "Recursion error ? $include_class has "
-                                 . "already been included by $class_name.") ;
-    }
-    $self->{included_class}{$class_name}{$include_class} = 1;
-
-    my $included_raw_model = dclone $self->get_raw_model($include_class) ;
-
-    # takes care of recursive include
-    $self->include_class( $class_name, $included_raw_model ) ;
-
-    my %include_item = map { $_ => 1 } @legal_params ;
-
-    # now include element (special treatment because order is
-    # important)
-    if (defined $include_after and defined $included_raw_model->{element}) {
-        my %elt_idx ;
-        my @raw_elt = @{$raw_model->{element}} ;
-
-        for (my $idx = 0; $idx < @raw_elt ; $idx += 2) {
-            my $elt = $raw_elt[$idx] ;
-            map { $elt_idx{$_} = $idx } ref $elt ? @$elt : ($elt) ;
-        }
-
-        if (not defined $elt_idx{$include_after}) {
-            my $msg =  "Unknown element for 'include_after': "
-                        . "$include_after, expected ". join(' ', keys %elt_idx) ;
-            Config::Model::Exception::ModelDeclaration
-                -> throw (error => $msg) ;
-        }
-
-        # + 2 because we splice *after* $include_after
-        my $splice_idx = $elt_idx{$include_after} + 2;
-        my $to_copy = delete $included_raw_model->{element} ;
-        splice ( @{$raw_model->{element}}, $splice_idx, 0, @$to_copy) ;
-    }
-
-    # now included_raw_model contains all information to be merged to
-    # raw_model
-
-    my $included_model ;
-    foreach my $included_item (keys %$included_raw_model) {
-        if (defined $include_item{$included_item}) {
-            my $to_copy = $included_raw_model->{$included_item} ;
-            if (ref($to_copy) eq 'HASH') {
-                map { $raw_model->{$included_item}{$_} = $to_copy->{$_} }
-                  keys %$to_copy ;
-            }
-            elsif (ref($to_copy) eq 'ARRAY') {
-                unshift @{$raw_model->{$included_item}}, @$to_copy;
-            }
-            else {
-                $raw_model->{$included_item} = $to_copy ;
-            }
-        }
-        elsif ( not grep { $_ eq $included_item; } @static_legal_params ) {
-            Config::Model::Exception::ModelDeclaration->throw
-                (
-                 error => "Cannot include '$included_item', "
-                 . "expected @legal_params"
-                ) ;
-        }
-    }
-
-    # check that elements are not clobbered
-    my %elt_name ;
-    my @raw_elt = @{$raw_model->{element}} ;
-    for (my $idx = 0; $idx < @raw_elt ; $idx += 2) {
-        my $elt = $raw_elt[$idx] ;
-        if (defined $elt_name{$elt})  {
-            Config::Model::Exception::ModelDeclaration->throw
-                (
-                 error => "Cannot clobber element '$elt' in $class_name"
-                 . " (included from $include_class)"
-                ) ;
-        }
-        $elt_name{$elt} = 1;
-    }
-}
-
-
-
-=pod
 
 Example:
 
@@ -1756,170 +2225,18 @@ do not put C<1;> at the end or C<load> will not work
 If a model name contain a C<::> (e.g C<Foo::Bar>), C<load> will look for
 a file named C<Foo/Bar.pl>.
 
-This method will also look in C<Foo/Bar.d> directory for additional model information. 
+This method will also look in C<Foo/Bar.d> directory for additional model information.
 Model snippet found there will be loaded with L<augment_config_class>.
 
 Returns a list containing the names of the loaded classes. For instance, if
 C<Foo/Bar.pl> contains a model for C<Foo::Bar> and C<Foo::Bar2>, C<load>
 will return C<( 'Foo::Bar' , 'Foo::Bar2' )>.
 
-
-
-=cut
-
-# load a model from file
-sub load {
-    my $self = shift ;
-    my $load_model = shift ; # model name like Foo::Bar
-    my $load_file = shift ;  # model file (override model name), used for tests
-
-    my $load_path = $load_model ;
-    $load_path =~ s/::/\//g;
-
-    $load_file ||=  $self->model_dir . '/' . $load_path  . '.pl';
-
-    my $model = $self->_do_model_file ($load_model,$load_file);
-
-    my @loaded ;
-    foreach my $config_class_info (@$model) {
-        my @data = ref $config_class_info eq 'HASH' ? %$config_class_info
-                 : ref $config_class_info eq 'ARRAY' ? @$config_class_info
-                 : croak "load $load_file: config_class_info is not a ref" ;
-        push @loaded, $self->create_config_class(@data) ;
-    }
-
-    # look for additional model information
-    my $snippet_dir =  $self->model_dir . '/' . $load_path  . '.d';
-    get_logger("Model::Loader")-> info("looking for snippet in $snippet_dir") ;
-    if (-d $snippet_dir) {
-        foreach my $snippet_file (glob ("$snippet_dir/*.pl")) {
-            get_logger("Model::Loader")-> info("Found snippet $snippet_file") ;
-            my $snippet_model = $self->_do_model_file ($load_model,$snippet_file);
-            foreach my $snippet_info (@$snippet_model) {
-                my @data = ref $snippet_info eq 'HASH'  ? %$snippet_info
-                         : ref $snippet_info eq 'ARRAY' ? @$snippet_info
-                         : croak "load $load_file: config_class_info is not a ref" ;
-                $self->augment_config_class(@data) ;
-            }
-        }
-    }
-
-    return @loaded
-}
-
-
-#
-# New subroutine "_do_model_file" extracted - Sun Nov 28 17:25:35 2010.
-#
-# $load_model is used only for error message
-sub _do_model_file {
-    my ($self,$load_model,$load_file) = @_ ;
-
-    get_logger("Model::Loader")-> info("load model $load_file") ;
-
-    my $err_msg = '';
-    my $model = do $load_file ;
-
-    unless ($model) {
-        if ($@) {$err_msg =  "couldn't parse $load_file: $@"; }
-        elsif (not defined $model) {$err_msg = "couldn't do $load_file: $!"}
-        else {$err_msg = "couldn't run $load_file" ;}
-    }
-    elsif (ref($model) ne 'ARRAY') {
-        $model = [ $model ];
-    }
-
-    Config::Model::Exception::ModelDeclaration
-            -> throw (message => "model $load_model: $err_msg")
-                if $err_msg ;
-
-    return $model;
-}
-
-
-=head1 Model plugin
-
-Config::Model can also use model plugins. Each model can be augmented by model snippets
-stored into directory C<< <model_name>.d >>. All files found there will be merged to existing model.
-
-For instance, this model:
-
- {
-    name => "Master",
-    element => [
-	fs_vfstype => {
-            type => 'leaf',
-            value_type => 'enum',
-            choice => [ qw/ext2 ext3/ ],
-        },
-        fs_mntopts => {
-            type => 'warped_node',
-            follow => { 'f1' => '- fs_vfstype' },
-            rules => [
-                '$f1 eq \'ext2\'', { 'config_class_name' => 'Fstab::Ext2FsOpt' },
-                '$f1 eq \'ext3\'', { 'config_class_name' => 'Fstab::Ext3FsOpt' }, 
-            ],
-        }
-    ]
- }
-
-can be augmented with:
-
- {
-    name => "Fstab::Fsline",
-    element => [
- 	fs_vfstype => { choice => [ qw/ext4/ ], },
-        fs_mntopts => {
-            rules => [
-                q!$f1 eq 'ext4'!, { 'config_class_name' => 'Fstab::Ext4FsOpt' }, 
-            ],
-        },
-    ]
- } ;
- 
-Then, the merged model will feature C<fs_vfstype> with choice C<ext2 ext4 ext4>. 
-Likewise, C<fs_mntopts> will feature rules for the 3 filesystems. 
-
-
 =head2 augment_config_class (name => '...', class_data )
 
 Enhance the feature of a configuration class. This method uses the same parameters
-as L<create_config_class>.
-
-=cut
-
-sub augment_config_class {
-    my ($self,%augment_data) = @_ ;
-    # %args must contain existing class name to augment 
-
-    # plus other data to merge to raw model
-    my $config_class_name = delete $augment_data{name} ||
-        croak "augment_config_class: missing class name" ;
-    
-    # check config class parameters and fill %model
-    my ( $model_to_merge, $augment_copy) = $self->load_raw_model ($config_class_name, \%augment_data);
-    
-    my $orig_model = $self->get_model($config_class_name) ;
-    croak "unknown class to augment: $config_class_name" unless defined $orig_model ;
-    
-    $self->check_class_parameters($config_class_name, $model_to_merge, $augment_copy) ;
-
-    my $model = merge ($orig_model, $model_to_merge) ;
-    
-    # remove duplicates in element_list and accept_list while keeping order
-    foreach my $list_name (qw/element_list accept_list/) {
-        my %seen ;
-        my @newlist ;
-        foreach (@{$model->{$list_name}}) {
-            push @newlist, $_ unless $seen{$_} ;
-            $seen{$_}= 1;
-        }
-    
-        $model->{$list_name} = \@newlist;
-    }
-    
-    $self->models->{$config_class_name} = $model ;
-}
+as L<create_config_class>. See L<Config::Model::Manual::ModelCreationAdvanced/Model Plugin> 
+for more details on creating model plugins.
 
 =head1 Model query
 
@@ -1928,267 +2245,21 @@ sub augment_config_class {
 Return a hash containing the model declaration (in a deep clone copy of the hash).
 You may modify the hash at leisure.
 
-=cut
-
-sub get_model {
-    my $self =shift ;
-    my $config_class_name = shift
-      || die "Model::get_model: missing config class name argument" ;
-
-    $self->load($config_class_name)
-      unless $self->model_exists($config_class_name) ;
-
-    my $model = $self->model($config_class_name) ||
-      croak "get_model error: unknown config class name: $config_class_name";
-
-    return dclone($model) ;
-}
-
-=head2 get_model_doc 
+=head2 get_model_doc
 
 Generate POD document for configuration class.
 
-=cut
-
-sub get_model_doc {
-    my ( $self, $top_class_name ) = @_;
-
-    if ( not defined $self->model($top_class_name) ) {
-        croak
-          "get_model_doc error : unknown config class name: $top_class_name";
-    }
-
-    my @classes = ($top_class_name);
-    my %result;
-
-    while (@classes) {
-        my $class_name = shift @classes;
-        next if defined $result{$class_name};
-        my $c_model   = $self->get_model($class_name)
-          || croak "get_model_doc model error : unknown config class name: $class_name";
-
-        my $full_name = "Config::Model::models::$class_name" ;
-
-        my %see_also ;
-
-        my @pod = (
-            "=head1 NAME",                                    '',
-            "$full_name - Configuration class " . $class_name,                    '',
-            "=head1 DESCRIPTION",                             '',
-            "Configuration classes used by L<Config::Model>", ''
-        );
-
-        my %legalese;
-
-        my $i = 0;
-
-        my $class_desc = $c_model->{class_description};
-        push @pod, $class_desc, '' if defined $class_desc;
-
-        my @elt = ( "=head1 Elements", '' );
-        foreach my $elt_name ( @{ $c_model->{element_list} } ) {
-            my $elt_info = $c_model->{element}{$elt_name};
-            my $summary = $elt_info->{summary} || '';
-            $summary &&= " - $summary" ;
-            push @elt, "=head2 $elt_name$summary", '';
-            push @elt, $self->get_element_description($elt_info) , '' ;
-
-            foreach ($elt_info,$elt_info->{cargo}) { 
-                if (my $ccn = $_->{config_class_name}) {
-                    push @classes, $ccn ;
-                    $see_also{$ccn} = 1;
-                }
-                if (my $migr = $_->{migrate_from}) {
-                    push @elt, $self->get_migrate_doc ($elt_name,'is migrated with',$migr);
-                }
-                if (my $migr = $_->{migrate_values_from}) {
-                    push @elt, "Note: $elt_name values are migrated from '$migr'",'';
-                }
-            }
-        }
-
-        foreach my $what (qw/author copyright license/) {
-            my $item = $c_model->{$what};
-            push @{ $legalese{$what} }, $item if $item;
-        }
-
-        my @end;
-        foreach my $what (qw/author copyright license/) {
-            next unless @{ $legalese{$what} || [] };
-            push @end, "=head1 " . uc($what), '', '=over', '',
-              ( map { ( "=item $_", '' ); } map {ref $_ ? @$_ : $_ } @{ $legalese{$what} } ),
-              '', '=back', '';
-        }
-
-        my @see_also =  (
-            "=head1 SEE ALSO",'',"=over",'',"=item *",'',"L<cme>",'',
-            ( map { ( "=item *",'',"L<Config::Model::models::$_>",'') ; } sort keys %see_also ),
-            "=back",'') ;
-
-        $result{$full_name} = join( "\n", @pod, @elt, @see_also, @end,'=cut','' ) . "\n";
-    }
-    return \%result ;
-}
-
-#
-# New subroutine "get_migrate_doc" extracted - Tue Jun  5 13:31:20 2012.
-#
-sub get_migrate_doc {
-    my ( $self, $elt_name, $desc, $migr ) = @_;
-
-    my $mv    = $migr->{variables};
-    my $mform = $migr->{formula};
-
-    if ( $migr->{use_eval} ) { $mform =~ s/^/ /mg; $mform = "\n\n$mform\n\n"; }
-    else                     { $mform = "'C<$mform>' " }
-
-    my $mdoc = "Note: $elt_name $desc ${mform}and with "
-      . join( ", ", map { qq!\$$_ => "C<$mv->{$_}>"! } keys %$mv );
-    if (my $rep = $migr->{replace}) {
-        $mdoc .= ' and '.join( ", ", map { qq!'C<\$replace{$_}>' => "C<$rep->{$_}>"! } keys %$rep );
-    }
-    
-    return ( $mdoc, '' );
-}
-
-sub get_element_description {
-    my ( $self, $elt_info ) = @_;
-
-    my $type  = $elt_info->{type};
-    my $cargo = $elt_info->{cargo};
-    my $vt    = $elt_info->{value_type} ;
-
-    my $of         = '';
-    my $cargo_type = $cargo->{type};
-    my $cargo_vt   = $cargo->{value_type};
-    $of = " of " . ( $cargo_vt or $cargo_type ) if defined $cargo_type;
-
-    my $desc = $elt_info->{description} || '';
-    if ($desc) {
-        $desc .= '. ' if $desc =~ /\w$/ ;
-    }
-
-    if (my $status = $elt_info->{status}) {
-        $desc .= 'B<'.ucfirst($status).'> ';
-    }  
-
-    
-    my $info = $elt_info->{mandatory} ? 'Mandatory. ' : 'Optional. ' ;
-
-    $info .= "Type ". ($vt || $type) . $of.'. ';
-    
-    foreach (qw/choice default upstream_default/) {
-        my $item = $elt_info->{$_} ;
-        next unless defined $item ;
-        my @list = ref($item) ? @$item : ($item) ;
-        $info .= "$_: '". join("', '",@list)."'. " ;
-    } 
-    
-    my $elt_help = $self->get_element_value_help ($elt_info) ;
-    
-    return $desc."I<< $info >>" .$elt_help;
-}
-
-sub get_element_value_help {
-    my ( $self, $elt_info ) = @_;
-
-    my $help = $elt_info->{help} ;
-    return '' unless defined $help ;
-    
-    my $help_text = "\n\nHere are some explanations on the possible values:\n\n=over\n\n" ;
-    foreach my $v (sort keys %$help) {
-        $help_text .= "=item '$v'\n\n$help->{$v}\n\n" ;
-    }
-    
-    return $help_text."=back\n\n" ;
-}
-
 =head2 generate_doc ( top_class_name , [ directory ] )
 
-Generate POD document for configuration class top_class_name 
+Generate POD document for configuration class top_class_name
 and write them on STDOUT or in specified directory.
 
 Returns a list of written file names.
-
-=cut
-
-sub generate_doc {
-    my ( $self, $top_class_name, $dir ) = @_;
-
-    my $res  = $self->get_model_doc($top_class_name) ;
-    my @wrote ;
-
-    if (defined $dir and $dir) {
-        foreach my $class_name (keys %$res) {
-            my $file = $class_name;
-            $file =~ s!::!/!g ;
-            my $pl_file   = $dir."/$file.pl";
-            my $pod_file  = $dir."/$file.pod";
-            my $pod_dir = $pod_file ;
-            $pod_dir =~ s!/[^/]+$!!;
-            make_path($pod_dir,{ mode => 0755} ) unless -d $pod_dir ;
-            # -M returns age of file, not date or epoch. hence greater is older
-            if (not -e $pod_file or not -e $pl_file or (-M $pl_file < -M $pod_file) ) {
-                #print "-M $pl_file: ", -M $pl_file, "-M $pod_file: ". -M $pod_file ,"\n";
-                my $fh = IO::File->new($pod_file,'>') || die "Can't open $pod_file: $!";
-                $fh->binmode(":utf8");
-                $fh->print($res->{$class_name});
-                $fh->close ;
-                print "Wrote documentation in $pod_file\n";
-                push @wrote, $pod_file ;
-            }
-        }
-    }
-    else {
-        foreach my $class_name (keys %$res) {
-            print "########## $class_name ############ \n\n";
-            print $res->{$class_name} ;
-        }
-    }
-    return @wrote ;
-}
 
 =head2 get_element_model( config_class_name , element)
 
 Return a hash containing the model declaration for the specified class
 and element.
-
-=cut
-
-sub get_element_model {
-    my $self =shift ;
-    my $config_class_name = shift
-      || die "Model::get_element_model: missing config class name argument" ;
-    my $element_name = shift
-      || die "Model::get_element_model: missing element name argument" ;
-
-    $self->load($config_class_name)
-      unless $self->model_defined($config_class_name) ;
-
-    my $model = $self->model($config_class_name) ||
-      croak "get_element_model error: unknown config class name: $config_class_name";
-
-    my $element_m = $model->{element}{$element_name} ||
-      croak "get_element_model error: unknown element name: $element_name";
-
-    return dclone($element_m) ;
-}
-
-# returns a hash ref containing the raw model, i.e. before expansion of
-# multiple keys (i.e. [qw/a b c/] => ... )
-# internal. For now ...
-sub get_raw_model {
-    my $self =shift ;
-    my $config_class_name = shift ;
-
-    $self->load($config_class_name)
-      unless defined $self->raw_model($config_class_name) ;
-
-    my $raw_model = $self->raw_model($config_class_name) ||
-      croak "get_raw_model error: unknown config class name: $config_class_name";
-
-    return dclone($raw_model) ;
-}
 
 =head2 get_element_name( class => Foo, for => advanced )
 
@@ -2197,158 +2268,26 @@ experience level C<advanced>.
 
 Level can be C<master> (default), C<advanced> or C<beginner>.
 
-=cut
-
-sub get_element_name {
-    my $self = shift ;
-    my %args = @_ ;
-
-    my $class = $args{class} ||
-      croak "get_element_name: missing 'class' parameter" ;
-    my $for = $args{for} || 'master' ;
-
-    if ($for eq 'intermediate') {
-        carp "get_element_name: 'intermediate' is deprecated in favor of beginner";
-        $for = 'beginner' ;
-    }
-
-    croak "get_element_name: wrong 'for' parameter. Expected ",
-      join (' or ', @experience_list)
-        unless defined $experience_index{$for} ;
-
-    my @experiences
-      = @experience_list[ 0 .. $experience_index{$for} ] ;
-    my @array
-      = $self->get_element_with_experience($class,@experiences);
-
-    return wantarray ? @array : join( ' ', @array );
-}
-
-# internal
-sub get_element_with_experience {
-    my $self      = shift ;
-    my $class     = shift ;
-
-    my $model = $self->get_model($class) ;
-    my @result ;
-
-    # this is a bit convoluted, but the order of the returned element
-    # must respect the order of the elements declared in the model by
-    # the user
-    foreach my $elt (@{$model->{element_list}}) {
-        my $elt_data = $model->{element}{$elt} ;
-        my $l = $elt_data->{level} || $default_property{level} ;
-        foreach my $experience (@_) {
-            my $xp = $elt_data->{experience} || $default_property{experience} ;
-            push @result, $elt if ($l ne 'hidden' and $xp eq $experience );
-        }
-    }
-
-    return @result ;
-}
-
 =head2 get_element_property
 
 Returns the property of an element from the model.
 
 Parameters are:
 
-=over 
+=over
 
-=item class 
+=item class
 
-=item element 
+=item element
 
 =item property
 
-=back 
-
-=cut
-
-
-sub get_element_property {
-    my $self = shift ;
-    my %args = @_ ;
-
-    my $elt = $args{element} ||
-      croak "get_element_property: missing 'element' parameter";
-    my $prop = $args{property} ||
-      croak "get_element_property: missing 'property' parameter";
-    my $class = $args{class} ||
-      croak "get_element_property:: missing 'class' parameter";
-
-    my $model = $self->model($class) ;
-    # must take into account 'accept' model parameter
-    if (not defined $model->{element}{$prop} ) {
-        
-        foreach my $acc_re ( @{$model->{accept_list}} ) {
-            return $model->{accept}{$acc_re}{$prop} || $default_property{$prop}
-                if $elt =~ /^$acc_re$/;
-        }
-    }
-
-    return $self->model($class)->{element}{$elt}{$prop}
-        || $default_property{$prop} ;
-}
+=back
 
 =head2 list_class_element
 
 Returns a string listing all the class and elements. Useful for
 debugging your configuration model.
-
-=cut
-
-sub list_class_element {
-    my $self = shift ;
-    my $pad  =  shift || '' ;
-
-    my $res = '';
-    foreach my $class_name ($self->raw_model_names) {
-        $res .= $self->list_one_class_element($class_name) ;
-    }
-    return $res ;
-}
-
-sub list_one_class_element {
-    my $self = shift ;
-    my $class_name = shift ;
-    my $pad  =  shift || '' ;
-
-    my $res = $pad."Class: $class_name\n";
-    my $c_model = $self->raw_model($class_name);
-    my $elts = $c_model->{element} ; # array ref
-
-    my $include = $c_model->{include} ;
-    my $inc_ref = ref $include ? $include : [ $include ] ;
-    my $inc_after = $c_model->{include_after} ;
-
-    if (defined $include and not defined $inc_after) {
-        map { $res .=$self->list_one_class_element($_,$pad.'  ') ;} @$inc_ref ;
-    }
-
-    return $res unless defined $elts ;
-
-    for (my $idx = 0; $idx < @$elts; $idx += 2) {
-        my $elt_info = $elts->[$idx] ;
-        my @elt_names = ref $elt_info ? @$elt_info : ($elt_info) ;
-        my $type = $elts->[$idx+1]{type} ;
-
-        foreach my $elt_name (@elt_names) {
-            $res .= $pad."  - $elt_name ($type)\n";
-            if (defined $include and defined $inc_after
-                and $inc_after eq $elt_name
-               ) {
-                map { $res .=$self->list_one_class_element($_,$pad.'  ') ;} @$inc_ref ;
-            }
-        }
-    }
-    return $res ;
-}
-
-
-__PACKAGE__->meta->make_immutable ;
-
-1;
 
 =head1 Error handling
 
@@ -2369,8 +2308,8 @@ See L<config-edit/Logging>
 
 Given Murphy's law, the author is fairly confident that you will find
 bugs or miss some features. Please report them to config-model at
-rt.cpan.org, or through the web interface at 
-https://rt.cpan.org/Public/Bug/Report.html?Queue=config-model . 
+rt.cpan.org, or through the web interface at
+https://rt.cpan.org/Public/Bug/Report.html?Queue=config-model .
 The author will be notified, and then you'll automatically be
 notified of progress on your bug.
 
@@ -2378,7 +2317,7 @@ notified of progress on your bug.
 
 Feedback from users are highly desired. If you find this module useful, please
 share your use cases, success stories with the author or with the config-model-
-users mailing list. 
+users mailing list.
 
 =head1 AUTHOR
 

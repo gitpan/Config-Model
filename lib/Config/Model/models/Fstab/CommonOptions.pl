@@ -78,6 +78,11 @@
           '0' => 'read-only file system'
         },
         'type' => 'leaf'
+      },
+      'relatime',
+      {
+        'value_type' => 'boolean',
+        'type' => 'leaf'
       }
     ]
   }
