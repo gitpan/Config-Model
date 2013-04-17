@@ -9,7 +9,7 @@
 #
 package Config::Model;
 {
-  $Config::Model::VERSION = '2.033';
+  $Config::Model::VERSION = '2.034';
 }
 use Mouse ;
 use namespace::autoclean;
@@ -1058,6 +1058,7 @@ sub load {
 
     # look for additional model information
     my %model_graft_by_name ;
+    my %done; # avoid loading twice the same snippet (where system version may clobber dev version)
     foreach my $inc (@INC) {
         foreach my $name (keys %models_by_name) {
             my $snippet_path = $name ;
@@ -1066,8 +1067,11 @@ sub load {
             get_logger("Model::Loader")->trace("looking for snippet in $snippet_dir");
             if ( -d $snippet_dir ) {
                 foreach my $snippet_file ( glob("$snippet_dir/*.pl") ) {
+                    my $done_key = $name.':'.$snippet_file;
+                    next if $done{$done_key} ;
                     get_logger("Model::Loader")->info("Found snippet $snippet_file");
                     $self->_load_model_in_hash (\%model_graft_by_name,$snippet_file);
+                    $done{$done_key} = 1;
                 }
             }
         }
@@ -1198,7 +1202,7 @@ sub get_model {
 sub get_model_doc {
     my ( $self, $top_class_name ) = @_;
 
-    if ( not defined $self->model($top_class_name) ) {
+    if ( not defined $self->normalized_model($top_class_name) ) {
         croak
           "get_model_doc error : unknown config class name: $top_class_name";
     }
@@ -1539,7 +1543,7 @@ Config::Model - Create tools to validate, migrate and edit configuration files
 
 =head1 VERSION
 
-version 2.033
+version 2.034
 
 =head1 SYNOPSIS
 

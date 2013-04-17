@@ -9,7 +9,7 @@
 #
 package Config::Model::Node;
 {
-  $Config::Model::Node::VERSION = '2.033';
+  $Config::Model::Node::VERSION = '2.034';
 }
 
 use Mouse ;
@@ -1225,7 +1225,7 @@ Config::Model::Node - Class for configuration tree node
 
 =head1 VERSION
 
-version 2.033
+version 2.034
 
 =head1 SYNOPSIS
 
