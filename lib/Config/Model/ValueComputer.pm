@@ -9,7 +9,7 @@
 #
 package Config::Model::ValueComputer ;
 {
-  $Config::Model::ValueComputer::VERSION = '2.034';
+  $Config::Model::ValueComputer::VERSION = '2.035';
 }
 
 use Mouse ;
@@ -583,7 +583,7 @@ Config::Model::ValueComputer - Provides configuration value computation
 
 =head1 VERSION
 
-version 2.034
+version 2.035
 
 =head1 SYNOPSIS
 

@@ -9,7 +9,7 @@
 #
 package Config::Model::IdElementReference;
 {
-  $Config::Model::IdElementReference::VERSION = '2.034';
+  $Config::Model::IdElementReference::VERSION = '2.035';
 }
 
 use Mouse;
@@ -196,7 +196,7 @@ Config::Model::IdElementReference - Refer to id element(s) and extract keys
 
 =head1 VERSION
 
-version 2.034
+version 2.035
 
 =head1 SYNOPSIS
 

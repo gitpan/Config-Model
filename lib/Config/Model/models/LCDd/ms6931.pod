@@ -4,7 +4,7 @@ Config::Model::models::LCDd::ms6931 - Configuration class LCDd::ms6931
 
 =head1 VERSION
 
-version 2.034
+version 2.035
 
 =head1 DESCRIPTION
 

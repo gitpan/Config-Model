@@ -9,7 +9,7 @@
 #
 package Config::Model::Value ;
 {
-  $Config::Model::Value::VERSION = '2.034';
+  $Config::Model::Value::VERSION = '2.035';
 }
 
 use 5.10.1 ;
@@ -1230,7 +1230,7 @@ sub store {
     my $silent = $args{silent} || 0 ;
 
     my $str = $args{value} // '<undef>' ;
-    $logger->debug("called with '$str' on ", $self->element_name) ;
+    $logger->debug("called with '$str' on ", $self->composite_name) if $logger->is_debug;
 
     # store with check skip makes sense when force loading data: bad value
     # is discarded, partially consistent values are stored so the user may
@@ -1249,7 +1249,8 @@ sub store {
 	:                                         0 ;
 
     if (defined $old_value and $value eq $old_value) {
-        $logger->info("skip storage of ",$self->element_name," unchanged value: $value") ;
+        $logger->info("skip storage of ",$self->composite_name," unchanged value: $value")
+            if $logger->is_debug ;
         return 1;
     }
 
@@ -1261,11 +1262,13 @@ sub store {
 
     # record a "pending_store" status so that fetch blocks until
     # pending_store is cleared (necessary if warp stuff is read before the store is finished)
-    $async_logger->debug("incrementing pending store for ",$self->element_name) ;
+    $async_logger->debug("incrementing pending store for ",$self->composite_name)
+        if $logger->is_debug ;
     $self->inc_pending_store ;
     my $my_cb = sub {
         # must dec the counter before calling the user's cb. (which may contain a fetch call)
-        $async_logger->debug("decrementing pending store for ",$self->element_name) ;
+        $async_logger->debug("decrementing pending store for ",$self->composite_name)
+            if $logger->is_debug ;
         $self->dec_pending_store;
         $self->store_cb(@_ , callback => $user_cb) ;
     };
@@ -1348,7 +1351,7 @@ sub store_cb {
     }
 
     $callback->(%args) ;
-    $logger->debug("store_cb done on ",$self->element_name) ;
+    $logger->debug("store_cb done on ",$self->composite_name) if $logger->is_debug ;
 }
 
 # internal. return ( undef, value)
@@ -1871,7 +1874,7 @@ Config::Model::Value - Strongly typed configuration value
 
 =head1 VERSION
 
-version 2.034
+version 2.035
 
 =head1 SYNOPSIS
 

@@ -9,7 +9,7 @@
 #
 package Config::Model::Node;
 {
-  $Config::Model::Node::VERSION = '2.034';
+  $Config::Model::Node::VERSION = '2.035';
 }
 
 use Mouse ;
@@ -477,6 +477,9 @@ sub has_element {
 sub find_element {
     my ($self,$name, %args ) = @_ ;
     croak "find_element: missing element name" unless defined $name ;
+
+    # should be the case if people are using cme edit
+    return $name if defined $self->{model}{element}{$name} ;
 
     # look for a close element playing with cases;
     if (defined $args{case} and $args{case} eq 'any') {
@@ -1225,7 +1228,7 @@ Config::Model::Node - Class for configuration tree node
 
 =head1 VERSION
 
-version 2.034
+version 2.035
 
 =head1 SYNOPSIS
 
