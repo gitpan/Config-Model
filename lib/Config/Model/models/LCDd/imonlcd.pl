@@ -23,20 +23,6 @@
           'off'
         ]
       },
-      'Device',
-      {
-        'value_type' => 'uniline',
-        'upstream_default' => '/dev/lcd0',
-        'type' => 'leaf',
-        'description' => 'Select the output device to use '
-      },
-      'Size',
-      {
-        'value_type' => 'uniline',
-        'upstream_default' => '96x16',
-        'type' => 'leaf',
-        'description' => 'Specify the size of the display in pixels '
-      },
       'Contrast',
       {
         'value_type' => 'integer',
@@ -45,6 +31,26 @@
         'max' => '1000',
         'type' => 'leaf',
         'description' => 'Select the displays contrast '
+      },
+      'Device',
+      {
+        'value_type' => 'uniline',
+        'upstream_default' => '/dev/lcd0',
+        'type' => 'leaf',
+        'description' => 'Select the output device to use '
+      },
+      'DiscMode',
+      {
+        'value_type' => 'enum',
+        'upstream_default' => '0',
+        'type' => 'leaf',
+        'description' => 'Set the disc mode 
+0 => spin the "slim" disc - two disc segments,
+1 => their complement spinning;',
+        'choice' => [
+          '0',
+          '1'
+        ]
       },
       'OnExit',
       {
@@ -72,18 +78,12 @@ Choose 1 for 15c2:0038 device',
           '1'
         ]
       },
-      'DiscMode',
+      'Size',
       {
-        'value_type' => 'enum',
-        'upstream_default' => '0',
+        'value_type' => 'uniline',
+        'upstream_default' => '96x16',
         'type' => 'leaf',
-        'description' => 'Set the disc mode 
-0 => spin the "slim" disc - two disc segments,
-1 => their complement spinning;',
-        'choice' => [
-          '0',
-          '1'
-        ]
+        'description' => 'Specify the size of the display in pixels '
       }
     ]
   }

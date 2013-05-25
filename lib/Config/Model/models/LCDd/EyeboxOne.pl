@@ -12,24 +12,19 @@
     'class_description' => 'generated from LCDd.conf',
     'name' => 'LCDd::EyeboxOne',
     'element' => [
-      'EscapeKey',
-      {
-        'value_type' => 'uniline',
-        'default' => 'P',
-        'type' => 'leaf'
-      },
-      'DownKey',
-      {
-        'value_type' => 'uniline',
-        'default' => 'B',
-        'type' => 'leaf'
-      },
       'Backlight',
       {
         'value_type' => 'uniline',
         'upstream_default' => 'yes',
         'type' => 'leaf',
         'description' => 'Switch on the backlight? '
+      },
+      'Cursor',
+      {
+        'value_type' => 'uniline',
+        'upstream_default' => 'no',
+        'type' => 'leaf',
+        'description' => 'Switch on the cursor? '
       },
       'Device',
       {
@@ -38,22 +33,30 @@
         'type' => 'leaf',
         'description' => 'Select the output device to use '
       },
-      'UpKey',
+      'DownKey',
       {
         'value_type' => 'uniline',
-        'default' => 'A',
+        'default' => 'B',
         'type' => 'leaf'
       },
-      'keypad_test_mode',
+      'EscapeKey',
       {
         'value_type' => 'uniline',
-        'default' => 'no',
+        'default' => 'P',
+        'type' => 'leaf'
+      },
+      'LeftKey',
+      {
+        'value_type' => 'uniline',
+        'default' => 'D',
         'type' => 'leaf',
-        'description' => 'You can find out which key of your display sends which
-character by setting keypad_test_mode to yes and running
-LCDd. LCDd will output all characters it receives.
-Afterwards you can modify the settings above and set
-keypad_set_mode to no again.'
+        'description' => 'Enter Key is a \\r character, so it\'s hardcoded in the driver'
+      },
+      'RightKey',
+      {
+        'value_type' => 'uniline',
+        'default' => 'C',
+        'type' => 'leaf'
       },
       'Size',
       {
@@ -75,25 +78,22 @@ keypad_set_mode to no again.'
           '19200'
         ]
       },
-      'RightKey',
+      'UpKey',
       {
         'value_type' => 'uniline',
-        'default' => 'C',
+        'default' => 'A',
         'type' => 'leaf'
       },
-      'LeftKey',
+      'keypad_test_mode',
       {
         'value_type' => 'uniline',
-        'default' => 'D',
+        'default' => 'no',
         'type' => 'leaf',
-        'description' => 'Enter Key is a \\r character, so it\'s hardcoded in the driver'
-      },
-      'Cursor',
-      {
-        'value_type' => 'uniline',
-        'upstream_default' => 'no',
-        'type' => 'leaf',
-        'description' => 'Switch on the cursor? '
+        'description' => 'You can find out which key of your display sends which
+character by setting keypad_test_mode to yes and running
+LCDd. LCDd will output all characters it receives.
+Afterwards you can modify the settings above and set
+keypad_set_mode to no again.'
       }
     ]
   }

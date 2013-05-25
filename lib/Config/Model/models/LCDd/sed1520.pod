@@ -4,7 +4,7 @@ Config::Model::models::LCDd::sed1520 - Configuration class LCDd::sed1520
 
 =head1 VERSION
 
-version 2.035
+version 2.036
 
 =head1 DESCRIPTION
 
@@ -14,17 +14,17 @@ generated from LCDd.conf
 
 =head1 Elements
 
-=head2 InterfaceType
-
-Select the interface type (wiring) for the display. Supported values are
-68 for 68-style connection (RESET level high) and 80 for 80-style connection
-(RESET level low). I<< Optional. Type enum. choice: '68', '80'. upstream_default: '80'.  >>
-
 =head2 DelayMult
 
 On fast machines it may be necessary to slow down transfer to the display.
 If this value is set to zero, delay is disabled. Any value greater than
 zero slows down each write by one microsecond. I<< Optional. Type integer. upstream_default: '1'.  >>
+
+=head2 InterfaceType
+
+Select the interface type (wiring) for the display. Supported values are
+68 for 68-style connection (RESET level high) and 80 for 80-style connection
+(RESET level low). I<< Optional. Type enum. choice: '68', '80'. upstream_default: '80'.  >>
 
 =head2 Port
 

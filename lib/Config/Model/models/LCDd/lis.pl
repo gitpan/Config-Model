@@ -22,13 +22,6 @@
         'description' => 'Set the initial brightness 
 0-250 = 25%, 251-500 = 50%, 501-750 = 75%, 751-1000 = 100%'
       },
-      'Size',
-      {
-        'value_type' => 'uniline',
-        'upstream_default' => '20x2',
-        'type' => 'leaf',
-        'description' => 'Columns by lines '
-      },
       'ProductID',
       {
         'value_type' => 'uniline',
@@ -36,6 +29,13 @@
         'type' => 'leaf',
         'description' => 'USB Product ID 
 Change only if testing a compatible device.'
+      },
+      'Size',
+      {
+        'value_type' => 'uniline',
+        'upstream_default' => '20x2',
+        'type' => 'leaf',
+        'description' => 'Columns by lines '
       },
       'VendorID',
       {

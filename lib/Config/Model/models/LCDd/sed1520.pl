@@ -12,6 +12,17 @@
     'class_description' => 'generated from LCDd.conf',
     'name' => 'LCDd::sed1520',
     'element' => [
+      'DelayMult',
+      {
+        'value_type' => 'integer',
+        'min' => '0',
+        'upstream_default' => '1',
+        'max' => '1000',
+        'type' => 'leaf',
+        'description' => 'On fast machines it may be necessary to slow down transfer to the display.
+If this value is set to zero, delay is disabled. Any value greater than
+zero slows down each write by one microsecond. '
+      },
       'InterfaceType',
       {
         'value_type' => 'enum',
@@ -24,17 +35,6 @@
           '68',
           '80'
         ]
-      },
-      'DelayMult',
-      {
-        'value_type' => 'integer',
-        'min' => '0',
-        'upstream_default' => '1',
-        'max' => '1000',
-        'type' => 'leaf',
-        'description' => 'On fast machines it may be necessary to slow down transfer to the display.
-If this value is set to zero, delay is disabled. Any value greater than
-zero slows down each write by one microsecond. '
       },
       'Port',
       {

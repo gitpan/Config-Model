@@ -9,7 +9,7 @@
 #
 package Config::Model::Tester;
 {
-  $Config::Model::Tester::VERSION = '2.035';
+  $Config::Model::Tester::VERSION = '2.036';
 }
 
 use Test::More;
@@ -210,8 +210,9 @@ sub run_model_test {
                 my $v = $check->{$path};
                 my $check_v = ref $v ? delete $v->{value} : $v ;
                 my @check_args = ref $v ? %$v : ();
+                my $check_str = @check_args ? " (@check_args)" : '' ;
                 is( $root->grab(step => $path, @check_args)->fetch (@check_args), 
-                    $check_v, "check $path value (@check_args)" );
+                    $check_v, "check $path value$check_str" );
         }
 
         if (my $annot_check = $t->{verify_annotation}) {
@@ -350,7 +351,7 @@ Config::Model::Tester - Test framework for Config::Model
 
 =head1 VERSION
 
-version 2.035
+version 2.036
 
 =head1 SYNOPSIS
 

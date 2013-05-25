@@ -9,7 +9,7 @@
 #
 package Config::Model::Value ;
 {
-  $Config::Model::Value::VERSION = '2.035';
+  $Config::Model::Value::VERSION = '2.036';
 }
 
 use 5.10.1 ;
@@ -1076,21 +1076,34 @@ sub apply_fixes {
         $fix_logger->debug( "called for ".$self->location ) ;
     }
 
+    # a fix may use async store. So check after fix must be asynchronous
     my ($old, $new) ;
     my $i = 0;
-    do {
+
+    my $check_fix ;
+    my $try = sub {
         $old = $self->{nb_of_fixes} ;
-        $self->check_value(value => $self->{data}, fix => 1);
+        $self->check_value(value => $self->{data}, fix => 1, callback => $check_fix);
+    };
+
+    $check_fix = sub {
         $new = $self->{nb_of_fixes} ;
-        $self->check_value(value => $self->{data});
+        $self->check_value(value => $self->{data}); # this is synchronous
         if ($i++ > 100) {
             Config::Model::Exception::Model->throw(
                 object => $self,
                 error  => "Too many fix loops: check with fix code or regexp"
             ) ;
         }
-    }
-    while ($self->{nb_of_fixes} and $old > $new);
+        elsif ($self->{nb_of_fixes} and $old > $new) {
+            $try->() ;
+        }
+        else {
+            undef $try; # avoid leak
+        }
+    } ;
+    $try->() ;
+
 }
 
 
@@ -1874,7 +1887,7 @@ Config::Model::Value - Strongly typed configuration value
 
 =head1 VERSION
 
-version 2.035
+version 2.036
 
 =head1 SYNOPSIS
 
@@ -2002,7 +2015,7 @@ elements. This value must be written in the configuration file.
 C<preset>: The value is not known by the model or by the
 application. But it can be found by an automatic program and stored
 while the configuration L<Config::Model::Instance|instance> is in 
-L<Config::Model::Instance/"preset_start ()"|preset mode>
+L<preset mode|Config::Model::Instance/"preset_start ()">
 
 =back
 
@@ -2451,11 +2464,14 @@ Without C<value> argument, this method will check the value currently stored.
 
 =head2 store( value )
 
-Can be called as C<< value => ...,  check => yes|no|skip ) >>
+Can be called as C<< value => ...,  check => yes|no|skip, callback => sub {...} ) >>
 
 Store value in leaf element. C<check> parameter can be used to 
 skip validation check.
 
+Optional C<callback> is called when store check is done with these named parameters:
+C<value check notify_change ok>.
+ 
 =head2 load_data( scalar_value )
 
 Load scalar data. Data is simply forwarded to L<store>.

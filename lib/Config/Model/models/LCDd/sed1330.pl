@@ -19,21 +19,6 @@
         'type' => 'leaf',
         'description' => 'Width x Height of a character cell in pixels '
       },
-      'Type',
-      {
-        'value_type' => 'uniline',
-        'default' => 'G321D',
-        'type' => 'leaf',
-        'description' => 'Type of LCD module (legal: G321D, G121C, G242C, G191D, G2446, SP14Q002)
-Note: Currently only tested with G321D & SP14Q002.'
-      },
-      'Port',
-      {
-        'value_type' => 'uniline',
-        'default' => '0x378',
-        'type' => 'leaf',
-        'description' => 'Port where the LPT is. Common values are 0x278, 0x378 and 0x3BC'
-      },
       'ConnectionType',
       {
         'value_type' => 'enum',
@@ -44,6 +29,21 @@ Note: Currently only tested with G321D & SP14Q002.'
           'classic',
           'bitshaker'
         ]
+      },
+      'Port',
+      {
+        'value_type' => 'uniline',
+        'default' => '0x378',
+        'type' => 'leaf',
+        'description' => 'Port where the LPT is. Common values are 0x278, 0x378 and 0x3BC'
+      },
+      'Type',
+      {
+        'value_type' => 'uniline',
+        'default' => 'G321D',
+        'type' => 'leaf',
+        'description' => 'Type of LCD module (legal: G321D, G121C, G242C, G191D, G2446, SP14Q002)
+Note: Currently only tested with G321D & SP14Q002.'
       }
     ]
   }

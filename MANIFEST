@@ -247,7 +247,6 @@ t/pod.t
 t/pod_generation.t
 t/popcon_config.t
 t/recursive_warp_value.t
-t/release-pod-spell.t
 t/release-pod-syntax.t
 t/report.t
 t/search_element.t

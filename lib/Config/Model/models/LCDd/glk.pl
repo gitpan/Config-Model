@@ -12,6 +12,15 @@
     'class_description' => 'generated from LCDd.conf',
     'name' => 'LCDd::glk',
     'element' => [
+      'Contrast',
+      {
+        'value_type' => 'integer',
+        'min' => '0',
+        'upstream_default' => '560',
+        'max' => '1000',
+        'type' => 'leaf',
+        'description' => 'set the initial contrast value '
+      },
       'Device',
       {
         'value_type' => 'uniline',
@@ -30,15 +39,6 @@
           '19200',
           '38400'
         ]
-      },
-      'Contrast',
-      {
-        'value_type' => 'integer',
-        'min' => '0',
-        'upstream_default' => '560',
-        'max' => '1000',
-        'type' => 'leaf',
-        'description' => 'set the initial contrast value '
       }
     ]
   }

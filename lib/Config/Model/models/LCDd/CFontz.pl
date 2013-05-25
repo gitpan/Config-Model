@@ -12,6 +12,31 @@
     'class_description' => 'generated from LCDd.conf',
     'name' => 'LCDd::CFontz',
     'element' => [
+      'Brightness',
+      {
+        'value_type' => 'integer',
+        'min' => '0',
+        'upstream_default' => '1000',
+        'max' => '1000',
+        'type' => 'leaf',
+        'description' => 'Set the initial brightness '
+      },
+      'Contrast',
+      {
+        'value_type' => 'integer',
+        'min' => '0',
+        'upstream_default' => '560',
+        'max' => '1000',
+        'type' => 'leaf',
+        'description' => 'Set the initial contrast '
+      },
+      'Device',
+      {
+        'value_type' => 'uniline',
+        'upstream_default' => '/dev/lcd',
+        'type' => 'leaf',
+        'description' => 'Select the output device to use '
+      },
       'NewFirmware',
       {
         'value_type' => 'enum',
@@ -23,14 +48,16 @@
           'no'
         ]
       },
-      'Contrast',
+      'OffBrightness',
       {
         'value_type' => 'integer',
         'min' => '0',
-        'upstream_default' => '560',
+        'upstream_default' => '0',
         'max' => '1000',
         'type' => 'leaf',
-        'description' => 'Set the initial contrast '
+        'description' => 'Set the initial off-brightness 
+This value is used when the display is normally
+switched off in case LCDd is inactive'
       },
       'Reboot',
       {
@@ -43,22 +70,6 @@ normally you shouldn\'t need this',
           'yes',
           'no'
         ]
-      },
-      'Device',
-      {
-        'value_type' => 'uniline',
-        'upstream_default' => '/dev/lcd',
-        'type' => 'leaf',
-        'description' => 'Select the output device to use '
-      },
-      'Brightness',
-      {
-        'value_type' => 'integer',
-        'min' => '0',
-        'upstream_default' => '1000',
-        'max' => '1000',
-        'type' => 'leaf',
-        'description' => 'Set the initial brightness '
       },
       'Size',
       {
@@ -80,17 +91,6 @@ normally you shouldn\'t need this',
           '19200',
           '115200'
         ]
-      },
-      'OffBrightness',
-      {
-        'value_type' => 'integer',
-        'min' => '0',
-        'upstream_default' => '0',
-        'max' => '1000',
-        'type' => 'leaf',
-        'description' => 'Set the initial off-brightness 
-This value is used when the display is normally
-switched off in case LCDd is inactive'
       }
     ]
   }

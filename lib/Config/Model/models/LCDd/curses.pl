@@ -12,23 +12,6 @@
     'class_description' => 'generated from LCDd.conf',
     'name' => 'LCDd::curses',
     'element' => [
-      'UseACS',
-      {
-        'value_type' => 'enum',
-        'upstream_default' => 'no',
-        'type' => 'leaf',
-        'description' => 'use ASC symbols for icons & bars ',
-        'choice' => [
-          'yes',
-          'no'
-        ]
-      },
-      'TopLeftY',
-      {
-        'value_type' => 'uniline',
-        'default' => '7',
-        'type' => 'leaf'
-      },
       'Background',
       {
         'value_type' => 'uniline',
@@ -76,6 +59,23 @@ foreground color '
         'type' => 'leaf',
         'description' => 'What position (X,Y) to start the left top corner at...
 Default: (7,7)'
+      },
+      'TopLeftY',
+      {
+        'value_type' => 'uniline',
+        'default' => '7',
+        'type' => 'leaf'
+      },
+      'UseACS',
+      {
+        'value_type' => 'enum',
+        'upstream_default' => 'no',
+        'type' => 'leaf',
+        'description' => 'use ASC symbols for icons & bars ',
+        'choice' => [
+          'yes',
+          'no'
+        ]
       }
     ]
   }

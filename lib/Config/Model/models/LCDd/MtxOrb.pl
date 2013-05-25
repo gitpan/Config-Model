@@ -12,24 +12,14 @@
     'class_description' => 'generated from LCDd.conf',
     'name' => 'LCDd::MtxOrb',
     'element' => [
-      'KeyMap_B',
+      'Brightness',
       {
-        'value_type' => 'uniline',
-        'default' => 'Right',
-        'type' => 'leaf'
-      },
-      'hasAdjustableBacklight',
-      {
-        'value_type' => 'enum',
-        'upstream_default' => 'yes',
+        'value_type' => 'integer',
+        'min' => '0',
+        'upstream_default' => '1000',
+        'max' => '1000',
         'type' => 'leaf',
-        'description' => 'Some old displays do not have an adjustable backlight but only can
-switch the backlight on/off. If you experience randomly appearing block
-characters, try setting this to false. ',
-        'choice' => [
-          'yes',
-          'no'
-        ]
+        'description' => 'Set the initial brightness '
       },
       'Contrast',
       {
@@ -40,10 +30,25 @@ characters, try setting this to false. ',
 NOTE: The driver will ignore this if the display
       is a vfd or vkd as they don\'t have this feature'
       },
-      'KeyMap_F',
+      'Device',
       {
         'value_type' => 'uniline',
-        'default' => 'Escape',
+        'upstream_default' => '/dev/lcd',
+        'type' => 'leaf',
+        'description' => 'Select the output device to use '
+      },
+      'KeyMap_A',
+      {
+        'value_type' => 'uniline',
+        'default' => 'Left',
+        'type' => 'leaf',
+        'description' => 'The following table translates from MtxOrb key letters to logical key names.
+By default no keys are mapped, meaning the keypad is not used at all.'
+      },
+      'KeyMap_B',
+      {
+        'value_type' => 'uniline',
+        'default' => 'Right',
         'type' => 'leaf'
       },
       'KeyMap_C',
@@ -52,58 +57,34 @@ NOTE: The driver will ignore this if the display
         'default' => 'Up',
         'type' => 'leaf'
       },
+      'KeyMap_D',
+      {
+        'value_type' => 'uniline',
+        'default' => 'Down',
+        'type' => 'leaf'
+      },
       'KeyMap_E',
       {
         'value_type' => 'uniline',
         'default' => 'Enter',
         'type' => 'leaf'
       },
-      'Device',
+      'KeyMap_F',
       {
         'value_type' => 'uniline',
-        'upstream_default' => '/dev/lcd',
-        'type' => 'leaf',
-        'description' => 'Select the output device to use '
+        'default' => 'Escape',
+        'type' => 'leaf'
       },
-      'Type',
-      {
-        'value_type' => 'enum',
-        'upstream_default' => 'lcd',
-        'type' => 'leaf',
-        'description' => 'Set the display type ',
-        'choice' => [
-          'lcd',
-          'lkd',
-          'vfd',
-          'vkd'
-        ]
-      },
-      'Brightness',
+      'OffBrightness',
       {
         'value_type' => 'integer',
         'min' => '0',
-        'upstream_default' => '1000',
+        'upstream_default' => '0',
         'max' => '1000',
         'type' => 'leaf',
-        'description' => 'Set the initial brightness '
-      },
-      'keypad_test_mode',
-      {
-        'value_type' => 'uniline',
-        'default' => 'no',
-        'type' => 'leaf',
-        'description' => 'See the [menu] section for an explanation of the key mappings
-You can find out which key of your display sends which
-character by setting keypad_test_mode to yes and running
-LCDd. LCDd will output all characters it receives.
-Afterwards you can modify the settings above and set
-keypad_set_mode to no again.'
-      },
-      'KeyMap_D',
-      {
-        'value_type' => 'uniline',
-        'default' => 'Down',
-        'type' => 'leaf'
+        'description' => 'Set the initial off-brightness 
+This value is used when the display is normally
+switched off in case LCDd is inactive'
       },
       'Size',
       {
@@ -125,24 +106,43 @@ keypad_set_mode to no again.'
           '19200'
         ]
       },
-      'OffBrightness',
+      'Type',
       {
-        'value_type' => 'integer',
-        'min' => '0',
-        'upstream_default' => '0',
-        'max' => '1000',
+        'value_type' => 'enum',
+        'upstream_default' => 'lcd',
         'type' => 'leaf',
-        'description' => 'Set the initial off-brightness 
-This value is used when the display is normally
-switched off in case LCDd is inactive'
+        'description' => 'Set the display type ',
+        'choice' => [
+          'lcd',
+          'lkd',
+          'vfd',
+          'vkd'
+        ]
       },
-      'KeyMap_A',
+      'hasAdjustableBacklight',
+      {
+        'value_type' => 'enum',
+        'upstream_default' => 'yes',
+        'type' => 'leaf',
+        'description' => 'Some old displays do not have an adjustable backlight but only can
+switch the backlight on/off. If you experience randomly appearing block
+characters, try setting this to false. ',
+        'choice' => [
+          'yes',
+          'no'
+        ]
+      },
+      'keypad_test_mode',
       {
         'value_type' => 'uniline',
-        'default' => 'Left',
+        'default' => 'no',
         'type' => 'leaf',
-        'description' => 'The following table translates from MtxOrb key letters to logical key names.
-By default no keys are mapped, meaning the keypad is not used at all.'
+        'description' => 'See the [menu] section for an explanation of the key mappings
+You can find out which key of your display sends which
+character by setting keypad_test_mode to yes and running
+LCDd. LCDd will output all characters it receives.
+Afterwards you can modify the settings above and set
+keypad_set_mode to no again.'
       }
     ]
   }

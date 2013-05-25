@@ -12,17 +12,6 @@
     'class_description' => 'generated from LCDd.conf',
     'name' => 'LCDd::lb216',
     'element' => [
-      'Reboot',
-      {
-        'value_type' => 'enum',
-        'upstream_default' => 'no',
-        'type' => 'leaf',
-        'description' => 'Reinitialize the LCD\'s BIOS ',
-        'choice' => [
-          'yes',
-          'no'
-        ]
-      },
       'Brightness',
       {
         'value_type' => 'integer',
@@ -38,6 +27,17 @@
         'upstream_default' => '/dev/lcd',
         'type' => 'leaf',
         'description' => 'Select the output device to use '
+      },
+      'Reboot',
+      {
+        'value_type' => 'enum',
+        'upstream_default' => 'no',
+        'type' => 'leaf',
+        'description' => 'Reinitialize the LCD\'s BIOS ',
+        'choice' => [
+          'yes',
+          'no'
+        ]
       },
       'Speed',
       {

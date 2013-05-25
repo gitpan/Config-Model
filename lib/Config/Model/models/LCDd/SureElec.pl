@@ -21,21 +21,6 @@
         'type' => 'leaf',
         'description' => 'Set the initial brightness '
       },
-      'Device',
-      {
-        'value_type' => 'uniline',
-        'default' => '/dev/ttyUSB0',
-        'type' => 'leaf',
-        'description' => 'Port the device is connected to  (by default first USB serial port)'
-      },
-      'Size',
-      {
-        'value_type' => 'uniline',
-        'default' => '16x2',
-        'type' => 'leaf',
-        'description' => 'set display size
-Note: The size can be obtained directly from device for edition 2 & 3.'
-      },
       'Contrast',
       {
         'value_type' => 'integer',
@@ -44,6 +29,20 @@ Note: The size can be obtained directly from device for edition 2 & 3.'
         'max' => '1000',
         'type' => 'leaf',
         'description' => 'Set the initial contrast '
+      },
+      'Device',
+      {
+        'value_type' => 'uniline',
+        'default' => '/dev/ttyUSB0',
+        'type' => 'leaf',
+        'description' => 'Port the device is connected to  (by default first USB serial port)'
+      },
+      'Edition',
+      {
+        'value_type' => 'uniline',
+        'upstream_default' => '2',
+        'type' => 'leaf',
+        'description' => 'Edition level of the device (can be 1, 2 or 3) '
       },
       'OffBrightness',
       {
@@ -56,12 +55,13 @@ Note: The size can be obtained directly from device for edition 2 & 3.'
 This value is used when the display is normally
 switched off in case LCDd is inactive'
       },
-      'Edition',
+      'Size',
       {
         'value_type' => 'uniline',
-        'upstream_default' => '2',
+        'default' => '16x2',
         'type' => 'leaf',
-        'description' => 'Edition level of the device (can be 1, 2 or 3) '
+        'description' => 'set display size
+Note: The size can be obtained directly from device for edition 2 & 3.'
       }
     ]
   }

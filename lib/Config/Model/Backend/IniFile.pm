@@ -31,7 +31,7 @@
 
 package Config::Model::Backend::IniFile ;
 {
-  $Config::Model::Backend::IniFile::VERSION = '2.035';
+  $Config::Model::Backend::IniFile::VERSION = '2.036';
 }
 
 use Carp;
@@ -258,7 +258,7 @@ sub _write {
         }
         elsif ($node->element_type($elt) eq 'leaf') {
             my $v = $obj->fetch ;
-            if ($write_bool_as and length($v) and $obj->value_type eq 'boolean') {
+            if ($write_bool_as and defined($v) and length($v) and $obj->value_type eq 'boolean') {
                 $v = $write_bool_as->[$v] ;
             }
             if (defined $v and length $v) {
@@ -331,7 +331,7 @@ Config::Model::Backend::IniFile - Read and write config as a INI file
 
 =head1 VERSION
 
-version 2.035
+version 2.036
 
 =head1 SYNOPSIS
 

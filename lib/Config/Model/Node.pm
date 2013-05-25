@@ -9,7 +9,7 @@
 #
 package Config::Model::Node;
 {
-  $Config::Model::Node::VERSION = '2.035';
+  $Config::Model::Node::VERSION = '2.036';
 }
 
 use Mouse ;
@@ -1055,8 +1055,9 @@ sub load_data {
 
     # Load elements matched by accept parameter
     if (defined $self->{model}{accept}) {
-        #Now, $perl_data contains all elements not yet parsed
-        foreach my $elt (keys %$perl_data) {
+        # Now, $perl_data contains all elements not yet parsed
+        # sort is required to have a predictable order of accepted elements
+        foreach my $elt (sort keys %$perl_data) {
             #load value
             #TODO: annotations
             my $obj = $self->fetch_element(name => $elt, experience => 'master', check => $check) ;
@@ -1228,7 +1229,7 @@ Config::Model::Node - Class for configuration tree node
 
 =head1 VERSION
 
-version 2.035
+version 2.036
 
 =head1 SYNOPSIS
 

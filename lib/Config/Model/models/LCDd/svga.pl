@@ -21,13 +21,6 @@
         'type' => 'leaf',
         'description' => 'Set the initial brightness '
       },
-      'Size',
-      {
-        'value_type' => 'uniline',
-        'upstream_default' => '20x4',
-        'type' => 'leaf',
-        'description' => 'set display size '
-      },
       'Contrast',
       {
         'value_type' => 'integer',
@@ -56,6 +49,13 @@ legal values are supported svgalib modes'
         'description' => 'Set the initial off-brightness 
 This value is used when the display is normally
 switched off in case LCDd is inactive'
+      },
+      'Size',
+      {
+        'value_type' => 'uniline',
+        'upstream_default' => '20x4',
+        'type' => 'leaf',
+        'description' => 'set display size '
       }
     ]
   }

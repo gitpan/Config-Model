@@ -4,7 +4,7 @@ Config::Model::models::LCDd::imonlcd - Configuration class LCDd::imonlcd
 
 =head1 VERSION
 
-version 2.035
+version 2.036
 
 =head1 DESCRIPTION
 
@@ -18,17 +18,19 @@ generated from LCDd.conf
 
 Set the backlight state I<< Optional. Type enum. choice: 'on', 'off'. upstream_default: 'on'.  >>
 
+=head2 Contrast
+
+Select the displays contrast I<< Optional. Type integer. upstream_default: '200'.  >>
+
 =head2 Device
 
 Select the output device to use I<< Optional. Type uniline. upstream_default: '/dev/lcd0'.  >>
 
-=head2 Size
+=head2 DiscMode
 
-Specify the size of the display in pixels I<< Optional. Type uniline. upstream_default: '96x16'.  >>
-
-=head2 Contrast
-
-Select the displays contrast I<< Optional. Type integer. upstream_default: '200'.  >>
+Set the disc mode 
+0 => spin the "slim" disc - two disc segments,
+1 => their complement spinning;I<< Optional. Type enum. choice: '0', '1'. upstream_default: '0'.  >>
 
 =head2 OnExit
 
@@ -44,11 +46,9 @@ Specify which iMon protocol should be used
 Choose 0 for 15c2:ffdc device,
 Choose 1 for 15c2:0038 device. I<< Optional. Type enum. choice: '0', '1'. upstream_default: '0'.  >>
 
-=head2 DiscMode
+=head2 Size
 
-Set the disc mode 
-0 => spin the "slim" disc - two disc segments,
-1 => their complement spinning;I<< Optional. Type enum. choice: '0', '1'. upstream_default: '0'.  >>
+Specify the size of the display in pixels I<< Optional. Type uniline. upstream_default: '96x16'.  >>
 
 =head1 SEE ALSO
 

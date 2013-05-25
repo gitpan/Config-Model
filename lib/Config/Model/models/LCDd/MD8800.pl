@@ -28,13 +28,6 @@
         'type' => 'leaf',
         'description' => 'device to use '
       },
-      'Size',
-      {
-        'value_type' => 'uniline',
-        'upstream_default' => '16x2',
-        'type' => 'leaf',
-        'description' => 'display size '
-      },
       'OffBrightness',
       {
         'value_type' => 'integer',
@@ -45,6 +38,13 @@
         'description' => 'Set the initial off-brightness 
 This value is used when the display is normally
 switched off in case LCDd is inactive'
+      },
+      'Size',
+      {
+        'value_type' => 'uniline',
+        'upstream_default' => '16x2',
+        'type' => 'leaf',
+        'description' => 'display size '
       }
     ]
   }

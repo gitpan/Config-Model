@@ -12,16 +12,16 @@
     'class_description' => 'generated from LCDd.conf',
     'name' => 'LCDd::lcdm001',
     'element' => [
-      'Device',
-      {
-        'value_type' => 'uniline',
-        'default' => '/dev/ttyS1',
-        'type' => 'leaf'
-      },
       'BackKey',
       {
         'value_type' => 'uniline',
         'default' => 'UpKey',
+        'type' => 'leaf'
+      },
+      'Device',
+      {
+        'value_type' => 'uniline',
+        'default' => '/dev/ttyS1',
         'type' => 'leaf'
       },
       'ForwardKey',

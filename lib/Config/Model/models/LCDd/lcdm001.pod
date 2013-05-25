@@ -4,7 +4,7 @@ Config::Model::models::LCDd::lcdm001 - Configuration class LCDd::lcdm001
 
 =head1 VERSION
 
-version 2.035
+version 2.036
 
 =head1 DESCRIPTION
 
@@ -14,13 +14,13 @@ generated from LCDd.conf
 
 =head1 Elements
 
-=head2 Device
-
-I<< Optional. Type uniline. default: '/dev/ttyS1'.  >>
-
 =head2 BackKey
 
 I<< Optional. Type uniline. default: 'UpKey'.  >>
+
+=head2 Device
+
+I<< Optional. Type uniline. default: '/dev/ttyS1'.  >>
 
 =head2 ForwardKey
 

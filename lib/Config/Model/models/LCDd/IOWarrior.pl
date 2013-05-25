@@ -12,6 +12,14 @@
     'class_description' => 'generated from LCDd.conf',
     'name' => 'LCDd::IOWarrior',
     'element' => [
+      'ExtendedMode',
+      {
+        'value_type' => 'uniline',
+        'default' => 'yes',
+        'type' => 'leaf',
+        'description' => 'If you have an HD66712, a KS0073 or another \'almost HD44780-compatible\',
+set this flag to get into extended mode (4-line linear).'
+      },
       'Lastline',
       {
         'value_type' => 'enum',
@@ -38,14 +46,6 @@ underline effect (no). ',
         'default' => '20x4',
         'type' => 'leaf',
         'description' => 'display dimensions'
-      },
-      'ExtendedMode',
-      {
-        'value_type' => 'uniline',
-        'default' => 'yes',
-        'type' => 'leaf',
-        'description' => 'If you have an HD66712, a KS0073 or another \'almost HD44780-compatible\',
-set this flag to get into extended mode (4-line linear).'
       }
     ]
   }

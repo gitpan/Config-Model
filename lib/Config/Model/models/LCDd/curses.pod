@@ -4,7 +4,7 @@ Config::Model::models::LCDd::curses - Configuration class LCDd::curses
 
 =head1 VERSION
 
-version 2.035
+version 2.036
 
 =head1 DESCRIPTION
 
@@ -13,14 +13,6 @@ Configuration classes used by L<Config::Model>
 generated from LCDd.conf
 
 =head1 Elements
-
-=head2 UseACS
-
-use ASC symbols for icons & bars I<< Optional. Type enum. choice: 'yes', 'no'. upstream_default: 'no'.  >>
-
-=head2 TopLeftY
-
-I<< Optional. Type uniline. default: '7'.  >>
 
 =head2 Background
 
@@ -47,6 +39,14 @@ display size I<< Optional. Type uniline. upstream_default: '20x4'.  >>
 
 What position (X,Y) to start the left top corner at...
 Default: (7,7)I<< Optional. Type uniline. default: '7'.  >>
+
+=head2 TopLeftY
+
+I<< Optional. Type uniline. default: '7'.  >>
+
+=head2 UseACS
+
+use ASC symbols for icons & bars I<< Optional. Type enum. choice: 'yes', 'no'. upstream_default: 'no'.  >>
 
 =head1 SEE ALSO
 

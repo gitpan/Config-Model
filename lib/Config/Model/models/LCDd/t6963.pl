@@ -12,6 +12,31 @@
     'class_description' => 'generated from LCDd.conf',
     'name' => 'LCDd::t6963',
     'element' => [
+      'ClearGraphic',
+      {
+        'value_type' => 'enum',
+        'upstream_default' => 'no',
+        'type' => 'leaf',
+        'description' => 'Clear graphic memory on start-up. ',
+        'choice' => [
+          'yes',
+          'no'
+        ]
+      },
+      'Port',
+      {
+        'value_type' => 'uniline',
+        'upstream_default' => '0x378',
+        'type' => 'leaf',
+        'description' => 'port to use '
+      },
+      'Size',
+      {
+        'value_type' => 'uniline',
+        'upstream_default' => '128x64',
+        'type' => 'leaf',
+        'description' => 'set display size in pixels '
+      },
       'bidirectional',
       {
         'value_type' => 'enum',
@@ -24,24 +49,6 @@ is required for proper timing! ',
           'no'
         ]
       },
-      'ClearGraphic',
-      {
-        'value_type' => 'enum',
-        'upstream_default' => 'no',
-        'type' => 'leaf',
-        'description' => 'Clear graphic memory on start-up. ',
-        'choice' => [
-          'yes',
-          'no'
-        ]
-      },
-      'Size',
-      {
-        'value_type' => 'uniline',
-        'upstream_default' => '128x64',
-        'type' => 'leaf',
-        'description' => 'set display size in pixels '
-      },
       'delayBus',
       {
         'value_type' => 'enum',
@@ -52,13 +59,6 @@ is required for proper timing! ',
           'yes',
           'no'
         ]
-      },
-      'Port',
-      {
-        'value_type' => 'uniline',
-        'upstream_default' => '0x378',
-        'type' => 'leaf',
-        'description' => 'port to use '
       }
     ]
   }
