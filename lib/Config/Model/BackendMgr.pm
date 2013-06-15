@@ -1,7 +1,7 @@
 #
 # This file is part of Config-Model
 #
-# This software is Copyright (c) 2012 by Dominique Dumont, Krzysztof Tyszecki.
+# This software is Copyright (c) 2013 by Dominique Dumont, Krzysztof Tyszecki.
 #
 # This is free software, licensed under:
 #
@@ -9,7 +9,7 @@
 #
 package Config::Model::BackendMgr ;
 {
-  $Config::Model::BackendMgr::VERSION = '2.036';
+  $Config::Model::BackendMgr::VERSION = '2.037';
 }
 
 use Mouse ;
@@ -521,29 +521,6 @@ sub auto_write_init {
     }
 }
 
-=head2 write_back ( ... )
-
-Try to run all subroutines registered by L<auto_write_init> 
-write the configuration information until one succeeds (returns
-true).
-
-You can specify here a pseudo root directory or another config
-directory to write configuration data back with C<root> and
-C<config_dir> parameters. This will override the model specifications.
-
-You can force to use a backend by specifying C<< backend => xxx >>. 
-For instance, C<< backend => 'augeas' >> or C<< backend => 'custom' >>.
-
-You can force to use all backend to write the files by specifying 
-C<< backend => 'all' >>.
-
-You can force a specific config file to write with 
-C<<config_file => 'foo/bar.conf' >>
-
-C<write_back> will croak if no write call-back are known for this node.
-
-=cut
-
 sub write_back {
     my $self = shift ;
     my %args = @_ ; 
@@ -675,7 +652,7 @@ Config::Model::BackendMgr - Load configuration node on demand
 
 =head1 VERSION
 
-version 2.036
+version 2.037
 
 =head1 SYNOPSIS
 
@@ -1133,6 +1110,29 @@ will be used. For instance:
 
 In this case, configuration data will be read by C<Bar::read> in
 directory C</etc/foo> and will be written back there by C<Bar::write>.
+
+=head1 Methods
+
+=head2 write_back ( ... )
+
+Try to run all subroutines registered by L<auto_write_init>
+write the configuration information until one succeeds (returns
+true).
+
+You can specify here a pseudo root directory or another config
+directory to write configuration data back with C<root> and
+C<config_dir> parameters. This will override the model specifications.
+
+You can force to use a backend by specifying C<< backend => xxx >>.
+For instance, C<< backend => 'augeas' >> or C<< backend => 'custom' >>.
+
+You can force to use all backend to write the files by specifying
+C<< backend => 'all' >>.
+
+You can force a specific config file to write with
+C<<config_file => 'foo/bar.conf' >>
+
+C<write_back> will croak if no write call-back are known for this node.
 
 =head1 AUTHOR
 

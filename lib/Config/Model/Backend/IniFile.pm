@@ -1,7 +1,7 @@
 #
 # This file is part of Config-Model
 #
-# This software is Copyright (c) 2012 by Dominique Dumont, Krzysztof Tyszecki.
+# This software is Copyright (c) 2013 by Dominique Dumont, Krzysztof Tyszecki.
 #
 # This is free software, licensed under:
 #
@@ -31,7 +31,7 @@
 
 package Config::Model::Backend::IniFile ;
 {
-  $Config::Model::Backend::IniFile::VERSION = '2.036';
+  $Config::Model::Backend::IniFile::VERSION = '2.037';
 }
 
 use Carp;
@@ -331,7 +331,7 @@ Config::Model::Backend::IniFile - Read and write config as a INI file
 
 =head1 VERSION
 
-version 2.036
+version 2.037
 
 =head1 SYNOPSIS
 
@@ -421,7 +421,7 @@ comment may apply. Wrong estimations are possible.
 =head2 new ( node => $node_obj, name => 'inifile' ) ;
 
 Inherited from L<Config::Model::Backend::Any>. The constructor will be
-called by L<Config::Model::AutoRead>.
+called by L<Config::Model::BackendMgr>.
 
 =head1 Parameters
 
@@ -591,7 +591,7 @@ Krzysztof Tyszecki, (krzysztof.tyszecki at gmail dot com)
 =head1 SEE ALSO
 
 L<Config::Model>, 
-L<Config::Model::AutoRead>, 
+L<Config::Model::BackendMgr>, 
 L<Config::Model::Backend::Any>, 
 
 =cut

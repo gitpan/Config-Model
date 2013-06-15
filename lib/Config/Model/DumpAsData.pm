@@ -1,7 +1,7 @@
 #
 # This file is part of Config-Model
 #
-# This software is Copyright (c) 2012 by Dominique Dumont, Krzysztof Tyszecki.
+# This software is Copyright (c) 2013 by Dominique Dumont, Krzysztof Tyszecki.
 #
 # This is free software, licensed under:
 #
@@ -28,7 +28,7 @@
 
 package Config::Model::DumpAsData;
 {
-  $Config::Model::DumpAsData::VERSION = '2.036';
+  $Config::Model::DumpAsData::VERSION = '2.037';
 }
 use Carp;
 use strict;
@@ -43,7 +43,7 @@ Config::Model::DumpAsData - Dump configuration content as a perl data structure
 
 =head1 VERSION
 
-version 2.036
+version 2.037
 
 =head1 SYNOPSIS
 
@@ -145,7 +145,7 @@ configuration data will be used by the application. (default is yes)
 =item skip_auto_write
 
 Skip node that have a C<perl write> capability in their model. See
-L<Config::Model::AutoRead>.
+L<Config::Model::BackendMgr>.
 
 =item auto_vivify
 

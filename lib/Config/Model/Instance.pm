@@ -1,7 +1,7 @@
 #
 # This file is part of Config-Model
 #
-# This software is Copyright (c) 2012 by Dominique Dumont, Krzysztof Tyszecki.
+# This software is Copyright (c) 2013 by Dominique Dumont, Krzysztof Tyszecki.
 #
 # This is free software, licensed under:
 #
@@ -9,7 +9,7 @@
 #
 package Config::Model::Instance;
 {
-  $Config::Model::Instance::VERSION = '2.036';
+  $Config::Model::Instance::VERSION = '2.037';
 }
 #use Scalar::Util qw(weaken) ;
 
@@ -445,7 +445,7 @@ Config::Model::Instance - Instance of configuration tree
 
 =head1 VERSION
 
-version 2.036
+version 2.037
 
 =head1 SYNOPSIS
 
@@ -679,7 +679,7 @@ Notify that some data has changed in the tree.
 
 Try to run all subroutines registered with C<register_write_back> to
 write the configuration information until one succeeds (returns
-true). (See L<Config::Model::AutoRead> for details).
+true). (See L<Config::Model::BackendMgr> for details).
 
 You can specify here a pseudo root directory or another config
 directory to write configuration data back with C<root> and

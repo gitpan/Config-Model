@@ -5,6 +5,7 @@ author:
   - 'Krzysztof Tyszecki'
 build_requires:
   File::Copy::Recursive: 0
+  File::Slurp: 0
   Module::Build: 0.34
   Path::Class: 0
   Probe::Perl: 0
@@ -16,6 +17,7 @@ build_requires:
   Test::More: 0
   Test::Warn: 0.11
   YAML::Any: 0.303
+  perl: v5.10.1
 configure_requires:
   Module::Build: 0.34
 dynamic_config: 0
@@ -51,4 +53,4 @@ resources:
   bugtracker: http://rt.cpan.org/NoAuth/Bugs.html?Dist=Config-Model
   homepage: https://github.com/dod38fr/config-model/wiki
   repository: git://github.com/dod38fr/config-model.git
-version: 2.036
+version: 2.037

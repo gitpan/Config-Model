@@ -2,7 +2,7 @@
 #
 # This file is part of Config-Model
 #
-# This software is Copyright (c) 2012 by Dominique Dumont, Krzysztof Tyszecki.
+# This software is Copyright (c) 2013 by Dominique Dumont, Krzysztof Tyszecki.
 #
 # This is free software, licensed under:
 #
@@ -65,6 +65,7 @@ my $apply_fixes = 0;
 my $search;
 my $search_type = 'all';
 my $dir_char_mockup ;
+my $try_application_as_model = 0; # means search a model instead of an application name
 
 
 my %command_option = (
@@ -94,6 +95,7 @@ my %command_option = (
 
 my @global_options = (
     "model_dir|model-dir=s"         => \$model_dir,
+    "try-app-as-model!"             => \$try_application_as_model,
     "experience=s"                  => \$experience,
     "dev!"                          => \$dev,
     "force_load|force-load!"        => \$force_load,
@@ -164,7 +166,8 @@ my $model = Config::Model->new( model_dir => $model_dir );
 my ( $categories, $appli_info, $appli_map ) =
   Config::Model::Lister::available_models;
 
-my $root_model = $appli_map->{$application} ;
+my $root_model = $appli_map->{$application};
+$root_model ||= $application if $try_application_as_model ;
 
 if (not defined $root_model) {
   warn "Unknown application: $application\n";
@@ -487,7 +490,7 @@ and errors on STDOUT.
 
 Example:
 
- cme check lcdproc
+ cme check fstab
 
 =head2 migrate
 
@@ -665,7 +668,12 @@ Provides a full stack trace when exiting on error.
 =item -backend
 
 Specify a read/write backend. The actual backend name depends on the model
-passed to C<-model> option. See L<Config::Model::AutoRead> for details.
+passed to C<-model> option. See L<Config::Model::BackendMgr> for details.
+
+=item -try-app-as-model
+
+When set, try to load a model using directly the application name specified as 3rd parameter
+on the command line. Experimental.
 
 =back
 

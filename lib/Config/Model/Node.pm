@@ -1,7 +1,7 @@
 #
 # This file is part of Config-Model
 #
-# This software is Copyright (c) 2012 by Dominique Dumont, Krzysztof Tyszecki.
+# This software is Copyright (c) 2013 by Dominique Dumont, Krzysztof Tyszecki.
 #
 # This is free software, licensed under:
 #
@@ -9,7 +9,7 @@
 #
 package Config::Model::Node;
 {
-  $Config::Model::Node::VERSION = '2.036';
+  $Config::Model::Node::VERSION = '2.037';
 }
 
 use Mouse ;
@@ -1229,7 +1229,7 @@ Config::Model::Node - Class for configuration tree node
 
 =head1 VERSION
 
-version 2.036
+version 2.037
 
 =head1 SYNOPSIS
 
@@ -1404,7 +1404,7 @@ configuration files.
 =item B<config_dir>
 
 Parameters used to load on demand configuration data. 
-See L<Config::Model::AutoRead> for details.
+See L<Config::Model::BackendMgr> for details.
 
 =item B<accept>
 
@@ -1903,10 +1903,10 @@ Typically, you will have to call C<search> on this object.
 
 Returns a L<Config::Model::TreeSearcher> object.
 
-=head2 AutoRead nodes
+=head2 Lazy load of node data
 
 As configuration model are getting bigger, the load time of a tree
-gets longer. The L<Config::Model::AutoRead> class provides a way to
+gets longer. The L<Config::Model::BackendMgr> class provides a way to
 load the configuration information only when needed.
 
 =head1 AUTHOR

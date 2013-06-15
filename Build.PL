@@ -1,7 +1,7 @@
 #
 # This file is part of Config-Model
 #
-# This software is Copyright (c) 2012 by Dominique Dumont, Krzysztof Tyszecki.
+# This software is Copyright (c) 2013 by Dominique Dumont, Krzysztof Tyszecki.
 #
 # This is free software, licensed under:
 #
@@ -53,8 +53,6 @@ sub ACTION_build {
 SUBCLASS
 
 
-# system("$^X -Ilib script/cme gen-class-pod.pl");
-
 my @version_info = @ARGV ? ( dist_version => $ARGV[0] ) : ();
 
 my %appli_files = map { ( $_, $_ ) } glob("lib/Config/Model/*.d/*");
@@ -71,12 +69,9 @@ my $build = $class->new(
     dist_abstract => 'Describe, edit and validate configuration data',
     dist_author   => 'Dominique Dumont (ddumont at cpan dot org)',
 
-    # Build.PL runs gen_class_pod.pl which loads Config::Model from lib,
-    # hence most of the runtime dependencies are in fact 
-    # configure_requires. This should improve Perl smoke tests.
-
   'build_requires' => {
     'File::Copy::Recursive' => '0',
+    'File::Slurp' => '0',
     'Module::Build' => '0.34',
     'Path::Class' => '0',
     'Probe::Perl' => '0',
@@ -87,7 +82,8 @@ my $build = $class->new(
     'Test::Memory::Cycle' => '0',
     'Test::More' => '0',
     'Test::Warn' => '0.11',
-    'YAML::Any' => '0.303'
+    'YAML::Any' => '0.303',
+    'perl' => 'v5.10.1'
   },
   'configure_requires' => {
     'Module::Build' => '0.34'

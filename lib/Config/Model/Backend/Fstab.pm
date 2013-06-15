@@ -1,7 +1,7 @@
 #
 # This file is part of Config-Model
 #
-# This software is Copyright (c) 2012 by Dominique Dumont, Krzysztof Tyszecki.
+# This software is Copyright (c) 2013 by Dominique Dumont, Krzysztof Tyszecki.
 #
 # This is free software, licensed under:
 #
@@ -9,7 +9,7 @@
 #
 package Config::Model::Backend::Fstab ;
 {
-  $Config::Model::Backend::Fstab::VERSION = '2.036';
+  $Config::Model::Backend::Fstab::VERSION = '2.037';
 }
 use Mouse ;
 use Carp ;
@@ -158,7 +158,7 @@ Config::Model::Backend::Fstab - Read and write config from fstab file
 
 =head1 VERSION
 
-version 2.036
+version 2.037
 
 =head1 SYNOPSIS
 
@@ -185,7 +185,7 @@ L<Config::Model>. You don't need to read it to write a model.
 =head2 new ( node => $node_obj, name => 'fstab' ) ;
 
 Inherited from L<Config::Model::Backend::Any>. The constructor will be
-called by L<Config::Model::AutoRead>.
+called by L<Config::Model::BackendMgr>.
 
 =head2 read ( io_handle => ... )
 
@@ -212,7 +212,7 @@ Dominique Dumont, (ddumont at cpan dot org)
 =head1 SEE ALSO
 
 L<Config::Model>, 
-L<Config::Model::AutoRead>, 
+L<Config::Model::BackendMgr>, 
 L<Config::Model::Backend::Any>, 
 
 =cut

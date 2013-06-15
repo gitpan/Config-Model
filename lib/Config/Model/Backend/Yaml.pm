@@ -1,7 +1,7 @@
 #
 # This file is part of Config-Model
 #
-# This software is Copyright (c) 2012 by Dominique Dumont, Krzysztof Tyszecki.
+# This software is Copyright (c) 2013 by Dominique Dumont, Krzysztof Tyszecki.
 #
 # This is free software, licensed under:
 #
@@ -10,7 +10,7 @@
 
 package Config::Model::Backend::Yaml ;
 {
-  $Config::Model::Backend::Yaml::VERSION = '2.036';
+  $Config::Model::Backend::Yaml::VERSION = '2.037';
 }
 
 use Carp;
@@ -92,7 +92,7 @@ Config::Model::Backend::Yaml - Read and write config as a YAML data structure
 
 =head1 VERSION
 
-version 2.036
+version 2.037
 
 =head1 SYNOPSIS
 
@@ -164,7 +164,7 @@ contain C<'a','b'>.
 =head2 new ( node => $node_obj, name => 'yaml' ) ;
 
 Inherited from L<Config::Model::Backend::Any>. The constructor will be
-called by L<Config::Model::AutoRead>.
+called by L<Config::Model::BackendMgr>.
 
 =head2 read ( io_handle => ... )
 
@@ -191,7 +191,7 @@ Dominique Dumont, (ddumont at cpan dot org)
 =head1 SEE ALSO
 
 L<Config::Model>, 
-L<Config::Model::AutoRead>, 
+L<Config::Model::BackendMgr>, 
 L<Config::Model::Backend::Any>, 
 
 =cut

@@ -1,7 +1,7 @@
 #
 # This file is part of Config-Model
 #
-# This software is Copyright (c) 2012 by Dominique Dumont, Krzysztof Tyszecki.
+# This software is Copyright (c) 2013 by Dominique Dumont, Krzysztof Tyszecki.
 #
 # This is free software, licensed under:
 #
@@ -28,7 +28,7 @@
 
 package Config::Model::Dumper;
 {
-  $Config::Model::Dumper::VERSION = '2.036';
+  $Config::Model::Dumper::VERSION = '2.037';
 }
 use Carp;
 use strict;
@@ -43,7 +43,7 @@ Config::Model::Dumper - Serialize data of config tree
 
 =head1 VERSION
 
-version 2.036
+version 2.037
 
 =head1 SYNOPSIS
 
@@ -175,7 +175,7 @@ nodes and leaves attached to this node are also dumped.
 =item skip_auto_write ( <backend_name> )
 
 Skip node that have a write capability matching C<backend_name> in
-their model. See L<Config::Model::AutoRead>. 
+their model. See L<Config::Model::BackendMgr>. 
 
 =item auto_vivify
 
