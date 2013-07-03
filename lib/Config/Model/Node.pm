@@ -9,7 +9,7 @@
 #
 package Config::Model::Node;
 {
-  $Config::Model::Node::VERSION = '2.037';
+  $Config::Model::Node::VERSION = '2.038';
 }
 
 use Mouse ;
@@ -723,26 +723,27 @@ sub fetch_element {
       = $self->get_element_property(property => 'level',
                                     element  => $element_name) ;
 
-    if ($element_level eq 'hidden' and not $accept_hidden) {
-        Config::Model::Exception::UnavailableElement
-            ->throw(
-                    object   => $self,
-                    element  => $element_name,
-                    info     => 'hidden element',
-                   );
+    if ( $element_level eq 'hidden' and not $accept_hidden ) {
+        return 0 if ( $check eq 'no' or $check eq 'skip' );
+        Config::Model::Exception::UnavailableElement->throw(
+            object  => $self,
+            element => $element_name,
+            info    => 'hidden element',
+        );
     }
 
 
     # check status
-    if ($self->{status}{$element_name} eq 'obsolete') {
+    if ( $self->{status}{$element_name} eq 'obsolete' ) {
+
         # obsolete is a status not very different from a missing
         # item. The only difference is that user will get more
         # information
-        Config::Model::Exception::ObsoleteElement
-            ->throw(
-                    object   => $self,
-                    element  => $element_name,
-                   );
+        return 0 if ( $check eq 'no' or $check eq 'skip' );
+        Config::Model::Exception::ObsoleteElement->throw(
+            object  => $self,
+            element => $element_name,
+        );
     }
 
     if ($self->{status}{$element_name} eq 'deprecated' 
@@ -1040,7 +1041,14 @@ sub load_data {
             my $obj = $self->fetch_element(name => $elt, experience => 'master', 
                                            check => $check) ;
 
-            $obj -> load_data(%args, data => delete $perl_data->{$elt}) ;
+            if ($obj) {
+                $obj -> load_data(%args, data => delete $perl_data->{$elt}) ;
+            }
+            elsif (defined $obj) {
+                # skip hidden elements and trash corresponding data
+                delete $perl_data->{$elt};
+            }
+
         } elsif ($check ne 'skip')  {
             Config::Model::Exception::LoadData 
                 -> throw (
@@ -1061,6 +1069,7 @@ sub load_data {
             #load value
             #TODO: annotations
             my $obj = $self->fetch_element(name => $elt, experience => 'master', check => $check) ;
+            next unless $obj; # in cas of known but unavailable elements
             $logger->debug("Node load_data: accepting element $elt");
             $obj ->load_data(%args, data => delete $perl_data->{$elt}) if defined $obj;
             }
@@ -1229,7 +1238,7 @@ Config::Model::Node - Class for configuration tree node
 
 =head1 VERSION
 
-version 2.037
+version 2.038
 
 =head1 SYNOPSIS
 
@@ -1722,7 +1731,8 @@ If user_experience is given, this method will check that the user has
 enough privilege to access the element. If not, a C<RestrictedElement>
 exception will be raised.
 
-check can be set to yes, no or skip
+check can be set to yes, no or skip. When check is C<no> or C<skip>, can return C<undef> when the
+element is unknown, or 0 if the element is not available (hidden).
 
 =head2 fetch_element_value ( name => ... [ check => ...] )
 

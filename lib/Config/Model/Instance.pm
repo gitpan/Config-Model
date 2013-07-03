@@ -9,7 +9,7 @@
 #
 package Config::Model::Instance;
 {
-  $Config::Model::Instance::VERSION = '2.037';
+  $Config::Model::Instance::VERSION = '2.038';
 }
 #use Scalar::Util qw(weaken) ;
 
@@ -166,7 +166,7 @@ has _write_back => (
 );
 
 # used for auto_read auto_write feature
-has [qw/name root_dir config_file backend/] => (
+has [qw/name root_dir config_file backend backup/] => (
     is => 'ro',
     isa => 'Maybe[Str]' ,
 );
@@ -422,6 +422,7 @@ sub write_back {
             config_file => $self->{config_file} ,
             backend => $force_backend,
             force => $force_write,
+            backup => $self->backup,
         );
     }
     $self-> clear_changes;
@@ -445,7 +446,7 @@ Config::Model::Instance - Instance of configuration tree
 
 =head1 VERSION
 
-version 2.037
+version 2.038
 
 =head1 SYNOPSIS
 

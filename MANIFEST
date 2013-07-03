@@ -129,6 +129,8 @@ t/model_tests.d/multistrap-examples/igep0020/usr/share/multistrap/arm.conf
 t/model_tests.d/multistrap-examples/igep0020/usr/share/multistrap/crosschroot.conf
 t/model_tests.d/multistrap-examples/igep0020/usr/share/multistrap/squeeze.conf
 t/model_tests.d/multistrap-test-conf.pl
+t/model_tests.d/popcon-examples/t0
+t/model_tests.d/popcon-test-conf.pl
 t/model_tests.t
 t/multi_warp_object.t
 t/multi_warp_value.t
@@ -137,7 +139,6 @@ t/node_get_set.t
 t/obj_tree_scanner.t
 t/pod.t
 t/pod_generation.t
-t/popcon_config.t
 t/recursive_warp_value.t
 t/release-pod-syntax.t
 t/report.t

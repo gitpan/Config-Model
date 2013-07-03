@@ -4,7 +4,7 @@ Config::Model::models::Multistrap::Section - Configuration class Multistrap::Sec
 
 =head1 VERSION
 
-version 2.037
+version 2.038
 
 =head1 DESCRIPTION
 
@@ -14,27 +14,27 @@ Configuration classes used by L<Config::Model>
 
 =head2 packages
 
-I<< Optional. Type list of uniline.  >>
+I<< Optional. Type list of uniline.  >> 
 
 =head2 components
 
-I<< Optional. Type list of uniline.  >>
+I<< Optional. Type list of uniline.  >> 
 
 =head2 source
 
-I<< Optional. Type uniline.  >>
+I<< Optional. Type uniline.  >> 
 
 =head2 keyring
 
-I<< Optional. Type uniline.  >>
+I<< Optional. Type uniline.  >> 
 
 =head2 suite
 
-I<< Optional. Type uniline.  >>
+I<< Optional. Type uniline.  >> 
 
 =head2 omitdebsrc
 
-I<< Optional. Type boolean.  >>
+I<< Optional. Type boolean.  >> 
 
 =head1 SEE ALSO
 

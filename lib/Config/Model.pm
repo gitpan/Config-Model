@@ -9,7 +9,7 @@
 #
 package Config::Model;
 {
-  $Config::Model::VERSION = '2.037';
+  $Config::Model::VERSION = '2.038';
 }
 use Mouse ;
 use namespace::autoclean;
@@ -1312,6 +1312,9 @@ sub get_element_description {
     my $cargo_vt   = $cargo->{value_type};
     $of = " of " . ( $cargo_vt or $cargo_type ) if defined $cargo_type;
 
+    my $ccn = $elt_info->{config_class_name} || $cargo->{config_class_name} ;
+    $of .= " of class L<$ccn|Config::Model::models::$ccn> "if $ccn;
+
     my $desc = $elt_info->{description} || '';
     if ($desc) {
         $desc .= '. ' if $desc =~ /\w$/ ;
@@ -1335,7 +1338,7 @@ sub get_element_description {
 
     my $elt_help = $self->get_element_value_help ($elt_info) ;
 
-    return $desc."I<< $info >>" .$elt_help;
+    return $desc."I<< $info >> " .$elt_help;
 }
 
 sub get_element_value_help {
@@ -1543,7 +1546,7 @@ Config::Model - Create tools to validate, migrate and edit configuration files
 
 =head1 VERSION
 
-version 2.037
+version 2.038
 
 =head1 SYNOPSIS
 

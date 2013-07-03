@@ -9,7 +9,7 @@
 #
 package Config::Model::Backend::Any ;
 {
-  $Config::Model::Backend::Any::VERSION = '2.037';
+  $Config::Model::Backend::Any::VERSION = '2.038';
 }
 
 use Carp;
@@ -69,7 +69,7 @@ sub read_global_comments {
     while (defined ( $_ = shift @$lines ) ) {
         chomp ;
 
-        my ($data,$comment) = split /\s*$cc\s?/ ;
+        my ($data,$comment) = split /\s*$cc\s?/ , $_, 2 ;
 
         push @global_comments, $comment if defined $comment ;
 
@@ -96,7 +96,7 @@ sub associates_comments_with_data {
         next if /^$cc$cc/ ;		  # remove comments added by Config::Model
         chomp ;
 
-        my ($data,$comment) = split /\s*$cc\s?/ ;
+        my ($data,$comment) = split /\s*$cc\s?/, $_, 2 ;
         push @comments, $comment        if defined $comment ;
 
         next unless defined $data ;
@@ -162,7 +162,7 @@ Config::Model::Backend::Any - Virtual class for other backends
 
 =head1 VERSION
 
-version 2.037
+version 2.038
 
 =head1 SYNOPSIS
 

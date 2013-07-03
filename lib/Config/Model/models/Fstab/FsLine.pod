@@ -4,7 +4,7 @@ Config::Model::models::Fstab::FsLine - Configuration class Fstab::FsLine
 
 =head1 VERSION
 
-version 2.037
+version 2.038
 
 =head1 DESCRIPTION
 
@@ -16,15 +16,15 @@ data of one /etc/fstab line
 
 =head2 fs_spec
 
-block special device or remote filesystem to be mounted. I<< Mandatory. Type uniline.  >>
+block special device or remote filesystem to be mounted. I<< Mandatory. Type uniline.  >> 
 
 =head2 fs_file
 
-mount point for the filesystem. I<< Mandatory. Type uniline.  >>
+mount point for the filesystem. I<< Mandatory. Type uniline.  >> 
 
 =head2 fs_vfstype
 
-file system type. I<< Mandatory. Type enum. choice: 'auto', 'davfs', 'ext2', 'ext3', 'ext4', 'swap', 'proc', 'iso9660', 'vfat', 'usbfs', 'ignore', 'nfs', 'nfs4', 'none', 'ignore', 'debugfs'.  >>
+file system type. I<< Mandatory. Type enum. choice: 'auto', 'davfs', 'ext2', 'ext3', 'ext4', 'swap', 'proc', 'iso9660', 'vfat', 'usbfs', 'ignore', 'nfs', 'nfs4', 'none', 'ignore', 'debugfs'.  >> 
 
 Here are some explanations on the possible values:
 
@@ -72,15 +72,15 @@ Older Windows file system often used on removable media
 
 =head2 fs_mntopts
 
-mount options associated with the filesystem. I<< Optional. Type warped_node.  >>
+mount options associated with the filesystem. I<< Optional. Type warped_node.  >> 
 
 =head2 fs_freq
 
-Specifies if the file system needs to be dumped. I<< Optional. Type enum. choice: '0', '1'. default: '0'.  >>
+Specifies if the file system needs to be dumped. I<< Optional. Type enum. choice: '0', '1'. default: '0'.  >> 
 
 =head2 fs_passno - fsck pass number
 
-used by the fsck(8) program to determine the order in which filesystem checks are done at reboot time. I<< Optional. Type integer. default: '0'.  >>
+used by the fsck(8) program to determine the order in which filesystem checks are done at reboot time. I<< Optional. Type integer. default: '0'.  >> 
 
 =head1 SEE ALSO
 
