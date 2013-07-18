@@ -9,7 +9,7 @@
 #
 package Config::Model::CheckList ;
 {
-  $Config::Model::CheckList::VERSION = '2.038';
+  $Config::Model::CheckList::VERSION = '2.039';
 }
 use Mouse ;
 use 5.010 ;
@@ -34,8 +34,7 @@ my @allowed_warp_params = (@accessible_params, qw/level experience/);
 
 has [qw/backup data preset layered/] 
     => ( is => 'rw', isa => 'HashRef' , default => sub { {} ;} ) ;
-has [qw/refer_to computed_refer_to/] 
-    => ( is => 'rw', isa => 'Maybe[HashRef]'  ) ;
+has computed_refer_to => ( is => 'rw', isa => 'Maybe[HashRef]'  ) ;
 has [qw/refer_to/]  => ( is => 'rw', isa => 'Str'  ) ;
 has [qw/ordered_data choice/]
     => ( is => 'rw', isa => 'ArrayRef' , default => sub { [] ;} ) ;
@@ -256,6 +255,31 @@ sub check {
         unless $self->instance->initial_load;
 }
 
+sub clear_item {
+    my $self   = shift;
+    my $choice = shift;
+
+    my $inst = $self->instance;
+    my $data_name =
+        $inst->preset  ? 'preset'
+      : $inst->layered ? 'layered'
+      :                  'data';
+    my $old_v = $self->{$data_name}{$choice};
+    my $changed = 0;
+    if ( $old_v ) {
+        $changed = 1;
+    }
+    delete $self->{$data_name}{$choice} ;
+
+    if ( $self->{ordered} and $changed) {
+        my $ord = $self->{ordered_data};
+        my @new = grep { $_ ne $choice } @$ord;
+        $self->{ordered_data} = \@new ;
+    }
+    return $changed;
+}
+
+
 # internal
 sub store {
     my ($self, $choice, $value, $check) = @_;
@@ -320,40 +344,42 @@ sub uncheck {
 
 
 my %accept_mode = map { ( $_ => 1) } 
-                      qw/custom standard preset default layered upstream_default/;
+                      qw/custom standard preset default layered upstream_default user/;
 
 
 sub is_checked {
     my $self = shift ;
     my $choice = shift ;
     my %args = @_ ;
-    my $type = $args{mode} || '';
+    my $mode = $args{mode} || '';
     my $check = $self->_check_check($args{check}) ;
 
     my $ok = $self->{choice_hash}{$choice} || 0 ;
 
     if ($ok ) {
 
-	if ($type and not defined $accept_mode{$type}) {
+	if ($mode and not defined $accept_mode{$mode}) {
 	    croak "is_checked: expected ", join (' or ',keys %accept_mode),
-	      "parameter, not $type" ;
+	      "parameter, not $mode" ;
 	}
 
-	my $dat = $self->{data} ;
-	my $pre = $self->{preset} ;
-	my $def = $self->{default_data} ;
-	my $ud  = $self->{upstream_default_data} ;
-	my $std_v = (defined $pre->{$choice} ? $pre->{$choice} : $def->{$choice}) || 0 ;
+	my $dat = $self->{data}{$choice} ;
+	my $pre = $self->{preset}{$choice} ;
+	my $def = $self->{default_data}{$choice} ;
+	my $ud  = $self->{upstream_default_data}{$choice} ;
+	my $lay = $self->{layered}{$choice} ;
+	my $std_v = $pre // $def // 0 ;
+	my $user_v = $dat // $pre // $lay // $def // $ud // 0 ;
 
 	my $result 
-	  = $type eq 'custom'           ? ( $dat->{$choice} && ! $std_v ? 1 : 0 )
-          : $type eq 'preset'           ? $pre->{$choice}
-          : $type eq 'layered'          ? $self->{layered}{$choice}
-          : $type eq 'upstream_default' ? $ud ->{$choice}
-          : $type eq 'default'          ? $def->{$choice}
-          : $type eq 'standard'         ? $std_v
-          : defined $dat->{$choice}     ? $dat->{$choice}
-          :                               $std_v ;
+	  = $mode eq 'custom'           ? ( $dat && ! $std_v ? 1 : 0 )
+          : $mode eq 'preset'           ? $pre
+          : $mode eq 'layered'          ? $lay
+          : $mode eq 'upstream_default' ? $ud
+          : $mode eq 'default'          ? $def
+          : $mode eq 'standard'         ? $std_v
+          : $mode eq 'user'             ? $user_v
+          :                               $dat // $std_v ;
 
 	return $result ;
     }
@@ -424,10 +450,15 @@ sub get_help {
 
 sub clear {
     my $self = shift ;
-    map { $self->store($_ , 0 ) } $self->get_choice ;
+    map { $self->clear_item($_) } $self->get_choice ; # also triggers notify changes
 }
 
 sub clear_values { goto &clear ; } 
+
+sub clear_layered {
+    my $self = shift;
+    $self->{layered} = {};
+}
 
 
 my %old_mode = ( built_in_list => 'upstream_default_list',
@@ -451,37 +482,36 @@ sub get_checked_list_as_hash {
 		" parameter, not $mode" ;
     }
 
-    # fill empty hash result missing data
-    my %h = map { $_ => 0 } $self->get_choice ;
-
     my $dat = $self->{data} ;
     my $pre = $self->{preset} ;
     my $def = $self->{default_data} ;
     my $lay = $self->{layered} ;
     my $ud  = $self->{upstream_default_data} ;
 
-    # copy hash and return it
-    my %predef  = (%h, %$def, %$pre )  ;
-    my %std     = (%h, %$ud, %$lay, %$def, %$pre ) ;
+    # fill empty hash result
+    my %h = map { $_ => 0 } $self->get_choice ;
+
+    my %predef  = (%$def, %$pre )  ;
+    my %std     = (%$ud, %$lay, %$def, %$pre ) ;
 
     # use _std_backup if all data values are null (no checked items by user)
     my %old_dat = (none { $_ ;} values %$dat) ?  %{$self->{_std_backup} || {}} : %$dat ;
 
     if (not $mode and any {$_;} values %predef and none { $_ ;} values %old_dat) {
         # changed from nothing to default checked list that must be written
-        $self->{_std_backup} = \%predef ;
+        $self->{_std_backup} = { %$def, %$pre } ;
         $self->notify_change(note => "use default checklist") ;
     }
-
     # custom test must compare the whole list at once, not just one item at a time.
-    my %result 
-      = $mode eq 'custom'   ? ( ( grep { $dat->{$_} xor $std{$_} } keys %h ) ? (%h, %$pre ,%$dat) : %h )
-      : $mode eq 'preset'   ? (%h, %$pre )
-      : $mode eq 'layered'  ? (%h, %$lay )
-      : $mode eq 'upstream_default' ? (%h, %$ud) 
-      : $mode eq 'default'          ? (%h, %$def )
-      : $mode eq 'standard' ? %std
-      :                       (%predef, %$dat );
+    my %result =
+        $mode eq 'custom' ? ( ( grep { $dat->{$_} xor $std{$_} } keys %h ) ? ( %$pre, %$dat ) : () )
+      : $mode eq 'preset'           ? (%$pre)
+      : $mode eq 'layered'          ? (%$lay)
+      : $mode eq 'upstream_default' ? (%$ud)
+      : $mode eq 'default'          ? (%$def)
+      : $mode eq 'standard'         ? %std
+      : $mode eq 'user'             ? ( %h, %std, %$dat )
+      :                               ( %predef, %$dat );
 
     return wantarray ? %result : \%result;
 }
@@ -560,9 +590,17 @@ sub store_set { goto &set_checked_list }
 sub set_checked_list {
     my $self = shift ;
     $logger->debug("called with @_");
-    $self->clear ;
+    my %set = map { $_ => 1 } @_ ;
+    my @changed ;
+
+    foreach my $c ($self->get_choice) {
+        push @changed,$c if $self->store($c , $set{$c} // 0) ;
+    }
+
     $self->{ordered_data} = [ @_ ] ; # copy list
-    $self->check (@_) ;
+
+    $self->notify_change(note => "set_checked_list @changed")
+        if @changed and not $self->instance->initial_load;
 }
 
 
@@ -570,14 +608,13 @@ sub set_checked_list_as_hash {
     my $self = shift ;
     my %check = ref $_[0] ? %{$_[0]} : @_ ;
 
-    $self->clear ; 
-
-    if (defined $self->{ref_object}) {
-	$self->{ref_object}->get_choice_from_refered_to ;
-    }
-
-    while (my ($key, $value) = each %check) {
-	$self->store($key,$value) ;
+    foreach my $c ($self->get_choice) {
+        if (defined $check{$c}) {
+            $self->store($c,$check{$c});
+        }
+        else {
+            $self->clear_item($c) ;
+        }
     }
 }
 
@@ -591,6 +628,9 @@ sub load_data {
 
     if (ref ($data)  eq 'ARRAY') {
 	$self->set_checked_list(@$data) ;
+    }
+    elsif (ref($data) eq 'HASH') {
+        $self->set_checked_list_as_hash($data) ;
     }
     else {
 	Config::Model::Exception::LoadData
@@ -686,7 +726,7 @@ Config::Model::CheckList - Handle check list element
 
 =head1 VERSION
 
-version 2.038
+version 2.039
 
 =head1 SYNOPSIS
 
@@ -985,8 +1025,11 @@ Return the help string on this choice value
 
 =head2 clear
 
-Reset the check list (all items are set to 0) (can also be called as
-C<clear_values>)
+Reset the check list (can also be called as C<clear_values>)
+
+=head2 clear_item (choice_value)
+
+Reset an element of the checklist.
 
 =head2 get_checked_list_as_hash ( [ custom | preset | standard | default ] )
 
@@ -1030,6 +1073,11 @@ The list specified in layered mode.
 The list implemented by upstream project (defined in the configuration
 model)
 
+=item user
+
+The list set that will be active in the application. (ie. set by user or
+by layered data or preset or default)
+
 =back
 
 =head2 get_checked_list ( < mode >  )
@@ -1062,19 +1110,15 @@ Example:
   # set cl to A=0 B=1 C=0 D=1
   $cl->set_checked_list('B','D')
 
-=head2 set_checked_list_as_hash ( A => 1, B => 1 )
+=head2 set_checked_list_as_hash ()
 
 Set check_list items. Missing items in the given list of parameters
-are set to 0.
+are cleared (i.e. set to undef).
 
-The example ( A => 1, B => 1 ) above will give :
+=head2 load_data ( ref )
 
- A = 1 , B = 1, C = 0 , D = 0
-
-=head2 load_data ( list_ref )
-
-Load check_list as an array ref. Data is simply forwarded to
-L<set_checked_list>.
+Load check_list as an array or hash ref. Array is forwarded to
+L<set_checked_list> , and hash is forwarded to L<set_checked_list_as_hash>.
 
 =head1 Ordered checklist methods
 

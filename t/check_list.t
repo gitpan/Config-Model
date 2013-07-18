@@ -10,8 +10,6 @@ use Config::Model;
 use Data::Dumper;
 use Log::Log4perl qw(:easy :levels) ;
 
-BEGIN { plan tests => 91; }
-
 use strict;
 
 my $arg = shift || '';
@@ -217,7 +215,6 @@ is( scalar @got, 0, "test nb of elt in check_list " );
 is_deeply( \@got, [], "test get_checked_list after set_checked_list" );
 
 my %expect;
-map { $expect{$_} = 0 } ( 'A' .. 'Z' );
 
 my $hr = $cl->get_checked_list_as_hash;
 is_deeply( $hr, \%expect, "test get_checked_list_as_hash for empty checklist" );
@@ -251,8 +248,9 @@ $inst->clear_changes ;
 
 # test global get and set as hash
 $hr = $cl->get_checked_list_as_hash;
+map { $expect{$_} = 0 } ( 'A' .. 'Z' );
 map { $expect{$_} = 1 } @set;
-is_deeply( $hr, \%expect, "test get_checked_list_as_hash" );
+eq_or_diff( $hr, \%expect, "test get_checked_list_as_hash" );
 
 $expect{V} = 0;
 $expect{W} = 1;
@@ -283,7 +281,17 @@ $inst->layered_stop ;
 
 eq_or_diff( [ $cl->get_checked_list(mode => 'layered') ], \@l_set,"check layered content");
 eq_or_diff( [ $cl->get_checked_list(mode => 'standard') ], \@l_set,"check standard content");
-eq_or_diff( [ $cl->get_checked_list() ], [],"check content");
+eq_or_diff( [ $cl->get_checked_list() ], [],"check user content");
+
+$cl->set_checked_list_as_hash(V => 1, W => 1) ;
+eq_or_diff( [ $cl->get_checked_list(mode => 'layered') ], \@l_set,"check layered content");
+eq_or_diff( [ $cl->get_checked_list(mode => 'standard') ], \@l_set,"check standard content");
+eq_or_diff( [ $cl->get_checked_list(mode => 'user') ], [qw/B M V W/],"check user content");
+eq_or_diff( [ $cl->get_checked_list() ], [qw/V W/],"check content");
+
+$cl->clear_layered ;
+eq_or_diff( [ $cl->get_checked_list(mode => 'layered') ], [],"check layered content after clear");
+
 
 # now test with a refer_to parameter
 
@@ -554,3 +562,5 @@ print  join("\n", $inst->list_changes("\n")),"\n" if $trace;
 
 
 memory_cycle_ok($model,"memory cycle");
+
+done_testing ;

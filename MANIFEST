@@ -11,6 +11,7 @@ TODO
 config-edit
 contrib/bash_completion.cme
 contrib/bash_completion.config-edit
+contrib/log4config-model
 examples/fstab/README
 examples/fstab/add-ext4-workshop.txt
 examples/fstab/fstab.sample
@@ -93,9 +94,9 @@ t/array_id.t
 t/array_with_data_migration.t
 t/augment_class.t
 t/auto_load_model.t
-t/auto_read.t
 t/backend_ini.t
 t/backend_ini_with_section_map.t
+t/backend_mgr.t
 t/backend_multiple.t
 t/backend_plainfile.t
 t/big_model.pm
@@ -121,6 +122,9 @@ t/model.t
 t/model_tests.d/fstab-examples/t0
 t/model_tests.d/fstab-examples/t1
 t/model_tests.d/fstab-test-conf.pl
+t/model_tests.d/layer-examples/mini/etc/foo-config.pl
+t/model_tests.d/layer-examples/mini/home/joe/foo/config.pl
+t/model_tests.d/layer-test-conf.pl
 t/model_tests.d/multistrap-examples/arm/home/foo/my_arm.conf
 t/model_tests.d/multistrap-examples/arm/usr/share/multistrap/crosschroot.conf
 t/model_tests.d/multistrap-examples/from_scratch/usr/share/multistrap/crosschroot.conf

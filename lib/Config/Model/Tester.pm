@@ -9,12 +9,13 @@
 #
 package Config::Model::Tester;
 {
-  $Config::Model::Tester::VERSION = '2.038';
+  $Config::Model::Tester::VERSION = '2.039';
 }
 
 use Test::More;
 use Config::Model;
 use Config::Model::Value;
+use Config::Model::BackendMgr;
 use Log::Log4perl qw(:easy :levels);
 use File::Path;
 use File::Copy;
@@ -33,7 +34,7 @@ use warnings;
 
 use strict;
 
-use vars qw/$conf_file_name $conf_dir $model_to_test @tests $skip @ISA @EXPORT/;
+use vars qw/$model $conf_file_name $conf_dir $model_to_test $home_for_test @tests $skip @ISA @EXPORT/;
 
 require Exporter;
 @ISA = qw(Exporter);
@@ -98,6 +99,7 @@ sub run_model_test {
     $skip = 0;
     undef $conf_file_name ;
     undef $conf_dir ;
+    undef $home_for_test ;
 
     note("Beginning $model_test test ($model_test_conf)");
 
@@ -111,6 +113,9 @@ sub run_model_test {
         note("Skipped $model_test test ($model_test_conf)");
         return;
     }
+
+    # even undef, this resets the global variable there
+    Config::Model::BackendMgr::_set_test_home($home_for_test) ;
 
     my $note ="$model_test uses $model_to_test model";
     $note .= " on file $conf_file_name" if defined $conf_file_name;
@@ -205,14 +210,17 @@ sub run_model_test {
         $dump = $root->dump_tree();
         ok( $dump, "Dumped $model_test config tree in custom mode" );
 
-        my $check = $t->{check} || {};
-        foreach my $path ( sort keys %$check ) {
-                my $v = $check->{$path};
-                my $check_v = ref $v ? delete $v->{value} : $v ;
-                my @check_args = ref $v ? %$v : ();
-                my $check_str = @check_args ? " (@check_args)" : '' ;
-                is( $root->grab(step => $path, @check_args)->fetch (@check_args), 
-                    $check_v, "check $path value$check_str" );
+        my $c = $t->{check} || {};
+        my @checks = ref $c eq 'ARRAY' ? @$c
+            : map { ( $_ => $c->{$_})} sort keys %$c ;
+        while (@checks) {
+            my $path       = shift @checks;
+            my $v          = shift @checks;
+            my $check_v    = ref $v ? delete $v->{value} : $v;
+            my @check_args = ref $v ? %$v : ();
+            my $check_str  = @check_args ? " (@check_args)" : '';
+            is( $root->grab( step => $path, @check_args )->fetch(@check_args),
+                $check_v, "check '$path' value$check_str" );
         }
 
         if (my $annot_check = $t->{verify_annotation}) {
@@ -321,7 +329,7 @@ sub run_tests {
         Log::Log4perl->easy_init( $log ? $WARN : $ERROR );
     }
 
-    my $model = Config::Model->new();
+    $model = Config::Model->new();
 
     Config::Model::Exception::Any->Trace(1) if $arg =~ /e/;
 
@@ -351,7 +359,7 @@ Config::Model::Tester - Test framework for Config::Model
 
 =head1 VERSION
 
-version 2.038
+version 2.039
 
 =head1 SYNOPSIS
 
@@ -414,6 +422,8 @@ in programs, but they are handy for tests):
  $conf_file_name = "fstab" ;
  # config dir where to copy the file
  #$conf_dir = "etc" ;
+ # home directory for this test
+ $home_for_test = '/home/joe' ;
 
 Here, C<t0> file will be copied in C<wr_root/test-t0/etc/fstab>.
 
@@ -435,6 +445,11 @@ Here, C<t0> file will be copied in C<wr_root/test-t0/etc/fstab>.
 
  1; # to keep Perl happy
  
+=head2 Internal tests
+
+C<$model> can also be called to create models to test specific C<Config::Model> behaviors.
+Use with caution.
+
 =head2 Test specification with arbitrary file names
 
 In some models (e.g. C<Multistrap>, the config file is chosen by the user. 
@@ -515,19 +530,19 @@ You can tolerate any dump warning this way:
 Run specific content check to verify that configuration data was retrieved 
 correctly:
 
-    check => { 
+    check => [
         'fs:/proc fs_spec',           "proc" ,
         'fs:/proc fs_file',           "/proc" ,
         'fs:/home fs_file',          "/home",
-    },
+    ],
     
 You can run check using different check modes (See L<Config::Model::Value/"fetch( ... )">)
 by passing a hash ref instead of a scalar :
     
-    check  => {
+    check  => [
         'sections:debian packages:0' , { qw/mode layered value dpkg-dev/},
         ''sections:base packages:0',   { qw/mode layered value gcc-4.2-base/},
-    },
+    ],
 
 The whole hash content (except "value") is passed to  L<grab|Config::Model::AnyThing/"grab(...)"> 
 and L<fetch|Config::Model::Value/"fetch( ... )">

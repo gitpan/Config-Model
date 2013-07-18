@@ -4,7 +4,7 @@ Config::Model::models::Multistrap::Section - Configuration class Multistrap::Sec
 
 =head1 VERSION
 
-version 2.038
+version 2.039
 
 =head1 DESCRIPTION
 

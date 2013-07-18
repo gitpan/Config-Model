@@ -101,6 +101,7 @@ my $build = $class->new(
     'IO::File' => '0',
     'List::MoreUtils' => '0',
     'Log::Log4perl' => '1.11',
+    'Module::Runtime' => '0.012',
     'Mouse' => '0',
     'MouseX::NativeTraits' => '0',
     'MouseX::StrictConstructor' => '0',

@@ -9,7 +9,7 @@
 #
 package Config::Model::BackendMgr ;
 {
-  $Config::Model::BackendMgr::VERSION = '2.038';
+  $Config::Model::BackendMgr::VERSION = '2.039';
 }
 
 use Mouse ;
@@ -29,6 +29,11 @@ use Log::Log4perl qw(get_logger :levels);
 
 my $logger = get_logger('BackendMgr') ;
 
+# used only for tests
+my $__test_home = '';
+sub _set_test_home { $__test_home = shift ;}
+
+
 # one BackendMgr per file
 
 has 'node' => (
@@ -46,30 +51,18 @@ has 'backend' => (
     handles => { set_backend => 'set', get_backend => 'get' }
 );
 
-sub get_cfg_file_path {
-    my $self = shift ; 
+#
+# New subroutine "get_cfg_dir_path" extracted - Thu Jul 11 13:47:22 2013.
+#
+sub get_cfg_dir_path {
+    my $self = shift ;
     my %args = @_;
 
     my $w = $args{write} || 0 ;
-
-    # config file override
-    if (defined $args{config_file}) {
-        my $override = $args{root}.$args{config_file}  ;
-         $logger->trace("auto_". ($w ? 'write' : 'read') 
-                  ." $args{backend} override target file is $override" );
-        return $args{root}.$args{config_file} 
-    }
-
-    Config::Model::Exception::Model -> throw (
-         error=> "auto_". ($w ? 'write' : 'read') 
-                 ." error: empty 'config_dir' parameter (and no config_file override)",
-         object => $self->node
-    ) unless $args{config_dir};
-
-    my $dir = $args{config_dir} ;
+    my $dir = $args{os_config_dir}{$^O} || $args{config_dir} ;
     if ($dir =~ /^~/) { 
         # also works also on Windows. Not that I care, just trying to be nice
-        my $home = File::HomeDir->my_data; 
+        my $home = $__test_home || File::HomeDir->my_data;
         $dir =~ s/^~/$home/;
     }
     
@@ -87,14 +80,44 @@ sub get_cfg_file_path {
         return;
     }
 
+    $logger->debug("dir: ". $dir // '<undef>') ;
+
+    return $dir;
+}
+
+sub get_cfg_file_path {
+    my $self = shift ;
+    my %args = @_;
+
+    my $w = $args{write} || 0 ;
+
+    # config file override
+    if (defined $args{config_file}) {
+        my $override = $args{root}.$args{config_file}  ;
+         $logger->trace("auto_". ($w ? 'write' : 'read')
+                  ." $args{backend} override target file is $override" );
+        return $args{root}.$args{config_file}
+    }
+
+    Config::Model::Exception::Model -> throw (
+         error=> "backend error: empty 'config_dir' parameter (and no config_file override)",
+         object => $self->node
+    ) unless $args{config_dir};
+
+    my $dir = $self->get_cfg_dir_path (%args);
+    if (not defined $dir) {
+        $logger->trace("no config dir: returns undef");
+        return ;
+    }
+
     if (defined $args{file}) {
         my $res = $dir.$args{file} ;
-        $logger->trace("get_cfg_file_path: returns $res"); 
+        $logger->trace("get_cfg_file_path: returns $res");
         return $res ;
     }
 
     if (not defined $args{suffix}) {
-        $logger->trace("get_cfg_file_path: returns undef (no suffix, no file argument)"); 
+        $logger->trace("get_cfg_file_path: returns undef (no suffix, no file argument)");
         return ;
     }
 
@@ -114,7 +137,7 @@ sub get_cfg_file_path {
 
     $name .= $args{suffix} ;
 
-    $logger->trace("get_cfg_file_path: auto_". ($w ? 'write' : 'read') 
+    $logger->trace("get_cfg_file_path: auto_". ($w ? 'write' : 'read')
                   ." $args{backend} target file is $name" );
 
     return $name;
@@ -216,7 +239,7 @@ sub read_config_data {
 
     # r_dir is obsolete
     if (defined $r_dir) {
-        warn $self->node->config_class_name," : read_config_dir is obsolete\n";
+        die $self->node->config_class_name," : read_config_dir is obsolete\n";
     }
 
     my $readlist = dclone $readlist_orig ;
@@ -237,105 +260,28 @@ sub read_config_data {
 
     foreach my $read (@list) {
         warn $self->config_class_name,
-          " deprecated 'syntax' parameter in auto_read\n" if defined $read->{syntax} ;
+          " deprecated 'syntax' parameter in backend\n" if defined $read->{syntax} ;
         my $backend = delete $read->{backend} || delete $read->{syntax} || 'custom';
         if ($backend =~ /^(perl|ini|cds)$/) {
             warn $self->config_class_name,
-              " deprecated auto_read backend $backend. Should be '$ {backend}_file'\n";
+              " deprecated  backend $backend. Should be '$ {backend}_file'\n";
             $backend .= "_file" ;
         }
 
         next if ($pref_backend and $backend ne $pref_backend) ;
 
-        my $read_dir = delete $read->{config_dir} || $r_dir || ''; # $r_dir obsolete
-        $read_dir .= '/' if $read_dir and $read_dir !~ m(/$) ; 
-
         if (defined $read->{allow_empty}) {
-          warn "backend $backend: allow_empty is deprecated. Use auto_create";
-          $auto_create ||= delete $read->{allow_empty} ;
+            warn "backend $backend: allow_empty is deprecated. Use auto_create";
+            $auto_create ||= delete $read->{allow_empty} ;
         }
 
         $auto_create ||= delete $read->{auto_create} if defined $read->{auto_create};
 
-        my @read_args = (%$read, root => $root_dir, config_dir => $read_dir,
-                        backend => $backend, check => $check, 
-                        config_file => $config_file_override);
-        
-        my ($res,$fh,$file_path) ;
-
-        if ($backend eq 'custom') {
-            my $c = my $file = delete $read->{class} ;
-            $file =~ s!::!/!g;
-            my $f = delete $read->{function} || 'read' ;
-            require $file.'.pm' unless $c->can($f);
-            no strict 'refs';
-
-            $logger->info("Read with custom backend $ {c}::$f in dir $read_dir");
-
-            ($file_path,$fh) = $self->open_read_file(@read_args);
-            eval {
-                $res = &{ $c . '::' . $f }(
-                    @read_args,
-                    file_path => $file_path,
-                    io_handle => $fh,
-                    object    => $self->node
-                );
-            };
-        }
-        elsif ($backend eq 'perl_file') {
-            ($file_path,$fh) = $self->open_read_file(@read_args,
-                                                       suffix => '.pl');
-            next unless defined $file_path ;
-            eval {
-                $res = $self->read_perl(@read_args, 
-                                       file_path => $file_path,
-                                       io_handle => $fh);
-            }
-        }
-        elsif ($backend eq 'cds_file') {
-            ($file_path,$fh) = $self->open_read_file(@read_args,
-                                                        suffix => '.cds');
-            next unless defined $file_path ;
-            eval { 
-                $res = $self->read_cds_file(@read_args, 
-                                           file_path => $file_path,
-                                           io_handle => $fh,);
-            } ;
-        }
-        else {
-            # try to load a specific Backend class
-            my $f = delete $read->{function} || 'read' ;
-            my $c = load_backend_class ($backend, $f);
-            next unless defined $c;
-
-            no strict 'refs';
-            my $backend_obj = $c->new(node => $self->node, name => $backend) ;
-            $self->set_backend($backend => $backend_obj) ; 
-            my $suffix ;
-            $suffix = $backend_obj->suffix if $backend_obj->can('suffix');
-            ($file_path,$fh) = $self->open_read_file(@read_args,
-                                                        suffix => $suffix);
-            $logger->info("Read with $backend ".$c."::$f");
-
-            eval {
-                $res = $backend_obj->$f(@read_args, 
-                                       file_path => $file_path,
-                                       io_handle => $fh,
-                                       object => $self->node,
-                                      );
-            } ;
+        if ($read->{default_layer}) {
+            $self->read_config_sub_layer($read, $root_dir, $config_file_override, $check, $backend);
         }
 
-        # catch eval errors done in the if-then-else block before
-        my $e ;
-        if ( $e = Exception::Class->caught('Config::Model::Exception::Syntax') ) {
-            # FIXME: this is naughty. Should file a bug to add info in rethrow
-            $e->{parsed_file} = $file_path unless $e->parsed_file ;
-            $e->rethrow ;
-        }
-        elsif ( $e = Exception::Class->caught() ) {
-            ref $e ? $e->rethrow : die $e;
-        }
+        my $res = $self->try_read_backend ($read, $root_dir, $config_file_override, $check, $backend);
 
         if ($res) { 
             $read_done = 1 ;
@@ -352,7 +298,7 @@ sub read_config_data {
 
         Config::Model::Exception::Model -> throw
             (
-             error => "auto_read error: $msg. May be add "
+             error => "backend error: $msg. May be add "
                     . "'auto_create' parameter in configuration model" ,
              object => $self->node,
             ) unless (defined $auto_create_override ? $auto_create_override : $auto_create );
@@ -362,7 +308,138 @@ sub read_config_data {
 
 }
 
+
+sub read_config_sub_layer {
+    my ($self, $read, $root_dir, $config_file_override, $check, $backend) = @_;
+
+    my $layered_config = delete $read->{default_layer} ;
+    my $layered_read = dclone $read ;
+
+    map { my $lc = delete $layered_config->{$_} ; $layered_read->{$_} = $lc if $lc ;}
+        qw/file config_dir os_config_dir/ ;
+
+    Config::Model::Exception::Model->throw(
+        error => "backend error: unexpected default_layer parameters: "
+          . join( ' ', keys %$layered_config ),
+        object => $self->node,
+    ) if %$layered_config;
+
+    my $i = $self->node->instance ;
+    my $already_in_layered = $i->layered ;
+
+    # layered stuff here
+    if (not $already_in_layered) {
+        $i->layered_clear ;
+        $i->layered_start ;
+    }
+
+    $self->try_read_backend ($layered_read, $root_dir, $config_file_override, $check, $backend);
+
+    if (not $already_in_layered) {
+        $i->layered_stop ;
+    }
+}
+
 # called at configuration node creation, NOT when writing
+#
+# New subroutine "try_read_backend" extracted - Sun Jul 14 11:52:58 2013.
+#
+sub try_read_backend {
+    my $self                 = shift;
+    my $read                 = shift;
+    my $root_dir             = shift;
+    my $config_file_override = shift;
+    my $check                = shift;
+    my $backend              = shift;
+
+    my $read_dir = $read->{os_config_dir}{$^O} || $read->{config_dir} || '';
+    $read_dir .= '/' if $read_dir and $read_dir !~ m(/$);
+
+    my @read_args = (
+        %$read,
+        root        => $root_dir,
+        config_dir  => $read_dir,
+        backend     => $backend,
+        check       => $check,
+        config_file => $config_file_override
+    );
+
+    my ( $res, $fh, $file_path );
+
+    if ( $backend eq 'custom' ) {
+        my $c = my $file = delete $read->{class};
+        $file =~ s!::!/!g;
+        my $f = delete $read->{function} || 'read';
+        require $file . '.pm' unless $c->can($f);
+        no strict 'refs';
+
+        $logger->info("Read with custom backend $ {c}::$f in dir $read_dir");
+
+        ( $file_path, $fh ) = $self->open_read_file(@read_args);
+        eval {
+            $res = &{ $c . '::' . $f }(
+                @read_args,
+                file_path => $file_path,
+                io_handle => $fh,
+                object    => $self->node
+            );
+        };
+    }
+    elsif ( $backend eq 'perl_file' ) {
+        ( $file_path, $fh ) = $self->open_read_file( @read_args, suffix => '.pl' );
+        return unless defined $file_path;
+        eval { $res = $self->read_perl( @read_args, file_path => $file_path, io_handle => $fh ); };
+    }
+    elsif ( $backend eq 'cds_file' ) {
+        ( $file_path, $fh ) = $self->open_read_file( @read_args, suffix => '.cds' );
+        return unless defined $file_path;
+        eval {
+            $res = $self->read_cds_file(
+                @read_args,
+                file_path => $file_path,
+                io_handle => $fh,
+            );
+        };
+    }
+    else {
+        # try to load a specific Backend class
+        my $f = delete $read->{function} || 'read';
+        my $c = load_backend_class( $backend, $f ) ;
+        return unless defined $c;
+
+        no strict 'refs';
+        my $backend_obj = $c->new( node => $self->node, name => $backend );
+        $self->set_backend( $backend => $backend_obj );
+        my $suffix;
+        $suffix = $backend_obj->suffix if $backend_obj->can('suffix');
+        ( $file_path, $fh ) = $self->open_read_file( @read_args, suffix => $suffix );
+        $logger->info( "Read with $backend " . $c . "::$f" );
+
+        eval {
+            $res = $backend_obj->$f(
+                @read_args,
+                file_path => $file_path,
+                io_handle => $fh,
+                object    => $self->node,
+            );
+        };
+    }
+
+    # catch eval errors done in the if-then-else block before
+    my $e;
+    if ( $e = Exception::Class->caught('Config::Model::Exception::Syntax') ) {
+
+        # FIXME: this is naughty. Should file a bug to add info in rethrow
+        $e->{parsed_file} = $file_path unless $e->parsed_file;
+        $e->rethrow;
+    }
+    elsif ( $e = Exception::Class->caught() ) {
+        ref $e ? $e->rethrow : die $e;
+    }
+
+    return $res;
+}
+
 sub auto_write_init {
     my ($self, %args) = @_ ;
     my $wrlist_orig = delete $args{write_config} ;
@@ -375,7 +452,7 @@ sub auto_write_init {
 
     # w_dir is obsolete
     if (defined $w_dir) {
-        warn $self->config_class_name," : write_config_dir is obsolete\n";
+        die $self->config_class_name," : write_config_dir is obsolete\n";
     }
 
     my $wrlist = dclone $wrlist_orig ;
@@ -401,11 +478,11 @@ sub auto_write_init {
         my $backend = delete $write->{backend} || delete $write->{syntax} || 'custom';
         if ($backend =~ /^(perl|ini|cds)$/) {
             warn $self->config_class_name,
-              " deprecated auto_read backend $backend. Should be '$ {backend}_file'\n";
+              " deprecated backend $backend. Should be '$ {backend}_file'\n";
             $backend .= "_file" ;
         }
 
-        my $write_dir = delete $write->{config_dir} || $w_dir || ''; # w_dir obsolete
+        my $write_dir =  $write->{os_config_dir}{$^O} || $write->{config_dir} || '';
         $write_dir .= '/' if $write_dir and $write_dir !~ m(/$) ; 
 
         my $fh ;
@@ -661,7 +738,7 @@ Config::Model::BackendMgr - Load configuration node on demand
 
 =head1 VERSION
 
-version 2.038
+version 2.039
 
 =head1 SYNOPSIS
 
@@ -768,11 +845,6 @@ for details on the data structure.
 
 Any format when the user provides a dedicated class and function to
 read and load the configuration tree.
-
-=item augeas
-
-Data can be loaded or stored using RedHat's Augeas library. See
-L<Config::Model::Backend::Augeas> for details.
 
 =back
 
@@ -898,11 +970,37 @@ directory can be hardcoded in the custom class. C<config_dir> beginning
 with 'C<~>' will be munged so C<~> is replaced by C<< File::HomeDir->my_data >>.
 See L<File::HomeDir> for details.
 
+=item os_config_dir
+
+Specify alternate location of a configuration directory depending on the OS
+(as returned by C<$^O>, see L<perlport/PLATFORMS>).
+For instance:
+
+ config_dir => '/etc/ssh',
+ os_config_dir => { darwin => '/etc' }
+
+
 =item file
 
-optional. This parameter may not apply if the configuration is stored
-in several files. By default, the instance name is used as
-configuration file name. 
+optional. Configuration file. This parameter may not apply if the
+configuration is stored in several files. By default, the instance name
+is used as configuration file name.
+
+=item default_layer
+
+Optional. Specifies where to find a global configuration file that
+specifies default values. For instance, this is used by OpenSSH to
+specify a global configuration file (C</etc/ssh/ssh_config>) that is
+overridden by user's file:
+
+
+	'default_layer' => {
+            os_config_dir => { 'darwin' => '/etc' },
+            config_dir    => '/etc/ssh',
+            file          => 'ssh_config'
+        }
+
+Only the 3 above parameters can be specified in C<default_layer>.
 
 =item function
 
@@ -936,7 +1034,6 @@ default value for C<function> is C<write>. Here's an example:
                         function => 'my_write',
                       },
                     ],
-
 
 =head1 Limitations depending on storage
 
@@ -1140,7 +1237,7 @@ directory to write configuration data back with C<root> and
 C<config_dir> parameters. This will override the model specifications.
 
 You can force to use a backend by specifying C<< backend => xxx >>.
-For instance, C<< backend => 'augeas' >> or C<< backend => 'custom' >>.
+For instance, C<< backend => 'perl_file' >> or C<< backend => 'custom' >>.
 
 You can force to use all backend to write the files by specifying
 C<< backend => 'all' >>.
@@ -1157,6 +1254,6 @@ Dominique Dumont, (ddumont at cpan dot org)
 =head1 SEE ALSO
 
 L<Config::Model>, L<Config::Model::Instance>,
-L<Config::Model::Node>, L<Config::Model::Dumper>, L<Config::Augeas>
+L<Config::Model::Node>, L<Config::Model::Dumper>
 
 =cut

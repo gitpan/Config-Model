@@ -9,7 +9,7 @@
 #
 package Config::Model::Backend::Any ;
 {
-  $Config::Model::Backend::Any::VERSION = '2.038';
+  $Config::Model::Backend::Any::VERSION = '2.039';
 }
 
 use Carp;
@@ -31,7 +31,7 @@ has 'node'       => ( is => 'ro', isa => 'Config::Model::Node',
 
 sub suffix {
     my $self = shift ;
-    $logger->warn("Internal warning: suffix called for backend $self->{name}.This method can be overloaded") ;
+    $logger->info("Internal warning: suffix called for backend $self->{name}.This method can be overloaded") ;
 }
 
 sub read {
@@ -162,7 +162,7 @@ Config::Model::Backend::Any - Virtual class for other backends
 
 =head1 VERSION
 
-version 2.038
+version 2.039
 
 =head1 SYNOPSIS
 
