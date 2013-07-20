@@ -9,7 +9,7 @@
 #
 package Config::Model::AnyId ;
 {
-  $Config::Model::AnyId::VERSION = '2.039';
+  $Config::Model::AnyId::VERSION = '2.040';
 }
 
 use Mouse ;
@@ -982,7 +982,7 @@ Config::Model::AnyId - Base class for hash or list element
 
 =head1 VERSION
 
-version 2.039
+version 2.040
 
 =head1 SYNOPSIS
 

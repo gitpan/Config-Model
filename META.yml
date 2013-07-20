@@ -39,7 +39,6 @@ requires:
   IO::File: 0
   List::MoreUtils: 0
   Log::Log4perl: 1.11
-  Module::Runtime: 0.012
   Mouse: 0
   MouseX::NativeTraits: 0
   MouseX::StrictConstructor: 0
@@ -54,4 +53,4 @@ resources:
   bugtracker: http://rt.cpan.org/NoAuth/Bugs.html?Dist=Config-Model
   homepage: https://github.com/dod38fr/config-model/wiki
   repository: git://github.com/dod38fr/config-model.git
-version: 2.039
+version: 2.040
