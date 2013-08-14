@@ -57,7 +57,6 @@ lib/Config/Model/Report.pm
 lib/Config/Model/SearchElement.pm
 lib/Config/Model/SimpleUI.pm
 lib/Config/Model/TermUI.pm
-lib/Config/Model/Tester.pm
 lib/Config/Model/TreeSearcher.pm
 lib/Config/Model/Value.pm
 lib/Config/Model/Value/LayeredInclude.pm
@@ -119,6 +118,8 @@ t/iterator.t
 t/load.t
 t/load_model_snippets.t
 t/model.t
+t/model_tests.d/backend-shellvar-examples/debian-719256
+t/model_tests.d/backend-shellvar-test-conf.pl
 t/model_tests.d/fstab-examples/t0
 t/model_tests.d/fstab-examples/t1
 t/model_tests.d/fstab-test-conf.pl

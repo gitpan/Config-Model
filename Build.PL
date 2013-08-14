@@ -1,7 +1,7 @@
 #
 # This file is part of Config-Model
 #
-# This software is Copyright (c) 2013 by Dominique Dumont, Krzysztof Tyszecki.
+# This software is Copyright (c) 2013 by Dominique Dumont.
 #
 # This is free software, licensed under:
 #
@@ -70,7 +70,7 @@ my $build = $class->new(
     dist_author   => 'Dominique Dumont (ddumont at cpan dot org)',
 
   'build_requires' => {
-    'File::Copy::Recursive' => '0',
+    'Config::Model::Tester' => '2.042',
     'File::Slurp' => '0',
     'Module::Build' => '0.34',
     'Path::Class' => '0',
@@ -82,8 +82,7 @@ my $build = $class->new(
     'Test::Memory::Cycle' => '0',
     'Test::More' => '0',
     'Test::Warn' => '0.11',
-    'YAML::Any' => '0.303',
-    'perl' => 'v5.10.1'
+    'YAML::Any' => '0.303'
   },
   'configure_requires' => {
     'Module::Build' => '0.34'
@@ -110,7 +109,8 @@ my $build = $class->new(
     'Scalar::Util' => '0',
     'Term::ReadLine' => '0',
     'Text::Diff' => '0',
-    'namespace::autoclean' => '0'
+    'namespace::autoclean' => '0',
+    'perl' => 'v5.10.1'
   },
 
     # cleanup required by t/auto_read.t

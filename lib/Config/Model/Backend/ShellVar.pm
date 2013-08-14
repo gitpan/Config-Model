@@ -1,7 +1,7 @@
 #
 # This file is part of Config-Model
 #
-# This software is Copyright (c) 2013 by Dominique Dumont, Krzysztof Tyszecki.
+# This software is Copyright (c) 2013 by Dominique Dumont.
 #
 # This is free software, licensed under:
 #
@@ -27,7 +27,7 @@
 
 package Config::Model::Backend::ShellVar ;
 {
-  $Config::Model::Backend::ShellVar::VERSION = '2.040';
+  $Config::Model::Backend::ShellVar::VERSION = '2.041';
 }
 
 use Carp;
@@ -67,6 +67,7 @@ sub read {
     my @assoc = $self->associates_comments_with_data( \@lines, '#' ) ;
     foreach my $item (@assoc) {
         my ($data,$c) = @$item;
+        $data =~ s/\s*=\s*/=/; # make reader quite tolerant
         my $load = qq!$data! ;
         $load .= qq!#"$c"! if $c ;
         $logger->debug("Loading:$load\n");
@@ -127,7 +128,7 @@ Config::Model::Backend::ShellVar - Read and write config as a C<SHELLVAR> data s
 
 =head1 VERSION
 
-version 2.040
+version 2.041
 
 =head1 SYNOPSIS
 

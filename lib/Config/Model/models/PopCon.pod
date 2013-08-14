@@ -4,7 +4,7 @@ Config::Model::models::PopCon - Configuration class PopCon
 
 =head1 VERSION
 
-version 2.040
+version 2.041
 
 =head1 DESCRIPTION
 
@@ -18,7 +18,23 @@ If you don't want to participate in the contest, say "no" and we won't send mess
 
 =head2 ENCRYPT - support for encrypted submissions
 
-encrypt popcon submission. Eventually, this feature wil be enabled by default.I<< Optional. Type boolean. upstream_default: '0'.  >> 
+encrypt popcon submission. Eventually, this feature wil be enabled by default.I<< Optional. Type enum. choice: 'no', 'maybe', 'yes'. upstream_default: 'no'.  >> 
+
+Here are some explanations on the possible values:
+
+=over
+
+=item 'maybe'
+
+encrypt if gpg is available
+
+=item 'yes'
+
+try to encrypt and fail if gpg is not available
+
+=back
+
+
 
 =head2 MAILTO - survey e-mail
 
