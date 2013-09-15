@@ -6,6 +6,7 @@ MANIFEST.SKIP
 META.json
 META.yml
 MODELS
+README.install.pod
 README.pod
 TODO
 config-edit

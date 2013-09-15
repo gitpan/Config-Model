@@ -9,12 +9,16 @@
 #
 package Config::Model;
 {
-  $Config::Model::VERSION = '2.041';
+  $Config::Model::VERSION = '2.042';
 }
 use Mouse ;
 use namespace::autoclean;
 use Mouse::Util::TypeConstraints;
 use MouseX::StrictConstructor;
+
+# load AnyEvent as soon as possible: AnyEvent does not like late loading
+# in evals
+use AnyEvent;
 
 use 5.10.1;
 
@@ -1546,7 +1550,7 @@ Config::Model - Create tools to validate, migrate and edit configuration files
 
 =head1 VERSION
 
-version 2.041
+version 2.042
 
 =head1 SYNOPSIS
 

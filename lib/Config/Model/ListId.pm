@@ -9,7 +9,7 @@
 #
 package Config::Model::ListId ;
 {
-  $Config::Model::ListId::VERSION = '2.041';
+  $Config::Model::ListId::VERSION = '2.042';
 }
 use Mouse ;
 use namespace::autoclean;
@@ -400,7 +400,7 @@ Config::Model::ListId - Handle list element for configuration model
 
 =head1 VERSION
 
-version 2.041
+version 2.042
 
 =head1 SYNOPSIS
 
@@ -454,7 +454,7 @@ Move an element within the list. C<check> can be 'yes' 'no' 'skip'
 
 push some values at the end of the list.
 
-=head2 push_x ( values => [ v1','v2', ...] , [ ... ] )
+=head2 push_x ( values => [ v1','v2', ...] ,  ...  )
 
 Like push with extended options. Options are:
 
@@ -497,9 +497,9 @@ list ref of annotation to store with the list values
 Example:
 
  $elt->push_x (
-    values => [ v1','v2' ] , 
+    values => [ 'v1','v2' ] ,
     annotation => [ 'v1 comment', 'v2 comment' ],
-    check => ''skip'
+    check => 'skip'
  );
 
 =head2 swap ( C<ida> , C<idb> )

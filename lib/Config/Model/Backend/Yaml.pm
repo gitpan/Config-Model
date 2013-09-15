@@ -10,7 +10,7 @@
 
 package Config::Model::Backend::Yaml ;
 {
-  $Config::Model::Backend::Yaml::VERSION = '2.041';
+  $Config::Model::Backend::Yaml::VERSION = '2.042';
 }
 
 use Carp;
@@ -92,7 +92,7 @@ Config::Model::Backend::Yaml - Read and write config as a YAML data structure
 
 =head1 VERSION
 
-version 2.041
+version 2.042
 
 =head1 SYNOPSIS
 

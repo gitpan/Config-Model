@@ -9,7 +9,7 @@
 #
 package Config::Model::WarpedNode ;
 {
-  $Config::Model::WarpedNode::VERSION = '2.041';
+  $Config::Model::WarpedNode::VERSION = '2.042';
 }
 use Mouse ;
 
@@ -313,7 +313,7 @@ Config::Model::WarpedNode - Node that change config class properties
 
 =head1 VERSION
 
-version 2.041
+version 2.042
 
 =head1 SYNOPSIS
 
