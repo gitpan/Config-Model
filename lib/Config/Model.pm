@@ -9,7 +9,7 @@
 #
 package Config::Model;
 {
-  $Config::Model::VERSION = '2.042';
+  $Config::Model::VERSION = '2.043';
 }
 use Mouse ;
 use namespace::autoclean;
@@ -1550,7 +1550,7 @@ Config::Model - Create tools to validate, migrate and edit configuration files
 
 =head1 VERSION
 
-version 2.042
+version 2.043
 
 =head1 SYNOPSIS
 

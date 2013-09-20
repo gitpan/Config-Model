@@ -9,7 +9,7 @@
 #
 package Config::Model::AnyThing;
 {
-  $Config::Model::AnyThing::VERSION = '2.042';
+  $Config::Model::AnyThing::VERSION = '2.043';
 }
 
 use Mouse ;
@@ -574,7 +574,7 @@ Config::Model::AnyThing - Base class for configuration tree item
 
 =head1 VERSION
 
-version 2.042
+version 2.043
 
 =head1 SYNOPSIS
 
