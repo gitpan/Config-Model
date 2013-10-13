@@ -9,7 +9,7 @@
 #
 package Config::Model::WarpedNode ;
 {
-  $Config::Model::WarpedNode::VERSION = '2.043';
+  $Config::Model::WarpedNode::VERSION = '2.044';
 }
 use Mouse ;
 
@@ -301,19 +301,19 @@ sub trigger_warp {
 
 1;
 
+# ABSTRACT: Node that change config class properties
+
 __END__
-
-
 
 =pod
 
 =head1 NAME
 
-Config::Model::WarpedNode - Node that change config class properties 
+Config::Model::WarpedNode - Node that change config class properties
 
 =head1 VERSION
 
-version 2.043
+version 2.044
 
 =head1 SYNOPSIS
 
@@ -367,7 +367,6 @@ version 2.043
  $root->load( step => 'master_switch=cY' );
  print "a_warped_node class: ",$node->config_class_name,"\n" ;
  # a_warped_node class: ClassY
-
 
 =head1 DESCRIPTION
 
@@ -487,7 +486,6 @@ the available elements of the node carried by the warped node.
 
 =head1 EXAMPLE
 
-
  $model ->create_config_class 
   (
    experience => [ bar => 'advanced'] ,
@@ -558,5 +556,17 @@ L<Config::Model::AnyThing>,
 L<Config::Model::WarpedThing>,
 L<Config::Model::WarpedNode>,
 L<Config::Model::Value>
+
+=head1 AUTHOR
+
+Dominique Dumont
+
+=head1 COPYRIGHT AND LICENSE
+
+This software is Copyright (c) 2013 by Dominique Dumont.
+
+This is free software, licensed under:
+
+  The GNU Lesser General Public License, Version 2.1, February 1999
 
 =cut

@@ -9,7 +9,7 @@
 #
 package Config::Model::BackendMgr ;
 {
-  $Config::Model::BackendMgr::VERSION = '2.043';
+  $Config::Model::BackendMgr::VERSION = '2.044';
 }
 
 use Mouse ;
@@ -729,7 +729,11 @@ __PACKAGE__->meta->make_immutable;
 
 1;
 
+# ABSTRACT: Load configuration node on demand
+
 __END__
+
+=pod
 
 =head1 NAME
 
@@ -737,7 +741,7 @@ Config::Model::BackendMgr - Load configuration node on demand
 
 =head1 VERSION
 
-version 2.043
+version 2.044
 
 =head1 SYNOPSIS
 
@@ -865,7 +869,6 @@ mandatory C<config_dir> parameter. For instance:
 If C<file> is not specified, a file name will be constructed with
 C<< <config_class_name>.<suffix> >> where suffix is C<pl> or C<ini> or C<cds>.
 
-
 =head2 Plugin backend classes
 
 A plugin backend class can also be specified with:
@@ -978,7 +981,6 @@ For instance:
  config_dir => '/etc/ssh',
  os_config_dir => { darwin => '/etc' }
 
-
 =item file
 
 optional. Configuration file. This parameter may not apply if the
@@ -991,7 +993,6 @@ Optional. Specifies where to find a global configuration file that
 specifies default values. For instance, this is used by OpenSSH to
 specify a global configuration file (C</etc/ssh/ssh_config>) that is
 overridden by user's file:
-
 
 	'default_layer' => {
             os_config_dir => { 'darwin' => '/etc' },
@@ -1087,7 +1088,6 @@ A callback to C<Bar::read>. See L</"read callback> for details.
 When a read operation is successful, the remaining read methods will
 be skipped.
 
-
 =head2 write specification
 
 A configuration class will be declared with optional C<write_config>
@@ -1181,7 +1181,6 @@ a graceful migration from a customized format to a C<cds> format.
                   ],
   write_config => [{ backend => 'cds_file', config_dir => '/etc/my_cfg/' }],
 
-
 You can choose also to read and write only customized files:
 
   read_config  => [{ backend => 'custom', class => 'Bar'}],
@@ -1254,5 +1253,17 @@ Dominique Dumont, (ddumont at cpan dot org)
 
 L<Config::Model>, L<Config::Model::Instance>,
 L<Config::Model::Node>, L<Config::Model::Dumper>
+
+=head1 AUTHOR
+
+Dominique Dumont
+
+=head1 COPYRIGHT AND LICENSE
+
+This software is Copyright (c) 2013 by Dominique Dumont.
+
+This is free software, licensed under:
+
+  The GNU Lesser General Public License, Version 2.1, February 1999
 
 =cut

@@ -9,7 +9,7 @@
 #
 package Config::Model::Node;
 {
-  $Config::Model::Node::VERSION = '2.043';
+  $Config::Model::Node::VERSION = '2.044';
 }
 
 use Mouse ;
@@ -1046,10 +1046,14 @@ sub load_data {
             }
             elsif (defined $obj) {
                 # skip hidden elements and trash corresponding data
+                $logger->trace("Node load_data drop element $elt");
                 delete $perl_data->{$elt};
             }
 
-        } elsif ($check ne 'skip')  {
+        } elsif ($check eq 'skip')  {
+            $logger->trace("Node load_data skips element $elt");
+        }
+        else {
             Config::Model::Exception::LoadData 
                 -> throw (
                           message => "load_data: tried to load hidden "
@@ -1227,6 +1231,7 @@ __PACKAGE__->meta->make_immutable;
 
 1;
 
+# ABSTRACT: Class for configuration tree node
 
 __END__
 
@@ -1238,7 +1243,7 @@ Config::Model::Node - Class for configuration tree node
 
 =head1 VERSION
 
-version 2.043
+version 2.044
 
 =head1 SYNOPSIS
 
@@ -1459,8 +1464,7 @@ Example:
 
 The model snippet above will ensure that C<Bug-Debian> will be shown right after C<bug>.
 
-=for html
-<p>For more information, see <a href="http://ddumont.wordpress.com/2010/05/19/improve-config-upgrade-ep-02-minimal-model-for-opensshs-sshd_config/">this blog</a>.</p>
+=for html <p>For more information, see <a href="http://ddumont.wordpress.com/2010/05/19/improve-config-upgrade-ep-02-minimal-model-for-opensshs-sshd_config/">this blog</a>.</p>
 
 =back
 
@@ -1754,7 +1758,6 @@ exception will be raised.
 
 =head2 is_element_available( name => ...,  experience => ... )
 
-
 Returns 1 if the element C<name> is available for the given
 C<experience> ('beginner' by default) and if the element is
 not "hidden". Returns 0 otherwise.
@@ -1789,7 +1792,6 @@ See L<Config::Model::AnyThing/"grab(...)">.
 =head2 grab_value(...)
 
 See L<Config::Model::AnyThing/"grab_value(...)">.
-
 
 =head2 grab_root()
 
@@ -1932,5 +1934,17 @@ L<Config::Model::ListId>,
 L<Config::Model::CheckList>,
 L<Config::Model::WarpedNode>,
 L<Config::Model::Value>
+
+=head1 AUTHOR
+
+Dominique Dumont
+
+=head1 COPYRIGHT AND LICENSE
+
+This software is Copyright (c) 2013 by Dominique Dumont.
+
+This is free software, licensed under:
+
+  The GNU Lesser General Public License, Version 2.1, February 1999
 
 =cut

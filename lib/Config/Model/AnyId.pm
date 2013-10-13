@@ -9,7 +9,7 @@
 #
 package Config::Model::AnyId ;
 {
-  $Config::Model::AnyId::VERSION = '2.043';
+  $Config::Model::AnyId::VERSION = '2.044';
 }
 
 use Mouse ;
@@ -970,9 +970,9 @@ __PACKAGE__->meta->make_immutable;
 
 1;
 
+# ABSTRACT: Base class for hash or list element
+
 __END__
-
-
 
 =pod
 
@@ -982,7 +982,7 @@ Config::Model::AnyId - Base class for hash or list element
 
 =head1 VERSION
 
-version 2.043
+version 2.044
 
 =head1 SYNOPSIS
 
@@ -1157,12 +1157,11 @@ To perform special set-up on children nodes you can also use
 
    default_with_init =>  { 'foo' => 'X=Av Y=Bv' ,
                            'bar' => 'Y=Av Z=Cv' }
-                           
+
 When the hash contains leaves, you can also use:
 
    default_with_init => { 'def_1' => 'def_1 stuff' ,
                           'def_2' => 'def_2 stuff' }
-
 
 =item migrate_keys_from
 
@@ -1526,5 +1525,17 @@ L<Config::Model::HashId>,
 L<Config::Model::ListId>,
 L<Config::Model::CheckList>,
 L<Config::Model::Value>
+
+=head1 AUTHOR
+
+Dominique Dumont
+
+=head1 COPYRIGHT AND LICENSE
+
+This software is Copyright (c) 2013 by Dominique Dumont.
+
+This is free software, licensed under:
+
+  The GNU Lesser General Public License, Version 2.1, February 1999
 
 =cut

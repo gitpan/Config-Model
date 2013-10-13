@@ -9,7 +9,7 @@
 #
 package Config::Model::ValueComputer ;
 {
-  $Config::Model::ValueComputer::VERSION = '2.043';
+  $Config::Model::ValueComputer::VERSION = '2.044';
 }
 
 use Mouse ;
@@ -18,7 +18,7 @@ use namespace::autoclean;
 
 # use Scalar::Util qw(weaken) ;
 use Carp ;
-use Parse::RecDescent ;
+use Parse::RecDescent 1.90.0;
 use Data::Dumper () ;
 use Log::Log4perl qw(get_logger :levels);
 
@@ -572,8 +572,9 @@ __PACKAGE__->meta->make_immutable;
 1;
 
 
-__END__
+# ABSTRACT:  Provides configuration value computation
 
+__END__
 
 =pod
 
@@ -583,7 +584,7 @@ Config::Model::ValueComputer - Provides configuration value computation
 
 =head1 VERSION
 
-version 2.043
+version 2.044
 
 =head1 SYNOPSIS
 
@@ -620,7 +621,6 @@ version 2.043
 
  print "Computed value is ",$root->grab_value('compute_int'),"\n";
  # Computed value is 42
-
 
 =head1 DESCRIPTION
 
@@ -677,7 +677,7 @@ For instance:
 
 This string or formula may also contain:
 
-=over 
+=over
 
 =item *
 
@@ -697,7 +697,7 @@ The element name of the current object: C<&element> or C<&element()>.
 The element name of a parent object: C<&element(-)>. Likewise, ancestor element name
 can be retrieved with C<&element(-2)> or C<&element(-3)>.
 
-=item* 
+=item*
 
 The full location (path) of the current object: C<&location> or C<&location()>.
 
@@ -827,7 +827,7 @@ compute parameter:
                  allow_override => 1,
                }
    }
-   
+
 This computed default value will be written to the configuration file.
 
 This default value may be already known by the application so the computed value
@@ -843,9 +843,8 @@ parameter:
                  use_as_upstream_default => 1,
                }
    }
-   
+
 C<use_as_upstream_default> implies C<allow_override>.
- 
 
 =head2 Undefined variables
 
@@ -948,5 +947,17 @@ Dominique Dumont, (ddumont at cpan dot org)
 L<Config::Model>, 
 L<Config::Model::Instance>, 
 L<Config::Model::Value>
+
+=head1 AUTHOR
+
+Dominique Dumont
+
+=head1 COPYRIGHT AND LICENSE
+
+This software is Copyright (c) 2013 by Dominique Dumont.
+
+This is free software, licensed under:
+
+  The GNU Lesser General Public License, Version 2.1, February 1999
 
 =cut

@@ -9,7 +9,7 @@
 #
 package Config::Model::Warper ;
 {
-  $Config::Model::Warper::VERSION = '2.043';
+  $Config::Model::Warper::VERSION = '2.044';
 }
 
 use Mouse ;
@@ -581,7 +581,13 @@ sub warp_error {
 
 __PACKAGE__->meta->make_immutable;
 
+# ABSTRACT: Warp tree properties
+
 1;
+
+__END__
+
+=pod
 
 =head1 NAME
 
@@ -589,7 +595,7 @@ Config::Model::Warper - Warp tree properties
 
 =head1 VERSION
 
-version 2.043
+version 2.044
 
 =head1 SYNOPSIS
 
@@ -659,7 +665,6 @@ be applied. In this case, rules is a list ref:
              '$m eq "B" or $m eq"C "'  => { <effect for macro1 == B|C > }
            ]
 
-
 In case of several warp masters, C<follow> must use named parameters, and
 rules must use boolean expression:
 
@@ -697,8 +702,6 @@ eval, so you can use most Perl syntax and regular expressions.
 Function (like C<&foo>) will be called like C<< $self->foo >> before evaluation\
 of the boolean expression.
 
-=cut
-
 =head1 Methods
 
 =head2 warp_error()
@@ -721,9 +724,6 @@ The other values accepted by the warp master that can be tried (if the
 warp master is an enumerated type)
 
 =back
-
-=cut
-
 
 =head1 How does this work ?
 
@@ -783,5 +783,17 @@ L<Config::Model::HashId>,
 L<Config::Model::ListId>,
 L<Config::Model::WarpedNode>,
 L<Config::Model::Value>
+
+=head1 AUTHOR
+
+Dominique Dumont
+
+=head1 COPYRIGHT AND LICENSE
+
+This software is Copyright (c) 2013 by Dominique Dumont.
+
+This is free software, licensed under:
+
+  The GNU Lesser General Public License, Version 2.1, February 1999
 
 =cut

@@ -9,7 +9,7 @@
 #
 package Config::Model::Instance;
 {
-  $Config::Model::Instance::VERSION = '2.043';
+  $Config::Model::Instance::VERSION = '2.044';
 }
 #use Scalar::Util qw(weaken) ;
 
@@ -434,7 +434,7 @@ __PACKAGE__->meta->make_immutable;
 
 1;
 
-
+# ABSTRACT: Instance of configuration tree
 
 __END__
 
@@ -446,7 +446,7 @@ Config::Model::Instance - Instance of configuration tree
 
 =head1 VERSION
 
-version 2.043
+version 2.044
 
 =head1 SYNOPSIS
 
@@ -479,8 +479,6 @@ version 2.043
  my $root = $inst -> config_root ;
 
  print $root->describe;
-
-
 
 =head1 DESCRIPTION
 
@@ -647,7 +645,7 @@ L<Config::Model::Iterator> for details.
 Arguments are explained in  L<Config::Model::Iterator>
 L<constructor arguments|Config::Model::Iterator/"Creating an iterator">.
 
-=head2 
+=head2
 
 =head1 Auto read and write feature
 
@@ -719,5 +717,17 @@ L<Config::Model::Node>,
 L<Config::Model::Loader>,
 L<Config::Model::Searcher>,
 L<Config::Model::Value>,
+
+=head1 AUTHOR
+
+Dominique Dumont
+
+=head1 COPYRIGHT AND LICENSE
+
+This software is Copyright (c) 2013 by Dominique Dumont.
+
+This is free software, licensed under:
+
+  The GNU Lesser General Public License, Version 2.1, February 1999
 
 =cut

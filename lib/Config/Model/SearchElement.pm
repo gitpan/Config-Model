@@ -7,28 +7,9 @@
 #
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
-
-#    Copyright (c) 2006-2011 Dominique Dumont.
-#
-#    This file is part of Config-Model.
-#
-#    Config-Model is free software; you can redistribute it and/or
-#    modify it under the terms of the GNU Lesser Public License as
-#    published by the Free Software Foundation; either version 2.1 of
-#    the License, or (at your option) any later version.
-#
-#    Config-Model is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    Lesser Public License for more details.
-#
-#    You should have received a copy of the GNU Lesser Public License
-#    along with Config-Model; if not, write to the Free Software
-#    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-
 package Config::Model::SearchElement;
 {
-  $Config::Model::SearchElement::VERSION = '2.043';
+  $Config::Model::SearchElement::VERSION = '2.044';
 }
 use Log::Log4perl qw(get_logger :levels);
 use Carp;
@@ -40,143 +21,9 @@ use Config::Model::Exception ;
 
 my $logger = get_logger("Model::Searcher") ;
 
-=head1 NAME
-
-Config::Model::SearchElement - Search an element in a configuration model
-
-=head1 VERSION
-
-version 2.043
-
-=head1 SYNOPSIS
-
- use Config::Model;
- use Log::Log4perl qw(:easy);
- Log::Log4perl->easy_init($WARN);
-
- # define configuration tree object
- my $model = Config::Model->new;
-  $model->create_config_class(
-    name    => "Foo",
-    element => [
-        [qw/foo bar/] => {
-            type       => 'leaf',
-            value_type => 'string'
-        },
-    ]
- ); 
- $model ->create_config_class (
-    name => "MyClass",
-
-    element => [ 
-
-        [qw/foo bar/] => {
-            type       => 'leaf',
-            value_type => 'string'
-        },
-        hash_of_nodes => {
-            type       => 'hash',     # hash id
-            index_type => 'string',
-            cargo      => {
-                type              => 'node',
-                config_class_name => 'Foo'
-            },
-        },
-    ],
- ) ;
-
- my $inst = $model->instance(root_class_name => 'MyClass' );
-
- my $root = $inst->config_root ;
-
- # put data
- my $step = 'foo=FOO hash_of_nodes:fr foo=bonjour -
-   hash_of_nodes:en foo=hello ';
- $root->load( step => $step );
-
- # create searcher for manual search
- my $searcher = $root->searcher();
-
- # looking for foo element in the tree
- $searcher -> prepare (element => 'foo') ;
- my @next = $searcher->next_step() ; 
-
- print "next possible steps: @next\n";
- # next possible steps: foo hash_of_nodes
-
- # Looking for foo below hash_of_nodes
- $searcher->choose('hash_of_nodes') ;
- @next = $searcher->next_step() ; 
-
- print "next possible steps: @next\n";
- # next possible steps: en fr
-
- # Looking for foo below fr
- $searcher->choose('fr') ;
- @next = $searcher->next_step() ; 
-
- print "next possible steps: @next\n";
- # next possible steps: foo
-
- # last step
- $searcher->choose('foo') ;
- my $target = $searcher->current_object;
-
- print "Found '",$target->location,"'\n";
- # Found 'hash_of_nodes:fr foo'
-
- # automatic search setup
- my $element_call_back = sub { return 'hash_of_nodes' ;} ;
- my $id_call_back      = sub { return 'en' ;} ;
-
- $searcher->reset ;
- $target = $searcher->auto_choose($element_call_back, $id_call_back) ;
-  print "Automatic search found '",$target->location,"'\n";
- # Automatic search found 'hash_of_nodes:en foo'
-
-
-=head1 DESCRIPTION
-
-This modules provides a way to search for a configuration element in a
-configuration tree by exploring the configuration model. 
-
-For instance, suppose that you have a xorg.conf model and you know
-that you need to tune the C<MergedXinerama> parameter, but you don't
-remember where is this parameter in the configuration tree. This module
-will guide you through the tree to the(s) node(s) that contain this
-parameter.
-
-This class should be invaluable to construct interactive user interfaces.
-
-This module provides 2 search modes:
-
-=over
-
-=item *
-
-A manual search where you are guided step by step to the element
-you're looking for. At each step, the module will return you the
-possible paths to choose from. The user will have to choose the
-correct path from the available paths. Most of the time, only one
-possibility will be returned, so the user choice should be
-straightforward. In other case (more that one choice), the user will
-have to decide the next step.
-
-=item *
-
-An automatic search where you provide call-back that will resolve the
-ambiguities in case of multiple paths.
-
-=back
-
-=head1 CONSTRUCTOR
-
-The constructor should be used only by L<Config::Model::Node>.
-
-=cut
 
 sub new {
-    my $type = shift; 
+    my $type = shift;
     my %args = @_ ;
 
     my $self = {} ;
@@ -227,13 +74,13 @@ sub _sniff_class {
 	                   :                  $element_model->{config_class_name};
 	my %local_found = %$found_ref ;
 
-	if (   $element_type =~ /(warped_)?node/ 
-	    or $c_type       =~ /(warped_)?node/ 
+	if (   $element_type =~ /(warped_)?node/
+	    or $c_type       =~ /(warped_)?node/
 	   ) {
-	    my $tmp 
+	    my $tmp
 	      = $element_type eq 'node' || $c_type eq 'node'
 		? $self->_sniff_class($cfg_class_name,
-				      $privilege, \%local_found) 
+				      $privilege, \%local_found)
 		: $self->_sniff_warped_node($element_model,
 					    $privilege, \%local_found);
 
@@ -270,26 +117,12 @@ sub _sniff_warped_node {
     return \%warp_tmp ;
 }
 
-=head1 Methods
-
-=head2 get_searchable_elements
-
-Return the list of elements found in model that can be searched in the
-configuration tree.
-
-=cut
 
 sub get_searchable_elements {
     my $self= shift ;
     sort keys %{$self->{data}} ;
 }
 
-=head2 prepare(element => ...)
-
-Prepare the searcher to look for the element passed in the argument.
-Returns the searcher object (i.e. $self).
-
-=cut
 
 sub prepare {
     my $self =shift ;
@@ -317,11 +150,6 @@ sub prepare {
 }
 
 
-=head2 reset
-
-Re-initialize the search engine to redo the search from start
-
-=cut
 
 sub reset {
     my $self = shift ;
@@ -333,30 +161,12 @@ sub reset {
     $self->{current}{element_type} = 'node' ;
 }
 
-=head2 searched
-
-Returns the searched element name.
-
-=cut
 
 sub searched {
     return shift->{element} ;
 }
 
 
-=head1 Manual search
-
-=head2 next_step()
-
-Returns an array (or a ref depending on context) 
-containing the next possible step to find the
-element you're looking for. The array ref can contain 1 or more
-elements.
-
-If the array ref is empty, you can get the target element with 
-L</"current_object()">.
-
-=cut
 
 sub next_step {
     my $self = shift ;
@@ -370,7 +180,7 @@ sub next_step {
     else {
 	my $next_step = $self->{search_tree}{next_step} ;
 
-	@result =  ref     $next_step ? sort keys %$next_step 
+	@result =  ref     $next_step ? sort keys %$next_step
 	        :  defined $next_step ? die "next_step error"
 		:                       ()                    ;
     }
@@ -379,15 +189,6 @@ sub next_step {
     return wantarray ? @result : \@result ;
 }
 
-=head2 next_choice()
-
-Returns an array ref containing the next non-obvious choice to find
-the element you're looking for.
-
-If the array ref is empty, you can get the target element with 
-L</"current_object()">.
-
-=cut
 
 sub next_choice {
     my $self = shift ;
@@ -399,16 +200,10 @@ sub next_choice {
 	return $result if  scalar @$result != 1 ;
 
 	$self->choose(@$result) ;
-    } 
+    }
 
 }
 
-=head2 choose( <chosen_element_name> )
-
-Tell the search engine your choice. The chosen element name must be
-one of the possibilities given by L</"next_step()">.
-
-=cut
 
 # TBD if choice is an id, Node is a hash...
 
@@ -436,7 +231,7 @@ sub choose_from_id_element {
 
     # the following line may trigger an exception for warped out
     # elements
-    my $next_node = $id_obj->fetch_with_id ($choice); 
+    my $next_node = $id_obj->fetch_with_id ($choice);
 
     $self->{current}{object}       = $next_node ;
     return $next_node ;
@@ -462,7 +257,7 @@ sub choose_from_node {
 
     # the following line may trigger an exception for warped out
     # elements
-    my $next_node = $node->fetch_element($choice); 
+    my $next_node = $node->fetch_element($choice);
 
     # $next is a scalar for leaf element of a ref for node element
     if ($next->{$choice}) {
@@ -477,7 +272,7 @@ sub choose_from_node {
 		    -> throw (
 			      message   => "Searcher: choice '$choice' "
 			      ."from $node_class leads to a warped out node: "
-			      . $next_node->warp_error 
+			      . $next_node->warp_error
 			     );
 	    }
 	}
@@ -495,73 +290,12 @@ sub choose_from_node {
     return $next_node ;
 }
 
-=head2 current_object()
-
-Returns the object where the search engine is. It can be 
-a L<node|Config::Model::Node>, 
-a L<list|Config::Model::ListId>, 
-a L<hash|Config::Model::HashId>, or 
-a L<leaf element|Config::Model::Value>.
-
-=cut
 
 sub current_object {
     my $self = shift ;
     return $self->{current}{object} ;
 }
 
-=head1 Automatic search
-
-=head2 auto_choose ( element_callback, id_call_back)
-
-Finds the searched element with minimal user interaction.
-
-C<element_callback> will be called when the search engine finds a node
-where more than one element can lead to the searched item. 
-
-C<id_call_back> will be called when the search engine finds a hash
-element or a list element which contain B<no> or B<more than 1>
-elements. In this case the call-back will have return an id that will
-be used by the search engine to get the target element.
-
-Both call-back arguments will be:
-
-=over
-
-=item *
-
-The current object (as returned by L</"current_object()">)
-
-=item *
-
-A list of possible choices
-
-=back
-
-For instances, your callback will be :
-
- my $id_cb = sub {
-    my ($object,@choices) = @_ ;
-    ....
-    return $choice[1] ;
- }
-
-
-Both call-back are expected to return a scalar value that is either:
-
-=over
-
-=item *
-
-An element name
-
-=item *
-
-An id valid for the list or hash element returned by L</"current_object()">.
-
-=back
-
-=cut
 
 sub auto_choose {
     my $self = shift ;
@@ -596,7 +330,7 @@ sub _auto_choose_elt {
 	my $object   = $self->{current}{object} ;
 	my @choice = $object->fetch_all_indexes() ;
 
-	my $id = @choice == 1 ? $choice[0] 
+	my $id = @choice == 1 ? $choice[0]
 	       :                $id_cb->($object, @choice ) ;
 
 	$self->{current}{object} = $object->fetch_with_id($id);
@@ -604,6 +338,247 @@ sub _auto_choose_elt {
 }
 
 1;
+
+# ABSTRACT: Search an element in a configuration model
+
+__END__
+
+=pod
+
+=head1 NAME
+
+Config::Model::SearchElement - Search an element in a configuration model
+
+=head1 VERSION
+
+version 2.044
+
+=head1 SYNOPSIS
+
+ use Config::Model;
+ use Log::Log4perl qw(:easy);
+ Log::Log4perl->easy_init($WARN);
+
+ # define configuration tree object
+ my $model = Config::Model->new;
+  $model->create_config_class(
+    name    => "Foo",
+    element => [
+        [qw/foo bar/] => {
+            type       => 'leaf',
+            value_type => 'string'
+        },
+    ]
+ );
+ $model ->create_config_class (
+    name => "MyClass",
+
+    element => [
+
+        [qw/foo bar/] => {
+            type       => 'leaf',
+            value_type => 'string'
+        },
+        hash_of_nodes => {
+            type       => 'hash',     # hash id
+            index_type => 'string',
+            cargo      => {
+                type              => 'node',
+                config_class_name => 'Foo'
+            },
+        },
+    ],
+ ) ;
+
+ my $inst = $model->instance(root_class_name => 'MyClass' );
+
+ my $root = $inst->config_root ;
+
+ # put data
+ my $step = 'foo=FOO hash_of_nodes:fr foo=bonjour -
+   hash_of_nodes:en foo=hello ';
+ $root->load( step => $step );
+
+ # create searcher for manual search
+ my $searcher = $root->searcher();
+
+ # looking for foo element in the tree
+ $searcher -> prepare (element => 'foo') ;
+ my @next = $searcher->next_step() ;
+
+ print "next possible steps: @next\n";
+ # next possible steps: foo hash_of_nodes
+
+ # Looking for foo below hash_of_nodes
+ $searcher->choose('hash_of_nodes') ;
+ @next = $searcher->next_step() ;
+
+ print "next possible steps: @next\n";
+ # next possible steps: en fr
+
+ # Looking for foo below fr
+ $searcher->choose('fr') ;
+ @next = $searcher->next_step() ;
+
+ print "next possible steps: @next\n";
+ # next possible steps: foo
+
+ # last step
+ $searcher->choose('foo') ;
+ my $target = $searcher->current_object;
+
+ print "Found '",$target->location,"'\n";
+ # Found 'hash_of_nodes:fr foo'
+
+ # automatic search setup
+ my $element_call_back = sub { return 'hash_of_nodes' ;} ;
+ my $id_call_back      = sub { return 'en' ;} ;
+
+ $searcher->reset ;
+ $target = $searcher->auto_choose($element_call_back, $id_call_back) ;
+  print "Automatic search found '",$target->location,"'\n";
+ # Automatic search found 'hash_of_nodes:en foo'
+
+=head1 DESCRIPTION
+
+This modules provides a way to search for a configuration element in a
+configuration tree by exploring the configuration model.
+
+For instance, suppose that you have a xorg.conf model and you know
+that you need to tune the C<MergedXinerama> parameter, but you don't
+remember where is this parameter in the configuration tree. This module
+will guide you through the tree to the(s) node(s) that contain this
+parameter.
+
+This class should be invaluable to construct interactive user interfaces.
+
+This module provides 2 search modes:
+
+=over
+
+=item *
+
+A manual search where you are guided step by step to the element
+you're looking for. At each step, the module will return you the
+possible paths to choose from. The user will have to choose the
+correct path from the available paths. Most of the time, only one
+possibility will be returned, so the user choice should be
+straightforward. In other case (more that one choice), the user will
+have to decide the next step.
+
+=item *
+
+An automatic search where you provide call-back that will resolve the
+ambiguities in case of multiple paths.
+
+=back
+
+=head1 CONSTRUCTOR
+
+The constructor should be used only by L<Config::Model::Node>.
+
+=head1 Methods
+
+=head2 get_searchable_elements
+
+Return the list of elements found in model that can be searched in the
+configuration tree.
+
+=head2 prepare(element => ...)
+
+Prepare the searcher to look for the element passed in the argument.
+Returns the searcher object (i.e. $self).
+
+=head2 reset
+
+Re-initialize the search engine to redo the search from start
+
+=head2 searched
+
+Returns the searched element name.
+
+=head1 Manual search
+
+=head2 next_step()
+
+Returns an array (or a ref depending on context)
+containing the next possible step to find the
+element you're looking for. The array ref can contain 1 or more
+elements.
+
+If the array ref is empty, you can get the target element with
+L</"current_object()">.
+
+=head2 next_choice()
+
+Returns an array ref containing the next non-obvious choice to find
+the element you're looking for.
+
+If the array ref is empty, you can get the target element with
+L</"current_object()">.
+
+=head2 choose( <chosen_element_name> )
+
+Tell the search engine your choice. The chosen element name must be
+one of the possibilities given by L</"next_step()">.
+
+=head2 current_object()
+
+Returns the object where the search engine is. It can be
+a L<node|Config::Model::Node>,
+a L<list|Config::Model::ListId>,
+a L<hash|Config::Model::HashId>, or
+a L<leaf element|Config::Model::Value>.
+
+=head1 Automatic search
+
+=head2 auto_choose ( element_callback, id_call_back)
+
+Finds the searched element with minimal user interaction.
+
+C<element_callback> will be called when the search engine finds a node
+where more than one element can lead to the searched item.
+
+C<id_call_back> will be called when the search engine finds a hash
+element or a list element which contain B<no> or B<more than 1>
+elements. In this case the call-back will have return an id that will
+be used by the search engine to get the target element.
+
+Both call-back arguments will be:
+
+=over
+
+=item *
+
+The current object (as returned by L</"current_object()">)
+
+=item *
+
+A list of possible choices
+
+=back
+
+For instances, your callback will be :
+
+ my $id_cb = sub {
+    my ($object,@choices) = @_ ;
+    ....
+    return $choice[1] ;
+ }
+
+Both call-back are expected to return a scalar value that is either:
+
+=over
+
+=item *
+
+An element name
+
+=item *
+
+An id valid for the list or hash element returned by L</"current_object()">.
+
+=back
 
 =head1 AUTHOR
 
@@ -617,5 +592,17 @@ L<Config::Model::AnyId>,
 L<Config::Model::ListId>,
 L<Config::Model::HashId>,
 L<Config::Model::Value>,
+
+=head1 AUTHOR
+
+Dominique Dumont
+
+=head1 COPYRIGHT AND LICENSE
+
+This software is Copyright (c) 2013 by Dominique Dumont.
+
+This is free software, licensed under:
+
+  The GNU Lesser General Public License, Version 2.1, February 1999
 
 =cut

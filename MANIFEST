@@ -32,6 +32,7 @@ lib/Config/Model/AnyThing.pm
 lib/Config/Model/Backend/Any.pm
 lib/Config/Model/Backend/Fstab.pm
 lib/Config/Model/Backend/IniFile.pm
+lib/Config/Model/Backend/Json.pm
 lib/Config/Model/Backend/PlainFile.pm
 lib/Config/Model/Backend/ShellVar.pm
 lib/Config/Model/Backend/Yaml.pm
@@ -119,6 +120,8 @@ t/iterator.t
 t/load.t
 t/load_model_snippets.t
 t/model.t
+t/model_tests.d/backend-json-examples/basic
+t/model_tests.d/backend-json-test-conf.pl
 t/model_tests.d/backend-shellvar-examples/debian-719256
 t/model_tests.d/backend-shellvar-test-conf.pl
 t/model_tests.d/fstab-examples/t0
@@ -146,7 +149,6 @@ t/obj_tree_scanner.t
 t/pod.t
 t/pod_generation.t
 t/recursive_warp_value.t
-t/release-pod-syntax.t
 t/report.t
 t/search_element.t
 t/search_in_tree.t
@@ -164,3 +166,4 @@ t/warped_node.t
 t/warped_node_collateral.t
 t/warped_value.t
 t/yaml_backend.t
+weaver.ini

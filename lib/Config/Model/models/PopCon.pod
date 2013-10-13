@@ -1,14 +1,25 @@
+# PODNAME: Config::Model::models::PopCon
+# ABSTRACT:  Configuration class PopCon
+
+__END__
+
+=pod
+
 =head1 NAME
 
 Config::Model::models::PopCon - Configuration class PopCon
 
 =head1 VERSION
 
-version 2.043
+version 2.044
 
 =head1 DESCRIPTION
 
 Configuration classes used by L<Config::Model>
+
+=head1 NAME
+
+Config::Model::models::PopCon - Configuration class PopCon
 
 =head1 Elements
 
@@ -33,8 +44,6 @@ encrypt if gpg is available
 try to encrypt and fail if gpg is not available
 
 =back
-
-
 
 =head2 MAILTO - survey e-mail
 
@@ -84,7 +93,6 @@ L<cme>
 
 =item Dominique Dumont
 
-
 =back
 
 =head1 COPYRIGHT
@@ -92,7 +100,6 @@ L<cme>
 =over
 
 =item 2010,2011 Dominique Dumont
-
 
 =back
 
@@ -102,7 +109,18 @@ L<cme>
 
 =item LGPL2
 
-
 =back
+
+=head1 AUTHOR
+
+Dominique Dumont
+
+=head1 COPYRIGHT AND LICENSE
+
+This software is Copyright (c) 2013 by Dominique Dumont.
+
+This is free software, licensed under:
+
+  The GNU Lesser General Public License, Version 2.1, February 1999
 
 =cut

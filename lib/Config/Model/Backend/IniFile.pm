@@ -7,31 +7,9 @@
 #
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
-# This is free software, licensed under:
-# 
-#   The GNU Lesser General Public License, Version 2.1, February 1999
-# 
-#    Copyright (c) 2010-2011 Dominique Dumont, Krzysztof Tyszecki.
-#
-#    This file is part of Config-Model.
-#
-#    Config-Model is free software; you can redistribute it and/or
-#    modify it under the terms of the GNU Lesser Public License as
-#    published by the Free Software Foundation; either version 2.1 of
-#    the License, or (at your option) any later version.
-#
-#    Config-Model is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    Lesser Public License for more details.
-#
-#    You should have received a copy of the GNU Lesser Public License
-#    along with Config-Model; if not, write to the Free Software
-#    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-
 package Config::Model::Backend::IniFile ;
 {
-  $Config::Model::Backend::IniFile::VERSION = '2.043';
+  $Config::Model::Backend::IniFile::VERSION = '2.044';
 }
 
 use Carp;
@@ -323,7 +301,11 @@ __PACKAGE__->meta->make_immutable ;
 
 1;
 
+# ABSTRACT: Read and write config as a INI file
+
 __END__
+
+=pod
 
 =head1 NAME
 
@@ -331,7 +313,7 @@ Config::Model::Backend::IniFile - Read and write config as a INI file
 
 =head1 VERSION
 
-version 2.043
+version 2.044
 
 =head1 SYNOPSIS
 
@@ -492,14 +474,14 @@ The elements of each class can be different. For instance:
 In this case, class C<A> and class C<B> will not use the same configuration class.
 
 The model will have this structure:
-   
+
  Root class 
  |- leaf element foo
  |- node element A of class_A
  |  \- leaf element bar
  \- node element B of class_B
     \-  leaf element baz
-    
+
 =head2 Arbitrary class name
 
 In this case, the class names can be chosen by the end user. Each class will have the same 
@@ -513,7 +495,7 @@ elements. For instance:
 
 In this case, class C<A> and class C<B> will not use the same configuration class.
 The model will have this structure:
-   
+
  Root class 
  |- leaf foo
  \- hash element my_class_holder
@@ -533,7 +515,7 @@ parameter:
             store_class_in_hash => 'my_class_holder',
         }
     ],
-    
+
 Of course they are exceptions. For instance, in C<Multistrap>, the C<[General]> 
 INI class must be mapped to a specific node object. This can be specified
 with the C<section_map> parameter: 
@@ -561,7 +543,6 @@ C<section_map> can also map an INI class to the root node:
             },
         }
     ],
-
 
 =head1 Methods
 
@@ -593,5 +574,17 @@ Krzysztof Tyszecki, (krzysztof.tyszecki at gmail dot com)
 L<Config::Model>, 
 L<Config::Model::BackendMgr>, 
 L<Config::Model::Backend::Any>, 
+
+=head1 AUTHOR
+
+Dominique Dumont
+
+=head1 COPYRIGHT AND LICENSE
+
+This software is Copyright (c) 2013 by Dominique Dumont.
+
+This is free software, licensed under:
+
+  The GNU Lesser General Public License, Version 2.1, February 1999
 
 =cut

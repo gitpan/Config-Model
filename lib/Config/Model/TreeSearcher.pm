@@ -9,7 +9,7 @@
 #
 package Config::Model::TreeSearcher ;
 {
-  $Config::Model::TreeSearcher::VERSION = '2.043';
+  $Config::Model::TreeSearcher::VERSION = '2.044';
 }
 
 use Mouse ;
@@ -137,13 +137,19 @@ __PACKAGE__->meta->make_immutable;
 
 1;
 
+# ABSTRACT: Search tree for match in value, description...
+
+__END__
+
+=pod
+
 =head1 NAME
 
 Config::Model::TreeSearcher - Search tree for match in value, description...
 
 =head1 VERSION
 
-version 2.043
+version 2.044
 
 =head1 SYNOPSIS
 
@@ -197,7 +203,7 @@ a value, a description or anything that match the given pattern (or keyword).
 
 Creates a new searcher object. The C<type> parameter can be:
 
-=over 
+=over
 
 =item element 
 
@@ -240,5 +246,17 @@ Dominique Dumont, (ddumont at cpan dot org)
 L<Config::Model>,
 L<Config::Model::SearchElement>,
 L<Config::Model::AnyThing>
- 
+
+=head1 AUTHOR
+
+Dominique Dumont
+
+=head1 COPYRIGHT AND LICENSE
+
+This software is Copyright (c) 2013 by Dominique Dumont.
+
+This is free software, licensed under:
+
+  The GNU Lesser General Public License, Version 2.1, February 1999
+
 =cut

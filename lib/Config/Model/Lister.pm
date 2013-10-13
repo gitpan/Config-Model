@@ -9,34 +9,9 @@
 #
 package Config::Model::Lister;
 {
-  $Config::Model::Lister::VERSION = '2.043';
+  $Config::Model::Lister::VERSION = '2.044';
 }
 
-=pod
-
-=head1 NAME
-
-Config::Model::Lister - List available models and applications
-
-=head1 VERSION
-
-version 2.043
-
-=head1 SYNOPSIS
-
- perl -MConfig::Model::Lister -e'print Config::Model::Lister::models;'
-
- perl -MConfig::Model::Lister -e'print Config::Model::Lister::applications;'
-
-=head1 DESCRIPTION
-
-Small modules to list available models or applications whose config
-can be edited by L<config-edit>. This module is designed to be used
-by bash completion.
-
-=head1 FUNCTIONS
-
-=cut
 
 use strict;
 use warnings;
@@ -46,29 +21,6 @@ use vars qw/@EXPORT/;
 
 @EXPORT = qw(applications models) ;
 
-=head1 available_models
-
-Returns an array of 3 hash refs:
-
-=over 
-
-=item *
-
-category (system or user or application) => application list. E.g. 
-
- { system => [ 'popcon' , 'fstab'] }
-
-=item *
-
-application => { model => 'model_name', ... }
-
-=item *
-
-application => model_name
-
-=back
-
-=cut
 
 sub available_models {
     my $test = shift || 0 ;
@@ -109,22 +61,12 @@ sub available_models {
     return \%categories, \%appli_info, \%applications ;
 }
 
-=head1 models
-
-Returns a string with the list of models.
-
-=cut
 
 sub models {
     my @i = available_models ;
     return join( ' ',  sort values %{$i[2]} )."\n"; 
 }
 
-=head1 applications
-
-Returns a string with the list of editable applications.
-
-=cut
 
 sub applications {
     my @i = available_models ;
@@ -133,7 +75,63 @@ sub applications {
 
 1;
 
+# ABSTRACT: List available models and applications
+
+__END__
+
 =pod
+
+=head1 NAME
+
+Config::Model::Lister - List available models and applications
+
+=head1 VERSION
+
+version 2.044
+
+=head1 SYNOPSIS
+
+ perl -MConfig::Model::Lister -e'print Config::Model::Lister::models;'
+
+ perl -MConfig::Model::Lister -e'print Config::Model::Lister::applications;'
+
+=head1 DESCRIPTION
+
+Small modules to list available models or applications whose config
+can be edited by L<config-edit>. This module is designed to be used
+by bash completion.
+
+=head1 FUNCTIONS
+
+=head1 available_models
+
+Returns an array of 3 hash refs:
+
+=over
+
+=item *
+
+category (system or user or application) => application list. E.g.
+
+ { system => [ 'popcon' , 'fstab'] }
+
+=item *
+
+application => { model => 'model_name', ... }
+
+=item *
+
+application => model_name
+
+=back
+
+=head1 models
+
+Returns a string with the list of models.
+
+=head1 applications
+
+Returns a string with the list of editable applications.
 
 =head1 SUPPORT
 
@@ -142,5 +140,17 @@ CPAN RT system, Debian BTS or mailing list.
 =head1 AUTHOR
 
 Copyright 2011 Dominique Dumont
+
+=head1 AUTHOR
+
+Dominique Dumont
+
+=head1 COPYRIGHT AND LICENSE
+
+This software is Copyright (c) 2013 by Dominique Dumont.
+
+This is free software, licensed under:
+
+  The GNU Lesser General Public License, Version 2.1, February 1999
 
 =cut

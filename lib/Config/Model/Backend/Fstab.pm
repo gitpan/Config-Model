@@ -9,7 +9,7 @@
 #
 package Config::Model::Backend::Fstab ;
 {
-  $Config::Model::Backend::Fstab::VERSION = '2.043';
+  $Config::Model::Backend::Fstab::VERSION = '2.044';
 }
 use Mouse ;
 use Carp ;
@@ -150,7 +150,11 @@ __PACKAGE__->meta->make_immutable ;
 
 1;
 
+# ABSTRACT: Read and write config from fstab file
+
 __END__
+
+=pod
 
 =head1 NAME
 
@@ -158,7 +162,7 @@ Config::Model::Backend::Fstab - Read and write config from fstab file
 
 =head1 VERSION
 
-version 2.043
+version 2.044
 
 =head1 SYNOPSIS
 
@@ -214,5 +218,17 @@ Dominique Dumont, (ddumont at cpan dot org)
 L<Config::Model>, 
 L<Config::Model::BackendMgr>, 
 L<Config::Model::Backend::Any>, 
+
+=head1 AUTHOR
+
+Dominique Dumont
+
+=head1 COPYRIGHT AND LICENSE
+
+This software is Copyright (c) 2013 by Dominique Dumont.
+
+This is free software, licensed under:
+
+  The GNU Lesser General Public License, Version 2.1, February 1999
 
 =cut

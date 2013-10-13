@@ -9,7 +9,7 @@
 #
 package Config::Model::Value ;
 {
-  $Config::Model::Value::VERSION = '2.043';
+  $Config::Model::Value::VERSION = '2.044';
 }
 
 use 5.10.1 ;
@@ -18,6 +18,8 @@ use Mouse;
 use Mouse::Util::TypeConstraints;
 use MouseX::StrictConstructor;
 use namespace::autoclean;
+
+use Parse::RecDescent 1.90.0;
 
 use Data::Dumper ();
 use Config::Model::Exception ;
@@ -1894,9 +1896,9 @@ __PACKAGE__->meta->make_immutable;
 
 1;
 
+# ABSTRACT:  Strongly typed configuration value
+
 __END__
-
-
 
 =pod
 
@@ -1906,7 +1908,7 @@ Config::Model::Value - Strongly typed configuration value
 
 =head1 VERSION
 
-version 2.043
+version 2.044
 
 =head1 SYNOPSIS
 
@@ -2027,7 +2029,6 @@ application. This value must be written in the configuration file.
 
 C<computed>: The value is computed from other configuration
 elements. This value must be written in the configuration file.
-
 
 =item *
 
@@ -2155,7 +2156,6 @@ The example below will warn if a directory is missing:
 
   warn_unless => { 'dir' => { code => '-d' , msg => 'missing dir', fix => "system(mkdir $_);" }}
 
-
 =item assert
 
 Like C<warn_if_match>. Except that returned value will trigger an error if false.
@@ -2198,7 +2198,7 @@ The hash key can also be a regular expression for wider range replacement.
 The regexp must match the whole value:
 
   replace => ( 'foo.*' => 'better_foo' }
-  
+
 In this case, a value will be replaced by C<better_foo> if the 
 C</^foo.*$/> regexp matches. 
 
@@ -2490,7 +2490,7 @@ skip validation check.
 
 Optional C<callback> is called when store check is done with these named parameters:
 C<value check notify_change ok>.
- 
+
 =head2 load_data( scalar_value )
 
 Load scalar data. Data is simply forwarded to L<store>.
@@ -2661,7 +2661,7 @@ Set a value from a directory like path.
     type       => 'leaf',
     value_type => 'boolean',
   },
- 
+
 =head2 Enum with help associated with each value 
 
 Note that the help specification is optional.
@@ -2698,7 +2698,7 @@ regular expression.
     value_type => 'string',
     match      => '^foo\d{2}$',
   },
-  
+
 =head2 Enforce value to match a L<Parse::RecDescent> grammar
 
   match_with_parse_recdescent => {
@@ -2721,7 +2721,7 @@ translate all capital letters to lower case.
     value_type    => 'string',
     warn_if_match => { '/A-Z/' => { fix => '$_ = lc;' } },
   },
- 
+
 A specific warning can be specified:
 
   warn_if_capital => {
@@ -2736,13 +2736,13 @@ A specific warning can be specified:
   },
 
 =head2 Issue a warning if a value does NOT match a regexp 
-  
+
   warn_unless => {
     type              => 'leaf',
     value_type        => 'string',
     warn_unless_match => { foo => { msg => '', fix => '$_ = "foo".$_;' } },
   },
-  
+
 =head2 Always issue a warning 
 
   always_warn => {
@@ -2805,7 +2805,6 @@ parameters (host and path):
 				   },
 		 },
 
-
 =head1 EXCEPTION HANDLING
 
 When an error is encountered, this module may throw the following
@@ -2827,5 +2826,17 @@ Dominique Dumont, (ddumont at cpan dot org)
 L<Config::Model>, L<Config::Model::Node>,
 L<Config::Model::AnyId>, L<Config::Model::WarpedThing>, L<Exception::Class>
 L<Config::Model::ValueComputer>,
+
+=head1 AUTHOR
+
+Dominique Dumont
+
+=head1 COPYRIGHT AND LICENSE
+
+This software is Copyright (c) 2013 by Dominique Dumont.
+
+This is free software, licensed under:
+
+  The GNU Lesser General Public License, Version 2.1, February 1999
 
 =cut

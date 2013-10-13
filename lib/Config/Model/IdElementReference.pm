@@ -9,7 +9,7 @@
 #
 package Config::Model::IdElementReference;
 {
-  $Config::Model::IdElementReference::VERSION = '2.043';
+  $Config::Model::IdElementReference::VERSION = '2.044';
 }
 
 use Mouse;
@@ -186,6 +186,8 @@ __PACKAGE__->meta->make_immutable;
 
 1;
 
+# ABSTRACT: Refer to id element(s) and extract keys
+
 __END__
 
 =pod
@@ -196,7 +198,7 @@ Config::Model::IdElementReference - Refer to id element(s) and extract keys
 
 =head1 VERSION
 
-version 2.043
+version 2.044
 
 =head1 SYNOPSIS
 
@@ -302,7 +304,6 @@ version 2.043
  print "master IP is ",$root->grab_value('master_ip'),"\n";
  # prints master IP is 192.168.1.2
 
-
 =head1 DESCRIPTION
 
 This class is user by L<Config::Model::Value> to set up an enumerated
@@ -380,5 +381,17 @@ Dominique Dumont, (ddumont at cpan dot org)
 
 L<Config::Model>, L<Config::Model::Value>,
 L<Config::Model::AnyId>, L<Config::Model::CheckList>
+
+=head1 AUTHOR
+
+Dominique Dumont
+
+=head1 COPYRIGHT AND LICENSE
+
+This software is Copyright (c) 2013 by Dominique Dumont.
+
+This is free software, licensed under:
+
+  The GNU Lesser General Public License, Version 2.1, February 1999
 
 =cut

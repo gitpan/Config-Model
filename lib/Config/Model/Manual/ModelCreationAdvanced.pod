@@ -1,3 +1,8 @@
+# PODNAME: Config::Model::Manual::ModelCreationAdvanced
+# ABSTRACT: Creating a model with advanced features
+
+__END__
+
 =pod
 
 =head1 NAME
@@ -6,7 +11,7 @@ Config::Model::Manual::ModelCreationAdvanced - Creating a model with advanced fe
 
 =head1 VERSION
 
-version 2.043
+version 2.044
 
 =head1 Introduction
 
@@ -280,3 +285,17 @@ Feel free to send comments and suggestion about this page at
 =head1 AUTHORS
 
 Dominique Dumont <ddumont at cpan.org>
+
+=head1 AUTHOR
+
+Dominique Dumont
+
+=head1 COPYRIGHT AND LICENSE
+
+This software is Copyright (c) 2013 by Dominique Dumont.
+
+This is free software, licensed under:
+
+  The GNU Lesser General Public License, Version 2.1, February 1999
+
+=cut

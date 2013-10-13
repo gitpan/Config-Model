@@ -9,7 +9,7 @@
 #
 package Config::Model::AnyThing;
 {
-  $Config::Model::AnyThing::VERSION = '2.043';
+  $Config::Model::AnyThing::VERSION = '2.044';
 }
 
 use Mouse ;
@@ -563,6 +563,7 @@ __PACKAGE__->meta->make_immutable;
 
 1;
 
+# ABSTRACT: Base class for configuration tree item
 
 __END__
 
@@ -574,7 +575,7 @@ Config::Model::AnyThing - Base class for configuration tree item
 
 =head1 VERSION
 
-version 2.043
+version 2.044
 
 =head1 SYNOPSIS
 
@@ -648,7 +649,6 @@ be in the form:
  Annotation text
  
  =back
- 
 
 =head1 Information management
 
@@ -782,5 +782,17 @@ L<Config::Model::Instance>,
 L<Config::Model::Node>, 
 L<Config::Model::Loader>, 
 L<Config::Model::Dumper>
+
+=head1 AUTHOR
+
+Dominique Dumont
+
+=head1 COPYRIGHT AND LICENSE
+
+This software is Copyright (c) 2013 by Dominique Dumont.
+
+This is free software, licensed under:
+
+  The GNU Lesser General Public License, Version 2.1, February 1999
 
 =cut

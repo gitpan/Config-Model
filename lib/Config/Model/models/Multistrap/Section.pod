@@ -1,14 +1,25 @@
+# PODNAME: Config::Model::models::Multistrap::Section
+# ABSTRACT:  Configuration class Multistrap::Section
+
+__END__
+
+=pod
+
 =head1 NAME
 
 Config::Model::models::Multistrap::Section - Configuration class Multistrap::Section
 
 =head1 VERSION
 
-version 2.043
+version 2.044
 
 =head1 DESCRIPTION
 
 Configuration classes used by L<Config::Model>
+
+=head1 NAME
+
+Config::Model::models::Multistrap::Section - Configuration class Multistrap::Section
 
 =head1 Elements
 
@@ -45,5 +56,17 @@ I<< Optional. Type boolean.  >>
 L<cme>
 
 =back
+
+=head1 AUTHOR
+
+Dominique Dumont
+
+=head1 COPYRIGHT AND LICENSE
+
+This software is Copyright (c) 2013 by Dominique Dumont.
+
+This is free software, licensed under:
+
+  The GNU Lesser General Public License, Version 2.1, February 1999
 
 =cut

@@ -57,7 +57,7 @@ my $dumptype;
 my $load;
 my @fix_from;
 my $fix_filter ;
-my $force_save  = 0;
+my $request_save  = 0;
 my $open_item   = '';
 my $fuse_dir;
 my $fuse_debug  = 0;
@@ -228,9 +228,8 @@ elsif ( $command eq 'search' ) {
     }
 }
 elsif ($command eq 'migrate') {
-    $force_save = 1;
+    $request_save = 1;
     $root->migrate;
-    
 }
 elsif ($command eq 'fix') {
     @fix_from = ('') unless @fix_from ;
@@ -239,11 +238,11 @@ elsif ($command eq 'fix') {
         say "Fixing from ",$node_to_fix->name,"..." ;
         $node_to_fix->apply_fixes($fix_filter);
     }
-    $force_save = 1;
+    $request_save = 1;
 }
 elsif ( $command eq 'modify' ) {
     $root->load("@ARGV");
-    $force_save = 1;
+    $request_save = 1;
 }
 elsif ( $command =~ /^fuse/ ) {
     eval { require Config::Model::FuseUI; };
@@ -272,7 +271,7 @@ elsif ( $command =~ /^fuse/ ) {
 
         # child process, just run fuse and wait for exit
         $ui->run_loop( debug => $fuse_debug );
-        $force_save = 1;
+        $request_save = 1;
     }
     else {
         exit;    # don't save data in parent process
@@ -386,7 +385,7 @@ elsif ( $command eq 'edit' ) {
 
         # trigger a dump to load all sub-models
         my $dump = $root->dump_tree;
-        $force_save = 1 if $apply_fixes or $load or @ARGV;
+        $request_save = 1 if $apply_fixes or $load or @ARGV;
     }
     else {
         die "Unsupported user interface: $ui_type";
@@ -396,10 +395,12 @@ else {
     die "Looks like the author forgot to implement $command. Bad author, bad.";
 }
 
-if ($force_save) {
+if ($request_save) {
     my @changes = $inst->list_changes ;
     say "\n",join( "\n- ","Changes:", @changes ) if @changes;
-    $inst->write_back  ;
+    # if load was forced, must write back to clean up errors (even if they are not changes
+    # at semantic level, i.e. removed unnecessary stuff)
+    $inst->write_back(force => $force_load)  ;
 }
 exit 0;
 
@@ -497,14 +498,16 @@ Example:
 
 =head2 migrate
 
-Checks the content of the configuration file of an application, update deprecated
-(old value are saved to new parameters) and save the new configuration.  
+Checks the content of the configuration file of an application (and show
+warnings if needed), update deprecated parameters (old value are saved
+to new parameters) and save the new configuration.
 
 For more details, see L<Config::Model::Value/Upgrade>
 
 =head2 fix
 
-Like C<migrate> and, when possible, fix the warnings of a configuration. Options are:
+A bit like C<migrate> command, except that warnings are fixed. The configuration
+is saved if anything was changed. Options are:
 
 =over 
 
@@ -584,7 +587,7 @@ value help text
 
 Example:
 
- $ cme search multistrap my_mstrap.conf -s http -narrow value
+ $ cme search multistrap my_mstrap.conf -search http -narrow value
  sections:base source -> 'http://ftp.fr.debian.org'
  sections:debian source -> 'http://ftp.uk.debian.org/debian'
  sections:toolchains source -> 'http://www.emdebian.org/debian'

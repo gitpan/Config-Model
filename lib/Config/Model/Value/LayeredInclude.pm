@@ -9,7 +9,7 @@
 #
 package Config::Model::Value::LayeredInclude;
 {
-  $Config::Model::Value::LayeredInclude::VERSION = '2.043';
+  $Config::Model::Value::LayeredInclude::VERSION = '2.044';
 }
 
 
@@ -98,6 +98,7 @@ sub _check_value {
 }
 1;
 
+# ABSTRACT: Include a sub layer configuration
 
 __END__
 
@@ -109,7 +110,7 @@ Config::Model::Value::LayeredInclude - Include a sub layer configuration
 
 =head1 VERSION
 
-version 2.043
+version 2.044
 
 =head1 SYNOPSIS
 
@@ -127,7 +128,6 @@ version 2.043
       },
     ]
 
-
 =head1 DESCRIPTION
 
 This class inherits from L<Config::Model::Value>. It overrides
@@ -135,7 +135,6 @@ L<store_cb> to trigger a refresh of layered value when value is actually
 changed. I.e. changing this value will reload the refered configuration
 file and use its values as default value. This class was designed to
 cope with L<multistrap|http://wiki.debian.org/Multistrap> configuration.
-
 
 =head2 CAUTION
 
@@ -160,5 +159,17 @@ This class works only with the first type
 =head1 AUTHOR
 
 Copyright 2011,2013 Dominique Dumont <ddumont at cpan.org>
+
+=head1 AUTHOR
+
+Dominique Dumont
+
+=head1 COPYRIGHT AND LICENSE
+
+This software is Copyright (c) 2013 by Dominique Dumont.
+
+This is free software, licensed under:
+
+  The GNU Lesser General Public License, Version 2.1, February 1999
 
 =cut

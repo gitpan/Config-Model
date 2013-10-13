@@ -9,7 +9,7 @@
 #
 package Config::Model::FuseUI ;
 {
-  $Config::Model::FuseUI::VERSION = '2.043';
+  $Config::Model::FuseUI::VERSION = '2.044';
 }
 
 # there's no Singleton with Mouse
@@ -306,13 +306,19 @@ sub run_loop {
 
 1;
 
+# ABSTRACT: Fuse virtual file interface for Config::Model
+
+__END__
+
+=pod
+
 =head1 NAME
 
 Config::Model::FuseUI - Fuse virtual file interface for Config::Model
 
 =head1 VERSION
 
-version 2.043
+version 2.044
 
 =head1 SYNOPSIS
 
@@ -334,7 +340,6 @@ version 2.043
  $ui -> run_loop ;  # blocking call
  
  # explore fuse_dir in another terminal then umount fuse_dir directory
- 
 
 =head1 DESCRIPTION
 
@@ -368,7 +373,7 @@ For some configuration, mapping each parameter to a file may lead to a high numb
 
 parameters are:
 
-=over 
+=over
 
 =item model
 
@@ -395,8 +400,20 @@ will perform the mount. Debug parameter is passed to Fuse system to get Fuse tra
 Mount the fuse file system. This method will block until the file system is 
 unmounted (with C<fusermount -u mount_point> command)
 
-=cut
-
 =head1 SEE ALSO
 
 L<Fuse>, L<Config::Model>
+
+=head1 AUTHOR
+
+Dominique Dumont
+
+=head1 COPYRIGHT AND LICENSE
+
+This software is Copyright (c) 2013 by Dominique Dumont.
+
+This is free software, licensed under:
+
+  The GNU Lesser General Public License, Version 2.1, February 1999
+
+=cut

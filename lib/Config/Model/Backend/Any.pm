@@ -9,7 +9,7 @@
 #
 package Config::Model::Backend::Any ;
 {
-  $Config::Model::Backend::Any::VERSION = '2.043';
+  $Config::Model::Backend::Any::VERSION = '2.044';
 }
 
 use Carp;
@@ -154,7 +154,11 @@ __PACKAGE__->meta->make_immutable ;
 
 1;
 
+# ABSTRACT: Virtual class for other backends
+
 __END__
+
+=pod
 
 =head1 NAME
 
@@ -162,7 +166,7 @@ Config::Model::Backend::Any - Virtual class for other backends
 
 =head1 VERSION
 
-version 2.043
+version 2.044
 
 =head1 SYNOPSIS
 
@@ -301,5 +305,17 @@ L<Config::Model>,
 L<Config::Model::BackendMgr>, 
 L<Config::Model::Node>, 
 L<Config::Model::Backend::Yaml>, 
+
+=head1 AUTHOR
+
+Dominique Dumont
+
+=head1 COPYRIGHT AND LICENSE
+
+This software is Copyright (c) 2013 by Dominique Dumont.
+
+This is free software, licensed under:
+
+  The GNU Lesser General Public License, Version 2.1, February 1999
 
 =cut

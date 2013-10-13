@@ -1,16 +1,27 @@
+# PODNAME: Config::Model::models::Multistrap
+# ABSTRACT:  Configuration class Multistrap
+
+__END__
+
+=pod
+
 =head1 NAME
 
 Config::Model::models::Multistrap - Configuration class Multistrap
 
 =head1 VERSION
 
-version 2.043
+version 2.044
 
 =head1 DESCRIPTION
 
 Configuration classes used by L<Config::Model>
 
 Class for multistrap configuration files. Note that multistrap is based on INI where section and keys are case insensitive. Hence all sections and keys are converted to lower case and written back as lower case. Most values (but not all) are also case-insensitive. These values will also be written back as lowercase.
+
+=head1 NAME
+
+Config::Model::models::Multistrap - Configuration class Multistrap
 
 =head1 Elements
 
@@ -93,5 +104,17 @@ L<cme>
 L<Config::Model::models::Multistrap::Section>
 
 =back
+
+=head1 AUTHOR
+
+Dominique Dumont
+
+=head1 COPYRIGHT AND LICENSE
+
+This software is Copyright (c) 2013 by Dominique Dumont.
+
+This is free software, licensed under:
+
+  The GNU Lesser General Public License, Version 2.1, February 1999
 
 =cut

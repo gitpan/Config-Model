@@ -9,7 +9,7 @@
 #
 package Config::Model::CheckList ;
 {
-  $Config::Model::CheckList::VERSION = '2.043';
+  $Config::Model::CheckList::VERSION = '2.044';
 }
 use Mouse ;
 use 5.010 ;
@@ -715,8 +715,9 @@ sub warning_msg { '' }
 
 1;
 
-__END__
+# ABSTRACT: Handle check list element
 
+__END__
 
 =pod
 
@@ -726,7 +727,7 @@ Config::Model::CheckList - Handle check list element
 
 =head1 VERSION
 
-version 2.043
+version 2.044
 
 =head1 SYNOPSIS
 
@@ -951,7 +952,6 @@ C<other_check_list> configuration parameter:
 A check list where the available choices are the keys of C<my_hash>
 and C<my_hash2> and C<my_hash3> configuration parameter:
 
-
        refer_to_3_lists
        => { type => 'check_list',
             refer_to => '- my_hash + - my_hash2   + - my_hash3'
@@ -963,7 +963,6 @@ A check list where the available choices are the specified choice and
 the choice of C<refer_to_3_lists> and a hash whose name is specified
 by the value of the C<indirection> configuration parameter (this
 example is admittedly convoluted):
-
 
        refer_to_check_list_and_choice
        => { type => 'check_list',
@@ -1039,7 +1038,6 @@ value of the hash.
 Example:
 
  { A => 0, B => 1, C => 0 , D => 1}
-
 
 By default, this method will return all items set by the user, or
 items set in preset mode or checked by default.
@@ -1149,5 +1147,17 @@ L<Config::Model::AnyId>,
 L<Config::Model::ListId>,
 L<Config::Model::HashId>,
 L<Config::Model::Value>
+
+=head1 AUTHOR
+
+Dominique Dumont
+
+=head1 COPYRIGHT AND LICENSE
+
+This software is Copyright (c) 2013 by Dominique Dumont.
+
+This is free software, licensed under:
+
+  The GNU Lesser General Public License, Version 2.1, February 1999
 
 =cut

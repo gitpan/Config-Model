@@ -9,7 +9,7 @@
 #
 package Config::Model::HashId ;
 {
-  $Config::Model::HashId::VERSION = '2.043';
+  $Config::Model::HashId::VERSION = '2.044';
 }
 use Mouse ;
 use namespace::autoclean;
@@ -480,8 +480,9 @@ __PACKAGE__->meta->make_immutable;
 
 1;
 
-__END__
+# ABSTRACT: Handle hash element for configuration model
 
+__END__
 
 =pod
 
@@ -491,7 +492,7 @@ Config::Model::HashId - Handle hash element for configuration model
 
 =head1 VERSION
 
-version 2.043
+version 2.044
 
 =head1 SYNOPSIS
 
@@ -584,5 +585,17 @@ L<Config::Model::Instance>,
 L<Config::Model::AnyId>,
 L<Config::Model::ListId>,
 L<Config::Model::Value>
+
+=head1 AUTHOR
+
+Dominique Dumont
+
+=head1 COPYRIGHT AND LICENSE
+
+This software is Copyright (c) 2013 by Dominique Dumont.
+
+This is free software, licensed under:
+
+  The GNU Lesser General Public License, Version 2.1, February 1999
 
 =cut

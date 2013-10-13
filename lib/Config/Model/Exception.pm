@@ -7,28 +7,9 @@
 #
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
-
-#    Copyright (c) 2005-2007 Dominique Dumont.
-#
-#    This file is part of Config-Model.
-#
-#    Config-Model is free software; you can redistribute it and/or
-#    modify it under the terms of the GNU Lesser Public License as
-#    published by the Free Software Foundation; either version 2.1 of
-#    the License, or (at your option) any later version.
-#
-#    Config-Model is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    Lesser Public License for more details.
-#
-#    You should have received a copy of the GNU Lesser Public License
-#    along with Config-Model; if not, write to the Free Software
-#    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-
 package Config::Model::Exception ;
 {
-  $Config::Model::Exception::VERSION = '2.043';
+  $Config::Model::Exception::VERSION = '2.044';
 }
 use warnings ;
 use strict;
@@ -156,7 +137,7 @@ Config::Model::Exception::Internal->Trace(1);
 
 package Config::Model::Exception::Syntax ;
 {
-  $Config::Model::Exception::Syntax::VERSION = '2.043';
+  $Config::Model::Exception::Syntax::VERSION = '2.044';
 }
 
 sub full_message {
@@ -173,7 +154,7 @@ sub full_message {
 
 package Config::Model::Exception::Any ;
 {
-  $Config::Model::Exception::Any::VERSION = '2.043';
+  $Config::Model::Exception::Any::VERSION = '2.044';
 }
 
 sub full_message {
@@ -205,7 +186,7 @@ sub xpath_message {
 
 package Config::Model::Exception::LoadData ;
 {
-  $Config::Model::Exception::LoadData::VERSION = '2.043';
+  $Config::Model::Exception::LoadData::VERSION = '2.044';
 }
 
 sub full_message {
@@ -225,7 +206,7 @@ sub full_message {
 
 package Config::Model::Exception::Model ;
 {
-  $Config::Model::Exception::Model::VERSION = '2.043';
+  $Config::Model::Exception::Model::VERSION = '2.044';
 }
 
 sub full_message {
@@ -251,7 +232,7 @@ sub full_message {
 
 package Config::Model::Exception::Load ;
 {
-  $Config::Model::Exception::Load::VERSION = '2.043';
+  $Config::Model::Exception::Load::VERSION = '2.044';
 }
 
 sub full_message {
@@ -273,7 +254,7 @@ sub full_message {
 
 package Config::Model::Exception::RestrictedElement ;
 {
-  $Config::Model::Exception::RestrictedElement::VERSION = '2.043';
+  $Config::Model::Exception::RestrictedElement::VERSION = '2.044';
 }
 
 sub full_message {
@@ -293,7 +274,7 @@ sub full_message {
 
 package Config::Model::Exception::UnavailableElement ;
 {
-  $Config::Model::Exception::UnavailableElement::VERSION = '2.043';
+  $Config::Model::Exception::UnavailableElement::VERSION = '2.044';
 }
 
 sub full_message {
@@ -316,7 +297,7 @@ sub full_message {
 
 package Config::Model::Exception::ObsoleteElement ;
 {
-  $Config::Model::Exception::ObsoleteElement::VERSION = '2.043';
+  $Config::Model::Exception::ObsoleteElement::VERSION = '2.044';
 }
 
 sub full_message {
@@ -338,7 +319,7 @@ sub full_message {
 
 package Config::Model::Exception::UnknownElement ;
 {
-  $Config::Model::Exception::UnknownElement::VERSION = '2.043';
+  $Config::Model::Exception::UnknownElement::VERSION = '2.044';
 }
 use Carp;
 
@@ -409,7 +390,7 @@ sub full_message {
 
 package Config::Model::Exception::UnknownId ;
 {
-  $Config::Model::Exception::UnknownId::VERSION = '2.043';
+  $Config::Model::Exception::UnknownId::VERSION = '2.044';
 }
 
 sub full_message {
@@ -438,7 +419,7 @@ sub full_message {
 
 package Config::Model::Exception::WrongType ;
 {
-  $Config::Model::Exception::WrongType::VERSION = '2.043';
+  $Config::Model::Exception::WrongType::VERSION = '2.044';
 }
 
 sub full_message {
@@ -462,7 +443,7 @@ sub full_message {
 
 package Config::Model::Exception::Xml ;
 {
-  $Config::Model::Exception::Xml::VERSION = '2.043';
+  $Config::Model::Exception::Xml::VERSION = '2.044';
 }
 
 sub full_message {
@@ -482,7 +463,11 @@ sub full_message {
 
 1;
 
+# ABSTRACT: Exception mechanism for configuration model
+
 __END__
+
+=pod
 
 =head1 NAME
 
@@ -490,7 +475,7 @@ Config::Model::Exception - Exception mechanism for configuration model
 
 =head1 VERSION
 
-version 2.043
+version 2.044
 
 =head1 SYNOPSIS
 
@@ -544,5 +529,17 @@ L<Config::Model::Instance>,
 L<Config::Model::Node>,
 L<Config::Model::Value>
 L<Exception::Class>
+
+=head1 AUTHOR
+
+Dominique Dumont
+
+=head1 COPYRIGHT AND LICENSE
+
+This software is Copyright (c) 2013 by Dominique Dumont.
+
+This is free software, licensed under:
+
+  The GNU Lesser General Public License, Version 2.1, February 1999
 
 =cut

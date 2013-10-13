@@ -9,7 +9,7 @@
 #
 package Config::Model;
 {
-  $Config::Model::VERSION = '2.043';
+  $Config::Model::VERSION = '2.044';
 }
 use Mouse ;
 use namespace::autoclean;
@@ -27,7 +27,7 @@ use Storable ('dclone') ;
 use Data::Dumper ();
 use Log::Log4perl 1.11 qw(get_logger :levels);
 use Config::Model::Instance ;
-use Hash::Merge qw/merge/ ;
+use Hash::Merge 0.12 qw/merge/ ;
 use File::Path qw/make_path/;
 
 # this class holds the version number of the package
@@ -1225,8 +1225,14 @@ sub get_model_doc {
         my %see_also ;
 
         my @pod = (
+			# Pod::Weaver compatibility
+			"# PODNAME: $full_name",
+			"# ABSTRACT:  Configuration class " . $class_name,
+
+			# plain old pod compatibility
             "=head1 NAME",                                    '',
             "$full_name - Configuration class " . $class_name,                    '',
+
             "=head1 DESCRIPTION",                             '',
             "Configuration classes used by L<Config::Model>", ''
         );
@@ -1539,6 +1545,7 @@ __PACKAGE__->meta->make_immutable ;
 
 1;
 
+# ABSTRACT:  Create tools to validate, migrate and edit configuration files
 
 __END__
 
@@ -1550,7 +1557,7 @@ Config::Model - Create tools to validate, migrate and edit configuration files
 
 =head1 VERSION
 
-version 2.043
+version 2.044
 
 =head1 SYNOPSIS
 
@@ -1659,8 +1666,6 @@ single command.
 
 Using this project, a typical configuration editor/validator/upgrader
 will be made of 3 parts :
-
-
 
   GUI <--------> |---------------|
   CursesUI <---> | |---------|   |
@@ -1841,7 +1846,7 @@ For more question, please send a mail to:
 
 =item *
 
-L<Config::Model::Manual::ModelCreationIntroduction>:
+L<Config::Model::Manual::ModelCreationIntroduction>
 
 =item *
 
@@ -1869,7 +1874,7 @@ The documentation below is quite detailed and is more a reference doc regarding
 C<Config::Model> class.
 
 For an introduction to model creation, please check:
-L<http://sourceforge.net/apps/mediawiki/config-model/index.php?title=Creating_a_model>
+L<Config::Model::Manual::ModelCreationIntroduction>
 
 Dedicated Config::Model::Manual pages will follow soon.
 
@@ -1976,11 +1981,7 @@ the relation of the object of the configuration tree. But the class
 need not to be declared in a tree structure (always better to reuse
 classes). But they must be declared as a DAG (directed acyclic graph).
 
-=begin html
-
-<a href="http://en.wikipedia.org/wiki/Directed_acyclic_graph">More on DAGs</a>
-
-=end html
+=for html <a href="http://en.wikipedia.org/wiki/Directed_acyclic_graph">More on DAGs</a>
 
 Each configuration class declaration specifies:
 
@@ -2092,7 +2093,6 @@ C<name> option:
  my $inst = $model->instance (root_class_name => 'SomeRootClass',
                               name            => 'test1');
 
-
 Usually, model files will be loaded automatically depending on
 C<root_class_name>. But you can choose to specify the file containing
 the model with C<model_file> parameter. This is mostly useful for
@@ -2180,6 +2180,14 @@ Now the element of your class will be:
 
 =back
 
+=head2 create_config_class
+
+This method creates configuration classes. The parameters are
+described above and are forwarded to L<Config::Model::Node>
+constructor. See
+L<Config::Model::Node/"Configuration class declaration">
+for more details on configuration class parameters.
+
 Example:
 
   my $model = Config::Model -> new ;
@@ -2193,9 +2201,6 @@ Example:
    class_description => "SomeRootClass description",
    element           => [ ... ]
   ) ;
-
-Again, see L<Config::Model::Node> for more details on configuration
-class declaration.
 
 For convenience, C<experience>, C<level> and C<description> parameters
 can also be declared within the element declaration:
@@ -2213,7 +2218,6 @@ can also be declared within the element declaration:
         X          => { description => 'X-ray', } ,
       ]
   ) ;
-
 
 =head1 Load predeclared model
 
@@ -2252,7 +2256,8 @@ will return C<( 'Foo::Bar' , 'Foo::Bar2' )>.
 =head2 augment_config_class (name => '...', class_data )
 
 Enhance the feature of a configuration class. This method uses the same parameters
-as L<create_config_class>. See L<Config::Model::Manual::ModelCreationAdvanced/Model Plugin> 
+as L<create_config_class>. See
+L<Config::Model::Manual::ModelCreationAdvanced/"Model Plugin">
 for more details on creating model plugins.
 
 =head1 Model query
@@ -2514,5 +2519,126 @@ L<Config::Model::Warper>
 L<Config::Model::Tester>
 
 =back
+
+=head1 AUTHOR
+
+Dominique Dumont
+
+=head1 COPYRIGHT AND LICENSE
+
+This software is Copyright (c) 2013 by Dominique Dumont.
+
+This is free software, licensed under:
+
+  The GNU Lesser General Public License, Version 2.1, February 1999
+
+=for :stopwords cpan testmatrix url annocpan anno bugtracker rt cpants kwalitee diff irc mailto metadata placeholders metacpan
+
+=head1 SUPPORT
+
+=head2 Websites
+
+The following websites have more information about this module, and may be of help to you. As always,
+in addition to those websites please use your favorite search engine to discover more resources.
+
+=over 4
+
+=item *
+
+MetaCPAN
+
+A modern, open-source CPAN search engine, useful to view POD in HTML format.
+
+L<http://metacpan.org/release/Config-Model>
+
+=item *
+
+Search CPAN
+
+The default CPAN search engine, useful to view POD in HTML format.
+
+L<http://search.cpan.org/dist/Config-Model>
+
+=item *
+
+RT: CPAN's Bug Tracker
+
+The RT ( Request Tracker ) website is the default bug/issue tracking system for CPAN.
+
+L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=Config-Model>
+
+=item *
+
+AnnoCPAN
+
+The AnnoCPAN is a website that allows community annotations of Perl module documentation.
+
+L<http://annocpan.org/dist/Config-Model>
+
+=item *
+
+CPAN Ratings
+
+The CPAN Ratings is a website that allows community ratings and reviews of Perl modules.
+
+L<http://cpanratings.perl.org/d/Config-Model>
+
+=item *
+
+CPAN Forum
+
+The CPAN Forum is a web forum for discussing Perl modules.
+
+L<http://cpanforum.com/dist/Config-Model>
+
+=item *
+
+CPANTS
+
+The CPANTS is a website that analyzes the Kwalitee ( code metrics ) of a distribution.
+
+L<http://cpants.perl.org/dist/overview/Config-Model>
+
+=item *
+
+CPAN Testers
+
+The CPAN Testers is a network of smokers who run automated tests on uploaded CPAN distributions.
+
+L<http://www.cpantesters.org/distro/C/Config-Model>
+
+=item *
+
+CPAN Testers Matrix
+
+The CPAN Testers Matrix is a website that provides a visual overview of the test results for a distribution on various Perls/platforms.
+
+L<http://matrix.cpantesters.org/?dist=Config-Model>
+
+=item *
+
+CPAN Testers Dependencies
+
+The CPAN Testers Dependencies is a website that shows a chart of the test results of all dependencies for a distribution.
+
+L<http://deps.cpantesters.org/?module=Config::Model>
+
+=back
+
+=head2 Bugs / Feature Requests
+
+Please report any bugs or feature requests by email to C<bug-config-model at rt.cpan.org>, or through
+the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Config-Model>. You will be automatically notified of any
+progress on the request by the system.
+
+=head2 Source Code
+
+The code is open to the world, and available for you to hack on. Please feel free to browse it and play
+with it, or whatever. If you want to contribute patches, please send me a diff or prod me to pull
+from your repository :)
+
+L<http://github.com/dod38fr/config-model>
+
+  git clone git://github.com/dod38fr/config-model.git
 
 =cut
