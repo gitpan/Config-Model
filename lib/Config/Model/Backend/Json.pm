@@ -9,7 +9,7 @@
 #
 package Config::Model::Backend::Json ;
 {
-  $Config::Model::Backend::Json::VERSION = '2.044';
+  $Config::Model::Backend::Json::VERSION = '2.045';
 }
 
 use Carp;
@@ -95,7 +95,7 @@ Config::Model::Backend::Json - Read and write config as a JSON data structure
 
 =head1 VERSION
 
-version 2.044
+version 2.045
 
 =head1 SYNOPSIS
 

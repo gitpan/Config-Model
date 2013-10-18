@@ -9,7 +9,7 @@
 #
 package Config::Model::HashId ;
 {
-  $Config::Model::HashId::VERSION = '2.044';
+  $Config::Model::HashId::VERSION = '2.045';
 }
 use Mouse ;
 use namespace::autoclean;
@@ -492,7 +492,7 @@ Config::Model::HashId - Handle hash element for configuration model
 
 =head1 VERSION
 
-version 2.044
+version 2.045
 
 =head1 SYNOPSIS
 

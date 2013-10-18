@@ -9,7 +9,7 @@
 #
 package Config::Model::Annotation;
 {
-  $Config::Model::Annotation::VERSION = '2.044';
+  $Config::Model::Annotation::VERSION = '2.045';
 }
 
 use Mouse ;
@@ -187,7 +187,7 @@ Config::Model::Annotation - Read and write configuration annotations
 
 =head1 VERSION
 
-version 2.044
+version 2.045
 
 =head1 SYNOPSIS
 

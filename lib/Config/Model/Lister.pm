@@ -9,7 +9,7 @@
 #
 package Config::Model::Lister;
 {
-  $Config::Model::Lister::VERSION = '2.044';
+  $Config::Model::Lister::VERSION = '2.045';
 }
 
 
@@ -87,7 +87,7 @@ Config::Model::Lister - List available models and applications
 
 =head1 VERSION
 
-version 2.044
+version 2.045
 
 =head1 SYNOPSIS
 

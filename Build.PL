@@ -70,7 +70,7 @@ my $build = $class->new(
     dist_author   => 'Dominique Dumont (ddumont at cpan dot org)',
 
   'build_requires' => {
-    'Config::Model::Tester' => '2.044',
+    'Config::Model::Tester' => '2.046',
     'File::Slurp' => '0',
     'Module::Build' => '0.34',
     'Path::Class' => '0',
@@ -111,6 +111,7 @@ my $build = $class->new(
     'Log::Log4perl' => '1.11',
     'Mouse' => '0',
     'Mouse::Util::TypeConstraints' => '0',
+    'MouseX::NativeTraits' => '0',
     'MouseX::StrictConstructor' => '0',
     'POSIX' => '0',
     'Parse::RecDescent' => 'v1.90.0',

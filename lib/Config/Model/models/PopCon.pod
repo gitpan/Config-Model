@@ -11,7 +11,7 @@ Config::Model::models::PopCon - Configuration class PopCon
 
 =head1 VERSION
 
-version 2.044
+version 2.045
 
 =head1 DESCRIPTION
 

@@ -9,7 +9,7 @@
 #
 package Config::Model::Report;
 {
-  $Config::Model::Report::VERSION = '2.044';
+  $Config::Model::Report::VERSION = '2.045';
 }
 use Carp;
 use strict;
@@ -94,7 +94,7 @@ Config::Model::Report - Reports data from config tree
 
 =head1 VERSION
 
-version 2.044
+version 2.045
 
 =head1 SYNOPSIS
 
