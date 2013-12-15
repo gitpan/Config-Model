@@ -9,7 +9,7 @@
 #
 package Config::Model::SimpleUI ;
 {
-  $Config::Model::SimpleUI::VERSION = '2.045';
+  $Config::Model::SimpleUI::VERSION = '2.046';
 }
 
 use Carp;
@@ -242,13 +242,15 @@ __END__
 
 =pod
 
+=encoding UTF-8
+
 =head1 NAME
 
 Config::Model::SimpleUI - Simple interface for Config::Model
 
 =head1 VERSION
 
-version 2.045
+version 2.046
 
 =head1 SYNOPSIS
 

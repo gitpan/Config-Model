@@ -9,7 +9,7 @@
 #
 package Config::Model::Instance;
 {
-  $Config::Model::Instance::VERSION = '2.045';
+  $Config::Model::Instance::VERSION = '2.046';
 }
 #use Scalar::Util qw(weaken) ;
 
@@ -54,6 +54,12 @@ has check => (
     default => 'yes',
     reader => 'read_check' ,
 ) ;
+
+has auto_create => (
+    is => 'ro',
+    isa => 'Bool',
+    default => 0,
+);
 
 # a unique (instance wise) placeholder for various tree objects
 # to store information
@@ -166,7 +172,7 @@ has _write_back => (
 );
 
 # used for auto_read auto_write feature
-has [qw/name root_dir config_file backend backup/] => (
+has [qw/name application root_dir config_file backend backup/] => (
     is => 'ro',
     isa => 'Maybe[Str]' ,
 );
@@ -356,7 +362,7 @@ sub notify_change {
     my $self = shift ;
     my %args = @_ ;
     if ($change_logger->is_debug) {
-        $change_logger->debug("in instance ",$self->name, 'for path ',$args{path}) ;
+        $change_logger->debug("in instance ",$self->name, ' for path ',$args{path}) ;
     }
     $self->add_change( \%args ) ;
     my $cb = $self->on_change_cb ;
@@ -374,7 +380,7 @@ sub list_changes {
         # don't list change without further info (like nodes)
         next unless keys %$c > 1 ;
         my $vt = $c->{value_type} || '' ;
-        my ($o,$n) =  map { $_ || '<undef>' ;} ($c->{old},$c->{new}) ;
+        my ($o,$n) =  map { $_ // '<undef>' ;} ($c->{old},$c->{new}) ;
         
         if ($vt eq 'string' and ($o =~ /\n/ or $n =~ /\n/) ) {
             # append \n if needed so diff works as expected
@@ -440,13 +446,15 @@ __END__
 
 =pod
 
+=encoding UTF-8
+
 =head1 NAME
 
 Config::Model::Instance - Instance of configuration tree
 
 =head1 VERSION
 
-version 2.045
+version 2.046
 
 =head1 SYNOPSIS
 

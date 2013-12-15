@@ -9,7 +9,7 @@
 #
 package Config::Model::AnyId ;
 {
-  $Config::Model::AnyId::VERSION = '2.045';
+  $Config::Model::AnyId::VERSION = '2.046';
 }
 
 use Mouse ;
@@ -976,13 +976,15 @@ __END__
 
 =pod
 
+=encoding UTF-8
+
 =head1 NAME
 
 Config::Model::AnyId - Base class for hash or list element
 
 =head1 VERSION
 
-version 2.045
+version 2.046
 
 =head1 SYNOPSIS
 
@@ -1244,7 +1246,7 @@ The Warp functionality enables an L<HashId|Config::Model::HashId> or
 L<ListId|Config::Model::ListId> object to change its default settings
 (e.g. C<min_index>, C<max_index> or C<max_nb> parameters) dynamically according to
 the value of another C<Value> object. (See
-L<Config::Model::WarpedThing> for explanation on warp mechanism)
+L<Config::Model::Warper> for explanation on warp mechanism)
 
 For instance, with this model:
 
@@ -1281,7 +1283,7 @@ Setting C<macro> to C<B> will mean that C<warped_hash> will accept two
 instances of C<Dummy>.
 
 Like other warped class, a HashId or ListId can have multiple warp
-masters (See L<Config::Model::WarpedThing/"Warp follow argument">:
+masters (See L<Config::Model::Warper/"Warp follow argument">:
 
   warp => { follow => { m1 => '- macro1', 
                         m2 => '- macro2' 

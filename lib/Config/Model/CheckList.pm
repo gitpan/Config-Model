@@ -9,7 +9,7 @@
 #
 package Config::Model::CheckList ;
 {
-  $Config::Model::CheckList::VERSION = '2.045';
+  $Config::Model::CheckList::VERSION = '2.046';
 }
 use Mouse ;
 use 5.010 ;
@@ -721,13 +721,15 @@ __END__
 
 =pod
 
+=encoding UTF-8
+
 =head1 NAME
 
 Config::Model::CheckList - Handle check list element
 
 =head1 VERSION
 
-version 2.045
+version 2.046
 
 =head1 SYNOPSIS
 
@@ -839,7 +841,7 @@ Hash ref to provide information on the check list items.
 =item warp
 
 Used to provide dynamic modifications of the check list properties
-See L<Config::Model::WarpedThing> for details
+See L<Config::Model::Warper> for details
 
 =back
 

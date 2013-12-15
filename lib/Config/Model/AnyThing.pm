@@ -9,7 +9,7 @@
 #
 package Config::Model::AnyThing;
 {
-  $Config::Model::AnyThing::VERSION = '2.045';
+  $Config::Model::AnyThing::VERSION = '2.046';
 }
 
 use Mouse ;
@@ -70,7 +70,8 @@ sub notify_change {
 
     return if $self->instance->initial_load  and not $args{really};
 
-    $change_logger->debug("called for ",$self->name, " from ", join(' ',caller) ) 
+    $change_logger->debug("called for ",$self->name, " from ", join(' ',caller),
+        " with ", join( ' ',%args))
         if $change_logger->is_debug ;
 
     # needs_save may be overridden by caller
@@ -79,7 +80,7 @@ sub notify_change {
     $args{name} //= $self->element_name if $self->element_name ;
     $args{index} //= $self->index_value if $self->index_value ;
     
-    # beter use %args instead of @_ to forward arguments. %args eliminates duplicated keys
+    # better use %args instead of @_ to forward arguments. %args eliminates duplicated keys
     $self->container->notify_change(%args);
 }
 
@@ -569,13 +570,15 @@ __END__
 
 =pod
 
+=encoding UTF-8
+
 =head1 NAME
 
 Config::Model::AnyThing - Base class for configuration tree item
 
 =head1 VERSION
 
-version 2.045
+version 2.046
 
 =head1 SYNOPSIS
 

@@ -115,6 +115,7 @@ my $build = $class->new(
     'MouseX::StrictConstructor' => '0',
     'POSIX' => '0',
     'Parse::RecDescent' => 'v1.90.0',
+    'Path::Class' => '0',
     'Pod::POM' => '0',
     'Scalar::Util' => '0',
     'Storable' => '0',

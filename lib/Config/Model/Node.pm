@@ -9,7 +9,7 @@
 #
 package Config::Model::Node;
 {
-  $Config::Model::Node::VERSION = '2.045';
+  $Config::Model::Node::VERSION = '2.046';
 }
 
 use Mouse ;
@@ -144,15 +144,19 @@ sub create_element {
 
     my $element_info = $self->{model}{element}{$element_name}  ;
 
-    return if $check eq 'skip' and not defined $element_info;
-     
-    Config::Model::Exception::UnknownElement->throw(
-                                                    object   => $self,
-                                                    function => 'create_element',
-                                                    where    => $self->location || 'configuration root',
-                                                    element     => $element_name,
-                                                   )
-        unless defined $element_info ;
+    if ( not defined $element_info ) {
+        if ( $check eq 'yes' ) {
+            Config::Model::Exception::UnknownElement->throw(
+                object   => $self,
+                function => 'create_element',
+                where    => $self->location || 'configuration root',
+                element  => $element_name,
+            );
+        }
+        else {
+            return;    # just skip when check is no or skip
+        }
+    }
 
     Config::Model::Exception::Model->throw
         (
@@ -386,7 +390,7 @@ sub read_config_data {
         check           => $args{check},
         read_config_dir => $model->{read_config_dir},
         config_file     => $args{config_file} || $self->{config_file},
-        auto_create     => $args{auto_create} ,
+        auto_create     => $args{auto_create} || $self->instance->auto_create,
     );
 }
 
@@ -1237,13 +1241,15 @@ __END__
 
 =pod
 
+=encoding UTF-8
+
 =head1 NAME
 
 Config::Model::Node - Class for configuration tree node
 
 =head1 VERSION
 
-version 2.045
+version 2.046
 
 =head1 SYNOPSIS
 

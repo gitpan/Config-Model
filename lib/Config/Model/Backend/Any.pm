@@ -9,7 +9,7 @@
 #
 package Config::Model::Backend::Any ;
 {
-  $Config::Model::Backend::Any::VERSION = '2.045';
+  $Config::Model::Backend::Any::VERSION = '2.046';
 }
 
 use Carp;
@@ -119,10 +119,10 @@ sub associates_comments_with_data {
 sub write_global_comment {
     my ($self,$ioh,$cc) = @_ ;
 
-    my $res = "$cc$cc This file was written by Config::Model\n"
-            . "$cc$cc You may modify the content of this file. Configuration \n"
-            . "$cc$cc modifications will be preserved. Modifications in\n"
-            . "$cc$cc comments may be mangled.\n\n" ;
+    my $res = "$cc$cc This file was written by cme command.\n"
+        . "$cc$cc You can run 'cme edit <application>' to modify this file.\n"
+        . "$cc$cc Run 'cme list' to get the list of applications available on your system\n"
+        . "$cc$cc You may also modify the content of this file with your favorite editor.\n\n" ;
 
     # write global comment
     my $global_note = $self->node->annotation ;
@@ -160,13 +160,15 @@ __END__
 
 =pod
 
+=encoding UTF-8
+
 =head1 NAME
 
 Config::Model::Backend::Any - Virtual class for other backends
 
 =head1 VERSION
 
-version 2.045
+version 2.046
 
 =head1 SYNOPSIS
 

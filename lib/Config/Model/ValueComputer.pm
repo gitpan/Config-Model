@@ -9,7 +9,7 @@
 #
 package Config::Model::ValueComputer ;
 {
-  $Config::Model::ValueComputer::VERSION = '2.045';
+  $Config::Model::ValueComputer::VERSION = '2.046';
 }
 
 use Mouse ;
@@ -312,7 +312,7 @@ sub _function_on_object {
     $logger->debug("handling &$function($up) ");
 
     # get now the object refered
-    $up =~ s/-(\d+)/'- ' x $1/x ;
+    $up =~ s/-(\d+)/'- ' x $1/e ;
 
     my $target =
       eval { $value_object->grab( step => $up, check => $check ) };
@@ -578,13 +578,15 @@ __END__
 
 =pod
 
+=encoding UTF-8
+
 =head1 NAME
 
 Config::Model::ValueComputer - Provides configuration value computation
 
 =head1 VERSION
 
-version 2.045
+version 2.046
 
 =head1 SYNOPSIS
 
@@ -660,6 +662,13 @@ An optional parameter to force a Perl eval of a string.
 
 =back
 
+B<Note>: A variable must point to a valid location in the configuration
+tree. Even when C<&index()> or C<$replace{}> is used. After substitution
+of these functions, the string is used as a path (See
+L<grab()|Config::Model::AnyThing/"grab(...)">) starting from the
+computed value. Hence the path must begin with C<!> to go back to root
+node, or C<-> to go up a level.
+
 =head2 Compute formula
 
 The first element of the C<compute> array ref must be a string that
@@ -697,7 +706,7 @@ The element name of the current object: C<&element> or C<&element()>.
 The element name of a parent object: C<&element(-)>. Likewise, ancestor element name
 can be retrieved with C<&element(-2)> or C<&element(-3)>.
 
-=item*
+=item * 
 
 The full location (path) of the current object: C<&location> or C<&location()>.
 
@@ -937,6 +946,83 @@ Extract the host name from an URL:
             use_eval  => 1,
         },
     },
+
+=head2 simple copy hash example
+
+Copying a hash may not be useful, but the using C<&index()> in a variable can be. Here's an example
+where the hashes contain leaves.
+
+The model is set up so that the content of C<copy_from>
+is copied into C<copy_to> hash:
+
+        copy_from => {
+            'type' => 'hash',
+            'index_type' => 'string',
+            'cargo' => {
+                'config_class_name' => 'From',
+                'type' => 'node'
+            },
+        },
+        copy_to => {
+            'type' => 'hash',
+            'index_type' => 'string',
+            'cargo' => {
+                'type' => 'leaf',
+                'value_type' => 'uniline',
+                'compute' => {
+                    'formula' => '$copied',
+                    'variables' => {
+                        'copied' => '- copy_from:&index()'
+                    }
+                },
+            },
+        },
+
+Hash copy is also possible when the hash contains node. Here's an example where
+the data to be copied is stored within a node. The main class has 2 hash elements:
+
+        copy_from => {
+            'type' => 'hash',
+            'index_type' => 'string',
+            'cargo' => {
+                'config_class_name' => 'From',
+                'type' => 'node'
+            },
+        },
+        copy_to => {
+            'type' => 'hash',
+            'index_type' => 'string',
+            'cargo' => {
+                'config_class_name' => 'To',
+                'type' => 'node'
+            },
+        },
+
+The Class to copy from is quite simple:
+
+    'name' => 'From',
+    'element' => [
+        name =>  {
+            'type' => 'leaf',
+            'value_type' => 'uniline',
+        }
+    ]
+
+Here the class to copy to:
+
+    'name' => 'To',
+    'element' => [
+        name =>  {
+            'type' => 'leaf',
+            'value_type' => 'uniline',
+            'compute' => {
+                'formula' => '$copied',
+                'variables' => {
+                    'copied' => '! copy_from:&index(-) name'
+                }
+            },
+        }
+    ]
 
 =head1 AUTHOR
 

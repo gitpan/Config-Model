@@ -9,7 +9,7 @@
 #
 package Config::Model::Iterator ;
 {
-  $Config::Model::Iterator::VERSION = '2.045';
+  $Config::Model::Iterator::VERSION = '2.046';
 }
 use Carp;
 use strict;
@@ -269,13 +269,15 @@ __END__
 
 =pod
 
+=encoding UTF-8
+
 =head1 NAME
 
 Config::Model::Iterator - Iterates forward or backward a configuration tree
 
 =head1 VERSION
 
-version 2.045
+version 2.046
 
 =head1 SYNOPSIS
 

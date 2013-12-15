@@ -9,7 +9,7 @@
 #
 package Config::Model::Value ;
 {
-  $Config::Model::Value::VERSION = '2.045';
+  $Config::Model::Value::VERSION = '2.046';
 }
 
 use 5.10.1 ;
@@ -183,7 +183,7 @@ sub notify_change {
     return if $self->instance->initial_load and not $args{really};
     
     $change_logger->debug("called while needs_check is ",$self->needs_check,
-	" for ",$self->name) 
+	" for ",$self->name, " with ", join(' ',%args))
 	if $change_logger->is_debug ;
     $self->needs_check(1) unless $check_done;
     {
@@ -1902,13 +1902,15 @@ __END__
 
 =pod
 
+=encoding UTF-8
+
 =head1 NAME
 
 Config::Model::Value - Strongly typed configuration value
 
 =head1 VERSION
 
-version 2.045
+version 2.046
 
 =head1 SYNOPSIS
 
@@ -2086,7 +2088,7 @@ computed value declaration.
 
 This is a special parameter to cater for smooth configuration
 upgrade. This parameter can be used to copy the value of a deprecated
-parameter to its replacement. See L<"/upgrade"> for details.
+parameter to its replacement. See L</Upgrade> for details.
 
 =item convert => [uc | lc ]
 
@@ -2274,7 +2276,7 @@ another location if the configuration tree. See L</Value Reference>.
 The Warp functionality enable a C<Value> object to change its
 properties (i.e. default value or its type) dynamically according to
 the value of another C<Value> object locate elsewhere in the
-configuration tree. (See L<Config::Model::WarpedThing> for an
+configuration tree. (See L<Config::Model::Warper> for an
 explanation on warp mechanism).
 
 For instance if you declare 2 C<Value> element this way:
@@ -2824,7 +2826,7 @@ Dominique Dumont, (ddumont at cpan dot org)
 =head1 SEE ALSO
 
 L<Config::Model>, L<Config::Model::Node>,
-L<Config::Model::AnyId>, L<Config::Model::WarpedThing>, L<Exception::Class>
+L<Config::Model::AnyId>, L<Config::Model::Warper>, L<Exception::Class>
 L<Config::Model::ValueComputer>,
 
 =head1 AUTHOR

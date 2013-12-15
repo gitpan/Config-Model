@@ -9,7 +9,7 @@
 #
 package Config::Model::TermUI ;
 {
-  $Config::Model::TermUI::VERSION = '2.045';
+  $Config::Model::TermUI::VERSION = '2.046';
 }
 
 use Carp;
@@ -208,13 +208,15 @@ __END__
 
 =pod
 
+=encoding UTF-8
+
 =head1 NAME
 
 Config::Model::TermUI - Provides Config::Model UI with Term::ReadLine
 
 =head1 VERSION
 
-version 2.045
+version 2.046
 
 =head1 SYNOPSIS
 

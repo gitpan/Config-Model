@@ -9,7 +9,7 @@
 #
 package Config::Model::ListId ;
 {
-  $Config::Model::ListId::VERSION = '2.045';
+  $Config::Model::ListId::VERSION = '2.046';
 }
 use Mouse ;
 use namespace::autoclean;
@@ -395,13 +395,15 @@ __END__
 
 =pod
 
+=encoding UTF-8
+
 =head1 NAME
 
 Config::Model::ListId - Handle list element for configuration model
 
 =head1 VERSION
 
-version 2.045
+version 2.046
 
 =head1 SYNOPSIS
 

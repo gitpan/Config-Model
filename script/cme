@@ -67,6 +67,7 @@ my $search_type = 'all';
 my $dir_char_mockup ;
 my $try_application_as_model = 0; # means search a model instead of an application name
 my $backup ;
+my $auto_create ;
 
 
 my %command_option = (
@@ -100,6 +101,7 @@ my @global_options = (
     "experience=s"                  => \$experience,
     "dev!"                          => \$dev,
     "force_load|force-load!"        => \$force_load,
+    "create!"                       => \$auto_create,
     "root_dir|root-dir=s"           => \$root_dir,
     "backend=s"                     => \$backend,
     "stack-trace|trace!"            => \$trace,
@@ -193,8 +195,10 @@ $config_file = shift @ARGV if $appli_info->{$application}{require_config_file} ;
 my $inst = $model->instance(
     root_class_name => $root_model,
     instance_name   => $application,
+    application     => $application,
     root_dir        => $root_dir,
     check           => $force_load ? 'no' : 'yes',
+    auto_create     => $auto_create ,
     skip_read       => $load ? 1 : 0,
     backend         => $backend,
     backup          => $backup ,
@@ -399,7 +403,7 @@ else {
 
 if ($request_save) {
     my @changes = $inst->list_changes ;
-    say "\n",join( "\n- ","Changes:", @changes ) if @changes;
+    say "\n",join( "\n- ","Changes applied to $application configuration:", @changes ) if @changes;
     # if load was forced, must write back to clean up errors (even if they are not changes
     # at semantic level, i.e. removed unnecessary stuff)
     $inst->write_back(force => $force_load)  ;
@@ -539,12 +543,18 @@ or
 =head2 modify
 
 Modify a configuration file with the values passed on the command line.
-These command must follow the syntax defined in L<Config::Model::Loader>.
+These command must follow the syntax defined in L<Config::Model::Loader>
+(which is similar to the output of L<cme dump|"/dump"> command)
+
 
 Example:
 
    cme modify dpkg source format="quilt (3.0)"
    cme modify multistrap my_mstrap.conf sections:base source="http://ftp.fr.debian.org"
+
+This example restores the default value of the text of all GPL like licenses:
+
+   cme modify dpkg-copyright 'License=~/GPL/ text~'
 
 =head2 search
 
@@ -645,6 +655,13 @@ Change the experience level. By default only parameters with "beginner" experien
 are shown or modifiable. You can choose C<advanced> or C<master> level to get 
 access to more parameters. Note that experience level can be changed in the GUI with the 
 I<options> menu.
+
+=item -create
+
+Perform the operation even if the configuration file is missing. This
+may be used to create a minimal configuration file. This option is
+disabled by default as a missing configuration file often indicates an
+error during the installation of the application.
 
 =item -force-load
 

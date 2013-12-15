@@ -9,7 +9,7 @@
 #
 package Config::Model::Backend::ShellVar ;
 {
-  $Config::Model::Backend::ShellVar::VERSION = '2.045';
+  $Config::Model::Backend::ShellVar::VERSION = '2.046';
 }
 
 use Carp;
@@ -108,13 +108,15 @@ __END__
 
 =pod
 
+=encoding UTF-8
+
 =head1 NAME
 
 Config::Model::Backend::ShellVar - Read and write config as a C<SHELLVAR> data structure
 
 =head1 VERSION
 
-version 2.045
+version 2.046
 
 =head1 SYNOPSIS
 
