@@ -4,7 +4,7 @@
       "Dominique Dumont"
    ],
    "dynamic_config" : 0,
-   "generated_by" : "Dist::Zilla version 5.006, CPAN::Meta::Converter version 2.132830",
+   "generated_by" : "Dist::Zilla version 5.008, CPAN::Meta::Converter version 2.133380",
    "license" : [
       "lgpl_2_1"
    ],
@@ -95,6 +95,6 @@
          "web" : "http://github.com/dod38fr/config-model"
       }
    },
-   "version" : "2.046"
+   "version" : "2.047"
 }
 

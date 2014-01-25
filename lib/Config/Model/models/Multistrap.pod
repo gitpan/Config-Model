@@ -13,7 +13,7 @@ Config::Model::models::Multistrap - Configuration class Multistrap
 
 =head1 VERSION
 
-version 2.046
+version 2.047
 
 =head1 DESCRIPTION
 

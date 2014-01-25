@@ -9,7 +9,7 @@
 #
 package Config::Model::BackendMgr ;
 {
-  $Config::Model::BackendMgr::VERSION = '2.046';
+  $Config::Model::BackendMgr::VERSION = '2.047';
 }
 
 use Mouse ;
@@ -728,7 +728,7 @@ Config::Model::BackendMgr - Load configuration node on demand
 
 =head1 VERSION
 
-version 2.046
+version 2.047
 
 =head1 SYNOPSIS
 

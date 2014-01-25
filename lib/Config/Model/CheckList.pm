@@ -9,7 +9,7 @@
 #
 package Config::Model::CheckList ;
 {
-  $Config::Model::CheckList::VERSION = '2.046';
+  $Config::Model::CheckList::VERSION = '2.047';
 }
 use Mouse ;
 use 5.010 ;
@@ -729,7 +729,7 @@ Config::Model::CheckList - Handle check list element
 
 =head1 VERSION
 
-version 2.046
+version 2.047
 
 =head1 SYNOPSIS
 

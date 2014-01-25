@@ -9,7 +9,7 @@
 #
 package Config::Model::SimpleUI ;
 {
-  $Config::Model::SimpleUI::VERSION = '2.046';
+  $Config::Model::SimpleUI::VERSION = '2.047';
 }
 
 use Carp;
@@ -21,8 +21,12 @@ cd <elt> cd <elt:key>, cd - , cd !
    -> jump into node
 set elt=value, elt:key=value
    -> set a value
+reset elt
+   -> reset a value (set to undef)
 delete elt:key
    -> delete a value from a list or hash element
+delete elt
+   -> like reset, delete a value (set to undef)
 display elt elt:key
    -> display a value
 ls -> show elements of current node
@@ -31,6 +35,8 @@ help -> show available command
 desc[ription] -> show class desc of current node
 desc <element>   -> show desc of element from current node
 desc <value> -> show effect of value (for enum)
+changes -> list unsaved changes
+save -> save current changes
 exit -> exit shell
 ';
 
@@ -42,7 +48,6 @@ my $desc_sub = sub {
     if (@_) {
 	my $item ;
 	while ($item = shift) {
-	    print "DEBUG: desc on $item\n" if $::debug;
 	    if ($obj->isa('Config::Model::Node')) {
 		my $type = $obj->element_type($item) ;
 		my $elt = $obj->fetch_element($item);
@@ -109,7 +114,10 @@ my %run_dispatch =
    help => sub{ return $syntax; } ,
    set  => sub {
        my $self = shift ;
-       $self->{current_node}->load(@_) ;
+       my $cmd = shift;
+       $cmd =~ s/\s*=\s*/=/;
+       $cmd =~ s/\s*:\s*/:/;
+       $self->{current_node}->load($cmd) ;
        return "" ;
    },
    display => sub {
@@ -131,14 +139,29 @@ my %run_dispatch =
    },
    delete => sub {
        my $self = shift ;
-       my ($elt,$key) = split /:/,$_[0] ;
-       $self->{current_node}->fetch_element($elt)->delete($key);
+       my ($elt_name,$key) = split /\s*:\s*/,$_[0] ;
+       my $elt = $self->{current_node}->fetch_element($elt_name);
+       if (length($key)) {
+            $elt->delete($key);
+       }
+       else {
+            $elt->store(undef);
+       }
+       return '' ;
+   },
+   reset => sub {
+       my ($self, $elt_name) = @_ ;
+       $self->{current_node}->fetch_element($elt_name)->store(undef);
        return '' ;
    },
    save => sub {
-       my ($self,$dir) = @_ ;
-       $self->{root}->instance->write_back($dir);
+       my ($self) = @_ ;
+       $self->{root}->instance->write_back();
        return "done";
+   },
+   changes => sub {
+       my ($self,$dir) = @_ ;
+       return $self->{root}->instance->list_changes;
    },
    ll => $ll_sub,
    cd => $cd_sub,
@@ -181,6 +204,16 @@ sub run_loop {
 	print $self->prompt ;
     }
     print "\n";
+
+    my $instance = $self->{root}->instance ;
+    if ($instance->c_count) {
+        print "Unsaved changes:\n", $instance->list_changes,"\n" ;
+        print "write back data before exit ? (Y/n)";
+        $user_cmd = <STDIN> ;
+        $instance->write_back unless $user_cmd =~ /n/i;
+        print "\n";
+    }
+
 }
 
 sub prompt {
@@ -201,8 +234,6 @@ sub run {
 
     my ($action,$args) = split (m/\s+/,$user_cmd, 2)  ;
     $args =~ s/\s+$//g if defined $args ; #cleanup
-
-    print "DEBUG: run '$action' with '$args'\n" if $::debug;
 
     if (defined $run_dispatch{$action}) {
 	my $res = eval { $run_dispatch{$action}->($self,$args) ; } ;
@@ -250,7 +281,7 @@ Config::Model::SimpleUI - Simple interface for Config::Model
 
 =head1 VERSION
 
-version 2.046
+version 2.047
 
 =head1 SYNOPSIS
 
@@ -367,6 +398,18 @@ Set a leaf value.
 
 Set a leaf value locate in a hash or list element.
 
+=item reset elt
+
+Delete leaf value (set to C<undef>).
+
+=item delete elt
+
+Delete leaf value.
+
+=item delete elt:key
+
+Delete a list or hash element
+
 =item display node_name elt:key
 
 Display a value
@@ -390,6 +433,14 @@ Show description of element from current node.
 =item desc(value)
 
 Show effect of value (for enum)
+
+=item changes
+
+Show unsaved changes
+
+=item exit
+
+Exit shell
 
 =back
 

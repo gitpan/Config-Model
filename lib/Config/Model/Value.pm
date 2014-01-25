@@ -9,7 +9,7 @@
 #
 package Config::Model::Value ;
 {
-  $Config::Model::Value::VERSION = '2.046';
+  $Config::Model::Value::VERSION = '2.047';
 }
 
 use 5.10.1 ;
@@ -1347,6 +1347,7 @@ sub store_cb {
     # FIXME: storing wrong value does not make sense
     # we let store the value even if wrong when check is disabled
     if ($ok or $check eq 'no') {
+        $self->instance->cancel_error($self->location) ;
         $self-> _store_value ( $value,$notify_change) ;
     }
     else {
@@ -1910,7 +1911,7 @@ Config::Model::Value - Strongly typed configuration value
 
 =head1 VERSION
 
-version 2.046
+version 2.047
 
 =head1 SYNOPSIS
 

@@ -9,7 +9,7 @@
 #
 package Config::Model::Warper ;
 {
-  $Config::Model::Warper::VERSION = '2.046';
+  $Config::Model::Warper::VERSION = '2.047';
 }
 
 use Mouse ;
@@ -604,7 +604,7 @@ Config::Model::Warper - Warp tree properties
 
 =head1 VERSION
 
-version 2.046
+version 2.047
 
 =head1 SYNOPSIS
 

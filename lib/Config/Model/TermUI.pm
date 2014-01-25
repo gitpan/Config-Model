@@ -9,7 +9,7 @@
 #
 package Config::Model::TermUI ;
 {
-  $Config::Model::TermUI::VERSION = '2.046';
+  $Config::Model::TermUI::VERSION = '2.047';
 }
 
 use Carp;
@@ -118,6 +118,8 @@ my %completion_dispatch =
    desc => $completion_sub,
    ll   => $completion_sub,
    set => $leaf_completion_sub,
+   delete => $leaf_completion_sub,
+   reset => $leaf_completion_sub,
   );
 
 sub completion {
@@ -198,6 +200,14 @@ sub run_loop {
 	## $term->addhistory($_) if defined $_ && /\S/;
     }
     print "\n";
+
+    my $instance = $self->{root}->instance ;
+    if ($instance->c_count) {
+        print "Unsaved changes:\n", $instance->list_changes,"\n" ;
+        $user_cmd = $term->readline("write back data before exit ? (Y/n)");
+        $instance->write_back unless $user_cmd =~ /n/i;
+        print "\n";
+    }
 }
 
 1;
@@ -216,7 +226,7 @@ Config::Model::TermUI - Provides Config::Model UI with Term::ReadLine
 
 =head1 VERSION
 
-version 2.046
+version 2.047
 
 =head1 SYNOPSIS
 
