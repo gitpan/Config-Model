@@ -1,16 +1,14 @@
 #
 # This file is part of Config-Model
 #
-# This software is Copyright (c) 2013 by Dominique Dumont.
+# This software is Copyright (c) 2014 by Dominique Dumont.
 #
 # This is free software, licensed under:
 #
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
 package Config::Model::Loader;
-{
-  $Config::Model::Loader::VERSION = '2.047';
-}
+$Config::Model::Loader::VERSION = '2.048';
 use Carp;
 use strict;
 use warnings ;
@@ -126,7 +124,7 @@ sub _split_cmd {
        m!^
 	 (\w[\w-]*)? # element name can be alone
 	 (?:
-            (:|=~|~)       # action
+            (:~|:|~)       # action
             ( /[^/]+/      # regexp
 	      |            # or
 		$quoted_regexp
@@ -135,7 +133,7 @@ sub _split_cmd {
             )?
          )?
 	 (?:
-            (=|.=)          # assign or append
+            (=~|.=|=)          # apply regexp or assign or append
 	    (
               (?:
                 $quoted_regexp
@@ -439,7 +437,7 @@ sub _load_hash {
         );
     }
     
-    if ($action eq '=~') {
+    if ($action eq ':~') {
 	my @keys = $element->fetch_all_indexes;
 	my $ret ;
 	$logger->debug("_load_hash: looping with regex $id on keys @keys");
@@ -536,7 +534,7 @@ sub _load_leaf {
         $logger->debug("_load_leaf: action '$subaction' value '$msg'");
     }
 
-    return $self->_load_value($element,$check,$subaction,$value)
+    return $self->_load_value($element,$check,$subaction,$value, $inst)
       or Config::Model::Exception::Load
 	-> throw (
 		  object => $element,
@@ -548,7 +546,7 @@ sub _load_leaf {
 }
 
 sub _load_value {
-    my ($self,$element,$check,$subaction,$value) = @_ ;
+    my ($self,$element,$check,$subaction,$value, $inst) = @_ ;
 
     $logger->debug("_load_value: action '$subaction' value '$value' check $check");
     if ($subaction eq '=' and $element->isa('Config::Model::Value')) {
@@ -557,6 +555,19 @@ sub _load_value {
     elsif ($subaction eq '.=' and $element->isa('Config::Model::Value')) {
 	my $orig = $element->fetch(check => $check) ;
 	$element->store(value => $orig.$value, check => $check) ;
+    }
+    elsif ($subaction eq '=~' and $element->isa('Config::Model::Value')) {
+	my $orig = $element->fetch(check => $check) ;
+	eval ( "\$orig =~ $value;" ) ;
+	if ($@) {
+             Config::Model::Exception::Load -> throw (
+		  object => $element,
+		  command => $inst ,
+		  error => "Failed regexp '$value' on "
+		  ."element '".$element->name."' : $@"
+            ) ;
+	}
+	$element->store(value => $orig , check => $check) ;
     }
     else {
 	return undef ;
@@ -582,7 +593,7 @@ Config::Model::Loader - Load serialized data into config tree
 
 =head1 VERSION
 
-version 2.047
+version 2.048
 
 =head1 SYNOPSIS
 
@@ -701,14 +712,14 @@ Go down using C<xxx> element. (For C<node> type element)
 Go down using C<xxx> element and id C<yy> (For C<hash> or C<list>
 element with C<node> cargo_type)
 
-=item xxx=~/yy/
+=item xxx:~/yy/
 
 Go down using C<xxx> element and loop over the ids that match the regex.
 (For C<hash>)
 
 For instance, with C<OpenSsh> model, you could do
 
- Host=~/.*.debian.org/ user='foo-guest'
+ Host:~/.*.debian.org/ user='foo-guest'
 
 to set "foo-user" users for all your debian accounts.
 
@@ -727,6 +738,19 @@ with a quoted string. (For C<leaf> element)
 For instance C<foo="a quoted string">. Note that you cannot embed
 double quote in this string. I.e C<foo="a \"quoted\" string"> will
 fail.
+
+=item xxx=~s/foo/bar/
+
+Applyt the substitution to the value of xxx. C<s/foo/bar/> is the standard Perl C<s>
+substitution pattern.
+
+If your patten needs white spaces, you will need to surround the pattern with quotes:
+
+  xxx=~"s/foo bar/bar baz/"
+
+Perl pattern modifiers are accepted
+
+  xxx=~s/FOO/bar/i
 
 =item xxx~
 
@@ -815,7 +839,7 @@ Dominique Dumont
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is Copyright (c) 2013 by Dominique Dumont.
+This software is Copyright (c) 2014 by Dominique Dumont.
 
 This is free software, licensed under:
 

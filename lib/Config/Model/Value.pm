@@ -1,17 +1,14 @@
 #
 # This file is part of Config-Model
 #
-# This software is Copyright (c) 2013 by Dominique Dumont.
+# This software is Copyright (c) 2014 by Dominique Dumont.
 #
 # This is free software, licensed under:
 #
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
 package Config::Model::Value ;
-{
-  $Config::Model::Value::VERSION = '2.047';
-}
-
+$Config::Model::Value::VERSION = '2.048';
 use 5.10.1 ;
 
 use Mouse;
@@ -1092,7 +1089,10 @@ sub apply_fixes {
     $check_fix = sub {
         $new = $self->{nb_of_fixes} ;
         $self->check_value(value => $self->{data}); # this is synchronous
-        if ($i++ > 100) {
+        # if fix fails, try and check_fix call each other until this limit is found
+        # or until perl bails out on deep recursion. Limit above 50 does trigger deep recursion failure.
+        # let's be conservative and limit to 20.
+        if ($i++ > 20) {
             Config::Model::Exception::Model->throw(
                 object => $self,
                 error  => "Too many fix loops: check with fix code or regexp"
@@ -1911,7 +1911,7 @@ Config::Model::Value - Strongly typed configuration value
 
 =head1 VERSION
 
-version 2.047
+version 2.048
 
 =head1 SYNOPSIS
 
@@ -2836,7 +2836,7 @@ Dominique Dumont
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is Copyright (c) 2013 by Dominique Dumont.
+This software is Copyright (c) 2014 by Dominique Dumont.
 
 This is free software, licensed under:
 

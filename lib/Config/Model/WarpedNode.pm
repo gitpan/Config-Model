@@ -1,16 +1,14 @@
 #
 # This file is part of Config-Model
 #
-# This software is Copyright (c) 2013 by Dominique Dumont.
+# This software is Copyright (c) 2014 by Dominique Dumont.
 #
 # This is free software, licensed under:
 #
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
 package Config::Model::WarpedNode ;
-{
-  $Config::Model::WarpedNode::VERSION = '2.047';
-}
+$Config::Model::WarpedNode::VERSION = '2.048';
 use Mouse ;
 
 use Carp qw(cluck croak);
@@ -315,7 +313,7 @@ Config::Model::WarpedNode - Node that change config class properties
 
 =head1 VERSION
 
-version 2.047
+version 2.048
 
 =head1 SYNOPSIS
 
@@ -565,7 +563,7 @@ Dominique Dumont
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is Copyright (c) 2013 by Dominique Dumont.
+This software is Copyright (c) 2014 by Dominique Dumont.
 
 This is free software, licensed under:
 

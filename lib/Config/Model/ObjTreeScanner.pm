@@ -1,16 +1,14 @@
 #
 # This file is part of Config-Model
 #
-# This software is Copyright (c) 2013 by Dominique Dumont.
+# This software is Copyright (c) 2014 by Dominique Dumont.
 #
 # This is free software, licensed under:
 #
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
 package Config::Model::ObjTreeScanner ;
-{
-  $Config::Model::ObjTreeScanner::VERSION = '2.047';
-}
+$Config::Model::ObjTreeScanner::VERSION = '2.048';
 use strict ;
 use Config::Model::Exception ;
 use Scalar::Util qw/blessed/ ;
@@ -309,7 +307,7 @@ Config::Model::ObjTreeScanner - Scan config tree and perform call-backs for each
 
 =head1 VERSION
 
-version 2.047
+version 2.048
 
 =head1 SYNOPSIS
 
@@ -481,7 +479,7 @@ Set the privilege level used for the scan (default 'beginner').
 
 =item auto_vivify
 
-Whether to create the configuration items while scan (default is 1).
+Whether to create configuration objects while scanning (default is 1).
 
 =item check
 
@@ -556,7 +554,7 @@ Example:
 
 =head2 List element hook
 
-C<hash_element_hook>: Works like the list element callback. Except that the calls to
+C<list_element_hook>: Works like the list element callback. Except that the calls to
 C<scan_list> are not required. This will be done once the hook returns.
 
 =head2 Check list element callback
@@ -737,7 +735,7 @@ Dominique Dumont
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is Copyright (c) 2013 by Dominique Dumont.
+This software is Copyright (c) 2014 by Dominique Dumont.
 
 This is free software, licensed under:
 

@@ -1,23 +1,22 @@
 #
 # This file is part of Config-Model
 #
-# This software is Copyright (c) 2013 by Dominique Dumont.
+# This software is Copyright (c) 2014 by Dominique Dumont.
 #
 # This is free software, licensed under:
 #
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
 package Config::Model;
-{
-  $Config::Model::VERSION = '2.047';
-}
+$Config::Model::VERSION = '2.048';
 use Mouse ;
 use namespace::autoclean;
 use Mouse::Util::TypeConstraints;
 use MouseX::StrictConstructor;
 
-# load AnyEvent as soon as possible: AnyEvent does not like late loading
-# in evals
+# load EV and AnyEvent as soon as possible: EV does not like late loading
+# in evals or in require
+use EV;
 use AnyEvent;
 
 use 5.10.1;
@@ -1564,7 +1563,7 @@ Config::Model - Create tools to validate, migrate and edit configuration files
 
 =head1 VERSION
 
-version 2.047
+version 2.048
 
 =head1 SYNOPSIS
 
@@ -2533,7 +2532,7 @@ Dominique Dumont
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is Copyright (c) 2013 by Dominique Dumont.
+This software is Copyright (c) 2014 by Dominique Dumont.
 
 This is free software, licensed under:
 

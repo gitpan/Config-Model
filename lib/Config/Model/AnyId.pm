@@ -1,17 +1,14 @@
 #
 # This file is part of Config-Model
 #
-# This software is Copyright (c) 2013 by Dominique Dumont.
+# This software is Copyright (c) 2014 by Dominique Dumont.
 #
 # This is free software, licensed under:
 #
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
 package Config::Model::AnyId ;
-{
-  $Config::Model::AnyId::VERSION = '2.047';
-}
-
+$Config::Model::AnyId::VERSION = '2.048';
 use Mouse ;
 use namespace::autoclean;
 
@@ -955,6 +952,12 @@ sub warning_msg {
     }
 }
 
+sub has_warning {
+    my $self = shift;
+
+    return @{$self->{content_warning_list}} + keys %{$self->{content_warning_hash}} ;
+}
+
 
 
 sub error_msg {
@@ -984,7 +987,7 @@ Config::Model::AnyId - Base class for hash or list element
 
 =head1 VERSION
 
-version 2.047
+version 2.048
 
 =head1 SYNOPSIS
 
@@ -1509,6 +1512,10 @@ Returns warnings concerning indexes of this hash.
 Without parameter, returns a string containing all warnings or undef. With an index, return the warnings
 concerning this index or undef.
 
+=head2 has_warning
+
+Returns the current number of warning.
+
 =head2 error_msg 
 
 Returns the error messages of this object (if any)
@@ -1534,7 +1541,7 @@ Dominique Dumont
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is Copyright (c) 2013 by Dominique Dumont.
+This software is Copyright (c) 2014 by Dominique Dumont.
 
 This is free software, licensed under:
 

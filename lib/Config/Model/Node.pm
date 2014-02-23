@@ -1,17 +1,14 @@
 #
 # This file is part of Config-Model
 #
-# This software is Copyright (c) 2013 by Dominique Dumont.
+# This software is Copyright (c) 2014 by Dominique Dumont.
 #
 # This is free software, licensed under:
 #
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
 package Config::Model::Node;
-{
-  $Config::Model::Node::VERSION = '2.047';
-}
-
+$Config::Model::Node::VERSION = '2.048';
 use Mouse ;
 use namespace::autoclean;
 
@@ -756,6 +753,14 @@ sub fetch_element {
         # FIXME elaborate more ? or include parameter description ??
         warn "Element '$element_name' of node '",$self->name,
           "' is deprecated\n";
+
+        # this will also force a rewrite of the file even if no other
+        # semantic change was done
+        $self->notify_change(
+            msg => 'dropping deprecated parameter',
+            path => $self->location. ' '. $element_name,
+            really => 1,
+       ) ;
     }
 
     # check experience
@@ -1249,7 +1254,7 @@ Config::Model::Node - Class for configuration tree node
 
 =head1 VERSION
 
-version 2.047
+version 2.048
 
 =head1 SYNOPSIS
 
@@ -1947,7 +1952,7 @@ Dominique Dumont
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is Copyright (c) 2013 by Dominique Dumont.
+This software is Copyright (c) 2014 by Dominique Dumont.
 
 This is free software, licensed under:
 

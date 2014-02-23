@@ -1,16 +1,14 @@
 #
 # This file is part of Config-Model
 #
-# This software is Copyright (c) 2013 by Dominique Dumont.
+# This software is Copyright (c) 2014 by Dominique Dumont.
 #
 # This is free software, licensed under:
 #
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
 package Config::Model::CheckList ;
-{
-  $Config::Model::CheckList::VERSION = '2.047';
-}
+$Config::Model::CheckList::VERSION = '2.048';
 use Mouse ;
 use 5.010 ;
 
@@ -729,7 +727,7 @@ Config::Model::CheckList - Handle check list element
 
 =head1 VERSION
 
-version 2.047
+version 2.048
 
 =head1 SYNOPSIS
 
@@ -1156,7 +1154,7 @@ Dominique Dumont
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is Copyright (c) 2013 by Dominique Dumont.
+This software is Copyright (c) 2014 by Dominique Dumont.
 
 This is free software, licensed under:
 

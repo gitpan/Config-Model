@@ -1,7 +1,7 @@
 # -*- cperl -*-
 
 use ExtUtils::testlib;
-use Test::More tests => 115;
+use Test::More tests => 121;
 use Test::Exception ;
 use Test::Differences ;
 use Test::Memory::Cycle;
@@ -59,8 +59,9 @@ my @regexp_test
      [ 'a="b=\"c\""'     , ['a', 'x' ,  'x'    ,'=' , 'b="c"' , 'x'  ]],
      [ 'a:b=c'           , ['a', ':' ,  'b'    ,'=' , 'c'     , 'x'  ]],
      [ 'a:"b\""="\"c"'   , ['a', ':' ,  'b"'   ,'=' ,'"c'     , 'x'  ]],
-     [ 'a=~/b.*/'        , ['a', '=~', '/b.*/' ,'x' , 'x'     , 'x'  ]],
-     [ 'a=~/b.*/.="\"a"' , ['a', '=~', '/b.*/' ,'.=','"a'     , 'x'  ]],
+     [ 'a:~/b.*/'        , ['a', ':~', '/b.*/' ,'x' , 'x'     , 'x'  ]],
+     [ 'a:~/b.*/.="\"a"' , ['a', ':~', '/b.*/' ,'.=','"a'     , 'x'  ]],
+     [ 'a:~/^\w+$/'      , ['a', ':~', '/^\w+$/' ,'x','x'     , 'x'  ]],
      [ 'a=b,c,d'         , ['a', 'x' ,  'x'    ,'=' , 'b,c,d' , 'x'  ]],
      [ 'm=a,"a b "'      , ['m', 'x' ,  'x'    ,'=' , 'a,"a b "', 'x'  ]],
      [ 'a#B'             , ['a', 'x' ,  'x'    ,'x' , 'x'     , 'B'  ]],
@@ -71,6 +72,7 @@ my @regexp_test
      [ 'a:b#C'           , ['a', ':' ,  'b'    ,'x' , 'x'     , 'C'  ]],
      [ 'a~b'             , ['a', '~' ,  'b'    ,'x' , 'x'     , 'x'  ]],
      [ 'a~'              , ['a', '~' ,  'x'    ,'x' , 'x'     , 'x'  ]],
+     [ 'a=~/a/A/'        , ['a', 'x' ,  'x'    ,'=~', '/a/A/' , 'x'  ]],
     ) ;
 
 foreach my $subtest (@regexp_test) {
@@ -94,6 +96,20 @@ ok( $root->load( step => $step, experience => 'advanced' ),
   "load steps with embedded \\n");
 is( $root->fetch_element('a_string')->fetch, "titi and\ntoto",
   "check a_string");
+
+# test apply regexp
+$step = qq!a_string=~s/TOTO/tata/i!;
+ok( $root->load( step => $step, experience => 'advanced' ),
+  "load steps with apply regexp");
+is( $root->fetch_element('a_string')->fetch, qq!titi and\ntata!,
+  "check a_string after regexp");
+
+# test apply regexp with embedded spaces
+$step = qq!a_string=~"s/titi and\n//""!;
+ok( $root->load( step => $step, experience => 'advanced' ),
+  "load steps with apply regexp with embedded spaces");
+is( $root->fetch_element('a_string')->fetch, qq!tata!,
+  "check a_string after regexp with embedded spaces");
 
 # check with embedded quotes
 $step = qq!std_id:ab X=Bv -\na_string="\"titi\" and \"toto\"" std_id:bc X=Av!;
@@ -266,7 +282,7 @@ is($root->fetch_element('hash_a')->fetch_with_id('b')->fetch ,
 
 # test loop mode
 
-$root->load('std_id=~/^\w+$/ DX=Bv - int_v=9') ;
+$root->load('std_id:~/^\w+$/ DX=Bv - int_v=9') ;
 is($root->grab_value('std_id:ab DX'),'Bv',"check looped assign 1") ;
 is($root->grab_value('std_id:bc DX'),'Bv',"check looped assign 2") ;
 isnt($root->grab_value('std_id:"a b" DX'),'Bv',"check out of loop left alone") ;

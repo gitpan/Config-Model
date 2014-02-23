@@ -1,19 +1,8 @@
 # PODNAME: Config::Model::models::Fstab
 # ABSTRACT:  Configuration class Fstab
-
-__END__
-
-=pod
-
-=encoding UTF-8
-
 =head1 NAME
 
 Config::Model::models::Fstab - Configuration class Fstab
-
-=head1 VERSION
-
-version 2.047
 
 =head1 DESCRIPTION
 
@@ -21,9 +10,6 @@ Configuration classes used by L<Config::Model>
 
 static information about the filesystems. fstab contains descriptive information about the various file systems. 
 
-=head1 NAME
-
-Config::Model::models::Fstab - Configuration class Fstab
 
 =head1 Elements
 
@@ -51,6 +37,7 @@ L<Config::Model::models::Fstab::FsLine>
 
 =item Dominique Dumont
 
+
 =back
 
 =head1 COPYRIGHT
@@ -58,6 +45,7 @@ L<Config::Model::models::Fstab::FsLine>
 =over
 
 =item 2010,2011 Dominique Dumont
+
 
 =back
 
@@ -67,18 +55,8 @@ L<Config::Model::models::Fstab::FsLine>
 
 =item LGPL2
 
+
 =back
 
-=head1 AUTHOR
-
-Dominique Dumont
-
-=head1 COPYRIGHT AND LICENSE
-
-This software is Copyright (c) 2013 by Dominique Dumont.
-
-This is free software, licensed under:
-
-  The GNU Lesser General Public License, Version 2.1, February 1999
-
 =cut
+

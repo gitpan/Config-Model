@@ -1,17 +1,14 @@
 #
 # This file is part of Config-Model
 #
-# This software is Copyright (c) 2013 by Dominique Dumont.
+# This software is Copyright (c) 2014 by Dominique Dumont.
 #
 # This is free software, licensed under:
 #
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
 package Config::Model::IdElementReference;
-{
-  $Config::Model::IdElementReference::VERSION = '2.047';
-}
-
+$Config::Model::IdElementReference::VERSION = '2.048';
 use Mouse;
 use namespace::autoclean;
 
@@ -200,7 +197,7 @@ Config::Model::IdElementReference - Refer to id element(s) and extract keys
 
 =head1 VERSION
 
-version 2.047
+version 2.048
 
 =head1 SYNOPSIS
 
@@ -390,7 +387,7 @@ Dominique Dumont
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is Copyright (c) 2013 by Dominique Dumont.
+This software is Copyright (c) 2014 by Dominique Dumont.
 
 This is free software, licensed under:
 

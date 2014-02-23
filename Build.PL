@@ -1,7 +1,7 @@
 #
 # This file is part of Config-Model
 #
-# This software is Copyright (c) 2013 by Dominique Dumont.
+# This software is Copyright (c) 2014 by Dominique Dumont.
 #
 # This is free software, licensed under:
 #
@@ -98,6 +98,7 @@ my $build = $class->new(
     'Carp' => '0',
     'Carp::Assert::More' => '0',
     'Data::Dumper' => '0',
+    'EV' => '0',
     'English' => '0',
     'Exception::Class' => '0',
     'Fcntl' => '0',
