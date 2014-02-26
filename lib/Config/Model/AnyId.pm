@@ -8,7 +8,7 @@
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
 package Config::Model::AnyId ;
-$Config::Model::AnyId::VERSION = '2.048';
+$Config::Model::AnyId::VERSION = '2.049';
 use Mouse ;
 use namespace::autoclean;
 
@@ -987,7 +987,7 @@ Config::Model::AnyId - Base class for hash or list element
 
 =head1 VERSION
 
-version 2.048
+version 2.049
 
 =head1 SYNOPSIS
 

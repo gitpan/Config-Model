@@ -8,7 +8,7 @@
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
 package Config::Model::ListId ;
-$Config::Model::ListId::VERSION = '2.048';
+$Config::Model::ListId::VERSION = '2.049';
 use Mouse ;
 use namespace::autoclean;
 
@@ -401,7 +401,7 @@ Config::Model::ListId - Handle list element for configuration model
 
 =head1 VERSION
 
-version 2.048
+version 2.049
 
 =head1 SYNOPSIS
 

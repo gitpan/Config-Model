@@ -8,7 +8,7 @@
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
 package Config::Model;
-$Config::Model::VERSION = '2.048';
+$Config::Model::VERSION = '2.049';
 use Mouse ;
 use namespace::autoclean;
 use Mouse::Util::TypeConstraints;
@@ -1563,7 +1563,7 @@ Config::Model - Create tools to validate, migrate and edit configuration files
 
 =head1 VERSION
 
-version 2.048
+version 2.049
 
 =head1 SYNOPSIS
 
