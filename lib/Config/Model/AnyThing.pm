@@ -8,7 +8,7 @@
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
 package Config::Model::AnyThing;
-$Config::Model::AnyThing::VERSION = '2.049';
+$Config::Model::AnyThing::VERSION = '2.050';
 use Mouse ;
 use namespace::autoclean;
 
@@ -584,7 +584,7 @@ Config::Model::AnyThing - Base class for configuration tree item
 
 =head1 VERSION
 
-version 2.049
+version 2.050
 
 =head1 SYNOPSIS
 
