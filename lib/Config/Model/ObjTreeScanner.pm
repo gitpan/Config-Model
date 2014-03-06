@@ -8,7 +8,7 @@
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
 package Config::Model::ObjTreeScanner ;
-$Config::Model::ObjTreeScanner::VERSION = '2.050';
+$Config::Model::ObjTreeScanner::VERSION = '2.051';
 use strict ;
 use Config::Model::Exception ;
 use Scalar::Util qw/blessed/ ;
@@ -307,7 +307,7 @@ Config::Model::ObjTreeScanner - Scan config tree and perform call-backs for each
 
 =head1 VERSION
 
-version 2.050
+version 2.051
 
 =head1 SYNOPSIS
 

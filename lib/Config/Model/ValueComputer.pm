@@ -8,7 +8,7 @@
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
 package Config::Model::ValueComputer ;
-$Config::Model::ValueComputer::VERSION = '2.050';
+$Config::Model::ValueComputer::VERSION = '2.051';
 use Mouse ;
 use MouseX::StrictConstructor;
 use namespace::autoclean;
@@ -506,7 +506,7 @@ pre_value:
   | <skip:''> '&' /\w+/ func_param(?) {
     $return = Config::Model::ValueComputer::_function_alone($item[3],$return,@arg ) ;
   }
-  |  <skip:''> /\$(\d+|_)\b/ {
+  |  <skip:''> /\$(\d+|_|&|{\^[A-Z]+})/ {
      my $result = $item[-1] ;
      $return = \$result ;
   }
@@ -583,7 +583,7 @@ Config::Model::ValueComputer - Provides configuration value computation
 
 =head1 VERSION
 
-version 2.050
+version 2.051
 
 =head1 SYNOPSIS
 
