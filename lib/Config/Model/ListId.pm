@@ -8,7 +8,8 @@
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
 package Config::Model::ListId ;
-$Config::Model::ListId::VERSION = '2.051';
+$Config::Model::ListId::VERSION = '2.052';
+use 5.10.1;
 use Mouse ;
 use namespace::autoclean;
 
@@ -20,7 +21,19 @@ extends qw/Config::Model::AnyId/ ;
 
 my $logger = get_logger("Tree::Element::Id::List") ;
 
-has data => ( is => 'rw', isa => 'ArrayRef' , default => sub { [] ;} ) ;
+has data => (
+    is => 'rw',
+    isa => 'ArrayRef',
+    default => sub { [] ;},
+    traits => ['Array'],
+    handles => {
+        _sort_data => 'sort_in_place',
+        _all_data => 'elements',
+        _splice_data => 'splice',
+    }
+) ;
+
+
 
 # compatibility with HashId
 has index_type => ( is => 'ro', isa => 'Str', default => 'integer' ) ;
@@ -253,6 +266,7 @@ sub move {
 # list only methods
 sub push {
     my $self = shift ;
+    $self->_assert_leaf_cargo;
     my $idx   = $self->fetch_size ;
     map { $self->fetch_with_id( $idx++ )->store( $_ ) ; } @_ ;
 }
@@ -262,6 +276,7 @@ sub push {
 sub push_x {
     my $self = shift ;
     my %args = @_ ;
+    $self->_assert_leaf_cargo;
     my $check = delete $args{check} || 'yes'; 
     my $v_arg = delete $args{values} || delete $args{value};
     my @v = ref ($v_arg) ? @$v_arg : ($v_arg)  ;
@@ -279,12 +294,93 @@ sub push_x {
     }
 }
 
+sub unshift {
+    my $self = shift;
+    $self->insert_at(0,@_) ;
+}
+
+sub insert_at {
+    my $self = shift;
+    my $idx = shift;
+
+    $self->_assert_leaf_cargo;
+    # check if max_idx is respected
+    $self->check_idx($self->fetch_size + scalar @_) ;
+
+    # make room at the beginning of the array
+    $self->_splice_data( $idx, 0, (undef) x scalar @_ );
+    my $i = $idx ;
+    map { $self->fetch_with_id($i++)->store($_) ; } @_ ;
+
+    $self->_reindex;
+}
+
+sub insert_before {
+    my $self = shift;
+    my $val  = shift;
+    my $test
+        = ref($val) eq 'Regexp' ? sub { $_[0] =~ /$val/ }
+        :                         sub { $_[0] eq $val } ;
+
+    $self->_assert_leaf_cargo;
+
+    my $point = 0;
+    foreach my $v ($self->fetch_all_values) {
+        last if $test->($v) ;
+        $point++;
+    }
+
+    $self->insert_at($point,@_) ;
+}
+
+sub insort {
+    my $self = shift;
+    $self->_assert_leaf_cargo;
+    my @insert = sort @_ ;
+
+    my $point = 0;
+    foreach my $v ( $self->fetch_all_values) {
+        while (@insert and $insert[0] lt $v ) {
+            $self->insert_at($point++,shift @insert) ;
+        }
+        $point++;
+    }
+    $self->push(@insert) if @insert;
+}
+
+
 sub store {
     my $self = shift;
     $self->push_x(@_) ;
 }
 
+sub _assert_leaf_cargo {
+    my $self = shift;
 
+    my $ct = $self->cargo_type;
+
+    Config::Model::Exception::User ->throw (
+        object => $self,
+        error => "Cannot call sort on list of $ct"
+    ) unless $ct eq 'leaf';
+}
+
+sub sort {
+    my $self = shift;
+
+    $self->_assert_leaf_cargo;
+    $self->_sort_data(sub{$_[0]->fetch cmp $_[1]->fetch});
+    $self->_reindex;
+}
+
+sub _reindex {
+    my $self = shift;
+
+    my $i = 0;
+    foreach my $o ($self->_all_data) {
+        $o->index_value($i++) if defined $o;
+    }
+}
 
 sub swap {
     my $self = shift ;
@@ -312,6 +408,12 @@ sub swap {
 sub remove {
     my $self = shift ;
     my $idx  = shift ;
+
+    Config::Model::Exception::User ->throw (
+        object => $self,
+        error => "Non numeric index for list: $idx"
+    ) unless $idx =~ /^\d+$/;
+
     $self->delete_data_mode(index => $idx) ;
     $self->notify_change ;
     splice @{$self->{data}}, $idx , 1 ;
@@ -401,7 +503,7 @@ Config::Model::ListId - Handle list element for configuration model
 
 =head1 VERSION
 
-version 2.051
+version 2.052
 
 =head1 SYNOPSIS
 
@@ -477,6 +579,23 @@ Single value to push
 
 =back
 
+=head2 unshift( value1, [ value2 ... ] )
+
+unshift some values at the end of the list.
+
+=head2 insert_at( idx, value1, [ value2 ... ] )
+
+unshift some values at index idx in the list.
+
+=head2 insert_before( ( val | qr/stuff/ ) , value1, [ value2 ... ] )
+
+unshift some values before value equal to C<val> or before value matching C<stuff>.
+
+=head2 insort( value1, [ value2 ... ] )
+
+Insert C<zz> value on C<xxx> list so that existing alphanumeric order is preserved.
+Will yield unpexpected results if call on an unsorted list.
+
 =head2 store
 
 Equivalent to push_x. This method is provided to help write
@@ -502,6 +621,10 @@ Example:
     annotation => [ 'v1 comment', 'v2 comment' ],
     check => 'skip'
  );
+
+=head2 sort()
+
+Sort the content of the list. Can only be called on list of leaf.
 
 =head2 swap ( C<ida> , C<idb> )
 

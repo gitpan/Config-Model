@@ -8,7 +8,7 @@
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
 package Config::Model::TermUI ;
-$Config::Model::TermUI::VERSION = '2.051';
+$Config::Model::TermUI::VERSION = '2.052';
 use Carp;
 use strict ;
 use warnings ;
@@ -200,10 +200,12 @@ sub run_loop {
 
     my $instance = $self->{root}->instance ;
     if ($instance->c_count) {
-        print "Unsaved changes:\n", $instance->list_changes,"\n" ;
-        $user_cmd = $term->readline("write back data before exit ? (Y/n)");
-        $instance->write_back unless $user_cmd =~ /n/i;
-        print "\n";
+        my @changes = $instance->say_changes ;
+        if (@changes) {
+            $user_cmd = $term->readline("write back data before exit ? (Y/n)");
+            $instance->write_back unless $user_cmd =~ /n/i;
+            print "\n";
+        }
     }
 }
 
@@ -223,7 +225,7 @@ Config::Model::TermUI - Provides Config::Model UI with Term::ReadLine
 
 =head1 VERSION
 
-version 2.051
+version 2.052
 
 =head1 SYNOPSIS
 

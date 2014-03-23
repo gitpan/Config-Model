@@ -8,7 +8,7 @@
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
 package Config::Model::Instance;
-$Config::Model::Instance::VERSION = '2.051';
+$Config::Model::Instance::VERSION = '2.052';
 #use Scalar::Util qw(weaken) ;
 
 use 5.10.1;
@@ -420,13 +420,20 @@ sub list_changes {
             my $diff = diff \$o, \$n ;
             push @all, "$path :" . ($c->{note} ? " # $c->{note}" : ''). "\n". $diff;
         }
-        elsif (exists $c->{old} or exists $c->{new}) {
+        elsif (defined $c->{old} or defined $c->{new}) {
             map { s/\n.*/.../s; } ($o,$n) ;
             push @all, "$path: '$o' -> '$n'" . ($c->{note} ? " # $c->{note}" : '');
         }
     }
 
     return wantarray ? @all : join("\n",@all) ;
+}
+
+sub say_changes {
+    my $self = shift;
+    my @changes = $self->list_changes ;
+    say "\n",join( "\n- ","Changes applied to ".$self->application." configuration:", @changes ),"\n" if @changes;
+    return @changes;
 }
 
 
@@ -486,7 +493,7 @@ Config::Model::Instance - Instance of configuration tree
 
 =head1 VERSION
 
-version 2.051
+version 2.052
 
 =head1 SYNOPSIS
 
@@ -745,6 +752,10 @@ Returns 1 (or more) if the instance contains data that needs to be saved.
 
 In list context, returns a array ref of strings describing the changes. 
 In scalar context, returns a big string. Useful to print.
+
+=head2 say_changes
+
+Print all changes on STDOUT and return the list of changes.
 
 =head2 has_warning
 

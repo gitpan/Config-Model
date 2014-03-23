@@ -8,10 +8,11 @@
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
 package Config::Model::Loader;
-$Config::Model::Loader::VERSION = '2.051';
+$Config::Model::Loader::VERSION = '2.052';
 use Carp;
 use strict;
 use warnings ;
+use 5.10.1;
 
 use Config::Model::Exception ;
 use Log::Log4perl qw(get_logger :levels);
@@ -114,7 +115,7 @@ sub load {
 sub _split_cmd {
     my $cmd = shift ;
 
-    my $quoted_regexp = qr/"(?: \\" | [^"] )* "/x;  # quoted string
+    my $quoted_string = qr/"(?: \\" | [^"] )* "/x;  # quoted string
 
 
     # do a split on ' ' but take quoted string into account
@@ -124,19 +125,21 @@ sub _split_cmd {
        m!^
 	 (\w[\w-]*)? # element name can be alone
 	 (?:
-            (:~|:|~)       # action
-            ( /[^/]+/      # regexp
-	      |            # or
-		$quoted_regexp
-              |
-	      [^"#=\.~]+    # non action chars
+            (:~|:-[=~]?|:=~|:\.\w+|:[=<>@]?|~)       # action
+            (?:
+                  (?: \( ([^)]+)  \) )  # capture parameters between braces
+                | (
+                    /[^/]+/      # regexp
+                    | $quoted_string
+                    | [^#=\.<>]+    # non action chars
+                  )
             )?
          )?
 	 (?:
-            (=~|.=|=)          # apply regexp or assign or append
+            (=~|.=|[=<>])          # apply regexp or assign or append
 	    (
               (?:
-                $quoted_regexp
+                $quoted_string
                 | [^#\s]                # or non whitespace
               )+                       # many
             )
@@ -145,7 +148,7 @@ sub _split_cmd {
             \#              # optional annotation
 	    (
               (?:
-                 $quoted_regexp
+                 $quoted_string
                 | [^\s]                # or non whitespace
               )+                       # many
             )
@@ -161,7 +164,7 @@ my %load_dispatch = (
 		     node        => \&_walk_node,
 		     warped_node => \&_walk_node,
 		     hash        => \&_load_hash,
-		     check_list  => \&_load_list,
+		     check_list  => \&_load_check_list,
 		     list        => \&_load_list,
 		     leaf        => \&_load_leaf,
 		    ) ;
@@ -197,7 +200,7 @@ sub _load {
 	}
 
 	my @instructions = _split_cmd($cmd);
-	my ($element_name,$action,$id,$subaction,$value,$note) = @instructions ;
+	my ($element_name,$action,$function_param,$id,$subaction,$value,$note) = @instructions ;
 
 	if ($logger->is_debug) {
 	    my @disp = map { defined $_ ? "'$_'" : '<undef>'} @instructions;
@@ -341,12 +344,133 @@ sub unquote {
     map { s/^"// && s/"$// && s!\\"!"!g if defined $_;  } @_ ;
 }
 
-# used for list and check lists
-sub _load_list {
+sub _load_check_list {
     my ($self,$node, $check,$experience,$inst,$cmdref) = @_ ;
-    my ($element_name,$action,$id,$subaction,$value,$note) = @$inst ;
+    my ($element_name,$action,$f_arg,$id,$subaction,$value,$note) = @$inst ;
 
     my $element = $node -> fetch_element(name => $element_name, check => $check) ;
+
+    if (defined $note and not defined $action and not defined $subaction) {
+        $self->_load_note($element, $note, $inst, $cmdref);
+	return 'ok';
+    }
+
+    if (defined $subaction and $subaction eq '=') {
+	$logger->debug("_load_check_list: set whole list");
+	# valid for check_list or list
+	$logger->info("Setting check_list element ",$element->name, " with value ",$value );
+	$element->load( $value , check => $check) ;
+        $self->_load_note($element, $note, $inst, $cmdref);
+	return 'ok';
+    }
+
+    if (not defined $action and defined $subaction ) {
+	Config::Model::Exception::Load -> throw (
+            object => $element,
+            command => join('',grep (defined $_,@$inst)) ,
+            error => "Wrong assignment with '$subaction' on check_list"
+        ) ;
+    }
+
+    my $a_str = defined $action ? $action : '<undef>' ;
+
+    Config::Model::Exception::Load -> throw (
+        object => $element,
+	command =>  join ( '', map { $_ || '' } @$inst ),
+	error => "Wrong assignment with '$a_str' on check_list"
+    ) ;
+
+}
+
+my %dispatch_action = (
+    list_leaf => {
+        ':.sort'    => sub{$_[1]->sort;},
+        ':.push'    => sub{$_[1]->push(@_[4 .. $#_]);},
+        ':.unshift' => sub{$_[1]->unshift(@_[4 .. $#_]);},
+        ':.insert_at' => sub{$_[1]->insert_at(@_[4 .. $#_]);},
+        ':.insort' => sub{$_[1]->insort(@_[4 .. $#_]);},
+        ':.insert_before' => \&_insert_before,
+    },
+    leaf => {
+        ':-=' => \&_remove_by_value,
+        ':-~' => \&_remove_matched_value,
+        ':=~' => \&_substitute_value,
+    },
+    fallback => {
+        ':-' => \&_remove_by_id,
+        '~' => \&_remove_by_id,
+    }
+) ;
+
+my @equiv = qw/:@ :.sort :< :.push :> :.unshift/;
+while (@equiv) {
+    my ($to,$from) = splice @equiv,0,2;
+    $dispatch_action{list_leaf}{$to} = $dispatch_action{list_leaf}{$from} ;
+}
+
+sub _insert_before {
+    my ($self,$element,$check, $inst,$before_str, @values) = @_ ;
+    my $before = $before_str =~ m!^/! ? eval "qr$before_str" : $before_str ;
+    $element->insert_before($before, @values) ;
+}
+
+
+sub _remove_by_id {
+    my ($self,$element,$check, $inst,$id) = @_ ;
+    $logger->debug("_remove_by_id: removing id $id");
+    $element->remove($id) ;
+    return 'ok' ;
+}
+
+
+sub _remove_by_value {
+    my ($self,$element,$check,$inst,$rm_val) = @_ ;
+
+    $logger->debug("_remove_by_value value $rm_val");
+    foreach my $idx ($element->fetch_all_indexes) {
+        my $v = $element->fetch_with_id($idx)->fetch ;
+        $element->delete($idx) if defined $v and $v eq $rm_val;
+    }
+
+    return 'ok';
+}
+
+sub _remove_matched_value {
+    my ($self,$element,$check,$inst,$rm_val) = @_ ;
+
+    $logger->debug("_remove_matched_value $rm_val");
+
+    $rm_val =~ s!^/|/$!!g ;
+
+    foreach my $idx ($element->fetch_all_indexes) {
+        my $v = $element->fetch_with_id($idx)->fetch ;
+        $element->delete($idx) if defined $v and $v =~ /$rm_val/;
+    }
+
+    return 'ok';
+}
+
+sub _substitute_value {
+    my ($self,$element,$check,$inst,$s_val) = @_ ;
+
+    $logger->debug("_substitute_value $s_val");
+
+    foreach my $idx ($element->fetch_all_indexes) {
+        my $l = $element->fetch_with_id($idx) ;
+        $self->_load_value($l,$check,'=~',$s_val,$inst) ;
+    }
+
+    return 'ok';
+}
+
+
+sub _load_list {
+    my ($self,$node, $check,$experience,$inst,$cmdref) = @_ ;
+    my ($element_name,$action,$f_arg,$id,$subaction,$value,$note) = @$inst ;
+
+    my $element = $node -> fetch_element(name => $element_name, check => $check) ;
+
+    my @f_args = grep { defined } (($f_arg // $id // '') =~ /([^,"]+)|"([^"]+)"/g );
 
     my $elt_type   = $node -> element_type( $element_name ) ;
     my $cargo_type = $element->cargo_type ;
@@ -356,36 +480,44 @@ sub _load_list {
 	return 'ok';
     }
 
-    if (not defined $action and defined $subaction and $subaction eq '='
-	and $cargo_type eq 'leaf'
-       ) {
-	$logger->debug("_load_list: set whole list");
+    if (defined $action and $action eq ':=' and $cargo_type eq 'leaf' ) {
+	$logger->debug("_load_list: set whole list with ':=' action");
 	# valid for check_list or list
-	$logger->info("Setting $elt_type element ",$element->name,
-		      " with '$value'");
+	$logger->info("Setting $elt_type element ",$element->name, " with '$id'");
+	$element->load( $id , check => $check) ;
+        $self->_load_note($element, $note, $inst, $cmdref);
+	return 'ok';
+    }
+
+    if (defined $subaction and $subaction eq '=' and $cargo_type eq 'leaf' ) {
+	$logger->debug("_load_list: set whole list with '=' subaction'" );
+	# valid for check_list or list
+	$logger->info("Setting $elt_type element ",$element->name, " with '$value'");
 	$element->load( $value , check => $check) ;
         $self->_load_note($element, $note, $inst, $cmdref);
 	return 'ok';
     }
 
-    if (not defined $action and defined $subaction ) {
-	Config::Model::Exception::Load
-	-> throw (
-		  object => $element,
-		  command => join('',grep (defined $_,@$inst)) ,
-		  error => "Wrong assignment with '$subaction' on "
-		  ."element type: $elt_type, cargo_type: $cargo_type"
-		 ) ;
+    if (defined $action) {
+        my $dispatch
+            = $dispatch_action{'list_'.$cargo_type}{$action}
+            || $dispatch_action{$cargo_type}{$action}
+            || $dispatch_action{'fallback'}{$action};
+        if ($dispatch) {
+            return $dispatch->($self,$element,$check, $inst, @f_args) ;
+        }
     }
 
-    if ($elt_type eq 'list' and defined $action and $action eq '~') {
-	# remove possible leading or trailing quote
-	$logger->debug("_load_list: removing id $id");
-	$element->remove($id) ;
-	return 'ok' ;
+    if ( not defined $action and defined $subaction ) {
+        Config::Model::Exception::Load->throw(
+            object  => $element,
+            command => join( '', grep ( defined $_, @$inst ) ),
+            error   => "Wrong assignment with '$subaction' on "
+              . "element type: $elt_type, cargo_type: $cargo_type"
+        );
     }
 
-    if ($elt_type eq 'list' and defined $action and $action eq ':') {
+    if (defined $action and $action eq ':') {
 	my $obj = $element->fetch_with_id(index => $id, check => $check) ;
         $self->_load_note($obj, $note, $inst, $cmdref);
 
@@ -416,9 +548,10 @@ sub _load_list {
 
 }
 
+
 sub _load_hash {
     my ($self,$node,$check,$experience,$inst,$cmdref) = @_ ;
-    my ($element_name,$action,$id,$subaction,$value,$note) = @$inst ;
+    my ($element_name,$action,$f_arg,$id,$subaction,$value,$note) = @$inst ;
 
     my $element = $node -> fetch_element(name => $element_name, check => $check ) ;
     my $cargo_type = $element->cargo_type ;
@@ -427,7 +560,7 @@ sub _load_hash {
         $self->_load_note($element, $note, $inst, $cmdref);
 	return 'ok';
     }
-    
+
     if ( not defined $action ) {
         Config::Model::Exception::Load->throw(
             object  => $element,
@@ -436,7 +569,7 @@ sub _load_hash {
               . "element type: hash, cargo_type: $cargo_type"
         );
     }
-    
+
     if ($action eq ':~') {
 	my @keys = $element->fetch_all_indexes;
 	my $ret ;
@@ -470,12 +603,14 @@ sub _load_hash {
 	return $ret ;
     }
 
-
-    if ($action eq '~') {
-	# remove possible leading or trailing quote
-	$logger->debug("_load_hash: deleting $id");
-	$element->delete($id) ;
-	return 'ok' ;
+    if (defined $action) {
+        my $dispatch
+            = $dispatch_action{'hash_'.$cargo_type}{$action}
+            || $dispatch_action{$cargo_type}{$action}
+            || $dispatch_action{'fallback'}{$action};
+        if ($dispatch) {
+            return $dispatch->($self,$element,$check,$inst,$id) ;
+        }
     }
 
     my $obj = $element->fetch_with_id( index => $id , check => $check) ;
@@ -507,7 +642,7 @@ sub _load_hash {
 	Config::Model::Exception::Load
 	    -> throw (
 		      object => $element,
-                      command => join('',@$inst) ,
+                      command => join('', grep { defined $_ } @$inst) ,
 		      error => "Hash assignment with '$action' on unexpected "
 		      ."cargo_type: $cargo_type"
 		     ) ;
@@ -516,7 +651,7 @@ sub _load_hash {
 
 sub _load_leaf {
     my ($self,$node,$check,$experience,$inst,$cmdref) = @_ ;
-    my ($element_name,$action,$id,$subaction,$value,$note) = @$inst ;
+    my ($element_name,$action,$f_arg,$id,$subaction,$value,$note) = @$inst ;
 
     my $element = $node -> fetch_element(name => $element_name, check => $check) ;
     $self->_load_note($element, $note, $inst, $cmdref);
@@ -556,18 +691,19 @@ sub _load_value {
 	my $orig = $element->fetch(check => $check) ;
 	$element->store(value => $orig.$value, check => $check) ;
     }
-    elsif ($subaction eq '=~' and $element->isa('Config::Model::Value')) {
-	my $orig = $element->fetch(check => $check) ;
-	eval ( "\$orig =~ $value;" ) ;
-	if ($@) {
-             Config::Model::Exception::Load -> throw (
-		  object => $element,
-		  command => $inst ,
-		  error => "Failed regexp '$value' on "
-		  ."element '".$element->name."' : $@"
-            ) ;
-	}
-	$element->store(value => $orig , check => $check) ;
+    elsif ( $subaction eq '=~' and $element->isa('Config::Model::Value') ) {
+        my $orig = $element->fetch( check => $check );
+        if ( defined $orig ) {
+            eval("\$orig =~ $value;");
+            if ($@) {
+                Config::Model::Exception::Load->throw(
+                    object  => $element,
+                    command => $inst,
+                    error => "Failed regexp '$value' on " . "element '" . $element->name . "' : $@"
+                );
+            }
+            $element->store( value => $orig, check => $check );
+        }
     }
     else {
 	return undef ;
@@ -593,7 +729,7 @@ Config::Model::Loader - Load serialized data into config tree
 
 =head1 VERSION
 
-version 2.051
+version 2.052
 
 =head1 SYNOPSIS
 
@@ -691,7 +827,29 @@ L<Config::Model::Node>.
 =head1 load string syntax
 
 The string is made of the following items (also called C<actions>)
-separated by spaces:
+separated by spaces. These actions can be divided in 4 groups:
+
+=over
+
+=item navigation
+
+Moving up and down the configuration tree.
+
+=item list and hash operation
+
+select, add or delete hash or list item (also known as C<id> items)
+
+=item leaf operation
+
+select, modify or delecte leaf value
+
+=item annotation
+
+modify or delete configuration annotation (aka comment)
+
+=back
+
+=head2 navigation
 
 =over 8
 
@@ -706,6 +864,12 @@ Go to the root node of the configuration tree.
 =item xxx
 
 Go down using C<xxx> element. (For C<node> type element)
+
+=back
+
+=head2 list and hash operation
+
+=over
 
 =item xxx:yy
 
@@ -723,12 +887,74 @@ For instance, with C<OpenSsh> model, you could do
 
 to set "foo-user" users for all your debian accounts.
 
-=item xxx~yy
+=item xxx:-yy
 
 Delete item referenced by C<xxx> element and id C<yy>. For a list,
 this is equivalent to C<splice xxx,yy,1>. This command does not go
 down in the tree (since it has just deleted the element). I.e. a
 'C<->' is generally not needed afterwards.
+
+=item xxx:-=yy
+
+Remove the element whose value is C<yy>. For list or hash of leaves.
+Will not complain if the value to delete is not found.
+
+=item xxx-~/yy/
+
+Remove the element whose value matches C<yy>. For list or hash of leaves.
+Will not complain if no value were deleted.
+
+=item xxx:=~s/yy/zz/
+
+Substitute a value with another
+
+=item xxx:<yy or xxx.push(yy)
+
+Push C<yy> value on C<xxx> list
+
+=item xxx:>yy or xxx.unshift(yy)
+
+Unshift C<yy> value on C<xxx> list
+
+=item xxx:@ or xxx.sort
+
+Sort the list
+
+=item xxx.insert_at(yy,zz)
+
+Insert C<zz> value on C<xxx> list before B<index> C<yy>.
+
+=item xxx.insert_before(yy,zz)
+
+Insert C<zz> value on C<xxx> list before B<value> C<yy>.
+
+=item xxx.insert_before(/yy/,zz)
+
+Insert C<zz> value on C<xxx> list before B<value> matching C<yy>.
+
+=item xxx.insort(zz)
+
+Insert C<zz> value on C<xxx> list so that existing alphanumeric order is preserved.
+
+=item xxx=z1,z2,z3
+
+Set list element C<xxx> to list C<z1,z2,z3>. Use C<,,> for undef
+values, and C<""> for empty values.
+
+I.e, for a list C<('a',undef,'','c')>, use C<a,,"",c>.
+
+=item xxx:yy=zz
+
+For C<hash> element containing C<leaf> cargo_type. Set the leaf
+identified by key C<yy> to value C<zz>.
+
+Using C<xxx:~/yy/=zz> is also possible.
+
+=back
+
+=head2 leaf operation
+
+=over
 
 =item xxx=zz
 
@@ -741,7 +967,7 @@ fail.
 
 =item xxx=~s/foo/bar/
 
-Applyt the substitution to the value of xxx. C<s/foo/bar/> is the standard Perl C<s>
+Apply the substitution to the value of xxx. C<s/foo/bar/> is the standard Perl C<s>
 substitution pattern.
 
 If your patten needs white spaces, you will need to surround the pattern with quotes:
@@ -756,23 +982,15 @@ Perl pattern modifiers are accepted
 
 Undef element C<xxx>
 
-=item xxx=z1,z2,z3
-
-Set list element C<xxx> to list C<z1,z2,z3>. Use C<,,> for undef
-values, and C<""> for empty values.
-
-I.e, for a list C<('a',undef,'','c')>, use C<a,,"",c>.
-
-=item xxx:yy=zz
-
-For C<hash> element containing C<leaf> cargo_type. Set the leaf
-identified by key C<yy> to value C<zz>.
-
-Using C<xxx=~/yy/=zz> is also possible.
-
 =item xxx.=zzz
 
 Will append C<zzz> value to current values (valid for C<leaf> elements).
+
+=back
+
+=head2 annotation
+
+=over
 
 =item xxx#zzz or xxx:yyy#zzz
 

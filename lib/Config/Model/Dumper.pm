@@ -8,7 +8,7 @@
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
 package Config::Model::Dumper;
-$Config::Model::Dumper::VERSION = '2.051';
+$Config::Model::Dumper::VERSION = '2.052';
 use Carp;
 use strict;
 use warnings ;
@@ -144,7 +144,7 @@ sub dump_tree {
 	    my @val = quote( grep (defined $_, 
 				   $list_obj->fetch_all_values(mode => $fetch_mode, 
 							       check => $check))) ;
-            $$data_r .= "\n$pad$element=" . join( ',', @val ) if @val;
+            $$data_r .= "\n$pad$element:=" . join( ',', @val ) if @val;
         }
     };
 
@@ -242,7 +242,7 @@ Config::Model::Dumper - Serialize data of config tree
 
 =head1 VERSION
 
-version 2.051
+version 2.052
 
 =head1 SYNOPSIS
 

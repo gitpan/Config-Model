@@ -8,7 +8,7 @@
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
 package Config::Model::Warper ;
-$Config::Model::Warper::VERSION = '2.051';
+$Config::Model::Warper::VERSION = '2.052';
 use Mouse ;
 use namespace::autoclean;
 
@@ -601,7 +601,7 @@ Config::Model::Warper - Warp tree properties
 
 =head1 VERSION
 
-version 2.051
+version 2.052
 
 =head1 SYNOPSIS
 

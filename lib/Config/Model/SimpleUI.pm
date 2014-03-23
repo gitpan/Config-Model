@@ -8,7 +8,7 @@
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
 package Config::Model::SimpleUI ;
-$Config::Model::SimpleUI::VERSION = '2.051';
+$Config::Model::SimpleUI::VERSION = '2.052';
 use Carp;
 use strict ;
 use warnings ;
@@ -204,11 +204,13 @@ sub run_loop {
 
     my $instance = $self->{root}->instance ;
     if ($instance->c_count) {
-        print "Unsaved changes:\n", $instance->list_changes,"\n" ;
-        print "write back data before exit ? (Y/n)";
-        $user_cmd = <STDIN> ;
-        $instance->write_back unless $user_cmd =~ /n/i;
-        print "\n";
+        my @changes = $instance->say_changes ;
+        if (@changes) {
+            print "write back data before exit ? (Y/n)";
+            $user_cmd = <STDIN> ;
+            $instance->write_back unless $user_cmd =~ /n/i;
+            print "\n";
+        }
     }
 
 }
@@ -278,7 +280,7 @@ Config::Model::SimpleUI - Simple interface for Config::Model
 
 =head1 VERSION
 
-version 2.051
+version 2.052
 
 =head1 SYNOPSIS
 

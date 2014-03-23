@@ -12,8 +12,6 @@ use Config::Model;
 use Config::Model::AnyId;
 use Log::Log4perl qw(:easy :levels) ;
 
-BEGIN { plan tests => 107; }
-
 use strict;
 
 my $arg = shift || '';
@@ -411,4 +409,42 @@ $inst->layered_clear ;
 eq_or_diff( [ $pl->fetch_all_indexes ], [0] ,"check that only layered stuff was cleared");
 is($pl->fetch_with_id(0)->fetch,'bar',"check that bar was moved from 1 to 0");
 $pl->clear ;
+
+# test sort
+@set = qw/j h g f/ ;
+$pl->store_set(@set);
+$pl->sort;
+eq_or_diff( [ $pl->fetch_all_values ], [sort @set] ,"check sort result");
+
+# test unshift
+@set = qw/j h g f/ ;
+$pl->store_set(qw/a b/);
+$pl->unshift(qw/1 2 3 4/);
+eq_or_diff( [ $pl->fetch_all_values ], [qw/1 2 3 4 a b/] ,"check unshift result");
+eq_or_diff( [ $pl->fetch_all_indexes ], [(0..5)] ,"check that indexes are reset correctly");
+
+# test insert_at
+$pl->store_set(qw/a b/);
+$pl->insert_at(qw/1 d e/);
+eq_or_diff( [ $pl->fetch_all_values ], [qw/a d e b/] ,"check insert_at result");
+eq_or_diff( [ $pl->fetch_all_indexes ], [(0..3)] ,"check that indexes are reset correctly");
+
+# test insert_before
+$pl->store_set(qw/foo baz/);
+$pl->insert_before( qw/baz bar1 bar2/);
+eq_or_diff( [ $pl->fetch_all_values ], [qw/foo bar1 bar2 baz/] ,"check insert_before result");
+
+$pl->insert_before( qr/z/ , qw/bar3 bar4/);
+eq_or_diff( [ $pl->fetch_all_values ], [qw/foo bar1 bar2 bar3 bar4 baz/] ,"check insert_before with regexp result");
+
+# test insort
+my @set1 = qw/c1 e i1 j1 p1/ ;
+my @set2 = qw/a2 z2 d2 e b2 k2/ ;
+$pl->store_set(@set1);
+$pl->sort;
+$pl->insort( @set2 );
+eq_or_diff( [ $pl->fetch_all_values ], [sort(@set1, @set2)] ,"check insort result");
+
 memory_cycle_ok($model,"memory cycles");
+
+done_testing;
