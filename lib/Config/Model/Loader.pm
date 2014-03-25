@@ -8,7 +8,7 @@
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
 package Config::Model::Loader;
-$Config::Model::Loader::VERSION = '2.052';
+$Config::Model::Loader::VERSION = '2.053';
 use Carp;
 use strict;
 use warnings ;
@@ -489,7 +489,8 @@ sub _load_list {
 	return 'ok';
     }
 
-    if (defined $subaction and $subaction eq '=' and $cargo_type eq 'leaf' ) {
+    # compat mode for list=a,b,c,d commands
+    if (not defined $action and defined $subaction and $subaction eq '=' and $cargo_type eq 'leaf' ) {
 	$logger->debug("_load_list: set whole list with '=' subaction'" );
 	# valid for check_list or list
 	$logger->info("Setting $elt_type element ",$element->name, " with '$value'");
@@ -729,7 +730,7 @@ Config::Model::Loader - Load serialized data into config tree
 
 =head1 VERSION
 
-version 2.052
+version 2.053
 
 =head1 SYNOPSIS
 

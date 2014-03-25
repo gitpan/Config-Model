@@ -8,7 +8,7 @@
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
 package Config::Model::Lister;
-$Config::Model::Lister::VERSION = '2.052';
+$Config::Model::Lister::VERSION = '2.053';
 
 use strict;
 use warnings;
@@ -86,7 +86,7 @@ Config::Model::Lister - List available models and applications
 
 =head1 VERSION
 
-version 2.052
+version 2.053
 
 =head1 SYNOPSIS
 
