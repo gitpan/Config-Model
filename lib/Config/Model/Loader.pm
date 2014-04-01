@@ -8,7 +8,7 @@
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
 package Config::Model::Loader;
-$Config::Model::Loader::VERSION = '2.053';
+$Config::Model::Loader::VERSION = '2.054';
 use Carp;
 use strict;
 use warnings ;
@@ -130,8 +130,10 @@ sub _split_cmd {
                   (?: \( ([^)]+)  \) )  # capture parameters between braces
                 | (
                     /[^/]+/      # regexp
-                    | $quoted_string
-                    | [^#=\.<>]+    # non action chars
+                    | (?:
+                       $quoted_string
+                       | [^#=\.<>]+    # non action chars
+                      )+
                   )
             )?
          )?
@@ -155,7 +157,6 @@ sub _split_cmd {
 	 )?
          !gx
        ) ;
-    unquote (@command) ;
 
     return wantarray ? @command : \@command ;
 }
@@ -283,6 +284,7 @@ sub _load {
 
 	$logger->debug("_load: calling $element_type loader on element $element_name") ;
 	my $ret = $self->$method($node, $check,$experience, \@instructions,$cmdref) ;
+        die "Internal error: method dispatched for $element_type returned an undefined value " unless defined $ret;
 
 	if ($ret eq 'error' or $ret eq 'done') { 
 	    $logger->debug("_load return: $node_name got $ret");
@@ -300,6 +302,8 @@ sub _load {
 
 sub _load_note {
     my ( $self, $target_obj, $note, $instructions, $cmdref) = @_;
+
+    unquote($note);
 
     # apply note on target object
     if ( defined $note ) {
@@ -499,13 +503,16 @@ sub _load_list {
 	return 'ok';
     }
 
+    unquote($id,$value,$note);
+
     if (defined $action) {
         my $dispatch
             = $dispatch_action{'list_'.$cargo_type}{$action}
             || $dispatch_action{$cargo_type}{$action}
             || $dispatch_action{'fallback'}{$action};
         if ($dispatch) {
-            return $dispatch->($self,$element,$check, $inst, @f_args) ;
+            $dispatch->($self,$element,$check, $inst, @f_args) ;
+            return 'ok';
         }
     }
 
@@ -519,6 +526,7 @@ sub _load_list {
     }
 
     if (defined $action and $action eq ':') {
+        unquote($id);
 	my $obj = $element->fetch_with_id(index => $id, check => $check) ;
         $self->_load_note($obj, $note, $inst, $cmdref);
 
@@ -554,6 +562,8 @@ sub _load_hash {
     my ($self,$node,$check,$experience,$inst,$cmdref) = @_ ;
     my ($element_name,$action,$f_arg,$id,$subaction,$value,$note) = @$inst ;
 
+    unquote($id,$value,$note);
+
     my $element = $node -> fetch_element(name => $element_name, check => $check ) ;
     my $cargo_type = $element->cargo_type ;
 
@@ -573,7 +583,7 @@ sub _load_hash {
 
     if ($action eq ':~') {
 	my @keys = $element->fetch_all_indexes;
-	my $ret ;
+	my $ret = 'ok';
 	$logger->debug("_load_hash: looping with regex $id on keys @keys");
 	$id =~ s!^/!!;
 	$id =~ s!/$!! ;
@@ -610,7 +620,8 @@ sub _load_hash {
             || $dispatch_action{$cargo_type}{$action}
             || $dispatch_action{'fallback'}{$action};
         if ($dispatch) {
-            return $dispatch->($self,$element,$check,$inst,$id) ;
+            $dispatch->($self,$element,$check,$inst,$id) ;
+            return 'ok';
         }
     }
 
@@ -653,6 +664,8 @@ sub _load_hash {
 sub _load_leaf {
     my ($self,$node,$check,$experience,$inst,$cmdref) = @_ ;
     my ($element_name,$action,$f_arg,$id,$subaction,$value,$note) = @$inst ;
+
+    unquote($id,$value);
 
     my $element = $node -> fetch_element(name => $element_name, check => $check) ;
     $self->_load_note($element, $note, $inst, $cmdref);
@@ -730,7 +743,7 @@ Config::Model::Loader - Load serialized data into config tree
 
 =head1 VERSION
 
-version 2.053
+version 2.054
 
 =head1 SYNOPSIS
 

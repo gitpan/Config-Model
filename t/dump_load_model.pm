@@ -107,7 +107,7 @@
 			   cargo_type => 'node',
 			   config_class_name => 'SlaveZ' ,
 			 },
-	       [qw/lista listb/] => { type => 'list',
+	       [qw/lista listb listc/] => { type => 'list',
 				      cargo_type => 'leaf',
 				      cargo_args => {value_type => 'string'},
 				    },
@@ -160,6 +160,9 @@
 			     default    => 'yada yada'
 			    },
 	       a_string => { type => 'leaf',
+			     value_type => 'string'
+			   },
+	       a_string2 => { type => 'leaf',
 			     value_type => 'string'
 			   },
 	       another_string => { type => 'leaf',

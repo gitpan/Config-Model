@@ -8,7 +8,7 @@
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
 package Config::Model::Iterator ;
-$Config::Model::Iterator::VERSION = '2.053';
+$Config::Model::Iterator::VERSION = '2.054';
 use Carp;
 use strict;
 use warnings ;
@@ -275,7 +275,7 @@ Config::Model::Iterator - Iterates forward or backward a configuration tree
 
 =head1 VERSION
 
-version 2.053
+version 2.054
 
 =head1 SYNOPSIS
 
