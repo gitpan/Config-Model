@@ -8,7 +8,7 @@
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
 package Config::Model::Backend::PlainFile;
-$Config::Model::Backend::PlainFile::VERSION = '2.054';
+$Config::Model::Backend::PlainFile::VERSION = '2.055';
 use Carp;
 use Mouse;
 use Config::Model::Exception;
@@ -52,13 +52,13 @@ sub read {
         my $type = $obj->get_type;
 
         if ( $type eq 'leaf' ) {
-            $self->read_leaf ($obj, $elt, $check,$file,\%args);
+            $self->read_leaf( $obj, $elt, $check, $file, \%args );
         }
         elsif ( $type eq 'list' ) {
-            $self->read_list ($obj, $elt, $check,$file,\%args);
+            $self->read_list( $obj, $elt, $check, $file, \%args );
         }
         elsif ( $type eq 'hash' ) {
-            $self->read_hash ($obj, $elt, $check,$file,\%args);
+            $self->read_hash( $obj, $elt, $check, $file, \%args );
         }
         else {
             $logger->debug("PlainFile read skiped $type $elt");
@@ -73,7 +73,7 @@ sub read {
 # New subroutine "open_for_read" extracted - Thu Jul 21 13:36:52 2011.
 #
 sub open_for_read {
-    my ($self, $file,$elt) = @_ ;
+    my ( $self, $file, $elt ) = @_;
 
     return unless -e $file;
 
@@ -89,9 +89,9 @@ sub open_for_read {
 # New subroutine "read_leaf" extracted - Thu Jul 21 12:58:06 2011.
 #
 sub read_leaf {
-    my ($self,$obj,$elt, $check,$file,$args) = @_;
+    my ( $self, $obj, $elt, $check, $file, $args ) = @_;
 
-    my $fh = $self->open_for_read ($file,$elt) or return ;
+    my $fh = $self->open_for_read( $file, $elt ) or return;
 
     my $v = join( '', $fh->getlines );
     chomp $v unless $obj->value_type eq 'string';
@@ -102,9 +102,9 @@ sub read_leaf {
 # New subroutine "read_list" extracted - Thu Jul 21 12:58:36 2011.
 #
 sub read_list {
-    my ($self,$obj,$elt, $check,$file,$args) = @_;
+    my ( $self, $obj, $elt, $check, $file, $args ) = @_;
 
-    my $fh = $self->open_for_read ($file,$elt) or return ;
+    my $fh = $self->open_for_read( $file, $elt ) or return;
 
     my @v = $fh->getlines;
     chomp @v;
@@ -115,7 +115,7 @@ sub read_list {
 # New subroutine "read_hash" extracted - Thu Jul 21 12:58:50 2011.
 #
 sub read_hash {
-    my ($self,$obj,$elt, $check,$file,$args) = @_;
+    my ( $self, $obj, $elt, $check, $file, $args ) = @_;
     $logger->debug("PlainFile read skipped hash $elt");
 }
 
@@ -189,7 +189,7 @@ Config::Model::Backend::PlainFile - Read and write config as plain file
 
 =head1 VERSION
 
-version 2.054
+version 2.055
 
 =head1 SYNOPSIS
 

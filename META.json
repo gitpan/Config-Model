@@ -4,7 +4,7 @@
       "Dominique Dumont"
    ],
    "dynamic_config" : 0,
-   "generated_by" : "Dist::Zilla version 5.013, CPAN::Meta::Converter version 2.133380",
+   "generated_by" : "Dist::Zilla version 5.013, CPAN::Meta::Converter version 2.140640",
    "license" : [
       "lgpl_2_1"
    ],
@@ -31,11 +31,9 @@
             "YAML::Any" : "0.303"
          },
          "requires" : {
-            "AnyEvent" : "0",
             "Carp" : "0",
             "Carp::Assert::More" : "0",
             "Data::Dumper" : "0",
-            "EV" : "0",
             "English" : "0",
             "Exception::Class" : "0",
             "Fcntl" : "0",
@@ -60,7 +58,6 @@
             "Term::ReadLine" : "0",
             "Text::Diff" : "0",
             "Text::Wrap" : "0",
-            "namespace::autoclean" : "0",
             "perl" : "5.010",
             "warnings::register" : "0"
          }
@@ -96,6 +93,6 @@
          "web" : "http://github.com/dod38fr/config-model"
       }
    },
-   "version" : "2.054"
+   "version" : "2.055"
 }
 

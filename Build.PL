@@ -94,11 +94,9 @@ my $build = $class->new(
     'YAML::Any' => '0.303'
   },
   'requires' => {
-    'AnyEvent' => '0',
     'Carp' => '0',
     'Carp::Assert::More' => '0',
     'Data::Dumper' => '0',
-    'EV' => '0',
     'English' => '0',
     'Exception::Class' => '0',
     'Fcntl' => '0',
@@ -123,7 +121,6 @@ my $build = $class->new(
     'Term::ReadLine' => '0',
     'Text::Diff' => '0',
     'Text::Wrap' => '0',
-    'namespace::autoclean' => '0',
     'perl' => '5.010',
     'warnings::register' => '0'
   },

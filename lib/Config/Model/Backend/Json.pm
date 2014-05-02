@@ -7,26 +7,25 @@
 #
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
-package Config::Model::Backend::Json ;
-$Config::Model::Backend::Json::VERSION = '2.054';
+package Config::Model::Backend::Json;
+$Config::Model::Backend::Json::VERSION = '2.055';
 use Carp;
 use strict;
-use warnings ;
-use Config::Model::Exception ;
+use warnings;
+use Config::Model::Exception;
 use File::Path;
 use Log::Log4perl qw(get_logger :levels);
 
 use base qw/Config::Model::Backend::Any/;
-use JSON ;
+use JSON;
 
+my $logger = get_logger("Backend::Json");
 
-my $logger = get_logger("Backend::Json") ;
-
-sub suffix { return '.json' ; }
+sub suffix { return '.json'; }
 
 sub read {
-    my $self = shift ;
-    my %args = @_ ;
+    my $self = shift;
+    my %args = @_;
 
     # args is:
     # object     => $obj,         # Config::Model::Node object
@@ -37,26 +36,26 @@ sub read {
     # io_handle  => $io           # IO::File object
     # check      => yes|no|skip
 
-    return 0 unless defined $args{io_handle} ; # no file to read
+    return 0 unless defined $args{io_handle};    # no file to read
 
     # load Json file
-    my $json = join ('',$args{io_handle}->getlines) ;
+    my $json = join( '', $args{io_handle}->getlines );
 
     # convert to perl data
     my $perl_data = decode_json $json ;
-    if (not defined $perl_data) {
+    if ( not defined $perl_data ) {
         $logger->warn("No data found in Json file $args{file_path}");
         return 1;
     }
 
     # load perl data in tree
-    $self->{node}->load_data(data => $perl_data, check => $args{check} || 'yes' ) ;
-    return 1 ;
+    $self->{node}->load_data( data => $perl_data, check => $args{check} || 'yes' );
+    return 1;
 }
 
 sub write {
-    my $self = shift ;
-    my %args = @_ ;
+    my $self = shift;
+    my %args = @_;
 
     # args is:
     # object     => $obj,         # Config::Model::Node object
@@ -68,12 +67,12 @@ sub write {
     # check      => yes|no|skip
 
     croak "Undefined file handle to write"
-      unless defined $args{io_handle} ;
+        unless defined $args{io_handle};
 
-    my $perl_data = $self->{node}->dump_as_data(full_dump => $args{full_dump}) ;
-    my $json = to_json ($perl_data , {pretty => 1});
+    my $perl_data = $self->{node}->dump_as_data( full_dump => $args{full_dump} );
+    my $json = to_json( $perl_data, { pretty => 1 } );
 
-    $args{io_handle} -> print ($json) ;
+    $args{io_handle}->print($json);
 
     return 1;
 }
@@ -94,7 +93,7 @@ Config::Model::Backend::Json - Read and write config as a JSON data structure
 
 =head1 VERSION
 
-version 2.054
+version 2.055
 
 =head1 SYNOPSIS
 

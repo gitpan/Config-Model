@@ -8,9 +8,8 @@
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
 package Config::Model::IdElementReference;
-$Config::Model::IdElementReference::VERSION = '2.054';
+$Config::Model::IdElementReference::VERSION = '2.055';
 use Mouse;
-use namespace::autoclean;
 
 use Carp;
 use Config::Model::ValueComputer;
@@ -19,16 +18,14 @@ use Log::Log4perl qw(get_logger :levels);
 my $logger = get_logger("Tree::Element::IdElementReference");
 
 # config_elt is a reference to the object that called new
-has config_elt =>
-  ( is => 'ro', isa => 'Config::Model::AnyThing', required => 1, weak_ref => 1 );
+has config_elt => ( is => 'ro', isa => 'Config::Model::AnyThing', required => 1, weak_ref => 1 );
 has refer_to => ( is => 'ro', isa => 'Maybe[Str]' );
 has computed_refer_to => ( is => 'ro', isa => 'Maybe[HashRef]' );
 
 sub BUILD {
     my $self = shift;
 
-    my $found =
-      scalar grep { defined $self->$_; } qw/refer_to computed_refer_to/;
+    my $found = scalar grep { defined $self->$_; } qw/refer_to computed_refer_to/;
 
     if ( not $found ) {
         Config::Model::Exception::Model->throw(
@@ -39,8 +36,7 @@ sub BUILD {
     elsif ( $found > 1 ) {
         Config::Model::Exception::Model->throw(
             object  => $self->config_elt,
-            message => "cannot specify both "
-              . "refer_to and computed_refer_to parameters"
+            message => "cannot specify both " . "refer_to and computed_refer_to parameters"
         );
     }
 
@@ -49,9 +45,9 @@ sub BUILD {
     my %c_args = %$crft;
 
     my $refer_path =
-      defined $rft
-      ? $rft
-      : delete $c_args{formula};
+        defined $rft
+        ? $rft
+        : delete $c_args{formula};
 
     # split refer_path on + then create as many ValueComputer as
     # required
@@ -63,7 +59,7 @@ sub BUILD {
             variables => {},
             %c_args,
             value_object => $self->{config_elt},
-            value_type   => 'string'            # a reference is always a string
+            value_type   => 'string'               # a reference is always a string
         );
     }
 
@@ -116,13 +112,12 @@ sub get_choice_from_refered_to {
             my $list_obj = $obj->fetch_element($element);
             my $ct       = $list_obj->get_cargo_type;
             if ( $ct eq 'leaf' ) {
-                @choice = $list_obj->fetch_all_values(mode => 'user');
+                @choice = $list_obj->fetch_all_values( mode => 'user' );
             }
             else {
                 Config::Model::Exception::Model->throw(
                     object  => $obj,
-                    message => "element '$element' cargo_type is $ct. "
-                      . "Expected 'leaf'"
+                    message => "element '$element' cargo_type is $ct. " . "Expected 'leaf'"
                 );
             }
         }
@@ -130,7 +125,7 @@ sub get_choice_from_refered_to {
             Config::Model::Exception::Model->throw(
                 object  => $obj,
                 message => "element '$element' type is $type. "
-                  . "Expected hash or list or check_list"
+                    . "Expected hash or list or check_list"
             );
         }
 
@@ -141,7 +136,7 @@ sub get_choice_from_refered_to {
     # prune out repeated items
     my %h;
     my @unique =
-      grep { my $found = $h{$_} || 0; $h{$_} = 1; not $found; } @enum_choice;
+        grep { my $found = $h{$_} || 0; $h{$_} = 1; not $found; } @enum_choice;
 
     my @res;
     if ( $config_elt->value_type eq 'check_list' and $config_elt->ordered ) {
@@ -197,7 +192,7 @@ Config::Model::IdElementReference - Refer to id element(s) and extract keys
 
 =head1 VERSION
 
-version 2.054
+version 2.055
 
 =head1 SYNOPSIS
 

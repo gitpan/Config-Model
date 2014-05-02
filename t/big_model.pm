@@ -11,8 +11,7 @@
 
 # this file is used by test script
 
-[
-    [
+[ [
         name    => 'SubSlave2',
         element => [ [qw/aa2 ab2 ac2 ad2 Z/] => { type => 'leaf', value_type => 'string' } ],
         description => [ Z => 'Z comme zorro' ],
@@ -25,8 +24,7 @@
             sub_slave         => {
                 type              => 'node',
                 config_class_name => 'SubSlave2',
-            }
-        ]
+            } ]
     ],
 
     [
@@ -85,8 +83,7 @@
                 morph             => 1,
                 rules             => [
                     mXY => { config_class_name => 'SubSlave2' },
-                    XZ  => { config_class_name => 'SubSlave2' }
-                ]
+                    XZ  => { config_class_name => 'SubSlave2' } ]
             },
             Y => {
                 type       => 'leaf',
@@ -101,7 +98,7 @@
         name              => 'Master',
         permission        => [ [qw/tree_macro warp/] => 'advanced' ],
         class_description => "Master configuration class is a wonderful test class\n"
-          . "widely used in Config::Model self tests",
+            . "widely used in Config::Model self tests",
         copyright => ["2005-2011, Dominique Dumont"],
         license   => 'LGPL-2',
         author    => 'Dominique Dumont',
@@ -155,8 +152,7 @@
 
                     #XY => { config_class_name => 'SlaveY'},
                     mXY => { config_class_name => 'SlaveY' },
-                    XZ  => { config_class_name => 'SlaveZ' }
-                ]
+                    XZ  => { config_class_name => 'SlaveZ' } ]
             },
 
             'slave_y' => {
