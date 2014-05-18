@@ -8,7 +8,7 @@
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
 package Config::Model::DumpAsData;
-$Config::Model::DumpAsData::VERSION = '2.055';
+$Config::Model::DumpAsData::VERSION = '2.056';
 use Carp;
 use strict;
 use warnings;
@@ -110,7 +110,6 @@ sub dump_as_data {
     };
 
     my @scan_args = (
-        experience => delete $args{experience} || 'master',
         check      => delete $args{check}      || 'yes',
         fallback   => 'all',
         auto_vivify           => $auto_v,
@@ -202,7 +201,6 @@ sub dump_annotations_as_pod {
     };
 
     my @scan_args = (
-        experience => delete $args{experience} || 'master',
         check      => delete $args{check}      || 'yes',
         fallback   => 'all',
         leaf_cb    => $std_cb,
@@ -251,7 +249,7 @@ Config::Model::DumpAsData - Dump configuration content as a perl data structure
 
 =head1 VERSION
 
-version 2.055
+version 2.056
 
 =head1 SYNOPSIS
 
@@ -387,10 +385,6 @@ Parameters are:
 =item node
 
 Reference to a L<Config::Model::Node> object. Mandatory
-
-=item experience
-
-master, advanced or beginner
 
 =item check_list
 

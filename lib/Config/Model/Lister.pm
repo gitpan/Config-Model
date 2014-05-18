@@ -8,7 +8,7 @@
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
 package Config::Model::Lister;
-$Config::Model::Lister::VERSION = '2.055';
+$Config::Model::Lister::VERSION = '2.056';
 use strict;
 use warnings;
 use Exporter;
@@ -34,6 +34,7 @@ sub available_models {
 
         foreach my $file ( sort glob("$dir/*") ) {
             next if $file =~ m!/README!;
+            next if $file =~ /(~|\.bak|\.orig)$/;
             my ($appli) = ( $file =~ m!.*/([\w\-]+)! );
             open( F, $file ) || die "Can't open file $file:$!";
             while (<F>) {
@@ -82,7 +83,7 @@ Config::Model::Lister - List available models and applications
 
 =head1 VERSION
 
-version 2.055
+version 2.056
 
 =head1 SYNOPSIS
 

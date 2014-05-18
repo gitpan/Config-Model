@@ -1,7 +1,7 @@
 # -*- cperl -*-
 
 use ExtUtils::testlib;
-use Test::More tests => 11;
+use Test::More;
 use Test::Exception;
 use Test::Warn 0.11;
 use Test::Differences;
@@ -48,10 +48,6 @@ eq_or_diff( $cat->{application}, [qw/multistrap/], "check available application 
 
 my $class_name = $model->create_config_class(
     name       => 'Sarge',
-    experience => [
-        [qw/Y/] => 'beginner',    # default
-        X       => 'master'
-    ],
     status      => [ D => 'deprecated' ],                 #could be obsolete, standard
     description => [ X => 'X-ray (long description)' ],
     summary     => [ X => 'X-ray (summary)' ],
@@ -88,7 +84,6 @@ eq_or_diff(
         'summary'     => 'X-ray (summary)',
         'type'        => 'leaf',
         'class'       => 'Config::Model::Value',
-        'experience'  => 'master',
         'choice'      => [ 'Av', 'Bv', 'Cv' ],
         'description' => 'X-ray (long description)'
     },
@@ -97,7 +92,6 @@ eq_or_diff(
 
 $class_name = $model->create_config_class(
     name       => 'Captain',
-    experience => [ bar => 'beginner' ],
     element    => [
         bar => {
             type              => 'node',
@@ -106,7 +100,7 @@ $class_name = $model->create_config_class(
 
 my @bad_model = (
     name       => "Master",
-    experience => [ [qw/captain many/] => 'beginner' ],
+    level => [ [qw/captain many/] => 'important' ],
     element    => [
         captain => {
             type              => 'node',
@@ -117,11 +111,10 @@ my @bad_model = (
 
 throws_ok { $model->create_config_class(@bad_model) }
 "Config::Model::Exception::ModelDeclaration",
-    "check model with orphan experience";
+    "check model with orphan level";
 
 $class_name = $model->create_config_class(
     name       => "Master",
-    experience => [ [qw/captain array_args hash_args/] => 'beginner' ],
     level               => [ qw/captain/ => 'important' ],
     force_element_order => [qw/captain array_args hash_args/],
     element             => [
@@ -148,3 +141,4 @@ $canonical_model = $model->get_model($class_name);
 print "$class_name model:\n", Dumper($canonical_model) if $trace;
 
 memory_cycle_ok( $model, "memory cycles" );
+done_testing;

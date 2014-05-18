@@ -8,7 +8,7 @@
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
 package Config::Model;
-$Config::Model::VERSION = '2.055';
+$Config::Model::VERSION = '2.056';
 use Mouse;
 use Mouse::Util::TypeConstraints;
 use MouseX::StrictConstructor;
@@ -24,13 +24,11 @@ use Hash::Merge 0.12 qw/merge/;
 use File::Path qw/make_path/;
 
 # this class holds the version number of the package
-use vars qw(@status @level @experience_list %experience_index
-    %default_property);
+use vars qw(@status @level %default_property);
 
 %default_property = (
     status      => 'standard',
     level       => 'normal',
-    experience  => 'beginner',
     summary     => '',
     description => '',
 );
@@ -174,12 +172,6 @@ sub instance_names {
     return keys %{ $self->instances };
 }
 
-@experience_list = qw/beginner advanced master/;
-{
-    my $idx = 0;
-    map ( $experience_index{$_} = $idx++, @experience_list );
-}
-
 @level = qw/hidden normal important/;
 
 @status = qw/obsolete deprecated standard/;
@@ -192,10 +184,10 @@ sub instance_names {
 #   include       => 'class_name',
 #   include_after => 'element_name',
 # }
-# description, experience, summary, level, status are moved
+# description, summary, level, status are moved
 # into element description.
 
-my @legal_params = qw/element experience status description summary level
+my @legal_params = qw/element status description summary level
     config_dir
     read_config read_config_dir write_config
     write_config_dir accept/;
@@ -354,10 +346,10 @@ sub normalize_class_parameters {
                 . "is declared more than once. Check the included parts" );
     }
 
-    $self->translate_legacy_permission( $config_class_name, $normalized_model, $normalized_model );
+    $self->handle_experience_permission( $config_class_name, $normalized_model );
 
     # element is handled first
-    foreach my $info_name (qw/element experience status description summary level/) {
+    foreach my $info_name (qw/element status description summary level/) {
         my $raw_compact_info = delete $normalized_model->{$info_name};
 
         next unless defined $raw_compact_info;
@@ -378,16 +370,14 @@ sub normalize_class_parameters {
                 # warp can be found only in element item
                 $self->translate_legacy_info( $config_class_name, $element_names[0], $info );
 
-                if ( defined $info->{permission} ) {
-                    $self->translate_legacy_permission( $config_class_name, $info, $info );
-                }
+                $self->handle_experience_permission( $config_class_name, $info );
 
                 # copy in element data *after* legacy translation
                 map { $model->{element}{$_} = dclone($info); } @element_names;
             }
 
             # move some information into element declaration (without clobberring)
-            elsif ( $info_name =~ /description|level|summary|experience|status/ ) {
+            elsif ( $info_name =~ /description|level|summary|status/ ) {
                 foreach (@element_names) {
                     Config::Model::Exception::ModelDeclaration->throw(
                         error => "create class $config_class_name: '$info_name' "
@@ -418,33 +408,15 @@ sub normalize_class_parameters {
     return $model;
 }
 
-sub translate_legacy_permission {
-    my ( $self, $config_class_name, $model, $normalized_model ) = @_;
+sub handle_experience_permission {
+    my ( $self, $config_class_name, $model ) = @_;
 
-    my $raw_experience = delete $normalized_model->{permission};
-    return unless defined $raw_experience;
-
-    print Data::Dumper->Dump( [$normalized_model], ['permission to translate'] ), "\n"
-        if $::debug;
-
-    $self->show_legacy_issue(
-        "$config_class_name: parameter permission is deprecated " . "in favor of 'experience'" );
-
-    # now change intermediate in beginner
-    if ( ref $raw_experience eq 'HASH' ) {
-        map { $_ = 'beginner' if $_ eq 'intermediate' } values %$raw_experience;
+    if (delete $model->{permission}) {
+        die "$config_class_name: parameter permission is obsolete\n";
     }
-    elsif ( ref $raw_experience eq 'ARRAY' ) {
-        map { $_ = 'beginner' if $_ eq 'intermediate' } @$raw_experience;
+    if (delete $model->{experience}) {
+        carp "experience parameter is deprecated";
     }
-    else {
-        $raw_experience = 'beginner' if $raw_experience eq 'intermediate';
-    }
-
-    $model->{experience} = $raw_experience;
-
-    print Data::Dumper->Dump( [$model], ['translated_permission'] ), "\n"
-        if $::debug;
 }
 
 sub translate_legacy_info {
@@ -884,7 +856,7 @@ sub translate_rules_arg {
 
     for ( my $idx = 1 ; $idx < @rules ; $idx += 2 ) {
         next unless ( ref $rules[$idx] eq 'HASH' );    # other cases are illegal and trapped later
-        $self->translate_legacy_permission( $config_class_name, $rules[$idx], $rules[$idx] );
+        $self->handle_experience_permission( $config_class_name, $rules[$idx] );
         next unless defined $type and $type eq 'leaf';
         $self->translate_legacy_builtin( $config_class_name, $rules[$idx], $rules[$idx] );
     }
@@ -1421,26 +1393,10 @@ sub get_element_name {
 
     my $class = $args{class}
         || croak "get_element_name: missing 'class' parameter";
-    my $for = $args{for} || 'master';
 
-    if ( $for eq 'intermediate' ) {
-        carp "get_element_name: 'intermediate' is deprecated in favor of beginner";
-        $for = 'beginner';
+    if (delete $args{for}) {
+        carp "get_element_name: 'for' parameter is deprecated";
     }
-
-    croak "get_element_name: wrong 'for' parameter. Expected ", join( ' or ', @experience_list )
-        unless defined $experience_index{$for};
-
-    my @experiences = @experience_list[ 0 .. $experience_index{$for} ];
-    my @array = $self->get_element_with_experience( $class, @experiences );
-
-    return wantarray ? @array : join( ' ', @array );
-}
-
-# internal
-sub get_element_with_experience {
-    my $self  = shift;
-    my $class = shift;
 
     my $model = $self->get_model($class);
     my @result;
@@ -1451,13 +1407,10 @@ sub get_element_with_experience {
     foreach my $elt ( @{ $model->{element_list} } ) {
         my $elt_data = $model->{element}{$elt};
         my $l = $elt_data->{level} || $default_property{level};
-        foreach my $experience (@_) {
-            my $xp = $elt_data->{experience} || $default_property{experience};
-            push @result, $elt if ( $l ne 'hidden' and $xp eq $experience );
-        }
+        push @result, $elt if $l ne 'hidden' ;
     }
 
-    return @result;
+    return wantarray ? @result : join( ' ', @result );
 }
 
 sub get_element_property {
@@ -1533,7 +1486,7 @@ Config::Model - Create tools to validate, migrate and edit configuration files
 
 =head1 VERSION
 
-version 2.055
+version 2.056
 
 =head1 SYNOPSIS
 
@@ -2084,12 +2037,6 @@ several other properties:
 
 =over
 
-=item experience
-
-By using the C<experience> parameter, you can change the experience
-level of each element. Possible experience levels are C<master>,
-C<advanced> and C<beginner> (default).
-
 =item level
 
 Level is C<important>, C<normal> or C<hidden>.
@@ -2171,14 +2118,13 @@ Example:
   $model->create_config_class
   (
    config_class_name => 'SomeRootClass',
-   experience        => [ [ qw/tree_macro warp/ ] => 'advanced'] ,
    description       => [ X => 'X-ray' ],
    level             => [ 'tree_macro' => 'important' ] ,
    class_description => "SomeRootClass description",
    element           => [ ... ]
   ) ;
 
-For convenience, C<experience>, C<level> and C<description> parameters
+For convenience, C<level> and C<description> parameters
 can also be declared within the element declaration:
 
   $model->create_config_class
@@ -2187,10 +2133,7 @@ can also be declared within the element declaration:
    class_description => "SomeRootClass description",
    'element'
    => [
-        tree_macro => { level => 'important',
-                        experience => 'advanced',
-                      },
-        warp       => { experience => 'advanced', } ,
+        tree_macro => { level => 'important'},
         X          => { description => 'X-ray', } ,
       ]
   ) ;
@@ -2259,12 +2202,9 @@ Returns a list of written file names.
 Return a hash containing the model declaration for the specified class
 and element.
 
-=head2 get_element_name( class => Foo, for => advanced )
+=head2 get_element_name( class => Foo )
 
-Get all names of the elements of class C<Foo> that are accessible for
-experience level C<advanced>.
-
-Level can be C<master> (default), C<advanced> or C<beginner>.
+Get all names of the elements of class C<Foo>.
 
 =head2 get_element_property
 

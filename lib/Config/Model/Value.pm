@@ -8,7 +8,7 @@
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
 package Config::Model::Value;
-$Config::Model::Value::VERSION = '2.055';
+$Config::Model::Value::VERSION = '2.056';
 use 5.10.1;
 
 use Mouse;
@@ -70,7 +70,7 @@ has \@common_str_params => ( is => 'ro', isa => 'Maybe[Str]' );
 my @warp_accessible_params =
     ( @common_int_params, @common_str_params, @common_list_params, @common_hash_params );
 
-my @allowed_warp_params = ( @warp_accessible_params, qw/level experience help/ );
+my @allowed_warp_params = ( @warp_accessible_params, qw/level help/ );
 my @backup_list         = ( @allowed_warp_params,    qw/migrate_from/ );
 
 has compute_is_upstream_default =>
@@ -118,8 +118,8 @@ has warning_list => (
         all_warnings   => 'elements',
     } );
 
-# as some information like experience must be backed up even though they are not
-# attributes, we cannot move below code in BUILD. (experience is actually used by node)
+# as some information must be backed up even though they are not
+# attributes, we cannot move below code in BUILD.
 around BUILDARGS => sub {
     my $orig  = shift;
     my $class = shift;
@@ -490,7 +490,7 @@ sub set_properties {
     my %args = ( %{ $self->{backup} }, @_ );
 
     # these are handled by Node or Warper
-    map { delete $args{$_} } qw/level experience/;
+    map { delete $args{$_} } qw/level/;
 
     my $logger = $logger;
     if ( $logger->is_debug ) {
@@ -1776,7 +1776,7 @@ Config::Model::Value - Strongly typed configuration value
 
 =head1 VERSION
 
-version 2.055
+version 2.056
 
 =head1 SYNOPSIS
 

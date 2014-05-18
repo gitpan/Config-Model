@@ -8,7 +8,7 @@
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
 package Config::Model::Warper;
-$Config::Model::Warper::VERSION = '2.055';
+$Config::Model::Warper::VERSION = '2.056';
 use Mouse;
 
 use Log::Log4perl qw(get_logger :levels);
@@ -315,16 +315,15 @@ sub _dclone_key {
     return map { ref $_ ? [@$_] : $_ } @_;
 }
 
-# Internal. This method will change element properties (like level and
-# experience) according to the warp effect.  For instance, if a warp
-# rule make a node no longer available in a model, its level must
-# change to 'hidden'
+# Internal. This method will change element properties (like level) according to the warp effect.
+# For instance, if a warp rule make a node no longer available in a model, its level must change to
+# 'hidden'
 sub set_parent_element_property {
     my ( $self, $arg_ref ) = @_;
 
     my $warped_object = $self->warped_object;
 
-    my @properties = qw/level experience/;
+    my @properties = qw/level/;
 
     if ( defined $warped_object->index_value ) {
         $logger->debug("Warper set_parent_element_property: called on hash or list, aborted");
@@ -608,7 +607,7 @@ Config::Model::Warper - Warp tree properties
 
 =head1 VERSION
 
-version 2.055
+version 2.056
 
 =head1 SYNOPSIS
 

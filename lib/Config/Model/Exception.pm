@@ -8,7 +8,7 @@
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
 package Config::Model::Exception;
-$Config::Model::Exception::VERSION = '2.055';
+$Config::Model::Exception::VERSION = '2.056';
 use warnings;
 use strict;
 use Data::Dumper;
@@ -49,12 +49,6 @@ use Exception::Class (
         fields      => [qw/object element info/],
     },
 
-    'Config::Model::Exception::RestrictedElement' => {
-        isa         => 'Config::Model::Exception::User',
-        description => 'restricted element',
-        fields      => [qw/object element level req_experience info/],
-    },
-
     'Config::Model::Exception::WrongType' => {
         isa         => 'Config::Model::Exception::User',
         description => 'wrong element type',
@@ -75,7 +69,7 @@ use Exception::Class (
     'Config::Model::Exception::UnknownElement' => {
         isa         => 'Config::Model::Exception::User',
         description => 'unknown element',
-        fields      => [qw/object min_experience element function where info/],
+        fields      => [qw/object element function where info/],
     },
 
     'Config::Model::Exception::AncestorClass' => {
@@ -86,7 +80,7 @@ use Exception::Class (
     'Config::Model::Exception::UnknownId' => {
         isa         => 'Config::Model::Exception::User',
         description => 'unknown identifier',
-        fields      => [qw/object min_experience element id function where/],
+        fields      => [qw/object element id function where/],
     },
 
     'Config::Model::Exception::WarpError' => {
@@ -143,7 +137,7 @@ use Exception::Class (
 Config::Model::Exception::Internal->Trace(1);
 
 package Config::Model::Exception::Syntax;
-$Config::Model::Exception::Syntax::VERSION = '2.055';
+$Config::Model::Exception::Syntax::VERSION = '2.056';
 sub full_message {
     my $self = shift;
 
@@ -157,7 +151,7 @@ sub full_message {
 }
 
 package Config::Model::Exception::Any;
-$Config::Model::Exception::Any::VERSION = '2.055';
+$Config::Model::Exception::Any::VERSION = '2.056';
 sub full_message {
     my $self = shift;
 
@@ -186,7 +180,7 @@ sub xpath_message {
 }
 
 package Config::Model::Exception::LoadData;
-$Config::Model::Exception::LoadData::VERSION = '2.055';
+$Config::Model::Exception::LoadData::VERSION = '2.056';
 
 sub full_message {
     my $self = shift;
@@ -204,7 +198,7 @@ sub full_message {
 }
 
 package Config::Model::Exception::Model;
-$Config::Model::Exception::Model::VERSION = '2.055';
+$Config::Model::Exception::Model::VERSION = '2.056';
 
 sub full_message {
     my $self = shift;
@@ -232,7 +226,7 @@ sub full_message {
 }
 
 package Config::Model::Exception::Load;
-$Config::Model::Exception::Load::VERSION = '2.055';
+$Config::Model::Exception::Load::VERSION = '2.056';
 
 sub full_message {
     my $self = shift;
@@ -252,24 +246,8 @@ sub full_message {
     return $msg;
 }
 
-package Config::Model::Exception::RestrictedElement;
-$Config::Model::Exception::RestrictedElement::VERSION = '2.055';
-
-sub full_message {
-    my $self = shift;
-
-    my $location = $self->object->name;
-    my $msg      = $self->description;
-    my $element  = $self->element;
-    my $req = $self->object->get_element_property( element => $element, property => 'experience' );
-    $msg .= " '$element' in node '$location':";
-    $msg .= "\n\tNeed privilege '$req' instead of '" . $self->level . "'\n";
-    $msg .= "\t" . $self->info . "\n" if defined $self->info;
-    return $msg;
-}
-
 package Config::Model::Exception::UnavailableElement;
-$Config::Model::Exception::UnavailableElement::VERSION = '2.055';
+$Config::Model::Exception::UnavailableElement::VERSION = '2.056';
 
 sub full_message {
     my $self = shift;
@@ -281,7 +259,6 @@ sub full_message {
     my $function = $self->function;
     my $unavail  = $obj->fetch_element(
         name          => $element,
-        experience    => 'master',
         check         => 'no',
         accept_hidden => 1
     );
@@ -294,7 +271,7 @@ sub full_message {
 }
 
 package Config::Model::Exception::ObsoleteElement;
-$Config::Model::Exception::ObsoleteElement::VERSION = '2.055';
+$Config::Model::Exception::ObsoleteElement::VERSION = '2.056';
 
 sub full_message {
     my $self = shift;
@@ -313,7 +290,7 @@ sub full_message {
 }
 
 package Config::Model::Exception::UnknownElement;
-$Config::Model::Exception::UnknownElement::VERSION = '2.055';
+$Config::Model::Exception::UnknownElement::VERSION = '2.056';
 
 use Carp;
 
@@ -326,14 +303,12 @@ sub full_message {
         unless $obj->isa('Config::Model::Node')
         || $obj->isa('Config::Model::WarpedNode');
 
-    my $min_experience = $self->min_experience || 'master';
     my $class_name = $obj->config_class_name;
 
     # class_name is undef if the warped_node is warped out
     my @elements;
     @elements = $obj->get_element_name(
         class => $class_name,
-        for   => $min_experience
     ) if defined $class_name;
 
     my $msg = '';
@@ -373,7 +348,7 @@ sub full_message {
             $msg .= "\t"
                 . $parent->fetch_element(
                 name => $element_name,
-                qw/experience master check no accept_hidden 1/
+                qw/master check no accept_hidden 1/
                 )->warp_error;
         }
     }
@@ -384,13 +359,12 @@ sub full_message {
 }
 
 package Config::Model::Exception::UnknownId;
-$Config::Model::Exception::UnknownId::VERSION = '2.055';
+$Config::Model::Exception::UnknownId::VERSION = '2.056';
 
 sub full_message {
     my $self = shift;
 
     my $obj = $self->object;
-    my $min_experience = $self->min_experience || 'master';
 
     my $element = $self->element;
     my $id_str = "'" . join( "','", $obj->fetch_all_indexes() ) . "'";
@@ -413,7 +387,7 @@ sub full_message {
 }
 
 package Config::Model::Exception::WrongType;
-$Config::Model::Exception::WrongType::VERSION = '2.055';
+$Config::Model::Exception::WrongType::VERSION = '2.056';
 
 sub full_message {
     my $self = shift;
@@ -438,7 +412,7 @@ sub full_message {
 }
 
 package Config::Model::Exception::ConfigFile::Missing;
-$Config::Model::Exception::ConfigFile::Missing::VERSION = '2.055';
+$Config::Model::Exception::ConfigFile::Missing::VERSION = '2.056';
 
 sub full_message {
     my $self = shift;
@@ -449,7 +423,7 @@ sub full_message {
 }
 
 package Config::Model::Exception::Xml;
-$Config::Model::Exception::Xml::VERSION = '2.055';
+$Config::Model::Exception::Xml::VERSION = '2.056';
 
 sub full_message {
     my $self = shift;
@@ -479,7 +453,7 @@ Config::Model::Exception - Exception mechanism for configuration model
 
 =head1 VERSION
 
-version 2.055
+version 2.056
 
 =head1 SYNOPSIS
 

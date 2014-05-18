@@ -8,7 +8,7 @@
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
 package Config::Model::Iterator;
-$Config::Model::Iterator::VERSION = '2.055';
+$Config::Model::Iterator::VERSION = '2.056';
 use Carp;
 use strict;
 use warnings;
@@ -29,6 +29,10 @@ sub new {
         status                 => 'standard',
     };
 
+    if (delete $args{experience}) {
+        carp "experience parameter is deprecated";
+    }
+
     foreach my $p (qw/root/) {
         $self->{$p} = delete $args{$p}
             or croak "Iterator->new: Missing $p parameter";
@@ -39,12 +43,6 @@ sub new {
     }
 
     bless $self, $type;
-
-    my %user_scan_args = ( experience => 'intermediate', );
-
-    foreach my $p (qw/experience/) {
-        $user_scan_args{$p} = delete $args{$p};
-    }
 
     my %cb_hash;
 
@@ -73,7 +71,6 @@ sub new {
     }
 
     $self->{dispatch_cb}    = \%cb_hash;
-    $self->{user_scan_args} = \%user_scan_args;
 
     if (%args) {
         die "Iterator->new: unexpected parameters: ", join( ' ', keys %args ), "\n";
@@ -84,7 +81,6 @@ sub new {
 
     $self->{scanner} = Config::Model::ObjTreeScanner->new(
         fallback        => 'all',
-        experience      => $user_scan_args{experience},
         hash_element_cb => sub { $self->hash_element_cb(@_) },
         list_element_cb => sub { $self->hash_element_cb(@_) },
         node_content_cb => sub { $self->node_content_cb(@_) },
@@ -112,7 +108,6 @@ sub node_content_cb {
 
     $logger->info( "node_content_cb called on '", $node->name, "' element: @element" );
 
-    my $experience = $self->{user_scan_args}{experience};
     my $element;
 
     while (1) {
@@ -121,7 +116,6 @@ sub node_content_cb {
         # change the element list due to warping
         $element = $node->next_element(
             name       => $element,
-            experience => $experience,
             status     => $self->{status},
             reverse    => 1 - $self->{forward} );
 
@@ -281,7 +275,7 @@ Config::Model::Iterator - Iterates forward or backward a configuration tree
 
 =head1 VERSION
 
-version 2.055
+version 2.056
 
 =head1 SYNOPSIS
 
@@ -368,9 +362,6 @@ for details.
 
 =back
 
-By default, the iterator will only stop on element with an C<intermediate>
-experience.
-
 The iterator supports going forward and backward
 (to support C<back> and C<next> buttons on a wizard widget).
 
@@ -398,11 +389,6 @@ Whether to call back when an important element is found (default 0).
 =head2 call_back_on_warning
 
 Whether to call back when an item with warnings is found (default 0).
-
-=head2 experience
-
-Specifies the experience of the element scanned by the wizard (default
-'intermediate').
 
 =head2 status
 

@@ -2,7 +2,7 @@
 
 use ExtUtils::testlib;
 use Test::More;
-use Path::Class;
+use Path::Tiny;
 
 use Test::Memory::Cycle;
 use Config::Model;
@@ -39,14 +39,15 @@ if ($@) {
     plan skip_all => "Config::Model::FuseUI or Fuse is not installed";
 }
 else {
+    # the forked process prints an ok, hence done_testing cannot be used
     plan tests => 16;
 }
 
-use warnings FATAL => qw(all);
+use warnings;
 use strict;
 
 # required to handle warnings in forked process
-local $SIG{__WARN__} = sub { die $_[0] };
+local $SIG{__WARN__} = sub { die $_[0] unless $_[0] =~ /deprecated/ };
 
 use Data::Dumper;
 use POSIX ":sys_wait_h";
@@ -74,13 +75,13 @@ else {
 ok( 1, "Compilation done" );
 
 # pseudo root where config files are written by config-model
-my $wr_root = dir('wr_root');
+my $wr_root = path('wr_root');
 
 # cleanup before tests
-$wr_root->rmtree;
+$wr_root->remove_tree;
 $wr_root->mkpath( { mode => 0755 } );
 
-my $fused = $wr_root->subdir('fused');
+my $fused = $wr_root->child('fused');
 $fused->mkpath( { mode => 0755 } );
 
 my $model = Config::Model->new( legacy => 'ignore' );
@@ -100,7 +101,7 @@ ok( $inst, "created dummy instance" );
 my $root = $inst->config_root;
 
 my $step = 'std_id:ab X=Bv - std_id:bc X=Av - std_id:"a/c" X=Av - a_string="toto tata"';
-ok( $root->load( step => $step, experience => 'advanced' ), "set up data in tree with '$step'" );
+ok( $root->load( step => $step ), "set up data in tree with '$step'" );
 
 my $ui = Config::Model::FuseUI->new(
     root            => $root,
@@ -131,38 +132,38 @@ sleep 1;
 my @content = sort map { $_->relative($fused); } $fused->children;
 is_deeply( \@content, [ sort $root->get_element_name() ], "check $fused content" );
 
-my $std_id = $fused->subdir('std_id');
+my $std_id = $fused->child('std_id');
 @content = sort map { $_->relative($std_id); } $std_id->children;
 my @std_id_elements = sort $root->fetch_element('std_id')->fetch_all_indexes();
 map { s(/){$dir_char_mockup}g; } @std_id_elements;
 is_deeply( \@content, \@std_id_elements, "check $std_id content (@content)" );
 
 is(
-    $fused->file('a_string')->slurp,
+    $fused->child('a_string')->slurp,
     $root->grab_value('a_string') . "\n",
     "check a_string content"
 );
-my $a_string_fhw = $fused->file('a_string')->openw;
+my $a_string_fhw = $fused->child('a_string')->openw;
 $a_string_fhw->print("foo bar");
 $a_string_fhw->close;
 
-is( $fused->file('a_string')->slurp, "foo bar\n", "check new a_string content" );
+is( $fused->child('a_string')->slurp, "foo bar\n", "check new a_string content" );
 
-$std_id->subdir('cd')->mkpath();
+$std_id->child('cd')->mkpath();
 ok( 1, "mkpath on cd dir done" );
 @content = sort map { $_->relative($std_id); } $std_id->children;
 is_deeply( \@content, [ @std_id_elements, 'cd' ], "check $std_id new content (@content)" );
 
-$std_id->subdir('cd')->rmtree();
-ok( 1, "rmtree on cd dir done" );
+$std_id->child('cd')->remove_tree();
+ok( 1, "remove_tree on cd dir done" );
 @content = sort map { $_->relative($std_id); } $std_id->children;
 is_deeply( \@content, \@std_id_elements, "check $std_id content after rmdir (@content)" );
 
-is( $fused->file('a_boolean')->slurp, "0\n", "check new a_boolean content" );
-my $a_boolean_fhw = $fused->file('a_boolean')->openw;
+is( $fused->child('a_boolean')->slurp, "0\n", "check new a_boolean content" );
+my $a_boolean_fhw = $fused->child('a_boolean')->openw;
 $a_boolean_fhw->print("1");
 $a_boolean_fhw->close;
-is( $fused->file('a_boolean')->slurp, "1\n", "check new a_boolean content (set to 1)" );
+is( $fused->child('a_boolean')->slurp, "1\n", "check new a_boolean content (set to 1)" );
 
 END {
     if ($pid) {

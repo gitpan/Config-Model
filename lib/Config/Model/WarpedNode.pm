@@ -8,7 +8,7 @@
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
 package Config::Model::WarpedNode;
-$Config::Model::WarpedNode::VERSION = '2.055';
+$Config::Model::WarpedNode::VERSION = '2.056';
 use Mouse;
 
 use Carp qw(cluck croak);
@@ -30,7 +30,7 @@ my $logger = get_logger("Tree::Node::Warped");
 # status is not warpable either as an obsolete parameter must stay
 # obsolete
 
-my @allowed_warp_params = qw/config_class_name experience level/;
+my @allowed_warp_params = qw/config_class_name level/;
 
 has [qw/backup follow/] => ( is => 'rw', isa => 'HashRef', default => sub { {}; } );
 has [qw/rules/] => ( is => 'rw', isa => 'ArrayRef', required => 1 );
@@ -308,7 +308,7 @@ Config::Model::WarpedNode - Node that change config class properties
 
 =head1 VERSION
 
-version 2.055
+version 2.056
 
 =head1 SYNOPSIS
 
@@ -384,7 +384,6 @@ method.
 Warped node can alter the following properties:
 
  config_class_name
- experience
  level
 
 =head1 Constructor
@@ -444,10 +443,6 @@ constructor arguments :
 
   XY  => { config_class_name => ['SlaveY', foo => 'bar' ], },
 
-=item B<experience>
-
-Switch the experience of the slot when the object is warped in.
-
 =back
 
 =head1 Forwarded methods
@@ -483,7 +478,6 @@ the available elements of the node carried by the warped node.
 
  $model ->create_config_class 
   (
-   experience => [ bar => 'advanced'] ,
    element =>
     [
      tree_macro => { type => 'leaf',

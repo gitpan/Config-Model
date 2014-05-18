@@ -8,7 +8,7 @@
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
 package Config::Model::AnyThing;
-$Config::Model::AnyThing::VERSION = '2.055';
+$Config::Model::AnyThing::VERSION = '2.056';
 use Mouse;
 
 # FIXME: must cleanup warp mechanism to implement this
@@ -337,7 +337,6 @@ COMMAND:
             $grab_non_available
             or $obj->is_element_available(
                 name       => $name,
-                experience => 'master'
             )
             ) {
             if ( $mode eq 'step_by_step' ) {
@@ -361,7 +360,6 @@ COMMAND:
 
         my $next_obj = $obj->fetch_element(
             name          => $name,
-            experience    => 'master',
             check         => $check,
             accept_hidden => $grab_non_available
         );
@@ -590,7 +588,7 @@ Config::Model::AnyThing - Base class for configuration tree item
 
 =head1 VERSION
 
-version 2.055
+version 2.056
 
 =head1 SYNOPSIS
 

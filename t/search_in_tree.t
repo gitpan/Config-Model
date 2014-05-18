@@ -1,7 +1,7 @@
 # -*- cperl -*-
 
 use ExtUtils::testlib;
-use Test::More tests => 13;
+use Test::More;
 use Test::Differences;
 use Test::Memory::Cycle;
 use Config::Model;
@@ -48,14 +48,15 @@ my $step =
       'std_id:ab X=Bv - std_id:bc X=Av - a_string="toto tata" '
     . 'hash_a:X2=x hash_a:Y2=xy  hash_b:X3=xy my_check_list=X2,X3 '
     . 'olist:0 DX=Dv';
-ok( $root->load( step => $step, experience => 'advanced' ), "set up data in tree with '$step'" );
+ok( $root->load( step => $step ), "set up data in tree with '$step'" );
 
 my @tests = (
     [qw/value toto a_string/],
     [qw/value tot a_string/],
     [qw/key ab std_id:ab/],
     [qw/value xy hash_a:Y2 hash_b:X3/],
-    [ qw/description zorro/, 'slave_y sub_slave sub_slave Z', 'slave_y warp2 sub_slave Z' ],
+    [ qw/description zorro/, 'warp sub_slave sub_slave Z','warp warp2 sub_slave Z',
+      'slave_y sub_slave sub_slave Z', 'slave_y warp2 sub_slave Z' ],
     [ qw/value Bv/,          'std_id:ab X' ],
     [ qw/value B/,           'std_id:ab X' ],
     [ qw/value Dv/, 'std_id:ab DX', 'std_id:bc DX', 'olist:0 DX' ],
@@ -70,3 +71,4 @@ foreach my $ref (@tests) {
     print "\treturned '", join( "', '", @res ), "'\n" if $trace;
 }
 memory_cycle_ok($model);
+done_testing;

@@ -8,7 +8,7 @@
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
 package Config::Model::AnyId;
-$Config::Model::AnyId::VERSION = '2.055';
+$Config::Model::AnyId::VERSION = '2.056';
 use Mouse;
 
 use Config::Model::Exception;
@@ -60,7 +60,7 @@ has \@common_str_params => ( is => 'ro', isa => 'Maybe[Str]' );
 
 my @common_params =
     ( @common_int_params, @common_str_params, @common_list_params, @common_hash_params );
-my @allowed_warp_params = ( @common_params, qw/experience level convert/ );
+my @allowed_warp_params = ( @common_params, qw/level convert/ );
 
 around BUILDARGS => sub {
     my $orig  = shift;
@@ -118,7 +118,7 @@ sub set_properties {
     my %args = ( %{ $self->{backup} }, @_ );
 
     # these are handled by Node or Warper
-    map { delete $args{$_} } qw/level experience/;
+    map { delete $args{$_} } qw/level/;
 
     $logger->debug( $self->name, " set_properties called with @_" );
 
@@ -183,39 +183,10 @@ sub set_properties {
         );
     }
 
-    # $self->{current} = { level      => $args{level} ,
-    # experience => $args{experience}
-    # } ;
-    #$self->SUPER::set_parent_element_property(\%args) ;
-
     Config::Model::Exception::Model->throw(
         object => $self,
         error  => "Unexpected parameters: " . join( ' ', keys %args ) ) if scalar keys %args;
 }
-
-# # this method will overide setting comings from a value (or maybe a
-# # warped node) with warped settings coming from this warped id. Only
-# # level hidden is forwarded no matter what
-# sub set_parent_element_property {
-# my $self = shift;
-# my $arg_ref = shift ;
-#
-# my $cur = $self->{current} ;
-#
-# # override if necessary
-# $arg_ref->{experience} = $cur->{experience}
-# if defined $cur->{experience} ;
-#
-# if (    defined $cur->{level}
-# and ( not defined $arg_ref->{level}
-# or $arg_ref->{level} ne 'hidden'
-# )
-# ) {
-# $arg_ref->{level} = $cur->{level} ;
-# }
-#
-# $self->SUPER::set_parent_element_property($arg_ref) ;
-# }
 
 sub create_default_with_init {
     my $self = shift;
@@ -948,7 +919,7 @@ Config::Model::AnyId - Base class for hash or list element
 
 =head1 VERSION
 
-version 2.055
+version 2.056
 
 =head1 SYNOPSIS
 

@@ -13,7 +13,7 @@ Config::Model::Manual::ModelCreationAdvanced - Creating a model with advanced fe
 
 =head1 VERSION
 
-version 2.055
+version 2.056
 
 =head1 Introduction
 
@@ -206,7 +206,6 @@ And C<LocalForward> that will provide I<bind_address> parameter:
      config_class_name => 'Ssh::PortForward'
    },
    summary => 'Local port forwarding',
-   experience => 'advanced',
  }
 
 In C<Ssh::PortForward> configuration class, declare I<bind_address> with the warp

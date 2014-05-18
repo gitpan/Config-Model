@@ -8,7 +8,7 @@
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
 package Config::Model::Dumper;
-$Config::Model::Dumper::VERSION = '2.055';
+$Config::Model::Dumper::VERSION = '2.056';
 use Carp;
 use strict;
 use warnings;
@@ -214,7 +214,6 @@ sub dump_tree {
     };
 
     my @scan_args = (
-        experience => delete $args{experience} || 'master',
         fallback => 'all',
         auto_vivify           => $auto_v,
         list_element_cb       => $list_element_cb,
@@ -257,7 +256,7 @@ Config::Model::Dumper - Serialize data of config tree
 
 =head1 VERSION
 
-version 2.055
+version 2.056
 
 =head1 SYNOPSIS
 
@@ -367,11 +366,6 @@ their model. See L<Config::Model::BackendMgr>.
 Scan and create data for nodes elements even if no actual data was
 stored in them. This may be useful to trap missing mandatory values.
 (default: 0)
-
-=item experience ( ... )
-
-Restrict dump to C<beginner> or C<intermediate> parameters. Default is
-to dump all parameters (C<master> level)
 
 =item check
 

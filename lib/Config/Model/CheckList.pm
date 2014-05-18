@@ -8,7 +8,7 @@
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
 package Config::Model::CheckList;
-$Config::Model::CheckList::VERSION = '2.055';
+$Config::Model::CheckList::VERSION = '2.056';
 use Mouse;
 use 5.010;
 
@@ -27,7 +27,7 @@ my $logger = get_logger("Tree::Element::CheckList");
 my @introspect_params = qw/refer_to computed_refer_to/;
 
 my @accessible_params = qw/default_list upstream_default_list choice ordered/;
-my @allowed_warp_params = ( @accessible_params, qw/level experience/ );
+my @allowed_warp_params = ( @accessible_params, qw/level/ );
 
 has [qw/backup data preset layered/] => ( is => 'rw', isa => 'HashRef', default => sub { {}; } );
 has computed_refer_to => ( is => 'rw', isa => 'Maybe[HashRef]' );
@@ -110,7 +110,7 @@ sub set_properties {
     my %args = ( %{ $self->{backup} }, @_ );
 
     # these are handled by Node or Warper
-    map { delete $args{$_} } qw/level experience/;
+    map { delete $args{$_} } qw/level/;
 
     $self->{ordered} = delete $args{ordered} || 0;
 
@@ -701,7 +701,7 @@ Config::Model::CheckList - Handle check list element
 
 =head1 VERSION
 
-version 2.055
+version 2.056
 
 =head1 SYNOPSIS
 

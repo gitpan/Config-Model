@@ -8,7 +8,7 @@
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
 package Config::Model::TermUI;
-$Config::Model::TermUI::VERSION = '2.055';
+$Config::Model::TermUI::VERSION = '2.056';
 use Carp;
 use strict;
 use warnings;
@@ -226,7 +226,7 @@ Config::Model::TermUI - Provides Config::Model UI with Term::ReadLine
 
 =head1 VERSION
 
-version 2.055
+version 2.056
 
 =head1 SYNOPSIS
 
@@ -374,10 +374,6 @@ Auto-completion provides wrong choice when you try to C<cd> in a hash
 where the index contains a white space. I.e. the correct command is
 C<cd foo:"a b"> instead of C<cd foo: "a b"> as proposed by auto
 completion.
-
-=item *
-
-UI should take into account experience.
 
 =back
 

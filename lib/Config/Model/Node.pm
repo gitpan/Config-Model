@@ -8,7 +8,7 @@
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
 package Config::Model::Node;
-$Config::Model::Node::VERSION = '2.055';
+$Config::Model::Node::VERSION = '2.056';
 use Mouse;
 
 use Carp;
@@ -27,19 +27,15 @@ use List::MoreUtils qw(insert_after_string);
 
 extends qw/Config::Model::AnyThing/;
 
-use vars qw(@status @level
-    @experience_list %experience_index %default_property);
+use vars qw(@status @level %default_property);
 
 *status           = *Config::Model::status;
 *level            = *Config::Model::level;
-*experience_list  = *Config::Model::experience_list;
-*experience_index = *Config::Model::experience_index;
 *default_property = *Config::Model::default_property;
 
 my %legal_properties = (
     status     => {qw/obsolete 1 deprecated 1 standard 1/},
     level      => {qw/important 1 normal 1 hidden 1/},
-    experience => {qw/master 1 advanced 1 beginner 1/},
 );
 
 my $logger     = get_logger("Tree::Node");
@@ -71,12 +67,6 @@ my %create_sub_for = (
 #    parent            : weak reference of parent node (undef for root node)
 #    element           : actual storage of configuration elements
 
-#    element_by_experience: {<experience>} = [ list of elements ]
-#                          e.g {
-#                                master => [ list of master elements ],
-#                                advanced => [ ...],
-#                                beginner => [,,,]
-#                              }
 #  ) ;
 
 has initialized => ( is => 'rw', isa => 'Bool', default => 0 );
@@ -271,23 +261,18 @@ sub create_id {
     $self->{element}{$element_name} = $id_class->new(%$element_info);
 }
 
-# check validity of experience,level and status declaration.
-# create a list to classify elements by experience
+# check validity of level and status declaration.
 sub check_properties {
     my $self = shift;
 
     # a model should no longer contain attributes attached to
     # an element (like description, level ...). There are copied here
     # because Node needs them as hash or lists
-    foreach my $bad (qw/description summary level experience status permission/) {
+    foreach my $bad (qw/description summary level status/) {
         die $self->config_class_name, ": illegal '$bad' parameter in model ",
             "(Should be handled by Config::Model directly)"
             if defined $self->{model}{$bad};
     }
-
-    # this is a bit convoluted, but the order of element stored with
-    # the "push" for each experience must respect the order of the
-    # elements declared in the model by the user
 
     foreach my $elt_name ( @{ $self->{model}{element_list} } ) {
 
@@ -298,17 +283,14 @@ sub check_properties {
         }
 
         foreach my $prop ( keys %legal_properties ) {
-            my $prop_v = delete $self->{model}{element}{$elt_name}{$prop};
-            $prop_v = $Config::Model::default_property{$prop}
-                unless defined $prop_v;
+            my $prop_v
+                = delete $self->{model}{element}{$elt_name}{$prop}
+                //  $Config::Model::default_property{$prop} ;
             $self->{$prop}{$elt_name} = $prop_v;
 
             croak "Config class $self->{config_class_name} error: ",
                 "Unknown $prop: '$prop_v'. Expected ", join( " or ", keys %{ $self->{$prop} } )
                 unless defined $legal_properties{$prop}{$prop_v};
-
-            push @{ $self->{element_by_experience}{$prop} }, $elt_name
-                if $prop eq 'experience';
         }
     }
 }
@@ -494,21 +476,14 @@ sub get_element_name {
     my $self = shift;
     my %args = @_;
 
-    my $for        = $args{for} || 'master';
+    if (delete $args{for}) {
+        carp "get_element_name arg 'for' is deprecated";
+    }
+
     my $type       = $args{type};              # optional
     my $cargo_type = $args{cargo_type};        # optional
 
-    if ( $for eq 'intermediate' ) {
-        carp "get_element_name: 'intermediate' is deprecated in favor of beginner";
-        $for = 'beginner';
-    }
-
-    croak "get_element_name: wrong 'for' parameter. Expected ", join( ' or ', @experience_list )
-        unless defined $experience_index{$for};
-
     $self->init;
-
-    my $for_idx = $experience_index{$for};
 
     my @result;
 
@@ -530,18 +505,15 @@ sub get_element_name {
         my $status = $self->{status}{$elt} || $default_property{status};
         next if ( $status eq 'deprecated' or $status eq 'obsolete' );
 
-        my $experience = $self->{experience}{$elt} || $default_property{experience};
-        my $elt_idx    = $experience_index{$experience};
         my $elt_type   = $self->{element}{$elt}->get_type;
         my $elt_cargo  = $self->{element}{$elt}->get_cargo_type;
-        if (    $for_idx >= $elt_idx
-            and ( not defined $type or $type eq $elt_type )
+        if (    ( not defined $type or $type eq $elt_type )
             and ( not defined $cargo_type or $cargo_type eq $elt_cargo ) ) {
             push @result, $elt;
         }
     }
 
-    $logger->debug("get_element_name: got @result for level $for");
+    $logger->debug("get_element_name: got @result");
 
     return wantarray ? @result : join( ' ', @result );
 }
@@ -567,7 +539,6 @@ sub next_element {
             return $name
                 if $self->is_element_available(
                 name       => $name,
-                experience => $args{experience},
                 status     => $args{status} );
         }
         $found_elt = 1 if defined $element and $element eq $name;
@@ -622,7 +593,7 @@ sub reset_element_property {
     return $self->{$prop}{$elt} = $original_value;
 }
 
-# internal: called by the proterty methods to check their arguments
+# internal: called by the property methods to check their arguments
 sub check_property_args {
     my $self        = shift;
     my $method_name = shift;
@@ -633,13 +604,8 @@ sub check_property_args {
     my $prop = $args{property}
         || croak "$method_name: missing 'property' parameter";
 
-    if ( $prop eq 'permission' ) {
-        carp "check_property_args: 'permission' is deprecated in favor of 'experience'";
-        $prop = 'experience';
-    }
-
     my $prop_values = $legal_properties{$prop};
-    confess "Unknown property in $method_name: $prop, expected status or ", "level or experience"
+    confess "Unknown property in $method_name: $prop, expected status or ", "level"
         unless defined $prop_values;
 
     return ( $prop, $elt );
@@ -653,14 +619,8 @@ sub fetch_element {
     Config::Model::Exception::Internal->throw( error => "fetch_element: missing name" )
         unless defined $element_name;
 
-    my $user          = $args{experience} || 'master';
     my $check         = $self->_check_check( $args{check} );
     my $accept_hidden = $args{accept_hidden} || 0;
-
-    if ( $user eq 'intermediate' ) {
-        carp "fetch_element: 'intermediate' is deprecated in favor of 'beginner'";
-        $user = 'beginner';
-    }
 
     $self->init($check);
 
@@ -717,25 +677,6 @@ sub fetch_element {
         );
     }
 
-    # check experience
-    my $elt_experience = $self->{experience}{$element_name};
-    my $elt_idx        = $experience_index{$elt_experience};
-    croak "Unknown experience '$elt_experience' for element ",
-        "'$element_name'. Expected ", join( ' ', keys %experience_index )
-        unless defined $elt_idx;
-    my $user_idx = $experience_index{$user};
-
-    croak "Unexpected experience '$user'" unless defined $user_idx;
-
-    if ( $user_idx < $elt_idx and $check eq 'yes' ) {
-        Config::Model::Exception::RestrictedElement->throw(
-            object         => $self,
-            element        => $element_name,
-            level          => $user,
-            req_experience => $elt_experience,
-        );
-    }
-
     return $self->fetch_element_no_check($element_name);
 }
 
@@ -748,7 +689,6 @@ sub fetch_element_value {
     my $self         = shift;
     my %args         = @_ > 1 ? @_ : ( name => $_[0] );
     my $element_name = $args{name};
-    my $user         = $args{experience} || 'master';
     my $check        = $self->_check_check( $args{check} );
 
     if ( $self->element_type($element_name) ne 'leaf' ) {
@@ -772,19 +712,14 @@ sub store_element_value {
 
 sub is_element_available {
     my $self = shift;
-    my ( $elt_name, $user_experience, $status ) = ( undef, 'beginner', 'deprecated' );
+    my ( $elt_name, $status ) = ( undef, 'deprecated' );
     if ( @_ == 1 ) {
         $elt_name = shift;
     }
     else {
         my %args = @_;
         $elt_name        = $args{name};
-        $user_experience = $args{experience} if defined $args{experience};
         $status          = $args{status} if defined $args{status};
-        if ( defined $args{permission} ) {
-            $user_experience = $args{permission};
-            carp "is_element_available: permission is deprecated";
-        }
     }
 
     croak "is_element_available: missing name parameter"
@@ -794,7 +729,6 @@ sub is_element_available {
     # is updated
     my $element = $self->fetch_element(
         name          => $elt_name,
-        experience    => 'master',
         check         => 'no',
         accept_hidden => 1
     );
@@ -819,18 +753,7 @@ sub is_element_available {
         return 0;
     }
 
-    my $element_exp = $self->get_element_property(
-        property => 'experience',
-        element  => $elt_name
-    );
-
-    croak "is_element_available: unknown experience for ", "user experience: $user_experience"
-        unless defined $experience_index{$user_experience};
-
-    croak "is_element_available: unknown experience for element", " $elt_name: $$element_exp"
-        unless defined $experience_index{$element_exp};
-
-    return $experience_index{$user_experience} >= $experience_index{$element_exp} ? 1 : 0;
+    return 1;
 }
 
 sub accept_element {
@@ -871,7 +794,7 @@ sub reset_accepted_element_model {
         $self->{$info_to_move}{$element_name} = $moved_data;
     }
 
-    foreach my $info_to_move (qw/level experience status/) {
+    foreach my $info_to_move (qw/level status/) {
         $self->reset_element_property(
             element  => $element_name,
             property => $info_to_move
@@ -995,7 +918,7 @@ sub load_data {
         $logger->trace("check element $elt");
         next unless defined $perl_data->{$elt};
 
-        if (   $self->is_element_available( name => $elt, experience => 'master' )
+        if (   $self->is_element_available( name => $elt )
             or $check eq 'no' ) {
             if ( $logger->is_trace ) {
                 my $v = defined $perl_data->{$elt} ? $perl_data->{$elt} : '<undef>';
@@ -1003,7 +926,6 @@ sub load_data {
             }
             my $obj = $self->fetch_element(
                 name       => $elt,
-                experience => 'master',
                 check      => $check
             );
 
@@ -1039,7 +961,7 @@ sub load_data {
 
             #load value
             #TODO: annotations
-            my $obj = $self->fetch_element( name => $elt, experience => 'master', check => $check );
+            my $obj = $self->fetch_element( name => $elt, check => $check );
             next unless $obj;    # in cas of known but unavailable elements
             $logger->debug("Node load_data: accepting element $elt");
             $obj->load_data( %args, data => delete $perl_data->{$elt} ) if defined $obj;
@@ -1202,7 +1124,7 @@ Config::Model::Node - Class for configuration tree node
 
 =head1 VERSION
 
-version 2.055
+version 2.056
 
 =head1 SYNOPSIS
 
@@ -1224,10 +1146,6 @@ version 2.055
         }
     ],
 
-    experience => [
-        Y => 'beginner',
-        X => 'master'
-    ],
     status      => [ X => 'deprecated' ],
     description => [ X => 'X-ray description (can be long)' ],
     summary     => [ X => 'X-ray' ],
@@ -1301,19 +1219,19 @@ A class declaration is made of the following parameters:
 
 =over
 
-=item B<name> 
+=item B<name>
 
 Mandatory C<string> parameter. This config class name can be used by a node
 element in another configuration class.
 
-=item B<class_description> 
+=item B<class_description>
 
 Optional C<string> parameter. This description will be used when
 generating user interfaces.
 
-=item B<element> 
+=item B<element>
 
-Mandatory C<list ref> of elements of the configuration class : 
+Mandatory C<list ref> of elements of the configuration class :
 
   element => [ foo => { type = 'leaf', ... },
                bar => { type = 'leaf', ... }
@@ -1324,16 +1242,6 @@ Element names can be grouped to save typing:
   element => [ [qw/foo bar/] => { type = 'leaf', ... } ]
 
 See below for details on element declaration.
-
-=item B<experience>
-
-Optional C<list ref> of the elements whose experience are different
-from default value (C<beginner>). Possible values are C<master>,
-C<advanced> and C<beginner>.
-
-  experience   => [ Y => 'beginner', 
-                    [qw/foo bar/] => 'master' 
-                  ],
 
 =item B<level>
 
@@ -1376,7 +1284,7 @@ configuration files.
 
 =item B<config_dir>
 
-Parameters used to load on demand configuration data. 
+Parameters used to load on demand configuration data.
 See L<Config::Model::BackendMgr> for details.
 
 =item B<accept>
@@ -1434,7 +1342,7 @@ The model snippet above will ensure that C<Bug-Debian> will be shown right after
 Each element is declared with a list ref that contains all necessary
 information:
 
-  element => [ 
+  element => [
                foo => { ... }
              ]
 
@@ -1445,9 +1353,9 @@ B<type> parameter. The I<type> type can be:
 
 =item C<node>
 
-The element is a simple node of a tree instantiated from a 
-configuration class (declared with 
-L<Config::Model/"create_config_class( ... )">). 
+The element is a simple node of a tree instantiated from a
+configuration class (declared with
+L<Config::Model/"create_config_class( ... )">).
 See L</"Node element">.
 
 =item C<warped_node>
@@ -1463,19 +1371,19 @@ The element is a scalar value. See L</"Leaf element">
 
 =item C<hash>
 
-The element is a collection of nodes or values (default). Each 
+The element is a collection of nodes or values (default). Each
 element of this collection is identified by a string (Just like a regular
 hash, except that you can set up constraint of the keys).
 See L</"Hash element">
 
-=item C<list> 
+=item C<list>
 
 The element is a collection of nodes or values (default). Each element
 of this collection is identified by an integer (Just like a regular
 perl array, except that you can set up constraint of the keys).  See
 L</"List element">
 
-=item C<check_list> 
+=item C<check_list>
 
 The element is a collection of values which are unique in the
 check_list. See L<CheckList>.
@@ -1487,11 +1395,11 @@ check_list. See L<CheckList>.
 When declaring a C<node> element, you must also provide a
 C<config_class_name> parameter. For instance:
 
- $model ->create_config_class 
+ $model ->create_config_class
    (
    name => "ClassWithOneNode",
    element => [
-                the_node => { 
+                the_node => {
                               type => 'node',
                               config_class_name => 'AnotherClass',
                             },
@@ -1547,19 +1455,19 @@ Returns the configuration class name of this node.
 
 =head2 instance
 
-Returns the instance object containing this node. Inherited from 
+Returns the instance object containing this node. Inherited from
 L<Config::Model::AnyThing>
 
 =head2 has_element ( name => element_name, [ type => searched_type ] )
 
-Returns 1 if the class model has the element declared or if the element 
-name is matched by the optional C<accept> parameter. If C<type> is specified, the 
+Returns 1 if the class model has the element declared or if the element
+name is matched by the optional C<accept> parameter. If C<type> is specified, the
 element name must also match the type.
 
 =head2 find_element ( element_name , [ case => any ])
 
-Returns $name if the class model has the element declared or if the element 
-name is matched by the optional C<accept> parameter. 
+Returns $name if the class model has the element declared or if the element
+name is matched by the optional C<accept> parameter.
 
 If case is set to any, has_element will return the element name who match the passed
 name in a case-insensitive manner.
@@ -1578,7 +1486,7 @@ This method is inherited from L<Config::Model::AnyThing>.
 
 =head2 element_model ( element_name )
 
-Returns model of the element. 
+Returns model of the element.
 
 =head2 element_type ( element_name )
 
@@ -1587,7 +1495,7 @@ element.
 
 =head2 element_name()
 
-Returns the element name that contain this object. Inherited from 
+Returns the element name that contain this object. Inherited from
 L<Config::Model::AnyThing>
 
 =head2 index_value()
@@ -1608,11 +1516,9 @@ See L<Config::Model::AnyThing/"location()">
 
 =head1 Element property management
 
-=head2 get_element_name ( for => <experience>, ...  )
+=head2 get_element_name (  ...  )
 
-Return all elements names available for C<experience>.
-If no experience is specified, will return all
-elements available at 'master' level (I.e all elements).
+Return all elements names available.
 
 Optional parameters are:
 
@@ -1637,10 +1543,10 @@ B<check>: C<yes>, C<no> or C<skip>
 
 =back
 
-Returns an array in array context, and a string 
+Returns an array in array context, and a string
 (e.g. C<join(' ',@array)>) in scalar context.
 
-=head2 children 
+=head2 children
 
 Like get_element_name without parameters. Returns the list of elements. This method is
 polymorphic for all non-leaf objects of the configuration tree.
@@ -1648,19 +1554,16 @@ polymorphic for all non-leaf objects of the configuration tree.
 =head2 next_element ( ... )
 
 This method provides a way to iterate through the elements of a node.
-Mandatory parameter is C<name>. Optional parameters are C<experience>
-and C<status>.
+Mandatory parameter is C<name>. Optional parameter: C<status>.
 
-Returns the next element name for a given experience (default
-C<master>) and status (default C<normal>).
+Returns the next element name for status (default C<normal>).
 Returns undef if no next element is available.
 
-=head2 previous_element ( name => element_name, [ experience => min_experience ] )
+=head2 previous_element ( name => element_name )
 
 This method provides a way to iterate through the elements of a node.
 
-Returns the previous element name for a given experience (default
-C<master>).  Returns undef if no previous element is available.
+Returns the previous element name. Returns undef if no previous element is available.
 
 =head2 get_element_property ( element => ..., property => ... )
 
@@ -1668,7 +1571,6 @@ Retrieve a property of an element.
 
 I.e. for a model :
 
-  experience => [ X => 'master'],
   status     => [ X => 'deprecated' ]
   element    => [ X => { ... } ]
 
@@ -1686,13 +1588,9 @@ Reset a property of an element according to the original model.
 
 =head1 Information management
 
-=head2 fetch_element ( name => ..  [ , user_experience => .. ] , [ check => ..] )
+=head2 fetch_element ( name => .. , [ check => ..] )
 
 Fetch and returns an element from a node.
-
-If user_experience is given, this method will check that the user has
-enough privilege to access the element. If not, a C<RestrictedElement>
-exception will be raised.
 
 check can be set to yes, no or skip. When check is C<no> or C<skip>, can return C<undef> when the
 element is unknown, or 0 if the element is not available (hidden).
@@ -1701,39 +1599,30 @@ element is unknown, or 0 if the element is not available (hidden).
 
 Fetch and returns the I<value> of a leaf element from a node.
 
-If user_experience is given, this method will check that the user has
-enough privilege to access the element. If not, a C<RestrictedElement>
-exception will be raised.
-
 =head2 store_element_value ( name, value )
 
 Store a I<value> in a leaf element from a node.
 
-Can be invoked with named parameters (name, value, experience, check)
+Can be invoked with named parameters (name, value, check)
 
-If user_experience is given, this method will check that the user has
-enough privilege to access the element. If not, a C<RestrictedElement>
-exception will be raised.
+=head2 is_element_available( name => ...,  )
 
-=head2 is_element_available( name => ...,  experience => ... )
-
-Returns 1 if the element C<name> is available for the given
-C<experience> ('beginner' by default) and if the element is
-not "hidden". Returns 0 otherwise.
+Returns 1 if the element C<name> is available and if the element is not "hidden". Returns 0
+otherwise.
 
 As a syntactic sugar, this method can be called with only one parameter:
 
-   is_element_available( 'element_name' ) ; 
+   is_element_available( 'element_name' ) ;
 
 =head2 accept_element( name )
 
-Checks and returns the appropriate model of an acceptable element 
+Checks and returns the appropriate model of an acceptable element
 (be it explicitly declared, or part of an C<accept> declaration).
 Returns undef if the element cannot be accepted.
 
 =head2 accept_regexp( name )
 
-Returns the list of regular expressions used to check for acceptable parameters. 
+Returns the list of regular expressions used to check for acceptable parameters.
 Useful for diagnostics.
 
 =head2 element_exists( element_name )
@@ -1769,21 +1658,20 @@ Set a value from a directory like path.
 
 =head2 migrate
 
-Force a read of the configuration and perform all changes regarding 
+Force a read of the configuration and perform all changes regarding
 deprecated elements or values. Return 1 if data needs to be saved.
 
 =head2 apply_fixes
 
-Scan the tree from this node and apply fixes that are attached to warning specifications. 
+Scan the tree from this node and apply fixes that are attached to warning specifications.
 See C<warn_if_match> or C<warn_unless_match> in L<Config::Model::Value/>.
 
-=head2 load ( step => string [, experience => ... ] )
+=head2 load ( step => string [ ... ])
 
 Load configuration data from the string into the node and its siblings.
 
 This string follows the syntax defined in L<Config::Model::Loader>.
 See L<Config::Model::Loader/"load ( ... )"> for details on parameters.
-C<experience> is 'master' by default.
 
 This method can also be called with a single parameter:
 
@@ -1858,7 +1746,7 @@ Returns an empty string if no description was found.
 
 =head2 tree_searcher( type => ... )
 
-Returns an object able to search the configuration tree. 
+Returns an object able to search the configuration tree.
 Parameters are :
 
 =over
@@ -1886,8 +1774,8 @@ Dominique Dumont, (ddumont at cpan dot org)
 
 =head1 SEE ALSO
 
-L<Config::Model>, 
-L<Config::Model::Instance>, 
+L<Config::Model>,
+L<Config::Model::Instance>,
 L<Config::Model::HashId>,
 L<Config::Model::ListId>,
 L<Config::Model::CheckList>,

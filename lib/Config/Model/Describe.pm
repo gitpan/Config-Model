@@ -9,7 +9,7 @@
 #
 
 package Config::Model::Describe;
-$Config::Model::Describe::VERSION = '2.055';
+$Config::Model::Describe::VERSION = '2.056';
 use Carp;
 use strict;
 use warnings;
@@ -111,7 +111,6 @@ sub describe {
     };
 
     my @scan_args = (
-        experience => delete $args{experience} || 'master',
         fallback => 'all',
         auto_vivify           => 0,
         list_element_cb       => $list_element_cb,
@@ -165,7 +164,7 @@ Config::Model::Describe - Provide a description of a node element
 
 =head1 VERSION
 
-version 2.055
+version 2.056
 
 =head1 SYNOPSIS
 

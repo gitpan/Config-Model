@@ -8,7 +8,7 @@
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
 package Config::Model::ObjTreeScanner;
-$Config::Model::ObjTreeScanner::VERSION = '2.055';
+$Config::Model::ObjTreeScanner::VERSION = '2.056';
 use strict;
 use Config::Model::Exception;
 use Scalar::Util qw/blessed/;
@@ -22,7 +22,7 @@ sub new {
     my $type = shift;
     my %args = @_;
 
-    my $self = { experience => 'beginner', auto_vivify => 1, check => 'yes' };
+    my $self = { auto_vivify => 1, check => 'yes' };
     bless $self, $type;
 
     $self->{leaf_cb} = delete $args{leaf_cb}
@@ -30,11 +30,6 @@ sub new {
 
     # we may use leaf_cb
     $self->create_fallback( delete $args{fallback} || 'all' );
-
-    if ( defined $args{permission} ) {
-        $args{experience} = delete $args{permission};
-        carp "ObjTreeScanner new: permission is deprecated in favor of experience";
-    }
 
     # get all call_backs
     my @value_cb =
@@ -44,7 +39,7 @@ sub new {
         qw/check node_element_cb hash_element_cb
         list_element_cb check_list_element_cb node_content_cb
         node_content_hook list_element_hook hash_element_hook
-        experience auto_vivify up_cb/, @value_cb
+        auto_vivify up_cb/, @value_cb
         ) {
         $self->{$param} = $args{$param} if defined $args{$param};
         delete $args{$param};    # may exists but be undefined
@@ -144,9 +139,7 @@ sub scan_node {
 
     my $actual_cb = $node_dispatch_cb || $self->{node_content_cb};
 
-    my @element_list = $node->get_element_name(
-        for   => $self->{experience},
-        check => $self->{check} );
+    my @element_list = $node->get_element_name( check => $self->{check} );
 
     $self->{node_content_hook}->( $self, $data_r, $node, @element_list );
 
@@ -272,22 +265,6 @@ sub get_keys {
 
 }
 
-sub experience {
-    my ( $self, $new_perm ) = @_;
-    $self->{experience} = $new_perm if defined $new_perm;
-    return $self->{experience};
-}
-
-sub get_experience_ref {
-    my $self = shift;
-    return \$self->{experience};
-}
-
-sub get_permission_ref {
-    carp "get_permission_ref: deprecated";
-    goto &get_experience_ref;
-}
-
 1;
 
 # ABSTRACT: Scan config tree and perform call-backs for each element or node
@@ -304,7 +281,7 @@ Config::Model::ObjTreeScanner - Scan config tree and perform call-backs for each
 
 =head1 VERSION
 
-version 2.055
+version 2.056
 
 =head1 SYNOPSIS
 
@@ -353,7 +330,7 @@ version 2.055
 	"' value '".$leaf_object->fetch."'\n";
     } ;
 
- # simple scanner, (print all values with 'beginner' experience
+ # simple scanner, (print all values)
  my $scan = Config::Model::ObjTreeScanner-> new (
    leaf_cb => $disp_leaf, # only mandatory parameter
  ) ;
@@ -469,10 +446,6 @@ user.
 
 If set to 'all', equivalent to 'node' and 'leaf'. By default, no
 fallback is provided.
-
-=item experience
-
-Set the privilege level used for the scan (default 'beginner').
 
 =item auto_vivify
 
@@ -705,14 +678,6 @@ Returns an list containing the sorted keys of a hash element or returns
 an list containing (0.. last_index) of an list element.
 
 Throws an exception if element is not an list or a hash element.
-
-=head2 experience ( [ new_experience ] )
-
-Set or query the experience level of the scanner
-
-=head2 get_experience_ref ( )
-
-Get a SCALAR reference on experience. Use with care.
 
 =head1 AUTHOR
 

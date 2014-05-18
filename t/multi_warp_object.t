@@ -1,9 +1,9 @@
 # -*- cperl -*-
 
-use warnings FATAL => qw(all);
+use warnings;
 
 use ExtUtils::testlib;
-use Test::More tests => 21;
+use Test::More;
 use Test::Memory::Cycle;
 use Config::Model;
 
@@ -40,7 +40,6 @@ $model->create_config_class(
 
 $model->create_config_class(
     name       => 'Master',
-    experience => [ bar => 'advanced' ],
 
     #level => [bar => 'hidden'],
     'element' => [
@@ -61,7 +60,7 @@ $model->create_config_class(
             'warp'     => {
                 follow  => { m1 => '! macro1', m2 => '- macro2' },
                 'rules' => [
-                    '$m1 eq "A" and $m2 eq "D"' => { level => 'normal', experience => 'beginner' },
+                    '$m1 eq "A" and $m2 eq "D"' => { level => 'normal' },
                     '$m1 and $m2' => { level => 'normal', },
 
                     #		     '$m1 eq "A" and $m2 eq "C"' => { level => 'normal',  },
@@ -92,14 +91,14 @@ ok( $root, "Created Root" );
 
 is( $root->is_element_available( name => 'bar' ),
     0, 'check element bar for beginner user (not available because macro* are undef)' );
-is( $root->is_element_available( name => 'bar', experience => 'advanced' ),
+is( $root->is_element_available( name => 'bar' ),
     0, 'check element bar for advanced user (not available because macro* are undef)' );
 
 ok( $root->load('macro1=A'), 'set macro1 to A' );
 
 is( $root->is_element_available( name => 'bar' ),
     0, 'check element bar for beginner user (not available because macro2 is undef)' );
-is( $root->is_element_available( name => 'bar', experience => 'advanced' ),
+is( $root->is_element_available( name => 'bar' ),
     0, 'check element bar for advanced user (not available because macro2 is undef)' );
 
 eval { $root->load('bar:1 X=Av') };
@@ -109,31 +108,24 @@ print "normal error:\n", $@, "\n" if $trace;
 ok( $root->load('macro2=C'), 'set macro2 to C' );
 
 is( $root->is_element_available( name => 'bar' ),
-    0, 'check element bar for beginner user (not available)' );
+    1, 'check element bar' );
 
-is( $root->is_element_available( name => 'bar', experience => 'advanced' ),
-    1, 'check element bar for advanced user (now available)' );
-
-$root->load( step => 'bar:1 X=Av', experience => 'master' );
+$root->load( step => 'bar:1 X=Av' );
 
 is( $root->grab('bar:1')->config_class_name, 'SlaveY', 'check bar:1 config class name' );
-
-is( $root->get_element_property( element => 'bar', property => 'experience' ),
-    'advanced', 'check bar experience' );
 
 ok( $root->load('macro2=D'), 'set macro2 to D' );
 
 is( $root->grab('bar:1')->config_class_name, 'SlaveY',
     'check bar:1 config class name (is SlaveY)' );
 
-is( $root->get_element_property( element => 'bar', property => 'experience' ),
-    'beginner', 'check bar experience' );
-
 ok( $root->load('macro1=B'), 'set macro1 to B' );
 
 is( $root->grab('bar:1')->config_class_name,
     'SlaveZ', 'check bar:1 config class name (is now SlaveZ)' );
 
-is( $root->is_element_available( name => 'bar', experience => 'advanced' ),
-    1, 'check element bar experience (back to advanced )' );
+is( $root->is_element_available( name => 'bar' ),
+    1, 'check element bar' );
 memory_cycle_ok($model);
+
+done_testing;
