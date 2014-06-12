@@ -8,7 +8,7 @@
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
 package Config::Model::AnyThing;
-$Config::Model::AnyThing::VERSION = '2.056';
+$Config::Model::AnyThing::VERSION = '2.057';
 use Mouse;
 
 # FIXME: must cleanup warp mechanism to implement this
@@ -64,7 +64,8 @@ sub _root {
     return $self->parent || $self;
 }
 
-has location => ( is => 'ro', isa => 'Str', builder => '_location', lazy => 1 );
+has location       => ( is => 'ro', isa => 'Str', builder => '_location', lazy => 1 );
+has location_short => ( is => 'ro', isa => 'Str', builder => '_location_short', lazy => 1 );
 
 sub notify_change {
     my $self = shift;
@@ -90,12 +91,24 @@ sub _location {
     my $self = shift;
 
     my $str = '';
-    $str .= $self->parent->location
-        if defined $self->parent;
+    $str .= $self->parent->location if defined $self->parent;
 
     $str .= ' ' if $str;
 
     $str .= $self->composite_name;
+
+    return $str;
+}
+
+sub _location_short {
+    my $self = shift;
+
+    my $str = '';
+    $str .= $self->parent->location_short if defined $self->parent;
+
+    $str .= ' ' if $str;
+
+    $str .= $self->composite_name_short;
 
     return $str;
 }
@@ -109,10 +122,36 @@ sub composite_name {
     $element = '' unless defined $element;
 
     my $idx = $self->index_value;
-    $idx = '"' . $idx . '"' if defined $idx && $idx =~ /\W/;
+    return $element unless defined $idx;
+    $idx = '"' . $idx . '"' if $idx =~ /\W/;
 
-    return $element . ( defined $idx ? ':' . $idx : '' );
+    return "$element:$idx";
 }
+
+sub composite_name_short {
+    my $self = shift;
+
+    my $element = $self->element_name;
+    $element = '' unless defined $element;
+
+
+    my $idx = $self->shorten_idx($self->index_value);
+    return $element unless length $idx;
+    $idx = '"' . $idx . '"' if $idx =~ /\W/;
+    return "$element:$idx";
+}
+
+sub shorten_idx {
+    my $self = shift;
+    my $long_index = shift ;
+
+    my @idx = split /\n/, $long_index // '' ;
+    my $idx = shift @idx;
+    $idx .= '[truncated...]' if @idx;
+
+    return $idx ;
+}
+
 
 ## Fixme: not yet tested
 sub xpath {
@@ -588,7 +627,7 @@ Config::Model::AnyThing - Base class for configuration tree item
 
 =head1 VERSION
 
-version 2.056
+version 2.057
 
 =head1 SYNOPSIS
 

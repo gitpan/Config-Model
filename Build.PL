@@ -72,7 +72,6 @@ my $build = $class->new(
   'build_requires' => {
     'Config::Model::Tester' => '2.046',
     'Module::Build' => '0.34',
-    'Path::Tiny' => '0',
     'Probe::Perl' => '0',
     'Term::ReadLine::Gnu' => '0',
     'Term::ReadLine::Perl' => '0',

@@ -8,7 +8,7 @@
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
 package Config::Model::BackendMgr;
-$Config::Model::BackendMgr::VERSION = '2.056';
+$Config::Model::BackendMgr::VERSION = '2.057';
 use Mouse;
 
 use Carp;
@@ -768,7 +768,7 @@ Config::Model::BackendMgr - Load configuration node on demand
 
 =head1 VERSION
 
-version 2.056
+version 2.057
 
 =head1 SYNOPSIS
 
@@ -1268,7 +1268,7 @@ You can force to use all backend to write the files by specifying
 C<< backend => 'all' >>.
 
 You can force a specific config file to write with
-C<<config_file => 'foo/bar.conf' >>
+C<< config_file => 'foo/bar.conf' >>
 
 C<write_back> will croak if no write call-back are known for this node.
 

@@ -8,7 +8,7 @@
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
 package Config::Model::ObjTreeScanner;
-$Config::Model::ObjTreeScanner::VERSION = '2.056';
+$Config::Model::ObjTreeScanner::VERSION = '2.057';
 use strict;
 use Config::Model::Exception;
 use Scalar::Util qw/blessed/;
@@ -45,6 +45,10 @@ sub new {
         delete $args{$param};    # may exists but be undefined
         croak __PACKAGE__, "->new: missing $param parameter"
             unless defined $self->{$param};
+    }
+
+    if (delete $args{experience}) {
+        carp "->new: experience parameter is deprecated";
     }
 
     # this parameter is optional and does not need a fallback
@@ -281,7 +285,7 @@ Config::Model::ObjTreeScanner - Scan config tree and perform call-backs for each
 
 =head1 VERSION
 
-version 2.056
+version 2.057
 
 =head1 SYNOPSIS
 

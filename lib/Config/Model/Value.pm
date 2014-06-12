@@ -8,7 +8,7 @@
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
 package Config::Model::Value;
-$Config::Model::Value::VERSION = '2.056';
+$Config::Model::Value::VERSION = '2.057';
 use 5.10.1;
 
 use Mouse;
@@ -26,6 +26,8 @@ use Log::Log4perl qw(get_logger :levels);
 use Scalar::Util qw/weaken/;
 use Carp;
 use Storable qw/dclone/;
+use Path::Tiny;
+use List::MoreUtils qw(any) ;
 
 extends qw/Config::Model::AnyThing/;
 
@@ -35,7 +37,7 @@ my $fix_logger    = get_logger("Anything::Fix");
 
 our $nowarning = 0;    # global variable to silence warnings. Only used for tests
 
-enum ValueType => qw/boolean enum uniline string integer number reference/;
+enum ValueType => qw/boolean enum uniline string integer number reference file dir/;
 
 has fixes => ( is => 'rw', isa => 'ArrayRef', default => sub { [] } );
 
@@ -264,12 +266,10 @@ sub perform_compute {
 
     my $result = $self->compute_obj->compute;
 
-    #print "compute: result $result\n" ;
     # check if the computed result fits with the constraints of the
     # Value object
     my $ok = $self->check_fetched_value($result);
 
-    #print "check result: $ok\n";
     if ( not $ok ) {
         my $error = $self->error_msg . "\n\t" . $self->compute_info;
 
@@ -579,10 +579,7 @@ sub set_value_type {
         my $choice = delete $arg_ref->{choice};
         $self->setup_enum_choice($choice) if defined $choice;
     }
-    elsif ($value_type eq 'string'
-        or $value_type eq 'integer'
-        or $value_type eq 'number'
-        or $value_type eq 'uniline' ) {
+    elsif (any {$value_type eq $_} qw/string integer number uniline file dir/ ) {
         Config::Model::Exception::Model->throw(
             object => $self,
             error  => "'choice' parameter forbidden with type " . $value_type
@@ -809,16 +806,17 @@ sub check_value {
 
     my @error;
     my @warn;
+    my $vt = $self->value_type ;
 
     if ( not defined $value ) {
 
         # accept with no other check
     }
-    elsif ( not defined $self->{value_type} ) {
+    elsif ( not defined $vt ) {
         push @error, "Undefined value_type";
     }
-    elsif (( $self->{value_type} =~ /integer/ and $value =~ /^-?\d+$/ )
-        or ( $self->{value_type} =~ /number/ and $value =~ /^-?\d+(\.\d+)?$/ ) ) {
+    elsif (( $vt =~ /integer/ and $value =~ /^-?\d+$/ )
+        or ( $vt =~ /number/ and $value =~ /^-?\d+(\.\d+)?$/ ) ) {
 
         # correct number or integer. check min max
         push @error, "value $value > max limit $self->{max}"
@@ -826,10 +824,22 @@ sub check_value {
         push @error, "value $value < min limit $self->{min}"
             if defined $self->{min} and $value < $self->{min};
     }
-    elsif ( $self->{value_type} =~ /integer/ and $value =~ /^-?\d+(\.\d+)?$/ ) {
-        push @error, "Type $self->{value_type}: value $value is a number " . "but not an integer";
+    elsif ( $vt =~ /integer/ and $value =~ /^-?\d+(\.\d+)?$/ ) {
+        push @error, "Type $vt: value $value is a number " . "but not an integer";
     }
-    elsif ( $self->{value_type} eq 'reference' ) {
+    elsif ( $vt eq 'file' or $vt eq 'dir' ) {
+        if (defined $value) {
+            my $path = path($value);
+            if ($path->exists) {
+                my $check = 'is_'.$vt ;
+                push @warn, "$value is not a $vt" if not path($value)->$check;
+            }
+            else {
+                push @warn, "$vt $value does not exists" ;
+            }
+        }
+    }
+    elsif ( $vt eq 'reference' ) {
 
         # just in case the reference_object has been changed
         if ( defined $self->{refer_to} or defined $self->{computed_refer_to} ) {
@@ -842,26 +852,26 @@ sub check_value {
             push @error, ( $quiet ? 'reference error' : $self->enum_error($value) );
         }
     }
-    elsif ( $self->{value_type} eq 'enum' ) {
+    elsif ( $vt eq 'enum' ) {
         if (    length($value)
             and defined $self->{choice_hash}
             and not defined $self->{choice_hash}{$value} ) {
             push @error, ( $quiet ? 'enum error' : $self->enum_error($value) );
         }
     }
-    elsif ( $self->{value_type} eq 'boolean' ) {
+    elsif ( $vt eq 'boolean' ) {
         push @error, "boolean error: '$value' is not '1' or '0'"
             unless $value =~ /^[01]$/;
     }
-    elsif ($self->{value_type} =~ /integer/
-        or $self->{value_type} =~ /number/ ) {
-        push @error, "Value '$value' is not of type " . $self->{value_type};
+    elsif ($vt =~ /integer/
+        or $vt =~ /number/ ) {
+        push @error, "Value '$value' is not of type " . $vt;
     }
-    elsif ( $self->{value_type} eq 'uniline' ) {
+    elsif ( $vt eq 'uniline' ) {
         push @error, '"uniline" value must not contain embedded newlines (\n)'
             if $value =~ /\n/;
     }
-    elsif ( $self->{value_type} eq 'string' ) {
+    elsif ( $vt eq 'string' ) {
 
         # accepted, no more check
     }
@@ -871,7 +881,7 @@ sub check_value {
             if defined $self->{choice};
 
         my $msg =
-            "Cannot check value_type '" . $self->{value_type} . "' (value '$value'$choice_msg)";
+            "Cannot check value_type '$vt' (value '$value'$choice_msg)";
         Config::Model::Exception::Model->throw( object => $self, message => $msg );
     }
 
@@ -1023,10 +1033,10 @@ sub apply_fixes {
     my $i = 0;
     do {
         $old = $self->{nb_of_fixes};
-        $self->check_value( value => $self->{data}, fix => 1 );
+        $self->check_value( value => $self->_fetch_no_check, fix => 1 );
 
         $new = $self->{nb_of_fixes};
-        $self->check_value( value => $self->{data} );
+        $self->check_value( value => $self->_fetch_no_check );
         # if fix fails, try and check_fix call each other until this limit is found
         if ( $i++ > 20 ) {
             Config::Model::Exception::Model->throw(
@@ -1131,7 +1141,7 @@ sub check_fetched_value {
             $warn_h{$w} = 1;
             next if $old_warn->{$w};
             my $str = defined $value ? "'$value'" : '<undef>';
-            warn "Warning in '" . $self->location . "' value $str: $w\n";
+            warn "Warning in '" . $self->location_short . "' value $str: $w\n";
         }
     }
     $self->{old_warning_hash} = \%warn_h;
@@ -1372,7 +1382,7 @@ sub check_stored_value {
             $warn_h{$w} = 1;
             next if $old_warn->{$w};
             my $str = defined $value ? "'$value'" : '<undef>';
-            warn "Warning in '" . $self->location . "' value $str: $w\n";
+            warn "Warning in '" . $self->location_short . "' value $str: $w\n";
         }
     }
     $self->{old_warning_hash} = \%warn_h;
@@ -1776,50 +1786,50 @@ Config::Model::Value - Strongly typed configuration value
 
 =head1 VERSION
 
-version 2.056
+version 2.057
 
 =head1 SYNOPSIS
 
-use Config::Model;
-use Log::Log4perl qw(:easy);
-Log::Log4perl->easy_init($WARN);
+ use Config::Model;
+ use Log::Log4perl qw(:easy);
+ Log::Log4perl->easy_init($WARN);
 
-# define configuration tree object
-my $model = Config::Model->new;
-$model ->create_config_class (
-name => "MyClass",
+ # define configuration tree object
+ my $model = Config::Model->new;
+ $model ->create_config_class (
+    name => "MyClass",
 
-element => [
+    element => [
 
-[qw/foo bar/] => {
-type	   => 'leaf',
-value_type => 'string',
-description => 'foobar',
-}
-,
-country => {
-type =>		  'leaf',
-value_type => 'enum',
-choice =>	   [qw/France US/],
-description => 'big countries',
-}
-,
-],
-) ;
+        [qw/foo bar/] => {
+            type	   => 'leaf',
+            value_type => 'string',
+            description => 'foobar',
+        }
+        ,
+        country => {
+            type =>		  'leaf',
+            value_type => 'enum',
+            choice =>	   [qw/France US/],
+            description => 'big countries',
+        }
+    ,
+    ],
+ ) ;
 
-my $inst = $model->instance(root_class_name => 'MyClass' );
+ my $inst = $model->instance(root_class_name => 'MyClass' );
 
-my $root = $inst->config_root ;
+ my $root = $inst->config_root ;
 
-# put data
-$root->load( step => 'foo=FOO country=US' );
+ # put data
+ $root->load( step => 'foo=FOO country=US' );
 
-print $root->report ;
-#  foo = FOO
-#		  DESCRIPTION: foobar
-#
-#  country = US
-#		  DESCRIPTION: big countries
+ print $root->report ;
+ #  foo = FOO
+ #		  DESCRIPTION: foobar
+ #
+ #  country = US
+ #		  DESCRIPTION: big countries
 
 =head1 DESCRIPTION
 
@@ -1929,7 +1939,7 @@ A leaf element must be declared with the following parameters:
 =item value_type
 
 Either C<boolean>, C<enum>, C<integer>, C<number>,
-C<uniline>, C<string>. Mandatory. See L</"Value types">.
+C<uniline>, C<string>, C<file>, C<dir>. Mandatory. See L</"Value types">.
 
 =item default
 
@@ -2137,6 +2147,16 @@ Actually, no check is performed with this type.
 Like an C<enum> where the possible values (aka choice) is defined by
 another location if the configuration tree. See L</Value Reference>.
 
+=item C<file>
+
+A file name or path. A warning will be issued if the file does not
+exists (or is a directory)
+
+=item C<dir>
+
+A directory name or path. A warning will be issued if the directory
+does not exists (or is a plain file)
+
 =back
 
 =head1 Warp: dynamic value configuration
@@ -2149,32 +2169,30 @@ explanation on warp mechanism).
 
 For instance if you declare 2 C<Value> element this way:
 
-$model ->create_config_class (
-name => "TV_config_class",
-element => [
-country => {
-type => 'leaf',
-value_type => 'enum',
-choice => [qw/US Europe Japan/]
-}
-,
-tv_standard => {
-type => 'leaf',
-value_type => 'enum',
-choice => [qw/PAL NTSC SECAM/]
-warp => {
-follow => { c => '- country' }, # this points to the warp master
-rules => {
-'$c eq "US"'	 => { default => 'NTSC'	 },
-'$c eq "France"' => { default => 'SECAM' },
-'$c eq "Japan"'	 => { default => 'NTSC'	 },
-'$c eq "Europe"' => { default => 'PAL'	 },
-}
-}
-}
-,
-]
-);
+ $model ->create_config_class (
+     name => "TV_config_class",
+     element => [
+         country => {
+             type => 'leaf',
+             value_type => 'enum',
+             choice => [qw/US Europe Japan/]
+         } ,
+         tv_standard => {
+             type => 'leaf',
+             value_type => 'enum',
+             choice => [qw/PAL NTSC SECAM/]
+             warp => {
+                 follow => { c => '- country' }, # this points to the warp master
+                 rules => {
+                     '$c eq "US"'	 => { default => 'NTSC'	 },
+                     '$c eq "France"' => { default => 'SECAM' },
+                     '$c eq "Japan"'	 => { default => 'NTSC'	 },
+                     '$c eq "Europe"' => { default => 'PAL'	 },
+                 }
+             }
+         } ,
+     ]
+ );
 
 Setting C<country> element to C<US> will mean that C<tv_standard> has
 a default value set to C<NTSC> by the warp mechanism.
@@ -2182,18 +2200,18 @@ a default value set to C<NTSC> by the warp mechanism.
 Likewise, the warp mechanism enables you to dynamically change the
 possible values of an enum element:
 
-state => {
-type => 'leaf',
-value_type => 'enum',			# example is admittedly silly
-warp =>{
-follow => { c => '- country' },
-rules => {
-'$c eq "US"'	 => { choice => ['Kansas', 'Texas'	  ]},
-'$c eq "Europe"' => { choice => ['France', 'Spain'	  ]},
-'$c eq "Japan"'	 => { choice => ['Honshu', 'Hokkaido' ]}
-}
-}
-}
+ state => {
+     type => 'leaf',
+     value_type => 'enum',			# example is admittedly silly
+     warp =>{
+         follow => { c => '- country' },
+         rules => {
+             '$c eq "US"'	 => { choice => ['Kansas', 'Texas'	  ]},
+             '$c eq "Europe"' => { choice => ['France', 'Spain'	  ]},
+             '$c eq "Japan"'	 => { choice => ['Honshu', 'Hokkaido' ]}
+         }
+     }
+ }
 
 =head2 Cascaded warping
 

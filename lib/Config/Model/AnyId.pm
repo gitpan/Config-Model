@@ -8,7 +8,7 @@
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
 package Config::Model::AnyId;
-$Config::Model::AnyId::VERSION = '2.056';
+$Config::Model::AnyId::VERSION = '2.057';
 use Mouse;
 
 use Config::Model::Exception;
@@ -394,7 +394,7 @@ sub check_content {
         push @error, "Too many instances ($nb) limit $self->{max_nb}, "
             if defined $self->{max_nb} and $nb > $self->{max_nb};
 
-        map { warn( "Warning in '" . $self->location . "': $_\n" ) } @warn
+        map { warn( "Warning in '" . $self->location_short . "': $_\n" ) } @warn
             unless $silent;
 
         $self->{content_warning_list} = \@warn;
@@ -465,7 +465,7 @@ sub check_idx {
 
     if (@warn) {
         $self->{warning_hash}{$idx} = \@warn;
-        map { warn( "Warning in '" . $self->location . "': $_\n" ) } @warn unless $silent;
+        map { warn( "Warning in '" . $self->location_short . "': $_\n" ) } @warn unless $silent;
     }
     else {
         delete $self->{warning_hash}{$idx};
@@ -482,7 +482,7 @@ sub check_follow_keys_from {
     return if $followed->exists($idx);
 
     push @$error,
-          "key '$idx' does not exists in '"
+          "key '" . $self->shorten_idx($idx) . "' does not exists in '"
         . $followed->name
         . "'. Expected '"
         . join( "', '", $followed->fetch_all_indexes ) . "'";
@@ -495,7 +495,7 @@ sub check_allow_keys {
     my $ok = grep { $_ eq $idx } @{ $self->{allow_keys} };
 
     push @$error,
-        "Unexpected key '$idx'. Expected '" . join( "', '", @{ $self->{allow_keys} } ) . "'"
+        "Unexpected key '" . $self->shorten_idx($idx) . "'. Expected '" . join( "', '", @{ $self->{allow_keys} } ) . "'"
         unless $ok;
 }
 
@@ -504,7 +504,7 @@ sub check_allow_keys_matching {
     my ( $self, $idx, $error ) = @_;
     my $match = $self->{allow_keys_matching};
 
-    push @$error, "Unexpected key '$idx'. Key must match $match"
+    push @$error, "Unexpected key '" . $self->shorten_idx($idx) . "'. Key must match $match"
         unless $idx =~ /$match/;
 }
 
@@ -518,7 +518,7 @@ sub check_allow_keys_from {
     return if $ok;
 
     push @$error,
-          "key '$idx' does not exists in '"
+          "key '" . $self->shorten_idx($idx) . "' does not exists in '"
         . $from->name
         . "'. Expected '"
         . join( "', '", $from->fetch_all_indexes ) . "'";
@@ -529,14 +529,14 @@ sub check_warn_if_key_match {
     my ( $self, $idx, $error, $warn ) = @_;
     my $re = $self->{warn_if_key_match};
 
-    push @$warn, "key '$idx' should not match $re\n" if $idx =~ /$re/;
+    push @$warn, "key '" . $self->shorten_idx($idx) . "' should not match $re\n" if $idx =~ /$re/;
 }
 
 sub check_warn_unless_key_match {
     my ( $self, $idx, $error, $warn ) = @_;
     my $re = $self->{warn_unless_key_match};
 
-    push @$warn, "key '$idx' should match $re\n" unless $idx =~ /$re/;
+    push @$warn, "key '" . $self->shorten_idx($idx) . "' should match $re\n" unless $idx =~ /$re/;
 }
 
 sub check_duplicates {
@@ -919,7 +919,7 @@ Config::Model::AnyId - Base class for hash or list element
 
 =head1 VERSION
 
-version 2.056
+version 2.057
 
 =head1 SYNOPSIS
 
