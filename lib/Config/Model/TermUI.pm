@@ -8,7 +8,7 @@
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
 package Config::Model::TermUI;
-$Config::Model::TermUI::VERSION = '2.057';
+$Config::Model::TermUI::VERSION = '2.058';
 use Carp;
 use strict;
 use warnings;
@@ -226,7 +226,7 @@ Config::Model::TermUI - Provides Config::Model UI with Term::ReadLine
 
 =head1 VERSION
 
-version 2.057
+version 2.058
 
 =head1 SYNOPSIS
 

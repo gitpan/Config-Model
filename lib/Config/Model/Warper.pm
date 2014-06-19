@@ -8,7 +8,7 @@
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
 package Config::Model::Warper;
-$Config::Model::Warper::VERSION = '2.057';
+$Config::Model::Warper::VERSION = '2.058';
 use Mouse;
 
 use Log::Log4perl qw(get_logger :levels);
@@ -607,7 +607,7 @@ Config::Model::Warper - Warp tree properties
 
 =head1 VERSION
 
-version 2.057
+version 2.058
 
 =head1 SYNOPSIS
 

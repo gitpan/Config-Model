@@ -8,7 +8,7 @@
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
 package Config::Model::Report;
-$Config::Model::Report::VERSION = '2.057';
+$Config::Model::Report::VERSION = '2.058';
 use Carp;
 use strict;
 use warnings;
@@ -90,7 +90,7 @@ Config::Model::Report - Reports data from config tree
 
 =head1 VERSION
 
-version 2.057
+version 2.058
 
 =head1 SYNOPSIS
 

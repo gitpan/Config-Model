@@ -8,7 +8,7 @@
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
 package Config::Model::SearchElement;
-$Config::Model::SearchElement::VERSION = '2.057';
+$Config::Model::SearchElement::VERSION = '2.058';
 use Log::Log4perl qw(get_logger :levels);
 use Carp;
 use strict;
@@ -333,7 +333,7 @@ Config::Model::SearchElement - Search an element in a configuration model
 
 =head1 VERSION
 
-version 2.057
+version 2.058
 
 =head1 SYNOPSIS
 

@@ -8,7 +8,7 @@
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
 package Config::Model::AnyThing;
-$Config::Model::AnyThing::VERSION = '2.057';
+$Config::Model::AnyThing::VERSION = '2.058';
 use Mouse;
 
 # FIXME: must cleanup warp mechanism to implement this
@@ -149,7 +149,7 @@ sub shorten_idx {
     my $idx = shift @idx;
     $idx .= '[truncated...]' if @idx;
 
-    return $idx ;
+    return $idx // ''; # may be undef on freebsd with perl 5.10.1 ...
 }
 
 
@@ -627,7 +627,7 @@ Config::Model::AnyThing - Base class for configuration tree item
 
 =head1 VERSION
 
-version 2.057
+version 2.058
 
 =head1 SYNOPSIS
 

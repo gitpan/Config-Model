@@ -8,7 +8,7 @@
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
 package Config::Model::Value;
-$Config::Model::Value::VERSION = '2.057';
+$Config::Model::Value::VERSION = '2.058';
 use 5.10.1;
 
 use Mouse;
@@ -322,8 +322,8 @@ sub set_migrate_from {
 sub migrate_value {
     my $self = shift;
 
-    return if $self->{migration_done};
-    return if $self->instance->initial_load;
+    return undef if $self->{migration_done};
+    return undef if $self->instance->initial_load;
     $self->{migration_done} = 1;
 
     # avoid warning when reading deprecated values
@@ -619,21 +619,6 @@ sub unregister {
     my @new = grep { $_->[1] ne $w_name; } @{ $self->{warp_these_objects} };
 
     $self->{warp_these_objects} = \@new;
-}
-
-sub check_warp_keys {
-    my ( $self, @warp_keys ) = @_;
-
-    # check the warping rules keys (which must be valid values for
-    # this object) (cannot check rules if we are also warped by
-    # another object ...
-    return 1 if defined $self->{warp};
-
-    my $ok = 1;
-
-    map { $ok = 0 unless $self->check_value($_); } @warp_keys;
-
-    return $ok;
 }
 
 # And I'm going to warp them ...
@@ -1786,7 +1771,7 @@ Config::Model::Value - Strongly typed configuration value
 
 =head1 VERSION
 
-version 2.057
+version 2.058
 
 =head1 SYNOPSIS
 
