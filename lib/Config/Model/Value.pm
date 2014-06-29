@@ -8,7 +8,7 @@
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
 package Config::Model::Value;
-$Config::Model::Value::VERSION = '2.058';
+$Config::Model::Value::VERSION = '2.059';
 use 5.10.1;
 
 use Mouse;
@@ -60,7 +60,7 @@ has value_type => ( is => 'rw', isa => 'ValueType' );
 my @common_int_params = qw/min max mandatory /;
 has \@common_int_params => ( is => 'ro', isa => 'Maybe[Int]' );
 
-my @common_hash_params = qw/replace assert warn_if_match warn_unless_match warn_unless help/;
+my @common_hash_params = qw/replace assert warn_if_match warn_unless_match warn_if warn_unless help/;
 has \@common_hash_params => ( is => 'ro', isa => 'Maybe[HashRef]' );
 
 my @common_list_params = qw/choice/;
@@ -510,7 +510,7 @@ sub set_properties {
     }
 
     map { $self->{$_} = delete $args{$_} if defined $args{$_} }
-        qw/min max mandatory replace warn replace_follow assert warn_unless
+        qw/min max mandatory replace warn replace_follow assert warn_if warn_unless
         write_as/;
 
     $self->set_help( \%args );
@@ -904,10 +904,11 @@ sub check_value {
             $self->{assert} )
             if $self->{assert};
         $self->run_code_set_on_value( \$value, $apply_fix, \@warn,
-            "warn_unless code check returned false",
-            $self->{warn_unless} )
+            "warn_unless code check returned false", $self->{warn_unless} )
             if $self->{warn_unless};
-
+        $self->run_code_set_on_value( \$value, $apply_fix, \@warn,
+            "warn_if code check returned true", $self->{warn_if}, 1 )
+            if $self->{warn_if};
     }
 
     # unconditional warn
@@ -964,7 +965,7 @@ sub run_code_on_value {
 }
 
 sub run_code_set_on_value {
-    my ( $self, $value_r, $apply_fix, $array, $msg, $w_info ) = @_;
+    my ( $self, $value_r, $apply_fix, $array, $msg, $w_info, $invert ) = @_;
 
     foreach my $label ( keys %$w_info ) {
         my $code = $w_info->{$label}{code};
@@ -974,6 +975,7 @@ sub run_code_set_on_value {
 
         my $sub = sub {
             local $_ = shift;
+            no warnings "uninitialized";
             my $ret = eval($code);
             if ($@) {
                 Config::Model::Exception::Model->throw(
@@ -981,7 +983,7 @@ sub run_code_set_on_value {
                     message => "Eval of code failed : $@"
                 );
             }
-            return $ret;
+            return $invert ^ $ret;
         };
 
         $self->run_code_on_value( $value_r, $apply_fix, $array, $label, $sub, $msg, $fix );
@@ -1017,7 +1019,7 @@ sub apply_fixes {
     my ( $old, $new );
     my $i = 0;
     do {
-        $old = $self->{nb_of_fixes};
+        $old = $self->{nb_of_fixes} // 0;
         $self->check_value( value => $self->_fetch_no_check, fix => 1 );
 
         $new = $self->{nb_of_fixes};
@@ -1026,7 +1028,7 @@ sub apply_fixes {
         if ( $i++ > 20 ) {
             Config::Model::Exception::Model->throw(
                 object => $self,
-                error  => "Too many fix loops: check with fix code or regexp"
+                error  => "Too many fix loops: check code used to fix value or the check"
             );
         }
     } while ( $self->{nb_of_fixes} and $old > $new );
@@ -1048,7 +1050,7 @@ sub apply_fix {
     if ($@) {
         Config::Model::Exception::Model->throw(
             object  => $self,
-            message => "Eval of fix	 $fix failed : $@"
+            message => "Eval of fix $fix failed : $@"
         );
     }
 
@@ -1066,13 +1068,14 @@ sub _store_fix {
             "fix change: '" . ( $old // '<undef>' ) . "' -> '" . ( $new // '<undef>' ) . "'" );
     }
 
-    $self->notify_change(
+    my %args = (
         old => $old // $self->_fetch_std,
         new => $new // $self->_fetch_std,
         note => 'applied fix'
-    );
-
-    # $self->store(value => $_, check => 'no');	 # will update $self->{fixes}
+    ) ;
+    no warnings "uninitialized";
+    # in case $old is the default value and $new is undef
+    $self->notify_change( %args ) if $args{old} ne $args{new};
 }
 
 # read checks should be blocking
@@ -1771,7 +1774,7 @@ Config::Model::Value - Strongly typed configuration value
 
 =head1 VERSION
 
-version 2.058
+version 2.059
 
 =head1 SYNOPSIS
 
@@ -2009,17 +2012,36 @@ C<uniline> values.
 
 String. Issue a warning to user with the specified string any time a value is set or read.
 
-=item warn_unless
+=item warn_if
 
 A bit like C<warn_if_match>. The hash key is not a regexp but a label to
 help users. The hash ref contains some Perl code that is evaluated to
-perform the test. A warning will be issued if the code returns false.
+perform the test. A warning will be issued if the code returns true.
 
 C<$_> will contains the value to check. C<$self> will contain the C<Config::Model::Value> object.
 
-The example below will warn if a directory is missing:
+The example below will warn if value contaims a number:
 
-warn_unless => { 'dir' => { code => '-d' , msg => 'missing dir', fix => "system(mkdir $_);" }}
+ warn_if => {
+                warn_test => {
+                    code => 'defined $_ && /\d/;',
+                    msg  => 'should not have numbers',
+                    fix  => 's/\d//g;'
+                }
+            },
+
+=item warn_unless
+
+Like C<warn_if>, but issue a warning when the C<code> returns false.
+
+The example below will warn unless the value points to an existing directory:
+
+ warn_unless => {
+     'dir' => {
+          code => '-d',
+          msg => 'missing dir',
+          fix => "system(mkdir $_);" }
+ }
 
 =item assert
 
@@ -2517,81 +2539,73 @@ Set a value from a directory like path.
 =head2 Number with min and max values
 
 bounded_number => {
-type	   => 'leaf',
-value_type => 'number',
-min		   => 1,
-max		   => 4,
-}
-,
+    type       => 'leaf',
+    value_type => 'number',
+    min        => 1,
+    max        => 4,
+    },
 
 =head2 Mandatory value
 
-mandatory_string => {
-type	   => 'leaf',
-value_type => 'string',
-mandatory  => 1,
-}
-,
+ mandatory_string => {
+    type       => 'leaf',
+    value_type => 'string',
+    mandatory  => 1,
+    },
 
-mandatory_boolean => {
-type	   => 'leaf',
-value_type => 'boolean',
-}
-,
+ mandatory_boolean => {
+    type       => 'leaf',
+    value_type => 'boolean',
+    },
 
 =head2 Enum with help associated with each value
 
 Note that the help specification is optional.
 
 enum_with_help => {
-type	   => 'leaf',
-value_type => 'enum',
-choice	   => [qw/a b c/],
-help	   => { a => 'a help' }
-}
-,
+    type       => 'leaf',
+    value_type => 'enum',
+    choice     => [qw/a b c/],
+    help       => { a => 'a help' }
+    },
 
 =head2 Migrate old obsolete enum value
 
 Legacy values C<a1>, C<c1> and C<foo/.*> are replaced with C<a>, C<c> and C<foo/>.
 
-with_replace => {
-type	   => 'leaf',
-value_type => 'enum',
-choice	   => [qw/a b c/],
-replace	   => {
-a1		 => 'a',
-c1		 => 'c',
-'foo/.*' => 'foo',
-}
-,
-}
-,
+ with_replace => {
+    type       => 'leaf',
+    value_type => 'enum',
+    choice     => [qw/a b c/],
+    replace    => {
+        a1       => 'a',
+        c1       => 'c',
+        'foo/.*' => 'foo',
+    },
+    },
 
 =head2 Enforce value to match a regexp
 
 An exception will be triggered if the value does not match the C<match>
 regular expression.
 
-match => {
-type	   => 'leaf',
-value_type => 'string',
-match	   => '^foo\d{2}$',
-}
-,
+ match => {
+    type       => 'leaf',
+    value_type => 'string',
+    match      => '^foo\d{2}$',
+    },
 
 =head2 Enforce value to match a L<Parse::RecDescent> grammar
 
-match_with_parse_recdescent => {
-type	   => 'leaf',
-value_type => 'string',
-grammar	   => q{
-token (oper token)(s?)
-oper: 'and' | 'or'
-token: 'Apache' | 'CC-BY' | 'Perl'
-},
-}
-,
+ match_with_parse_recdescent => {
+    type       => 'leaf',
+    value_type => 'string',
+    grammar    => q{
+        token (oper token)(s?)
+        oper: 'and' | 'or'
+        token: 'Apache' | 'CC-BY' | 'Perl'
+    },
+ },
 
 =head2 Issue a warning if a value matches a regexp
 
@@ -2599,44 +2613,39 @@ Issue a warning if the string contains upper case letters. Propose a fix that
 translate all capital letters to lower case.
 
 warn_if_capital => {
-type		  => 'leaf',
-value_type	  => 'string',
-warn_if_match => { '/A-Z/' => { fix => '$_ = lc;' } },
-}
-,
+    type          => 'leaf',
+    value_type    => 'string',
+    warn_if_match => { '/A-Z/' => { fix => '$_ = lc;' } },
+    },
 
 A specific warning can be specified:
 
 warn_if_capital => {
-type		  => 'leaf',
-value_type	  => 'string',
-warn_if_match => {
-'/A-Z/' => {
-fix => '$_ = lc;' ,
-mesg =>'NO UPPER CASE PLEASE'
-}
-}
-,
-}
-,
+    type          => 'leaf',
+    value_type    => 'string',
+    warn_if_match => {
+        '/A-Z/' => {
+            fix  => '$_ = lc;',
+            mesg => 'NO UPPER CASE PLEASE'
+        }
+    },
+    },
 
 =head2 Issue a warning if a value does NOT match a regexp
 
 warn_unless => {
-type			  => 'leaf',
-value_type		  => 'string',
-warn_unless_match => { foo => { msg => '', fix => '$_ = "foo".$_;' } },
-}
-,
+    type              => 'leaf',
+    value_type        => 'string',
+    warn_unless_match => { foo => { msg => '', fix => '$_ = "foo".$_;' } },
+    },
 
 =head2 Always issue a warning
 
-always_warn => {
-type	   => 'leaf',
-value_type => 'string',
-warn	   => 'Always warn whenever used',
-}
-,
+ always_warn => {
+    type       => 'leaf',
+    value_type => 'string',
+    warn       => 'Always warn whenever used',
+    },
 
 =head2 Computed values
 
@@ -2670,32 +2679,32 @@ parameter)
 Here an example where a URL parameter is changed to a set of 2
 parameters (host and path):
 
-'old_url' => { type => 'leaf',
-value_type => 'uniline',
-status => 'deprecated',
-}
-,
-'host'
-=> { type => 'leaf',
-value_type => 'uniline',
-# the formula must end with '$1' so the result of the capture is used
-# as the host value
-migrate_from => { formula => '$old =~ m!http://([\w\.]+)!; $1 ;' ,
-variables => { old => '- old_url' } ,
-use_eval => 1 ,
-}
-,
-}
-,
-'path' => { type => 'leaf',
-value_type => 'uniline',
-migrate_from => { formula => '$old =~ m!http://[\w\.]+(/.*)!; $1 ;',
-variables => { old => '- old_url' } ,
-use_eval => 1 ,
-}
-,
-}
-,
+ 'old_url' => {
+    type       => 'leaf',
+    value_type => 'uniline',
+    status     => 'deprecated',
+    },
+    'host' => {
+    type       => 'leaf',
+    value_type => 'uniline',
+
+    # the formula must end with '$1' so the result of the capture is used
+    # as the host value
+    migrate_from => {
+        formula   => '$old =~ m!http://([\w\.]+)!; $1 ;',
+        variables => { old => '- old_url' },
+        use_eval  => 1,
+    },
+    },
+    'path' => {
+    type         => 'leaf',
+    value_type   => 'uniline',
+    migrate_from => {
+        formula   => '$old =~ m!http://[\w\.]+(/.*)!; $1 ;',
+        variables => { old => '- old_url' },
+        use_eval  => 1,
+    },
+    },
 
 =head1 EXCEPTION HANDLING
 

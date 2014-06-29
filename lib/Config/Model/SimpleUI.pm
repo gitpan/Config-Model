@@ -8,7 +8,7 @@
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
 package Config::Model::SimpleUI;
-$Config::Model::SimpleUI::VERSION = '2.058';
+$Config::Model::SimpleUI::VERSION = '2.059';
 use Carp;
 use strict;
 use warnings;
@@ -66,9 +66,14 @@ my $ll_sub = sub {
     my $elt  = shift;
 
     my $obj = $self->{current_node};
-
-    my $i = $self->{current_node}->instance;
-    my $res = $obj->describe( element => $elt, check => 'no' );
+    my $res ;
+    if ($elt =~ /\*/) {
+        $elt =~ s/\*/.*/g;
+        $res = $obj->describe( pattern => qr/^$elt$/, check => 'no' );
+    }
+    else {
+        $res = $obj->describe( element => $elt, check => 'no' );
+    }
     return $res;
 };
 
@@ -122,15 +127,18 @@ my %run_dispatch = (
     },
     ls => sub {
         my $self = shift;
+        my $pattern = shift || '*';
+        $pattern =~ s/\*/.*/g;
+
         my $i    = $self->{current_node}->instance;
-        my @res  = $self->{current_node}->get_element_name;
-        return join( '  ', @res );
+        my @res  = grep {/^$pattern$/} $self->{current_node}->get_element_name;
+        return join( ' ', @res );
     },
     dump => sub {
         my $self = shift;
         my $i    = $self->{current_node}->instance;
         my @res  = $self->{current_node}->dump_tree( full_dump => 1 );
-        return join( '  ', @res );
+        return join( ' ', @res );
     },
     delete => sub {
         my $self = shift;
@@ -214,7 +222,7 @@ sub run_loop {
 sub prompt {
     my $self = shift;
     my $ret  = $self->{prompt} . ':';
-    my $loc  = $self->{current_node}->location;
+    my $loc  = $self->{current_node}->composite_name_short;
     $ret .= " $loc " if $loc;
     return $ret . '$ ';
 }
@@ -274,7 +282,7 @@ Config::Model::SimpleUI - Simple interface for Config::Model
 
 =head1 VERSION
 
-version 2.058
+version 2.059
 
 =head1 SYNOPSIS
 
@@ -407,9 +415,13 @@ Delete a list or hash element
 
 Display a value
 
-=item ls
+=item ls | ls foo*
 
-Show elements of current node
+Show elements of current node. Can be used with a shell pattern.
+
+=item ll | ll foo*
+
+Describe elements of current node. Can be used with a shell pattern.
 
 =item help
 

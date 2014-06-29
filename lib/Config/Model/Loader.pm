@@ -8,7 +8,7 @@
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
 package Config::Model::Loader;
-$Config::Model::Loader::VERSION = '2.058';
+$Config::Model::Loader::VERSION = '2.059';
 use Carp;
 use strict;
 use warnings;
@@ -379,6 +379,10 @@ my %dispatch_action = (
         ':.insort'        => sub { $_[1]->insort( @_[ 4 .. $#_ ] ); },
         ':.insert_before' => \&_insert_before,
     },
+    'hash_*' => {
+        ':.sort'          => sub { $_[1]->sort; },
+        ':@'              => sub { $_[1]->sort; },
+    },
     leaf => {
         ':-=' => \&_remove_by_value,
         ':-~' => \&_remove_matched_value,
@@ -493,6 +497,7 @@ sub _load_list {
     if ( defined $action ) {
         my $dispatch =
                $dispatch_action{ 'list_' . $cargo_type }{$action}
+            || $dispatch_action{ 'list_*'}{$action}
             || $dispatch_action{$cargo_type}{$action}
             || $dispatch_action{'fallback'}{$action};
         if ($dispatch) {
@@ -600,6 +605,7 @@ sub _load_hash {
     if ( defined $action ) {
         my $dispatch =
                $dispatch_action{ 'hash_' . $cargo_type }{$action}
+            || $dispatch_action{ 'hash_*'}{$action}
             || $dispatch_action{$cargo_type}{$action}
             || $dispatch_action{'fallback'}{$action};
         if ($dispatch) {
@@ -725,7 +731,7 @@ Config::Model::Loader - Load serialized data into config tree
 
 =head1 VERSION
 
-version 2.058
+version 2.059
 
 =head1 SYNOPSIS
 

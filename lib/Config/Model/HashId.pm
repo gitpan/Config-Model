@@ -8,7 +8,7 @@
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
 package Config::Model::HashId;
-$Config::Model::HashId::VERSION = '2.058';
+$Config::Model::HashId::VERSION = '2.059';
 use Mouse;
 
 use Config::Model::Exception;
@@ -21,7 +21,15 @@ my $logger = get_logger("Tree::Element::Id::Hash");
 extends qw/Config::Model::AnyId/;
 
 has data => ( is => 'rw', isa => 'HashRef',  default => sub { {}; } );
-has list => ( is => 'rw', isa => 'ArrayRef', default => sub { []; } );
+has list => (
+    is => 'rw',
+    isa => 'ArrayRef[Str]',
+    traits     => ['Array'],
+    default => sub { []; },
+    handles => {
+        _sort => 'sort_in_place',
+    }
+);
 
 has [qw/default_keys auto_create_keys/] =>
     ( is => 'rw', isa => 'ArrayRef', default => sub { []; } );
@@ -195,6 +203,20 @@ sub _clear {
     $self->{list} = [];
     $self->{data} = {};
 }
+
+sub sort {
+    my $self = shift;
+    if ($self->ordered) {
+        $self->_sort;
+    }
+    else {
+        Config::Model::Exception::User->throw(
+            object  => $self,
+            message => "cannot call sort on non ordered hash"
+        );
+    }
+}
+
 
 # hash only method
 sub firstkey {
@@ -484,7 +506,7 @@ Config::Model::HashId - Handle hash element for configuration model
 
 =head1 VERSION
 
-version 2.058
+version 2.059
 
 =head1 SYNOPSIS
 
@@ -516,6 +538,10 @@ Returns C<hash>.
 =head2 fetch_size
 
 Returns the number of elements of the hash.
+
+=head2 sort
+
+Sort an ordered hash. Throws an error if called on a non ordered hash.
 
 =head2 firstkey
 

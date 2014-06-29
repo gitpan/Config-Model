@@ -8,7 +8,7 @@
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
 package Config::Model::Backend::PlainFile;
-$Config::Model::Backend::PlainFile::VERSION = '2.058';
+$Config::Model::Backend::PlainFile::VERSION = '2.059';
 use Carp;
 use Mouse;
 use Config::Model::Exception;
@@ -189,7 +189,7 @@ Config::Model::Backend::PlainFile - Read and write config as plain file
 
 =head1 VERSION
 
-version 2.058
+version 2.059
 
 =head1 SYNOPSIS
 
