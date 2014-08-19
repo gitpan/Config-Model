@@ -82,14 +82,14 @@ my $build = $class->new(
     'Test::Memory::Cycle' => '0',
     'Test::More' => '0',
     'Test::Warn' => '0.11',
-    'YAML::Any' => '0.303'
+    'YAML' => '0'
   },
   'configure_requires' => {
     'Module::Build' => '0.34'
   },
   'recommends' => {
     'Fuse' => '0',
-    'YAML::Any' => '0.303'
+    'YAML' => '0'
   },
   'requires' => {
     'Carp' => '0',

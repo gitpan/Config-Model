@@ -8,7 +8,7 @@
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
 package Config::Model::Loader;
-$Config::Model::Loader::VERSION = '2.059';
+$Config::Model::Loader::VERSION = '2.060';
 use Carp;
 use strict;
 use warnings;
@@ -672,15 +672,18 @@ sub _load_leaf {
         $logger->debug("_load_leaf: action '$subaction' value '$msg'");
     }
 
-    return $self->_load_value( $element, $check, $subaction, $value, $inst )
-        or Config::Model::Exception::Load->throw(
+    my $res = $self->_load_value( $element, $check, $subaction, $value, $inst );
+
+    return $res if $res ;
+
+    Config::Model::Exception::Load->throw(
         object  => $element,
         command => $inst,
         error   => "Load error on leaf with "
             . "'$element_name$subaction$value' command "
             . "(element '"
             . $element->name . "')"
-        );
+    );
 }
 
 sub _load_value {
@@ -731,7 +734,7 @@ Config::Model::Loader - Load serialized data into config tree
 
 =head1 VERSION
 
-version 2.059
+version 2.060
 
 =head1 SYNOPSIS
 

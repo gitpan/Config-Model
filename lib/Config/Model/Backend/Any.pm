@@ -8,7 +8,7 @@
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
 package Config::Model::Backend::Any;
-$Config::Model::Backend::Any::VERSION = '2.059';
+$Config::Model::Backend::Any::VERSION = '2.060';
 use Carp;
 use strict;
 use warnings;
@@ -170,7 +170,7 @@ Config::Model::Backend::Any - Virtual class for other backends
 
 =head1 VERSION
 
-version 2.059
+version 2.060
 
 =head1 SYNOPSIS
 

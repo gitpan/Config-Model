@@ -8,7 +8,7 @@
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
 package Config::Model::Value;
-$Config::Model::Value::VERSION = '2.059';
+$Config::Model::Value::VERSION = '2.060';
 use 5.10.1;
 
 use Mouse;
@@ -1506,7 +1506,10 @@ sub _fetch {
     my $data = $self->{data};
     if ( defined $pref and not $self->{notified_change_for_default} and not defined $data ) {
         $self->{notified_change_for_default} = 1;
-        $self->notify_change( old => undef, new => $pref, note => "use standard value" );
+        my $info =  defined $self->{preset}  ? 'preset'
+                 : $self->compute_is_default ? 'computed'
+                 :                             'default';
+        $self->notify_change( old => undef, new => $pref, note => "use $info value" );
     }
 
     my $known_upstream =
@@ -1774,7 +1777,7 @@ Config::Model::Value - Strongly typed configuration value
 
 =head1 VERSION
 
-version 2.059
+version 2.060
 
 =head1 SYNOPSIS
 
