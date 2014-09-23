@@ -8,7 +8,7 @@
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
 package Config::Model::SimpleUI;
-$Config::Model::SimpleUI::VERSION = '2.060';
+$Config::Model::SimpleUI::VERSION = '2.061';
 use Carp;
 use strict;
 use warnings;
@@ -282,7 +282,7 @@ Config::Model::SimpleUI - Simple interface for Config::Model
 
 =head1 VERSION
 
-version 2.060
+version 2.061
 
 =head1 SYNOPSIS
 
