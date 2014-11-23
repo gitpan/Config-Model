@@ -8,7 +8,7 @@
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
 package Config::Model::Value;
-$Config::Model::Value::VERSION = '2.061';
+$Config::Model::Value::VERSION = '2.062';
 use 5.10.1;
 
 use Mouse;
@@ -346,7 +346,8 @@ sub migrate_value {
     }
 
     # old value is always undef when this method is called
-    $self->notify_change( note => 'migrated value', new => $result );
+    $self->notify_change( note => 'migrated value', new => $result )
+        if length($result); # skip empty value (i.e. '')
     $self->{data} = $result;
 
     return $ok ? $result : undef;
@@ -970,8 +971,9 @@ sub run_code_set_on_value {
     foreach my $label ( keys %$w_info ) {
         my $code = $w_info->{$label}{code};
         my $msg = $w_info->{$label}{msg} || $msg;
-        $msg .= " (code is: '$code')";
+        $logger->trace("eval'ed code is: '$code'");
         my $fix = $w_info->{$label}{fix};
+        $msg .= " (this can be fixed with 'cme fix' command)" if $fix;
 
         my $sub = sub {
             local $_ = shift;
@@ -1777,7 +1779,7 @@ Config::Model::Value - Strongly typed configuration value
 
 =head1 VERSION
 
-version 2.061
+version 2.062
 
 =head1 SYNOPSIS
 

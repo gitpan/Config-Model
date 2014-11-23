@@ -8,7 +8,7 @@
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
 package Config::Model::Node;
-$Config::Model::Node::VERSION = '2.061';
+$Config::Model::Node::VERSION = '2.062';
 use Mouse;
 
 use Carp;
@@ -168,6 +168,8 @@ sub create_node {
 
     my $element_info = dclone( $self->{model}{element}{$element_name} );
 
+    my $node_class = delete $element_info->{class} || 'Config::Model::Node';
+
     Config::Model::Exception::Model->throw(
         error  => "create node '$element_name' error: " . "missing config class name parameter",
         object => $self
@@ -182,7 +184,7 @@ sub create_node {
         container         => $self,
     );
 
-    $self->{element}{$element_name} = $self->new(@args);
+    $self->{element}{$element_name} = $node_class->new(@args);
 }
 
 sub create_warped_node {
@@ -245,7 +247,7 @@ sub create_id {
     croak "Undefined id_class for type '$type'"
         unless defined $id_class_hash{$type};
 
-    my $id_class = delete $element_info->{ $type . '_class' }
+    my $id_class = delete $element_info->{class}
         || 'Config::Model::' . $id_class_hash{$type};
 
     if ( not defined *{ $id_class . '::' } ) {
@@ -1124,7 +1126,7 @@ Config::Model::Node - Class for configuration tree node
 
 =head1 VERSION
 
-version 2.061
+version 2.062
 
 =head1 SYNOPSIS
 
@@ -1388,6 +1390,13 @@ L</"List element">
 The element is a collection of values which are unique in the
 check_list. See L<CheckList>.
 
+=item C<class>
+
+Override the default class for leaf, list and hash elements. The override
+class be inherit L<Config::Model::Value> for leaf element,
+L<Config::Model::HashId> for hash element and
+L<Config::Model::ListId> for list element.
+
 =back
 
 =head2 Node element
@@ -1405,6 +1414,9 @@ C<config_class_name> parameter. For instance:
                             },
               ]
    ) ;
+
+You may specify a Perl class to implement the above config class. This
+Perl Class B<must> inherit L<Config::Model::Node>.
 
 =head2 Leaf element
 

@@ -8,7 +8,7 @@
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
 package Config::Model::SimpleUI;
-$Config::Model::SimpleUI::VERSION = '2.061';
+$Config::Model::SimpleUI::VERSION = '2.062';
 use Carp;
 use strict;
 use warnings;
@@ -63,7 +63,7 @@ my $desc_sub = sub {
 
 my $ll_sub = sub {
     my $self = shift;
-    my $elt  = shift;
+    my $elt  = shift // '';
 
     my $obj = $self->{current_node};
     my $res ;
@@ -282,7 +282,7 @@ Config::Model::SimpleUI - Simple interface for Config::Model
 
 =head1 VERSION
 
-version 2.061
+version 2.062
 
 =head1 SYNOPSIS
 

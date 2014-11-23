@@ -8,7 +8,7 @@
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
 package Config::Model::ObjTreeScanner;
-$Config::Model::ObjTreeScanner::VERSION = '2.061';
+$Config::Model::ObjTreeScanner::VERSION = '2.062';
 use strict;
 use Config::Model::Exception;
 use Scalar::Util qw/blessed/;
@@ -285,7 +285,7 @@ Config::Model::ObjTreeScanner - Scan config tree and perform call-backs for each
 
 =head1 VERSION
 
-version 2.061
+version 2.062
 
 =head1 SYNOPSIS
 
@@ -442,14 +442,14 @@ Optional parameter:
 
 =item fallback
 
-If set to 'node', the scanner will provide default call-back for node
-items. If set to 'leaf', the scanner will set all leaf callback (like
+If set to C<node>, the scanner will provide default call-back for node
+items. If set to C<leaf>, the scanner will set all leaf callback (like
 enum_value_cb ...) to string_value_cb or to the mandatory leaf_cb
 value. "fallback" callback will not override callbacks provided by the
 user.
 
-If set to 'all', equivalent to 'node' and 'leaf'. By default, no
-fallback is provided.
+If set to C<all> , the scanner provides fallbacks for leaf and node. 
+By default, all fallback are provided.
 
 =item auto_vivify
 

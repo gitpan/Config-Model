@@ -8,7 +8,7 @@
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
 package Config::Model::ValueComputer;
-$Config::Model::ValueComputer::VERSION = '2.061';
+$Config::Model::ValueComputer::VERSION = '2.062';
 use Mouse;
 use MouseX::StrictConstructor;
 
@@ -578,7 +578,7 @@ Config::Model::ValueComputer - Provides configuration value computation
 
 =head1 VERSION
 
-version 2.061
+version 2.062
 
 =head1 SYNOPSIS
 

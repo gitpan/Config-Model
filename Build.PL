@@ -46,8 +46,8 @@ my $class = Module::Build->subclass(
 
 sub ACTION_build {
     my $self = shift;
-    # below requires Config::Model 2.026
-    system ($^X, qw!-Ilib script/cme gen-class-pod!) ;
+    # below requires Config::Model 2.062
+    system ($^X, qw!-I lib -MConfig::Model::Utils::GenClassPod -e 'gen_class_pod();'!) ;
     $self->SUPER::ACTION_build;
 }
 SUBCLASS
@@ -57,14 +57,11 @@ my @version_info = @ARGV ? ( dist_version => $ARGV[0] ) : ();
 
 my %appli_files = map { ( $_, $_ ) } glob("lib/Config/Model/*.d/*");
 
-# add extensions
-do { $appli_files{$_}=$_ ;} for glob("lib/Config/Model/extensions/cme-*") ;
-
 my $build = $class->new(
     module_name => 'Config::Model',
     @version_info,
     license       => 'lgpl',
-    script_files  => ['config-edit','script/cme'],
+    script_files  => ['script/cme-old'],
     appli_files   => \%appli_files,
     dist_abstract => 'Describe, edit and validate configuration data',
     dist_author   => 'Dominique Dumont (ddumont at cpan dot org)',
@@ -72,10 +69,8 @@ my $build = $class->new(
   'build_requires' => {
     'Config::Model::Tester' => '2.046',
     'Module::Build' => '0.34',
-    'Probe::Perl' => '0',
     'Term::ReadLine::Gnu' => '0',
     'Term::ReadLine::Perl' => '0',
-    'Test::Command' => '0.08',
     'Test::Differences' => '0',
     'Test::Exception' => '0',
     'Test::File::Contents' => '0',

@@ -10,7 +10,6 @@ MODELS
 README.install.pod
 README.pod
 TODO
-config-edit
 contrib/bash_completion.cme
 contrib/bash_completion.cme_multistrap
 contrib/bash_completion.config-edit
@@ -62,13 +61,13 @@ lib/Config/Model/SearchElement.pm
 lib/Config/Model/SimpleUI.pm
 lib/Config/Model/TermUI.pm
 lib/Config/Model/TreeSearcher.pm
+lib/Config/Model/Utils/GenClassPod.pm
 lib/Config/Model/Value.pm
 lib/Config/Model/Value/LayeredInclude.pm
 lib/Config/Model/ValueComputer.pm
 lib/Config/Model/WarpedNode.pm
 lib/Config/Model/Warper.pm
 lib/Config/Model/application.d/multistrap
-lib/Config/Model/extensions/cme-gen-class-pod
 lib/Config/Model/models/Fstab.pl
 lib/Config/Model/models/Fstab.pod
 lib/Config/Model/models/Fstab/CommonOptions.pl
@@ -89,7 +88,7 @@ lib/Config/Model/models/PopCon.pl
 lib/Config/Model/models/PopCon.pod
 lib/Config/Model/system.d/fstab
 lib/Config/Model/system.d/popcon
-script/cme
+script/cme-old
 t/accept.t
 t/annotation.t
 t/apply_fix.t
@@ -104,8 +103,6 @@ t/backend_multiple.t
 t/backend_plainfile.t
 t/big_model.pm
 t/check_list.t
-t/cme-command.t
-t/config-edit-command.t
 t/describe_node.t
 t/dump_as_data.t
 t/dump_load_model.pm
