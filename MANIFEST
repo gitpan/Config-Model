@@ -10,9 +10,8 @@ MODELS
 README.install.pod
 README.pod
 TODO
-contrib/bash_completion.cme
+contrib/bash_completion.cme-old
 contrib/bash_completion.cme_multistrap
-contrib/bash_completion.config-edit
 contrib/log4config-model
 examples/fstab/README
 examples/fstab/add-ext4-workshop.txt

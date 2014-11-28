@@ -8,7 +8,7 @@
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
 package Config::Model::CheckList;
-$Config::Model::CheckList::VERSION = '2.062';
+$Config::Model::CheckList::VERSION = '2.063';
 use Mouse;
 use 5.010;
 
@@ -701,7 +701,7 @@ Config::Model::CheckList - Handle check list element
 
 =head1 VERSION
 
-version 2.062
+version 2.063
 
 =head1 SYNOPSIS
 
