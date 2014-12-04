@@ -8,7 +8,7 @@
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
 package Config::Model::Node;
-$Config::Model::Node::VERSION = '2.063';
+$Config::Model::Node::VERSION = '2.064';
 use Mouse;
 
 use Carp;
@@ -167,8 +167,10 @@ sub create_node {
     my ( $self, $element_name, $check ) = @_;
 
     my $element_info = dclone( $self->{model}{element}{$element_name} );
+    my $config_class_name = $element_info->{config_class_name};
 
-    my $node_class = delete $element_info->{class} || 'Config::Model::Node';
+    my $config_class =  $self->config_model->get_model($config_class_name) ;
+    my $node_class = $config_class->{class} || 'Config::Model::Node';
 
     Config::Model::Exception::Model->throw(
         error  => "create node '$element_name' error: " . "missing config class name parameter",
@@ -176,7 +178,7 @@ sub create_node {
     ) unless defined $element_info->{config_class_name};
 
     my @args = (
-        config_class_name => $element_info->{config_class_name},
+        config_class_name => $config_class_name,
         instance          => $self->{instance},
         element_name      => $element_name,
         check             => $check,
@@ -1126,7 +1128,7 @@ Config::Model::Node - Class for configuration tree node
 
 =head1 VERSION
 
-version 2.063
+version 2.064
 
 =head1 SYNOPSIS
 
@@ -1230,6 +1232,12 @@ element in another configuration class.
 
 Optional C<string> parameter. This description will be used when
 generating user interfaces.
+
+=item B<class>
+
+Optional C<string> to specify a Perl class to override the default
+implementation (L<Config::Model::Node>).  This Perl Class B<must>
+inherit L<Config::Model::Node>. Use with care.
 
 =item B<element>
 
@@ -1414,9 +1422,6 @@ C<config_class_name> parameter. For instance:
                             },
               ]
    ) ;
-
-You may specify a Perl class to implement the above config class. This
-Perl Class B<must> inherit L<Config::Model::Node>.
 
 =head2 Leaf element
 

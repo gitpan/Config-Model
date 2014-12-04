@@ -8,7 +8,7 @@
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
 package Config::Model::Dumper;
-$Config::Model::Dumper::VERSION = '2.063';
+$Config::Model::Dumper::VERSION = '2.064';
 use Carp;
 use strict;
 use warnings;
@@ -256,7 +256,7 @@ Config::Model::Dumper - Serialize data of config tree
 
 =head1 VERSION
 
-version 2.063
+version 2.064
 
 =head1 SYNOPSIS
 
