@@ -1,20 +1,21 @@
 #
 # This file is part of Config-Model
 #
-# This software is Copyright (c) 2014 by Dominique Dumont.
+# This software is Copyright (c) 2015 by Dominique Dumont.
 #
 # This is free software, licensed under:
 #
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
 package Config::Model::Instance;
-$Config::Model::Instance::VERSION = '2.064';
+$Config::Model::Instance::VERSION = '2.065';
 #use Scalar::Util qw(weaken) ;
 
 use 5.10.1;
 use Mouse;
 use Mouse::Util::TypeConstraints;
 use MouseX::StrictConstructor;
+with "Config::Model::Role::NodeLoader";
 
 use Text::Diff;
 use File::Path;
@@ -37,6 +38,8 @@ my $logger        = get_logger("Instance");
 my $change_logger = get_logger("Anything::Change");
 
 has [qw/root_class_name/] => ( is => 'ro', isa => 'Str', required => 1 );
+
+sub location { return "in instance" }
 
 has config_model => (
     is       => 'ro',
@@ -225,7 +228,7 @@ has tree => (
 sub reset_config {
     my $self = shift;
 
-    return Config::Model::Node->new(
+    return $self->load_node (
         config_class_name => $self->{root_class_name},
         instance          => $self,
         container         => $self,
@@ -482,7 +485,7 @@ Config::Model::Instance - Instance of configuration tree
 
 =head1 VERSION
 
-version 2.064
+version 2.065
 
 =head1 SYNOPSIS
 
@@ -768,7 +771,7 @@ Dominique Dumont
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is Copyright (c) 2014 by Dominique Dumont.
+This software is Copyright (c) 2015 by Dominique Dumont.
 
 This is free software, licensed under:
 

@@ -1,7 +1,7 @@
 #
 # This file is part of Config-Model
 #
-# This software is Copyright (c) 2014 by Dominique Dumont.
+# This software is Copyright (c) 2015 by Dominique Dumont.
 #
 # This is free software, licensed under:
 #

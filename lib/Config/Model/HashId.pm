@@ -1,14 +1,14 @@
 #
 # This file is part of Config-Model
 #
-# This software is Copyright (c) 2014 by Dominique Dumont.
+# This software is Copyright (c) 2015 by Dominique Dumont.
 #
 # This is free software, licensed under:
 #
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
 package Config::Model::HashId;
-$Config::Model::HashId::VERSION = '2.064';
+$Config::Model::HashId::VERSION = '2.065';
 use Mouse;
 
 use Config::Model::Exception;
@@ -506,7 +506,7 @@ Config::Model::HashId - Handle hash element for configuration model
 
 =head1 VERSION
 
-version 2.064
+version 2.065
 
 =head1 SYNOPSIS
 
@@ -610,7 +610,7 @@ Dominique Dumont
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is Copyright (c) 2014 by Dominique Dumont.
+This software is Copyright (c) 2015 by Dominique Dumont.
 
 This is free software, licensed under:
 

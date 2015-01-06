@@ -1,17 +1,19 @@
 #
 # This file is part of Config-Model
 #
-# This software is Copyright (c) 2014 by Dominique Dumont.
+# This software is Copyright (c) 2015 by Dominique Dumont.
 #
 # This is free software, licensed under:
 #
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
 package Config::Model::Node;
-$Config::Model::Node::VERSION = '2.064';
+$Config::Model::Node::VERSION = '2.065';
 use Mouse;
+with "Config::Model::Role::NodeLoader";
 
 use Carp;
+use 5.010;
 
 use Config::Model::Exception;
 use Config::Model::Loader;
@@ -169,9 +171,6 @@ sub create_node {
     my $element_info = dclone( $self->{model}{element}{$element_name} );
     my $config_class_name = $element_info->{config_class_name};
 
-    my $config_class =  $self->config_model->get_model($config_class_name) ;
-    my $node_class = $config_class->{class} || 'Config::Model::Node';
-
     Config::Model::Exception::Model->throw(
         error  => "create node '$element_name' error: " . "missing config class name parameter",
         object => $self
@@ -186,7 +185,7 @@ sub create_node {
         container         => $self,
     );
 
-    $self->{element}{$element_name} = $node_class->new(@args);
+    $self->{element}{$element_name} = $self->load_node(@args);
 }
 
 sub create_warped_node {
@@ -1128,7 +1127,7 @@ Config::Model::Node - Class for configuration tree node
 
 =head1 VERSION
 
-version 2.064
+version 2.065
 
 =head1 SYNOPSIS
 
@@ -1805,7 +1804,7 @@ Dominique Dumont
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is Copyright (c) 2014 by Dominique Dumont.
+This software is Copyright (c) 2015 by Dominique Dumont.
 
 This is free software, licensed under:
 

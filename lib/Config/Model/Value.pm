@@ -1,14 +1,14 @@
 #
 # This file is part of Config-Model
 #
-# This software is Copyright (c) 2014 by Dominique Dumont.
+# This software is Copyright (c) 2015 by Dominique Dumont.
 #
 # This is free software, licensed under:
 #
 #   The GNU Lesser General Public License, Version 2.1, February 1999
 #
 package Config::Model::Value;
-$Config::Model::Value::VERSION = '2.064';
+$Config::Model::Value::VERSION = '2.065';
 use 5.10.1;
 
 use Mouse;
@@ -101,7 +101,7 @@ has error_list => (
     handles => {
         add_error    => 'push',
         clear_errors => 'clear',
-        error_msg    => [ join => "\n\t" ],
+        error_msg    => [ join => "\n" ],
         has_error    => 'count',
         all_errors   => 'elements',
         is_ok        => 'is_empty'
@@ -968,11 +968,12 @@ sub run_code_on_value {
 sub run_code_set_on_value {
     my ( $self, $value_r, $apply_fix, $array, $msg, $w_info, $invert ) = @_;
 
-    foreach my $label ( keys %$w_info ) {
+    foreach my $label ( sort keys %$w_info ) {
         my $code = $w_info->{$label}{code};
         my $msg = $w_info->{$label}{msg} || $msg;
         $logger->trace("eval'ed code is: '$code'");
         my $fix = $w_info->{$label}{fix};
+        $msg =~ s/\$_/$$value_r/g if defined $$value_r;
         $msg .= " (this can be fixed with 'cme fix' command)" if $fix;
 
         my $sub = sub {
@@ -1779,7 +1780,7 @@ Config::Model::Value - Strongly typed configuration value
 
 =head1 VERSION
 
-version 2.064
+version 2.065
 
 =head1 SYNOPSIS
 
@@ -2005,7 +2006,15 @@ C<$self> will contain the value object. Use with care.
 
 In the example below, any value matching 'foo' will be converted in uppercase:
 
-warn_if_match => { 'foo' => { fix =>'uc;', msg =>  'lower foo is not good'}},
+ warn_if_match => {
+   'foo' => { fix =>'uc;', msg =>  'value $_ contains foo'}
+   'BAR' => { fix =>'lc;', msg =>  'value $_ contains BAR'}
+ },
+
+The tests will be done in alphabetical order. In the example above, C<BAR> test will
+be done before C<foo> test.
+
+C<$_> will be substituted with the bad value when the message is generated.
 
 =item warn_unless_match
 
@@ -2030,7 +2039,7 @@ The example below will warn if value contaims a number:
  warn_if => {
                 warn_test => {
                     code => 'defined $_ && /\d/;',
-                    msg  => 'should not have numbers',
+                    msg  => 'value $_ should not have numbers',
                     fix  => 's/\d//g;'
                 }
             },
@@ -2050,7 +2059,15 @@ The example below will warn unless the value points to an existing directory:
 
 =item assert
 
-Like C<warn_if_match>. Except that returned value will trigger an error if false.
+Like C<warn_if>. Except that returned value will trigger an error if false:
+
+  assert => {
+                test_nb => {
+                    code => 'defined $_ && /\d/;',
+                    msg  => 'should not have numbers',
+                    fix  => 's/\d//g;'
+                }
+            },
 
 =item grammar
 
@@ -2739,7 +2756,7 @@ Dominique Dumont
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is Copyright (c) 2014 by Dominique Dumont.
+This software is Copyright (c) 2015 by Dominique Dumont.
 
 This is free software, licensed under:
 

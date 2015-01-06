@@ -1,7 +1,7 @@
 #
 # This file is part of Config-Model
 #
-# This software is Copyright (c) 2014 by Dominique Dumont.
+# This software is Copyright (c) 2015 by Dominique Dumont.
 #
 # This is free software, licensed under:
 #
@@ -102,6 +102,8 @@ my $build = $class->new(
     'List::MoreUtils' => '0',
     'Log::Log4perl' => '1.11',
     'Mouse' => '0',
+    'Mouse::Role' => '0',
+    'Mouse::Util' => '0',
     'Mouse::Util::TypeConstraints' => '0',
     'MouseX::NativeTraits' => '0',
     'MouseX::StrictConstructor' => '0',

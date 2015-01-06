@@ -46,6 +46,8 @@
             "List::MoreUtils" : "0",
             "Log::Log4perl" : "1.11",
             "Mouse" : "0",
+            "Mouse::Role" : "0",
+            "Mouse::Util" : "0",
             "Mouse::Util::TypeConstraints" : "0",
             "MouseX::NativeTraits" : "0",
             "MouseX::StrictConstructor" : "0",
@@ -89,6 +91,6 @@
          "web" : "http://github.com/dod38fr/config-model"
       }
    },
-   "version" : "2.064"
+   "version" : "2.065"
 }
 
